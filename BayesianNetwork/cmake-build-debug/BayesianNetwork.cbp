@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6"/>
+	<Project>
+		<Option title="BayesianNetwork"/>
+		<Option makefile_is_custom="1"/>
+		<Option compiler="gcc"/>
+		<Option virtualFolders="CMake Files\;"/>
+		<Build>
+			<Target title="all">
+				<Option working_dir="/cygdrive/d/Project_Directory/CLionProjects/BayesianNetwork/cmake-build-debug"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make.exe -j4 -f &quot;/cygdrive/d/Project_Directory/CLionProjects/BayesianNetwork/cmake-build-debug/Makefile&quot;  VERBOSE=1 all"/>
+					<CompileFile command="/usr/bin/make.exe -j4 -f &quot;/cygdrive/d/Project_Directory/CLionProjects/BayesianNetwork/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make.exe -j4 -f &quot;/cygdrive/d/Project_Directory/CLionProjects/BayesianNetwork/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make.exe -j4 -f &quot;/cygdrive/d/Project_Directory/CLionProjects/BayesianNetwork/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="rebuild_cache">
+				<Option working_dir="/cygdrive/d/Project_Directory/CLionProjects/BayesianNetwork/cmake-build-debug"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make.exe -j4 -f &quot;/cygdrive/d/Project_Directory/CLionProjects/BayesianNetwork/cmake-build-debug/Makefile&quot;  VERBOSE=1 rebuild_cache"/>
+					<CompileFile command="/usr/bin/make.exe -j4 -f &quot;/cygdrive/d/Project_Directory/CLionProjects/BayesianNetwork/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make.exe -j4 -f &quot;/cygdrive/d/Project_Directory/CLionProjects/BayesianNetwork/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make.exe -j4 -f &quot;/cygdrive/d/Project_Directory/CLionProjects/BayesianNetwork/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="BayesianNetwork">
+				<Option output="/cygdrive/d/Project_Directory/CLionProjects/BayesianNetwork/cmake-build-debug/BayesianNetwork.exe" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir=""/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="D:/SDK/boost_1_68_0"/>
+					<Add directory="/usr/lib/gcc/x86_64-pc-cygwin/7.3.0/include/c++"/>
+					<Add directory="/usr/lib/gcc/x86_64-pc-cygwin/7.3.0/include/c++/x86_64-pc-cygwin"/>
+					<Add directory="/usr/lib/gcc/x86_64-pc-cygwin/7.3.0/include/c++/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-pc-cygwin/7.3.0/include"/>
+					<Add directory="/usr/include"/>
+					<Add directory="/usr/lib/gcc/x86_64-pc-cygwin/7.3.0/../../../../lib/../include/w32api"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make.exe -j4 -f &quot;/cygdrive/d/Project_Directory/CLionProjects/BayesianNetwork/cmake-build-debug/Makefile&quot;  VERBOSE=1 BayesianNetwork"/>
+					<CompileFile command="/usr/bin/make.exe -j4 -f &quot;/cygdrive/d/Project_Directory/CLionProjects/BayesianNetwork/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make.exe -j4 -f &quot;/cygdrive/d/Project_Directory/CLionProjects/BayesianNetwork/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make.exe -j4 -f &quot;/cygdrive/d/Project_Directory/CLionProjects/BayesianNetwork/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="BayesianNetwork/fast">
+				<Option output="/cygdrive/d/Project_Directory/CLionProjects/BayesianNetwork/cmake-build-debug/BayesianNetwork.exe" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir=""/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="D:/SDK/boost_1_68_0"/>
+					<Add directory="/usr/lib/gcc/x86_64-pc-cygwin/7.3.0/include/c++"/>
+					<Add directory="/usr/lib/gcc/x86_64-pc-cygwin/7.3.0/include/c++/x86_64-pc-cygwin"/>
+					<Add directory="/usr/lib/gcc/x86_64-pc-cygwin/7.3.0/include/c++/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-pc-cygwin/7.3.0/include"/>
+					<Add directory="/usr/include"/>
+					<Add directory="/usr/lib/gcc/x86_64-pc-cygwin/7.3.0/../../../../lib/../include/w32api"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make.exe -j4 -f &quot;/cygdrive/d/Project_Directory/CLionProjects/BayesianNetwork/cmake-build-debug/Makefile&quot;  VERBOSE=1 BayesianNetwork/fast"/>
+					<CompileFile command="/usr/bin/make.exe -j4 -f &quot;/cygdrive/d/Project_Directory/CLionProjects/BayesianNetwork/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make.exe -j4 -f &quot;/cygdrive/d/Project_Directory/CLionProjects/BayesianNetwork/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make.exe -j4 -f &quot;/cygdrive/d/Project_Directory/CLionProjects/BayesianNetwork/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="edit_cache">
+				<Option working_dir="/cygdrive/d/Project_Directory/CLionProjects/BayesianNetwork/cmake-build-debug"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make.exe -j4 -f &quot;/cygdrive/d/Project_Directory/CLionProjects/BayesianNetwork/cmake-build-debug/Makefile&quot;  VERBOSE=1 edit_cache"/>
+					<CompileFile command="/usr/bin/make.exe -j4 -f &quot;/cygdrive/d/Project_Directory/CLionProjects/BayesianNetwork/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make.exe -j4 -f &quot;/cygdrive/d/Project_Directory/CLionProjects/BayesianNetwork/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make.exe -j4 -f &quot;/cygdrive/d/Project_Directory/CLionProjects/BayesianNetwork/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+		</Build>
+		<Unit filename="/cygdrive/d/Project_Directory/CLionProjects/BayesianNetwork/Edge.cpp">
+			<Option target="BayesianNetwork"/>
+		</Unit>
+		<Unit filename="/cygdrive/d/Project_Directory/CLionProjects/BayesianNetwork/Edge.h">
+			<Option target="BayesianNetwork"/>
+		</Unit>
+		<Unit filename="/cygdrive/d/Project_Directory/CLionProjects/BayesianNetwork/Factor.cpp">
+			<Option target="BayesianNetwork"/>
+		</Unit>
+		<Unit filename="/cygdrive/d/Project_Directory/CLionProjects/BayesianNetwork/Factor.h">
+			<Option target="BayesianNetwork"/>
+		</Unit>
+		<Unit filename="/cygdrive/d/Project_Directory/CLionProjects/BayesianNetwork/Network.cpp">
+			<Option target="BayesianNetwork"/>
+		</Unit>
+		<Unit filename="/cygdrive/d/Project_Directory/CLionProjects/BayesianNetwork/Network.h">
+			<Option target="BayesianNetwork"/>
+		</Unit>
+		<Unit filename="/cygdrive/d/Project_Directory/CLionProjects/BayesianNetwork/Node.cpp">
+			<Option target="BayesianNetwork"/>
+		</Unit>
+		<Unit filename="/cygdrive/d/Project_Directory/CLionProjects/BayesianNetwork/Node.h">
+			<Option target="BayesianNetwork"/>
+		</Unit>
+		<Unit filename="/cygdrive/d/Project_Directory/CLionProjects/BayesianNetwork/SomeTest.h">
+			<Option target="BayesianNetwork"/>
+		</Unit>
+		<Unit filename="/cygdrive/d/Project_Directory/CLionProjects/BayesianNetwork/Trainer.cpp">
+			<Option target="BayesianNetwork"/>
+		</Unit>
+		<Unit filename="/cygdrive/d/Project_Directory/CLionProjects/BayesianNetwork/Trainer.h">
+			<Option target="BayesianNetwork"/>
+		</Unit>
+		<Unit filename="/cygdrive/d/Project_Directory/CLionProjects/BayesianNetwork/gadget.cpp">
+			<Option target="BayesianNetwork"/>
+		</Unit>
+		<Unit filename="/cygdrive/d/Project_Directory/CLionProjects/BayesianNetwork/gadget.h">
+			<Option target="BayesianNetwork"/>
+		</Unit>
+		<Unit filename="/cygdrive/d/Project_Directory/CLionProjects/BayesianNetwork/main.cpp">
+			<Option target="BayesianNetwork"/>
+		</Unit>
+		<Unit filename="/cygdrive/d/Project_Directory/CLionProjects/BayesianNetwork/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\"/>
+		</Unit>
+	</Project>
+</CodeBlocks_project_file>
