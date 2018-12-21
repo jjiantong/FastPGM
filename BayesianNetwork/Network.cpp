@@ -212,6 +212,13 @@ void Network::structLearn_ChowLiu_CompData(const Trainer *trainer) {
 	int* topologicalSortedPermutation = widthFirstTraversalWithAdjacencyMatirx(graphAdjacencyMatrix, n, 0);
 
 
+	// !!! See the comments for "treeEliminationOrder" in the "Network.h" file.
+	treeEliminationOrder = new int[n-1];
+	for (int i=1; i<n; i++) {
+		treeEliminationOrder[i-1] = topologicalSortedPermutation[n-i];
+	}
+
+
 	cout << "=======================================================================" << '\n'
 		 << "Setting children and parents......" << endl;
 	for (int i=0; i<n; i++) {
@@ -414,6 +421,44 @@ Combination Network::constructEvidence(int* nodesIndexes, int* observations, int
 	return result;
 }
 
+/*
+vector<Factor> Network::constructFactorsWithEvidences(int* Z, int nz, Node* Y, Combination E) {
+	vector<Factor> factorsList;
+	Factor factor;
+	factor.constructFactor(Y);
+	for (Combination::iterator itE=E.begin(); itE!=E.end(); itE++) {	// Check each observation in E
+		if ((*itE).first==Y->nodeName) {	// If this node "Y" has been observed
+			for (set<Combination>::iterator itCL=factor.combList.begin(); itCL!=factor.combList.end(); itCL++) {	// Update each row of potentialsList
+				// If (*itCL) is not compatible with (*itE), set potentialsList[*itCL]=0.
+				if ((*itCL).find(*itE)==(*itCL).end()) {
+					factor.potentialsList[*itCL] = 0;
+				}
+			}
+			break;
+		}
+	}
+	factorsList.push_back(factor);
+	for (int i=0; i<nz; i++) {
+		Node* n = givenIndexToFindNodePointer(Z[i]);
+		Factor factor;
+		factor.constructFactor(n);
+		for (Combination::iterator itE=E.begin(); itE!=E.end(); itE++) {	// Check each observation in E
+			if ((*itE).first==n->nodeName) {	// If this node "n" has been observed
+				for (set<Combination>::iterator itCL=factor.combList.begin(); itCL!=factor.combList.end(); itCL++) {	// Update each row of potentialsList
+					// If (*itCL) is not compatible with (*itE), set potentialsList[*itCL]=0.
+					if ((*itCL).find(*itE)==(*itCL).end()) {
+						factor.potentialsList[*itCL] = 0;
+					}
+				}
+				break;
+			}
+		}
+		factorsList.push_back(factor);
+	}
+	return factorsList;
+}
+*/
+
 vector<Factor> Network::constructFactors(int* Z, int nz, Node* Y) {
 	vector<Factor> factorsList;
 	Factor factor;
@@ -478,16 +523,40 @@ Factor Network::sumProductVariableElimination(vector<Factor> factorsList, int* Z
 		Factor newFactor = tempFactorsList.back().sumProductOverVariable(nodePtr);
 		factorsList.push_back(newFactor);
 	}
+
+	/*
+	 * 	If we are calculating a node's posterior probability given evidence about its children,
+	 * 	then when the program runs to here,
+	 * 	the "factorsList" will contain several factors about the same node which is the query node Y.
+	 * 	When it happens, we need to multiply these several factors.
+	 * */
+	while (factorsList.size()>1) {
+		Factor temp1, temp2, product;
+		temp1 = factorsList.back();
+		factorsList.pop_back();
+		temp2 = factorsList.back();
+		factorsList.pop_back();
+		product = temp1.multiplyWithFactor(temp2);
+		factorsList.push_back(product);
+	}
+
 	return factorsList.back();	// After all the processing shown above, the only remaining factor is the factor about Y.
 }
 
 Factor Network::variableEliminationInferenceReturningPossibilities(int* Z, int nz, Combination E, Node* Y) {
 	vector<Factor> factorsList = constructFactors(Z, nz, Y);
 	loadEvidence(&factorsList,E);
+	//vector<Factor> factorsList = constructFactorsWithEvidences(Z, nz, Y, E);
 	Factor F = sumProductVariableElimination(factorsList, Z, nz);
 	F.normalize();
 	return F;
 }
+
+Factor Network::variableEliminationInferenceReturningPossibilities(Combination E, Node* Y) {
+	return this->variableEliminationInferenceReturningPossibilities(treeEliminationOrder, numOfNodes-1, E, Y);
+}
+
+
 
 double Network::testingNetworkReturnAccuracy(Trainer* tester) {
 

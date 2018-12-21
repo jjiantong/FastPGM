@@ -73,16 +73,16 @@ void Trainer::loadLibSVMData(string dataFilePath) {
 		boost::algorithm::split(parsedSample, sample, boost::algorithm::is_space());
 		it=parsedSample.begin();
 		trainingSet[i][0] = stoi(*it);
-		cout << trainingSet[i][0] << '\t'; // todo delete
+		//cout << trainingSet[i][0] << '\t'; // todo delete
 		it++;
 		for ( ; it!=parsedSample.end(); it++) {
 			boost::algorithm::split(parsedFeature, *it, boost::algorithm::is_any_of(":"));
 			index = stoi(parsedFeature[0]);
 			value = stoi(parsedFeature[1]);
 			trainingSet[i][index] = value;
-			cout << index << ':' << trainingSet[i][index] << '\t'; // todo delete
+			//cout << index << ':' << trainingSet[i][index] << '\t'; // todo delete
 		}
-		cout << "Sample " << i << " loaded." << endl; // todo delete
+		//cout << "Sample " << i << " loaded." << endl; // todo delete
 
 	}
 

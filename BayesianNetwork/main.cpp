@@ -33,7 +33,6 @@ int main() {
 	Network* network = new Network();
 	network->structLearn_ChowLiu_CompData(trainer);
 	network->trainNetwork_KnowStruct_CompData(trainer);
-	network
 
 	st.test2(network);
 
