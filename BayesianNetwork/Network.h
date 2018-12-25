@@ -27,7 +27,7 @@ public:
 	set<Node*> nodesContainer;
 	//set<Edge*> edgesContainer;
 
-	/* About "treeEliminationOrder":
+	/* About "treeDefaultEliminationOrder":
 	 * 		This attribute is not supposed to exist.
 	 * 		But for now, I have just implemented the part of ChowLiu tree.
 	 * 		And I have not implemented the part of generating an elimination order automatically.
@@ -35,7 +35,7 @@ public:
 	 * 		The order is fixed for one tree, but different for different trees.
 	 * 		It is just the reverse order of width-first-traversal start at the root node.
 	 * */
-	int* treeEliminationOrder;
+	int* treeDefaultEliminationOrder;
 
 	Network();
 
@@ -49,7 +49,6 @@ public:
 
 	Combination constructEvidence(int*, int*, int);
 	vector<Factor> constructFactors(int*, int, Node*);
-	//vector<Factor> constructFactorsWithEvidences(int*, int, Node*, Combination);
 	void loadEvidence(vector<Factor>*, Combination);
 	Factor sumProductVariableElimination(vector<Factor>, int*, int);
 	Factor variableEliminationInferenceReturningPossibilities(int*, int, Combination, Node*);

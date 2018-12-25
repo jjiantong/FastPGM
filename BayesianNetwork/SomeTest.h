@@ -71,7 +71,7 @@ public:
 
 /*
 		Node* Y = network->givenIndexToFindNodePointer(0);
-		int nZ=15, *Z=new int[nZ]{12,39,40,51,60,75,76,89,96,111,116,120,121,122,123};;
+		int nZ=15, *Z=new int[nZ]{12,39,40,51,60,75,76,89,96,111,116,120,121,122,123};
 		int eNum=4, *eIndex=new int[eNum]{12,39,74,75}, *eValue=new int[eNum]{0,1,0,1};
 		Combination E = network->constructEvidence(eIndex,eValue,eNum);
 		Factor F = network->variableEliminationInferenceReturningPossibilities(Z, nZ, E, Y);

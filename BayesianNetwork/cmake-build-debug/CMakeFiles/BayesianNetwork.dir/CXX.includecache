@@ -24,6 +24,10 @@ gadget.h
 Node.h
 /cygdrive/d/Project_Directory/CLionProjects/BayesianNetwork/Node.h
 
+/cygdrive/d/Project_Directory/CLionProjects/BayesianNetwork/Network.cpp
+Network.h
+/cygdrive/d/Project_Directory/CLionProjects/BayesianNetwork/Network.h
+
 /cygdrive/d/Project_Directory/CLionProjects/BayesianNetwork/Network.h
 Trainer.h
 /cygdrive/d/Project_Directory/CLionProjects/BayesianNetwork/Trainer.h
@@ -58,26 +62,6 @@ string
 gadget.h
 /cygdrive/d/Project_Directory/CLionProjects/BayesianNetwork/gadget.h
 
-/cygdrive/d/Project_Directory/CLionProjects/BayesianNetwork/SomeTest.h
-iostream
--
-string
--
-vector
--
-iostream
--
-fstream
--
-boost/algorithm/string/split.hpp
--
-boost/algorithm/string.hpp
--
-Trainer.h
-/cygdrive/d/Project_Directory/CLionProjects/BayesianNetwork/Trainer.h
-Network.h
-/cygdrive/d/Project_Directory/CLionProjects/BayesianNetwork/Network.h
-
 /cygdrive/d/Project_Directory/CLionProjects/BayesianNetwork/Trainer.h
 string
 -
@@ -107,20 +91,6 @@ queue
 -
 iostream
 -
-
-/cygdrive/d/Project_Directory/CLionProjects/BayesianNetwork/main.cpp
-iostream
--
-fstream
--
-ctime
--
-SomeTest.h
-/cygdrive/d/Project_Directory/CLionProjects/BayesianNetwork/SomeTest.h
-Trainer.h
-/cygdrive/d/Project_Directory/CLionProjects/BayesianNetwork/Trainer.h
-Network.h
-/cygdrive/d/Project_Directory/CLionProjects/BayesianNetwork/Network.h
 
 D:/SDK/boost_1_68_0/boost/algorithm/string.hpp
 boost/algorithm/string/std_containers_traits.hpp
