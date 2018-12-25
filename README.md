@@ -1,4 +1,4 @@
-<h1> bayesian-network </h1>
+# bayesian-network
 
 Developed by Linjian Li, using Clion 2018.3.1
 
