@@ -12,8 +12,12 @@ Developed by Linjian Li, using Clion 2018.3.1
 ## Performance
 
 ### LIBSVM dataset "a1a"
-As a benchmark, logistic regression and SVM implemented by me using Python both achieved accuracy of **0.83**. <br/>
-My bayesian network achieved accuracy of **0.827626** using **Chow-Liu Tree** and **variable elimination inference**.
+As a benchmark, 
+ * SVM implemented by me using Python achieves accuracy of **0.8286**
+ * Logistic regression achieves accuracy of **0.8332**
+ * sklearn.naive_bayes.BernoulliNB achieves accuracy of **0.7935**
+ 
+My bayesian network achieved accuracy of **0.8276** using **Chow-Liu Tree** and **variable elimination inference**.
 
 ## blah blah
 
