@@ -9,6 +9,15 @@ Developed by Linjian Li, using Clion 2018.3.1
   * Exact inference
     * Variable elimination
 
+## How to use
+Create a directory called ```bin``` under the root directory. In Linux, you can use the following command.
+
+```bash
+mkdir bin
+```
+
+Then, go into ```bin``` directory and issue ```cmake ..``` to generate the make file.
+
 ## Performance
 
 ### LIBSVM dataset "a1a"

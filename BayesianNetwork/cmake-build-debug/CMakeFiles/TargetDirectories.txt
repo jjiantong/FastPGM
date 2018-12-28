@@ -1,3 +1,0 @@
-/cygdrive/d/Project_Directory/CLionProjects/BayesianNetwork/cmake-build-debug/CMakeFiles/rebuild_cache.dir
-/cygdrive/d/Project_Directory/CLionProjects/BayesianNetwork/cmake-build-debug/CMakeFiles/BayesianNetwork.dir
-/cygdrive/d/Project_Directory/CLionProjects/BayesianNetwork/cmake-build-debug/CMakeFiles/edit_cache.dir
