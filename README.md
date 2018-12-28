@@ -9,6 +9,15 @@ Developed by Linjian Li, using Clion 2018.3.1
   * Exact inference
     * Variable elimination
 
+### supported problems
+classification with discrete feature values
+
+### to do: 
+ * obtain an optimal sequence for variable elimination
+ * classification with features of continues values
+ * explore regression
+ * support graph structures beyond  trees
+
 ## How to use
 Create a directory called ```bin``` under the root directory. In Linux, you can use the following command.
 
