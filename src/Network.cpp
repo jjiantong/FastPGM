@@ -598,11 +598,12 @@ double Network::testingNetworkReturnAccuracy(Trainer* tester) {
 
 		if ((*combPredict.begin()).second == tester->trainingSet[i][0]) {
 			numOfCorrect++;
-			cout << "y, ";
+			//cout << "y, ";
 		} else {
 			numOfWrong++;
-			cout << "n, ";
+			//cout << "n, ";
 		}
+
 	}
 	double accuracy = numOfCorrect / (double)(numOfCorrect+numOfWrong);
 	cout << '\n' << "Accuracy: " << accuracy << endl;

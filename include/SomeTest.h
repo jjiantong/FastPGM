@@ -109,10 +109,6 @@ public:
 
 	}
 
-
-	void test3(Trainer* trainer) {
-		trainer->loadLIBSVMData_AutoDetectConfig("../data/a1a.txt");
-	}
 };
 
 
