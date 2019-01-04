@@ -27,6 +27,9 @@ mkdir bin
 
 Then, go into ```bin``` directory and issue ```cmake ..``` to generate the make file.
 
+## Dependencies
+Boost C++ Libraries. It is used to parse the string from dataset. Users need to download the librayies and modify the path to the libraries in `CMakeLists.txt`. 
+
 ## Performance
 
 ### LIBSVM dataset "a1a"
@@ -38,6 +41,3 @@ As a benchmark,
 My bayesian network achieved accuracy of **0.8276** using **Chow-Liu Tree** and **variable elimination inference**.
 
 ## blah blah
-
-The directory "BayesianNetwork" is the project directory. <br/>
-Need to run "a1a.config.generate.py" first to generate the configuration about "a1a".
