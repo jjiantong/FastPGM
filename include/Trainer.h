@@ -26,14 +26,19 @@ public:
 	string* featuresNames;
 	bool* isFeaturesDiscrete;
 	int* numOfPossibleValuesOfFeatures;
+	int numOfPossibleValuesOfClass;
 	int** trainingSet; // For now, the training set contains only discrete values. Future work is to let it support continuous values;
+	vector<vector<pair<int,int>>> trainingSet_X_vector;
+	vector<int> trainingSet_y_vector;
 	// incompleteData;
 	// incompleteDataExpectation;
 
 
 	Trainer();
 	void loadConfig(string);
-	void loadLibSVMData(string);
+	void loadLIBSVMData(string);
+	void loadLIBSVMData_AutoDetectConfig(string);
+	void convertVectorDatasetIntoArrayDataset();
 };
 
 

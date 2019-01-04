@@ -4,6 +4,8 @@
 
 #include "Network.h"
 
+string separatingLine = "=======================================================================";
+
 Network::Network() {
 	// do something
 }

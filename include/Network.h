@@ -33,7 +33,7 @@ public:
 	 * 		And I have not implemented the part of generating an elimination order automatically.
 	 * 		So, I just add this attribute to store a relatively "fixed" order.
 	 * 		The order is fixed for one tree, but different for different trees.
-	 * 		It is just the reverse order of width-first-traversal start at the root node.
+	 * 		It is just the reverse order of topological sorting using width-first-traversal start at the root node.
 	 * */
 	int* treeDefaultEliminationOrder;
 
