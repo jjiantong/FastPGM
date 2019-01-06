@@ -35,8 +35,6 @@ public:
 
 
 	Trainer();
-	void loadConfig(string);
-	void loadLIBSVMData(string);
 	void loadLIBSVMData_AutoDetectConfig(string);
 	void convertVectorDatasetIntoArrayDataset();
 };
