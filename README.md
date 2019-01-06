@@ -41,3 +41,6 @@ As a benchmark,
 My bayesian network achieved accuracy of **0.8276** using **Chow-Liu Tree** and **variable elimination inference**.
 
 ## blah blah
+Consumed time and accuracy for the whose process on "a1a" (load data -> train -> test)
+* Using elimination order specified for "a1a", it can be done within **30 seconds**, and achieve accuracy of **0.8332**
+* Using general elimination order, it takes **11 minutes** and and achieve accuracy of **0.762792**
