@@ -564,9 +564,16 @@ double Network::testingNetworkReturnAccuracy(Trainer* tester) {
 	cout << "=======================================================================" << '\n'
 		 << "Begin testing the trained network." << endl;
 
-	int numOfCorrect=0, numOfWrong=0;
+	cout << "Progress indicator: ";
+
+	int numOfCorrect=0, numOfWrong=0, m=tester->numOfTrainingSamples, m10=m/10, percent=0;
 
 	for (int i=0; i<tester->numOfTrainingSamples; i++) {	// For each row i of testing set
+
+		if (i%m10==0) {
+			cout << (percent++)*10 << '%' << endl;
+		}
+
 		Node* Y = givenIndexToFindNodePointer(0);
 
 		/* todo
