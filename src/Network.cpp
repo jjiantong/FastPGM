@@ -58,7 +58,7 @@ double Network::computeMutualInformation(Node* Xi, Node* Xj, const Trainer* trai
 	}
 
 	// Initialize the table.
-	int m = trainer->numOfTrainingSamples, ri = Xi->numOfPotentialValues, rj = Xj->numOfPotentialValues;
+	int m = trainer->n_training_instance, ri = Xi->numOfPotentialValues, rj = Xj->numOfPotentialValues;
 	double** Pij = new double* [ri];
 	for (int i=0; i<ri; i++) {
 		Pij[i] = new double[rj]();		// The parentheses at end will initialize the array to be all zeros.
@@ -123,7 +123,7 @@ void Network::setParentChild(Node* p, Node* c) {
 void Network::structLearn_ChowLiu_CompData(const Trainer *trainer) {
 	cout << "=======================================================================" << '\n'
 		 << "Begin structural learning. \nConstructing Chow-Liu tree with complete data......" << endl;
-	numOfNodes = trainer->numOfFeatures;
+	numOfNodes = trainer->n_feature;
 	nodesOrder = trainer->featuresNames;
 	for (int i=0; i<numOfNodes; i++) {
 		Node* node = new Node();
@@ -328,14 +328,14 @@ void Network::structLearn_ChowLiu_CompData(const Trainer *trainer) {
 void Network::trainNetwork_KnowStruct_CompData(const Trainer* trainer){
 	cout << "=======================================================================" << '\n'
 		 << "Begin training with known structure and complete data." << endl;
-	for (int i=0; i<trainer->numOfFeatures; i++) {		// For every node.
+	for (int i=0; i<trainer->n_feature; i++) {		// For every node.
 
 		Node* thisNode = givenIndexToFindNodePointer(i);
 
 		if (thisNode->parentsPointers.empty()) {    // If this node has no parents
 			map<int, double> *MPT = &(thisNode->margProbTable);
 			int denominator = 0;
-			for (int s = 0; s < trainer->numOfTrainingSamples; s++) {
+			for (int s = 0; s < trainer->n_training_instance; s++) {
 				denominator += 1;
 				int query = trainer->trainingSet[s][i];
 				(*MPT)[query] += 1;
@@ -344,7 +344,7 @@ void Network::trainNetwork_KnowStruct_CompData(const Trainer* trainer){
 				int query = thisNode->potentialValues[i];
 				(*MPT)[query] /= denominator;
 			}
-			continue; // for (int i=0; i<trainer->numOfFeatures; i++) {		// For every node.
+			continue; // for (int i=0; i<trainer->n_feature; i++) {		// For every node.
 		}
 
 
@@ -352,7 +352,7 @@ void Network::trainNetwork_KnowStruct_CompData(const Trainer* trainer){
 		set<Combination>* parComb = &(thisNode->parentsCombinations);
 		for (set<Combination>::iterator itParComb=parComb->begin(); itParComb!=parComb->end(); itParComb++) {		// For each column in CPT. Because the sum over column of CPT must be 1.
 			int denominator = 0;
-			for (int s=0; s<trainer->numOfTrainingSamples; s++) {
+			for (int s=0; s<trainer->n_training_instance; s++) {
 				// todo: calculate compatibility between (*itParComb) and (trainer->trainingSet[s])
 				int compatibility = 1;		// We assume compatibility is 1, and set it to 0 if we find that (*itParComb) is not compatible with (trainer->trainingSet[s])
 				Combination comb = (*itParComb);
@@ -566,9 +566,9 @@ double Network::testingNetworkReturnAccuracy(Trainer* tester) {
 
 	cout << "Progress indicator: ";
 
-	int numOfCorrect=0, numOfWrong=0, m=tester->numOfTrainingSamples, m10=m/10, percent=0;
+	int numOfCorrect=0, numOfWrong=0, m=tester->n_training_instance, m10=m/10, percent=0;
 
-	for (int i=0; i<tester->numOfTrainingSamples; i++) {	// For each row i of testing set
+	for (int i=0; i<tester->n_training_instance; i++) {	// For each row i of testing set
 
 		if (i%m10==0) {
 			cout << (percent++)*10 << '%' << endl;

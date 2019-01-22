@@ -21,8 +21,8 @@ typedef set< pair<string, int> > Combination;
 class Trainer {
 
 public:
-	int numOfTrainingSamples;
-	int numOfFeatures;
+	int n_training_instance;
+	int n_feature;
 	string* featuresNames;
 	bool* isFeaturesDiscrete;
 	int* numOfPossibleValuesOfFeatures;

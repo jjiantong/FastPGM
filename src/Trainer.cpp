@@ -15,11 +15,10 @@ void Trainer::loadLIBSVMData_AutoDetectConfig(string dataFilePath) {
 	set<int> classPossibleValues_set;
 	map<int,set<int>> featuresPossibleValues_map;
 
-
 	ifstream inFile;
 	inFile.open(dataFilePath);
 	if (!inFile.is_open()) {
-		cerr << "Unable to open file!";
+		fprintf(stderr, "Unable to open file %s!", dataFilePath.c_str());
 		exit(1);   // call system to stop
 	}
 
@@ -34,7 +33,8 @@ void Trainer::loadLIBSVMData_AutoDetectConfig(string dataFilePath) {
 	// Load data into trainingSet.
 	getline(inFile, sample);
 	while (!inFile.eof()) {
-		sample = boost::algorithm::trim_right_copy(sample);	// There is a whitespace at the end of each line of libSVM data set format, which will will cause a bug.
+		// There is a whitespace at the end of each line of libSVM data set format, which will will cause a bug.
+		sample = boost::algorithm::trim_right_copy(sample);
 		boost::algorithm::split(parsedSample, sample, boost::algorithm::is_space());
 		it=parsedSample.begin();
 		classPossibleValues_set.insert(stoi(*it));
@@ -57,15 +57,15 @@ void Trainer::loadLIBSVMData_AutoDetectConfig(string dataFilePath) {
 	}
 
 
-	numOfTrainingSamples = trainingSet_y_vector.size();
-	numOfFeatures = maxIndexOccurred+1;	// Include the class variable.
-	isFeaturesDiscrete = new bool[numOfFeatures];
-	featuresNames = new string[numOfFeatures];
-	numOfPossibleValuesOfFeatures = new int[numOfFeatures];
+	n_training_instance = trainingSet_y_vector.size();
+	n_feature = maxIndexOccurred+1;	// Include the class variable.
+	isFeaturesDiscrete = new bool[n_feature];
+	featuresNames = new string[n_feature];
+	numOfPossibleValuesOfFeatures = new int[n_feature];
 	numOfPossibleValuesOfClass = classPossibleValues_set.size();
 
 
-	for (int i=0; i<numOfFeatures; i++) {
+	for (int i=0; i<n_feature; i++) {
 		// Note that the feature indexes start at 1 in LIBSVM format!!!
 		featuresPossibleValues_map[i+1].insert(0);	// Because feature of LIBSVM format do not record the value of 0, we need to add it in.
 		numOfPossibleValuesOfFeatures[i] = featuresPossibleValues_map[i+1].size();
@@ -76,8 +76,8 @@ void Trainer::loadLIBSVMData_AutoDetectConfig(string dataFilePath) {
 	convertVectorDatasetIntoArrayDataset();
 
 	cout << "Finish loading data." << '\n'
-		 << "Number of training samples: " << numOfTrainingSamples << '\n'
-		 << "Number of features (maximum feature index occurred): " << numOfFeatures << endl;
+		 << "Number of training samples: " << n_training_instance << '\n'
+		 << "Number of features (maximum feature index occurred): " << n_feature << endl;
 
 
 	inFile.close();
@@ -87,12 +87,11 @@ void Trainer::loadLIBSVMData_AutoDetectConfig(string dataFilePath) {
 
 void Trainer::convertVectorDatasetIntoArrayDataset() {
 	// Initialize trainingSet to be all zero.
-	trainingSet = new int* [numOfTrainingSamples];
-	for (int i=0; i<numOfTrainingSamples; i++) {
-		trainingSet[i] = new int[numOfFeatures]();	// The parentheses at end will initialize the array to be all zeros.
-	}
+	trainingSet = new int* [n_training_instance];
+	for (int i=0; i<n_training_instance; i++)
+		trainingSet[i] = new int[n_feature]();	// The parentheses at end will initialize the array to be all zeros.
 
-	for (int i=0; i<numOfTrainingSamples; i++) {	// For each sample.
+	for (int i=0; i<n_training_instance; i++) {	// For each sample.
 		trainingSet[i][0] = trainingSet_y_vector[i];
 		vector<pair<int,int>> x_vector = trainingSet_X_vector[i];
 		for (pair<int,int> p : x_vector) {		// For each non-zero-value feature of this sample.
