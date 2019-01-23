@@ -4,62 +4,33 @@
 
 #include "Network.h"
 
-string separatingLine = "=======================================================================";
+Network::Network() {}
 
-Network::Network() {
-	// do something
-}
-
-Node* Network::givenIndexToFindNodePointer(int index) {
-	if (index<0 || index>=numOfNodes) {
+Node* Network::GivenIndexToFindNodePointer(int index) {
+	if (index<0 || index>n_nodes) {
 		cout << "=======================================================================" << '\n'
-			 << "Node* Network::givenIndexToFindNodePointer(int index)\n"
-			 << "Invalid index!!!" << endl;
+		     << "Node* Network::GivenIndexToFindNodePointer(int index) \n"
+		     << "Invalid index!!! \n"
+		     << "Index starts at 0 and the 0-th index is the root node's. " << endl;
 		exit(1);
 	}
-	Node* nodePtr = nullptr;
-	for (set<Node*>::iterator it=nodesContainer.begin(); it!=nodesContainer.end(); it++) {
-		if ((*it)->nodeName==nodesOrder[index] && nodePtr==nullptr) {
-			nodePtr = *it;
-			return nodePtr;
+	Node* node_ptr = nullptr;
+	for (auto n_ptr : set_node_ptr_container) {
+		if (n_ptr->GetNodeIndex()==index) {
+			node_ptr = n_ptr;
+			break;
 		}
 	}
+	return node_ptr;
 }
 
-int Network::givenNodePointerToFindIndex(Node* nodePtr) {
-	int index = -1;
-	for (int j=0; j<numOfNodes; j++) {
-		if (nodesOrder[j]==nodePtr->nodeName && index==-1) {
-			index = j;
-			return index;
-		}
-	}
-}
-
-int Network::givenNodeNameToFindIndex(string nodeName) {
-	int index = -1;
-	for (int i=0; i<numOfNodes; i++) {
-		if (nodesOrder[i]==nodeName && index==-1) {
-			index = i;
-			return index;
-		}
-	}
-}
-
-double Network::computeMutualInformation(Node* Xi, Node* Xj, const Trainer* trainer) {
+double Network::ComputeMutualInformation(Node *Xi, Node *Xj, const Trainer *trainer) {
 	// Find the indexes of these two features in training set.
-	int xi=-1, xj=-1;
-	for (int k=0; k<numOfNodes; k++) {
-		if (trainer->featuresNames[k]==Xi->nodeName && xi==-1) {
-			xi = k;
-		} else if (trainer->featuresNames[k]==Xj->nodeName && xj==-1) {
-			xj = k;
-		}
-	}
+	int xi=Xi->GetNodeIndex(), xj=Xj->GetNodeIndex();
 
 	// Initialize the table.
-	int m = trainer->n_training_instance, ri = Xi->numOfPotentialValues, rj = Xj->numOfPotentialValues;
-	double** Pij = new double* [ri];
+	int m = trainer->n_train_instance, ri = Xi->num_of_potential_values, rj = Xj->num_of_potential_values;
+	double **Pij = new double* [ri];
 	for (int i=0; i<ri; i++) {
 		Pij[i] = new double[rj]();		// The parentheses at end will initialize the array to be all zeros.
 	}
@@ -71,7 +42,7 @@ double Network::computeMutualInformation(Node* Xi, Node* Xj, const Trainer* trai
 	for (a=0; a<ri; a++) {
 		for (b=0; b<rj; b++) {
 			for (s=0; s<m; s++) {
-				if (trainer->trainingSet[s][xi]==Xi->potentialValues[a] && trainer->trainingSet[s][xj]==Xj->potentialValues[b]) {
+				if (trainer->train_set_y_X[s][xi]==Xi->potential_values[a] && trainer->train_set_y_X[s][xj]==Xj->potential_values[b]) {
 					Pij[a][b] += 1;
 				}
 			}
@@ -82,7 +53,7 @@ double Network::computeMutualInformation(Node* Xi, Node* Xj, const Trainer* trai
 	// Update Pi.
 	for (a=0; a<ri; a++) {
 		for (s=0; s<m; s++) {
-			if (trainer->trainingSet[s][xi]==Xi->potentialValues[a]) {
+			if (trainer->train_set_y_X[s][xi]==Xi->potential_values[a]) {
 				Pi[a] += 1;
 			}
 		}
@@ -92,7 +63,7 @@ double Network::computeMutualInformation(Node* Xi, Node* Xj, const Trainer* trai
 	// Update Pj.
 	for (b=0; b<rj; b++) {
 		for (s=0; s<m; s++) {
-			if (trainer->trainingSet[s][xj]==Xj->potentialValues[b]) {
+			if (trainer->train_set_y_X[s][xj]==Xj->potential_values[b]) {
 				Pj[b] += 1;
 			}
 		}
@@ -114,46 +85,50 @@ double Network::computeMutualInformation(Node* Xi, Node* Xj, const Trainer* trai
 	return mutualInformation;
 }
 
-
-void Network::setParentChild(Node* p, Node* c) {
-	p->addChild(c);
-	c->addParent(p);
+void Network::SetParentChild(int p_index, int c_index) {
+	Node *p = GivenIndexToFindNodePointer(p_index), *c = GivenIndexToFindNodePointer(c_index);
+	SetParentChild(p,c);
 }
 
-void Network::structLearn_ChowLiu_CompData(const Trainer *trainer) {
-	cout << "=======================================================================" << '\n'
-		 << "Begin structural learning. \nConstructing Chow-Liu tree with complete data......" << endl;
-	numOfNodes = trainer->n_feature;
-	nodesOrder = trainer->featuresNames;
-	for (int i=0; i<numOfNodes; i++) {
-		Node* node = new Node();
-		node->nodeName = trainer->featuresNames[i];
-		node->isDiscrete = trainer->isFeaturesDiscrete[i];
-		node->numOfPotentialValues = trainer->numOfPossibleValuesOfFeatures[i];
+void Network::SetParentChild(Node *p, Node *c) {
+	p->AddChild(c);
+	c->AddParent(p);
+}
 
-		/* todo:
-		 * 	For now:
-		 * 		This "potentialValues" is set to be {-1,0,1} for this prototype.
-		 * 		Because libSVM  data set "a1a" only contains these values.
-		 * 		The class variable is in {-1,1} and the other features is in {0,1}.
-		 * 	Future work:
-		 * 		Let it adept to the more general cases.
-		 * */
-		node->potentialValues = new int[node->numOfPotentialValues];
-		if (i==0) {	// The first node denotes the class variable.
-			node->potentialValues[0] = -1;
-			node->potentialValues[1] = 1;
-		} else {	// The other nodes are features.
-			node->potentialValues[0] = 0;
-			node->potentialValues[1] = 1;
+void Network::StructLearnChowLiuTreeCompData(Trainer *trainer) {
+	cout << "=======================================================================" << '\n'
+	     << "Begin structural learning. \nConstructing Chow-Liu tree with complete data......" << endl;
+	n_nodes = trainer->n_feature+1;  // "+1" is for the label node.
+	for (int i=0; i<n_nodes; ++i) {
+		Node *node_ptr = new Node();
+		node_ptr->SetNodeIndex(i);
+		node_ptr->is_discrete = trainer->is_features_discrete[i];
+
+		if (i==0) {
+			node_ptr->num_of_potential_values = trainer->num_of_possible_values_of_label;
+		} else {
+			node_ptr->num_of_potential_values = trainer->num_of_possible_values_of_features[i];
 		}
-		nodesContainer.insert(node);
+
+		node_ptr->potential_values = new int[node_ptr->num_of_potential_values];
+		int j=0;
+		if (i==0) {	// The 0-th node_ptr denotes the label node.
+			for (auto v : trainer->set_label_possible_values) {
+				node_ptr->potential_values[j++] = v;
+			}
+		} else {	// The other nodes are features.
+			for (auto v : trainer->map_feature_possible_values[i]) {
+				node_ptr->potential_values[j++] = v;
+			}
+		}
+
+		set_node_ptr_container.insert(node_ptr);
 	}
 
 	cout << "=======================================================================" << '\n'
-		 << "Constructing mutual information table......" << endl;
+	     << "Constructing mutual information table......" << endl;
 
-	int n = numOfNodes;
+	int n = n_nodes;
 	double** mutualInfoTab = new double* [n];
 	for (int i=0; i<n; i++) {
 		mutualInfoTab[i] = new double[n]();		// The parentheses at end will initialize the array to be all zeros.
@@ -168,20 +143,20 @@ void Network::structLearn_ChowLiu_CompData(const Trainer *trainer) {
 				// To calculate the mutual information, we need to find the nodes which correspond to the indexes i and j.
 				Node* Xi = nullptr;
 				Node* Xj = nullptr;
-				for (set<Node*>::iterator it=nodesContainer.begin(); it!=nodesContainer.end(); it++) {
-					if ((*it)->nodeName==nodesOrder[i] && Xi==nullptr) {
+				for (auto it=set_node_ptr_container.begin(); it!=set_node_ptr_container.end(); it++) {
+					if ((*it)->GetNodeIndex()==i && Xi==nullptr) {
 						Xi = *it;
-					} else if ((*it)->nodeName==nodesOrder[j] && Xj==nullptr) {
+					} else if ((*it)->GetNodeIndex()==j && Xj==nullptr) {
 						Xj = *it;
 					}
 				}
-				mutualInfoTab[i][j] = mutualInfoTab[j][i] = computeMutualInformation(Xi, Xj, trainer);	// Mutual information table is symmetric.
+				mutualInfoTab[i][j] = mutualInfoTab[j][i] = ComputeMutualInformation(Xi, Xj, trainer);	// Mutual information table is symmetric.
 			}
 		}
 	}
 
 	cout << "=======================================================================" << '\n'
-		 << "Constructing maximum spanning tree using mutual information table and Prim's algorithm......" << endl;
+	     << "Constructing maximum spanning tree using mutual information table and Prim's algorithm......" << endl;
 
 	// Use Prim's algorithm to generate a spanning tree.
 	int** graphAdjacencyMatrix = new int* [n];
@@ -207,22 +182,21 @@ void Network::structLearn_ChowLiu_CompData(const Trainer *trainer) {
 			}
 		}
 		markSet.insert(maxJ);
-		// todo add edge(maxI,maxJ) to edgesContainer.
 		graphAdjacencyMatrix[maxI][maxJ] = graphAdjacencyMatrix[maxJ][maxI] = 1;
 	}
 	// Add arrows in tree, set parents and childrens
-	int* topologicalSortedPermutation = widthFirstTraversalWithAdjacencyMatirx(graphAdjacencyMatrix, n, 0);
+	int* topologicalSortedPermutation = widthFirstTraversalWithAdjacencyMatrix(graphAdjacencyMatrix, n, 0);
 
 
-	// !!! See the comments for "treeDefaultEliminationOrder" in the "Network.h" file.
-	treeDefaultEliminationOrder = new int[n-1];
+	// !!! See the comments for "tree_default_elim_ord" in the "Network.h" file.
+	tree_default_elim_ord = new int[n-1];
 	for (int i=1; i<n; i++) {
-		treeDefaultEliminationOrder[i-1] = topologicalSortedPermutation[n-i];
+		tree_default_elim_ord[i-1] = topologicalSortedPermutation[n-i];
 	}
 
 
 	cout << "=======================================================================" << '\n'
-		 << "Setting children and parents......" << endl;
+	     << "Setting children and parents......" << endl;
 	for (int i=0; i<n; i++) {
 		for (int j=0; j<i; j++) {	// graphAdjacencyMatrix is symmetric, so loop while j<i instead of j<n
 			if (i==j) continue;
@@ -238,32 +212,31 @@ void Network::structLearn_ChowLiu_CompData(const Trainer *trainer) {
 					}
 				}
 
-				Node* Xi = givenIndexToFindNodePointer(i);
-				Node* Xj = givenIndexToFindNodePointer(j);
+				Node* Xi = GivenIndexToFindNodePointer(i);
+				Node* Xj = GivenIndexToFindNodePointer(j);
 				if (topoIndexI<topoIndexJ) {
-					setParentChild(Xi, Xj);
+					SetParentChild(Xi, Xj);
 				} else {
-					setParentChild(Xj, Xi);
+					SetParentChild(Xj, Xi);
 				}
 			}
 		}
 	}
 
 	cout << "=======================================================================" << '\n'
-		 << "Generating parents combinations for each node......" << endl;
-	for (set<Node*>::iterator it=nodesContainer.begin(); it!=nodesContainer.end(); it++) {
-		(*it)->generateParentsCombinations();
+	     << "Generating parents combinations for each node......" << endl;
+	for (auto n_ptr : set_node_ptr_container) {
+		n_ptr->GenerateParentsCombinations();
 	}
 
 	cout << "=======================================================================" << '\n'
-		 << "Finish structural learning." << endl;
+	     << "Finish structural learning." << endl;
 
 
 	// The following code are just to print the result.
 
-	// todo delete
 	cout << "=======================================================================" << '\n'
-		 << "The Chow-Liu Tree has the following edges (adjacency matrix): " << endl;
+	     << "The Chow-Liu Tree has the following edges (adjacency matrix): " << endl;
 	for (int l = 0; l < n; ++l) {
 		for (int j = 0; j < n; ++j) {
 			if (graphAdjacencyMatrix[l][j]==1) {
@@ -273,50 +246,42 @@ void Network::structLearn_ChowLiu_CompData(const Trainer *trainer) {
 		cout << endl;
 	}
 
-	// todo delete
 	cout << "=======================================================================" << '\n'
-		 << "Topological sorted permutation generated using width-first-traversal: " << endl;
+	     << "Topological sorted permutation generated using width-first-traversal: " << endl;
 	for (int m = 0; m < n; ++m) {
 		cout << topologicalSortedPermutation[m] << '\t';
 	}
 	cout << endl;
 
 	cout << "=======================================================================" << '\n'
-		 << "Each node's parents: " << endl;
-	for (set<Node*>::iterator itNC=nodesContainer.begin(); itNC!=nodesContainer.end(); itNC++) {
-		Node* thisNode = (*itNC);
-		cout << thisNode->nodeName << ":\t";
-		for (set<Node*>::iterator itPP=thisNode->parentsPointers.begin(); itPP!=thisNode->parentsPointers.end(); itPP++) {
-			Node* parentNode = (*itPP);
-			cout << parentNode->nodeName << '\t';
+	     << "Each node's parents: " << endl;
+	for (auto ptr_this_node : set_node_ptr_container) {
+		cout << ptr_this_node->GetNodeIndex() << ":\t";
+		for (auto ptr_par_node : ptr_this_node->set_parents_pointers) {
+			cout << ptr_par_node->GetNodeIndex() << '\t';
 		}
 		cout << endl;
 	}
 
 	cout << "=======================================================================" << '\n'
-		 << "Each node's children: " << endl;
-	for (set<Node*>::iterator itNC=nodesContainer.begin(); itNC!=nodesContainer.end(); itNC++) {
-		Node* thisNode = (*itNC);
-		cout << thisNode->nodeName << ":\t";
-		for (set<Node*>::iterator itCP=thisNode->childrenPointers.begin(); itCP!=thisNode->childrenPointers.end(); itCP++) {
-			Node* childNode = (*itCP);
-			cout << childNode->nodeName << '\t';
+	     << "Each node's children: " << endl;
+	for (auto ptr_this_node : set_node_ptr_container) {
+		cout << ptr_this_node->GetNodeIndex() << ":\t";
+		for (auto ptr_child_node : ptr_this_node->set_children_pointers) {
+			cout << ptr_child_node->GetNodeIndex() << '\t';
 		}
 		cout << endl;
 	}
 
 	cout << "=======================================================================" << '\n'
-		 << "Each node's parents' combination: " << endl;
-	for (set<Node*>::iterator itNC=nodesContainer.begin(); itNC!=nodesContainer.end(); itNC++) {
-		Node* thisNode = (*itNC);
-		cout << thisNode->nodeName << ":\t";
-		if (thisNode->parentsCombinations.size()<1) continue;
-		cout << "Num of par comb: " << thisNode->parentsCombinations.size() << endl;
-		for (set<Combination>::iterator itParCom = thisNode->parentsCombinations.begin(); itParCom != thisNode->parentsCombinations.end(); itParCom++) {
-			Combination comb = (*itParCom);
-			for (Combination::iterator itComb=comb.begin(); itComb!=comb.end(); itComb++) {
-				pair<string, int> thisPair = (*itComb);
-				cout << "(\"" << thisPair.first << "\"=" << thisPair.second << ")\t";
+	     << "Each node's parents' combination: " << endl;
+	for (auto ptr_this_node : set_node_ptr_container) {
+		cout << ptr_this_node->GetNodeIndex() << ":\t";
+		if (ptr_this_node->set_parents_combinations.empty()) continue;
+		cout << "Num of par comb: " << ptr_this_node->set_parents_combinations.size() << endl;
+		for (auto &comb : ptr_this_node->set_parents_combinations) {
+			for (auto &p : comb) {
+				cout << "(\"" << p.first << "\"=" << p.second << ")\t";
 			}
 			cout << "." << endl;
 		}
@@ -325,86 +290,87 @@ void Network::structLearn_ChowLiu_CompData(const Trainer *trainer) {
 
 }
 
-void Network::trainNetwork_KnowStruct_CompData(const Trainer* trainer){
+void Network::LearnParmsKnowStructCompData(const Trainer *trainer){
 	cout << "=======================================================================" << '\n'
-		 << "Begin training with known structure and complete data." << endl;
-	for (int i=0; i<trainer->n_feature; i++) {		// For every node.
+	     << "Begin learning parameters with known structure and complete data." << endl;
 
-		Node* thisNode = givenIndexToFindNodePointer(i);
+	// The 0-th node is the root which is the label node.
+	Node *label_node = GivenIndexToFindNodePointer(0);
+	map<int, double> *MPT = &(label_node->map_marg_prob_table);
+	int denominator = 0;
+	for (int s = 0; s < trainer->n_train_instance; ++s) {
+		denominator += 1;
+		int query = trainer->train_set_y[s];
+		(*MPT)[query] += 1;
+	}
+	for (int i = 0; i < label_node->num_of_potential_values; ++i) {
+		int query = label_node->potential_values[i];
+		(*MPT)[query] /= denominator;
+	}
 
-		if (thisNode->parentsPointers.empty()) {    // If this node has no parents
-			map<int, double> *MPT = &(thisNode->margProbTable);
+	// For every feature node.
+	for (int i=1; i<trainer->n_feature+1; ++i) { // Because feature index start at 1.
+	                                                   // Using "train_set_y_X".
+		Node *this_node = GivenIndexToFindNodePointer(i);
+
+		map<int, map<Combination, double> >* CPT = &(this_node->map_cond_prob_table);
+		set<Combination>* ptr_set_par_combs = &(this_node->set_parents_combinations);
+		for (auto &par_comb : *ptr_set_par_combs) {		// For each column in CPT. Because the sum over column of CPT must be 1.
 			int denominator = 0;
-			for (int s = 0; s < trainer->n_training_instance; s++) {
-				denominator += 1;
-				int query = trainer->trainingSet[s][i];
-				(*MPT)[query] += 1;
-			}
-			for (int i = 0; i < thisNode->numOfPotentialValues; i++) {
-				int query = thisNode->potentialValues[i];
-				(*MPT)[query] /= denominator;
-			}
-			continue; // for (int i=0; i<trainer->n_feature; i++) {		// For every node.
-		}
+			for (int s=0; s<trainer->n_train_instance; ++s) {
+				int compatibility = 1;	// We assume compatibility is 1,
+				                       // and set it to 0 if we find that (*it_par_comb) is not compatible with (trainer->train_set[s]).
+				                       // If we support learning with incomplete data,
+				                       // the compatibility can be between 0 and 1.
 
-
-		map<int, map<Combination, double> >* CPT = &(thisNode->condProbTable);
-		set<Combination>* parComb = &(thisNode->parentsCombinations);
-		for (set<Combination>::iterator itParComb=parComb->begin(); itParComb!=parComb->end(); itParComb++) {		// For each column in CPT. Because the sum over column of CPT must be 1.
-			int denominator = 0;
-			for (int s=0; s<trainer->n_training_instance; s++) {
-				// todo: calculate compatibility between (*itParComb) and (trainer->trainingSet[s])
-				int compatibility = 1;		// We assume compatibility is 1, and set it to 0 if we find that (*itParComb) is not compatible with (trainer->trainingSet[s])
-				Combination comb = (*itParComb);
-				for (Combination::iterator itC = comb.begin(); itC!=comb.end(); itC++) {
-					pair<string, int> p = (*itC);
-					string thisNodeName = p.first;
-					int thisNodeValue = p.second;
-					int index = givenNodeNameToFindIndex(thisNodeName);
-					if (trainer->trainingSet[s][index]!=thisNodeValue) {
+				for (auto &pair_this_node : par_comb) {
+					// int this_node_index = pair_this_node.first;
+					// int this_node_value = pair_this_node.second;
+					if (trainer->train_set_y_X[s][pair_this_node.first] != pair_this_node.second) {
 						compatibility = 0;
+						break;
 					}
 				}
 				denominator += compatibility;
-				int query = trainer->trainingSet[s][i];
-				(*CPT)[query][*itParComb] += compatibility;
+				int query = trainer->train_set_y_X[s][i];
+				(*CPT)[query][par_comb] += compatibility;
 			}
-			for (int i=0; i<thisNode->numOfPotentialValues; i++) {
-				int query = thisNode->potentialValues[i];
-				(*CPT)[query][*itParComb] /= denominator;
+			// Normalize so that the sum is 1.
+			for (int j=0; j<this_node->num_of_potential_values; ++j) {
+				int query = this_node->potential_values[j];
+				(*CPT)[query][par_comb] /= denominator;
 			}
 		}
 	}
 	cout << "=======================================================================" << '\n'
-		 << "Finish training with known structure and complete data." << endl;
+	     << "Finish training with known structure and complete data." << endl;
 
 	// The following code are just to print the result.
 	cout << "=======================================================================" << '\n'
-		 << "Each node's conditional probability table: " << endl;
-	for (set<Node*>::iterator itNC=nodesContainer.begin(); itNC!=nodesContainer.end(); itNC++) {	// For each node
-		Node* thisNode = (*itNC);
-		cout << thisNode->nodeName << ":\t";
+	     << "Each node's conditional probability table: " << endl;
+	for (auto thisNode : set_node_ptr_container) {	// For each node
+		cout << thisNode->GetNodeIndex() << ":\t";
 
 
-		if (thisNode->parentsPointers.empty()) {    // If this node has no parents
-			for(int i=0; i<thisNode->numOfPotentialValues; i++) {		// For each row of MPT
-				int query = thisNode->potentialValues[i];
-				cout << "P(" << query << ")=" << thisNode->margProbTable[query] << '\t';
+		if (thisNode->set_parents_pointers.empty()) {    // If this node has no parents
+			for(int i=0; i<thisNode->num_of_potential_values; i++) {		// For each row of MPT
+				int query = thisNode->potential_values[i];
+				cout << "P(" << query << ")=" << thisNode->map_marg_prob_table[query] << '\t';
 			}
 			cout << endl;
-			continue;	// for (set<Node*>::iterator itNC=nodesContainer.begin(); itNC!=nodesContainer.end(); itNC++) {	// For each node
+			continue;
 		}
 
 
-		for(int i=0; i<thisNode->numOfPotentialValues; i++) {		// For each row of CPT
-			int query = thisNode->potentialValues[i];
-			for (set<Combination>::iterator itParCom = thisNode->parentsCombinations.begin(); itParCom != thisNode->parentsCombinations.end(); itParCom++) {	// For each column of CPT
+		for(int i=0; i<thisNode->num_of_potential_values; ++i) {		// For each row of CPT
+			int query = thisNode->potential_values[i];
+			for (auto itParCom = thisNode->set_parents_combinations.begin(); itParCom != thisNode->set_parents_combinations.end(); ++itParCom) {	// For each column of CPT
 				Combination comb = (*itParCom);
-				string condition = "";
-				for (Combination::iterator itCom = comb.begin(); itCom!=comb.end(); itCom++) {
-					condition = condition + "\"" + (*itCom).first + "\"=" + to_string((*itCom).second);
+				string condition;
+				for (auto &p : comb) {
+					condition += ("\"" + to_string(p.first) + "\"=" + to_string(p.second));
 				}
-				cout << "P(" << query << '|' << condition << ")=" << thisNode->condProbTable[query][comb] << '\t';
+				cout << "P(" << query << '|' << condition << ")=" << thisNode->map_cond_prob_table[query][comb] << '\t';
 			}
 		}
 		cout << endl;
@@ -412,105 +378,151 @@ void Network::trainNetwork_KnowStruct_CompData(const Trainer* trainer){
 	}
 }
 
-Combination Network::constructEvidence(int* nodesIndexes, int* observations, int numOfObservations) {
+Combination Network::ConstructEvidence(int *nodes_indexes, int *observations, int num_of_observations) {
 	Combination result;
-	pair<string, int> p;
-	for (int i=0; i<numOfObservations; i++) {
-		p.first = givenIndexToFindNodePointer(nodesIndexes[i])->nodeName;
+	pair<int, int> p;
+	for (int i=0; i<num_of_observations; i++) {
+		p.first = nodes_indexes[i];
 		p.second = observations[i];
 		result.insert(p);
 	}
 	return result;
 }
 
-/*
-vector<Factor> Network::constructFactorsWithEvidences(int* Z, int nz, Node* Y, Combination E) {
-	vector<Factor> factorsList;
+vector<Factor> Network::ConstructFactors(int *Z, int nz, Node *Y) {
+	vector<Factor> factors_list;
 	Factor factor;
-	factor.constructFactor(Y);
-	for (Combination::iterator itE=E.begin(); itE!=E.end(); itE++) {	// Check each observation in E
-		if ((*itE).first==Y->nodeName) {	// If this node "Y" has been observed
-			for (set<Combination>::iterator itCL=factor.combList.begin(); itCL!=factor.combList.end(); itCL++) {	// Update each row of potentialsList
-				// If (*itCL) is not compatible with (*itE), set potentialsList[*itCL]=0.
-				if ((*itCL).find(*itE)==(*itCL).end()) {
-					factor.potentialsList[*itCL] = 0;
-				}
-			}
-			break;
-		}
-	}
-	factorsList.push_back(factor);
+	factor.ConstructFactor(Y);
+	factors_list.push_back(factor);
 	for (int i=0; i<nz; i++) {
-		Node* n = givenIndexToFindNodePointer(Z[i]);
+		Node* n = GivenIndexToFindNodePointer(Z[i]);
 		Factor factor;
-		factor.constructFactor(n);
-		for (Combination::iterator itE=E.begin(); itE!=E.end(); itE++) {	// Check each observation in E
-			if ((*itE).first==n->nodeName) {	// If this node "n" has been observed
-				for (set<Combination>::iterator itCL=factor.combList.begin(); itCL!=factor.combList.end(); itCL++) {	// Update each row of potentialsList
-					// If (*itCL) is not compatible with (*itE), set potentialsList[*itCL]=0.
-					if ((*itCL).find(*itE)==(*itCL).end()) {
-						factor.potentialsList[*itCL] = 0;
+		factor.ConstructFactor(n);
+		factors_list.push_back(factor);
+	}
+	return factors_list;
+}
+
+void Network::LoadEvidence(vector<Factor> *factors_list, Combination E) {
+	for (auto &f : *factors_list) {	// For each factor
+		for (auto &p : E) {	// For each node's observation in E
+			if (f.related_variables.find(p.first)!=f.related_variables.end()) {	// If this factor is related to this node
+				for (auto &comb : f.set_combinations) {	// Update each row of map_potentials
+					// If (*itCL) is not compatible with (*itE), set map_potentials[*itCL]=0.
+					if (comb.find(p)==comb.end()) {
+						f.map_potentials[comb] = 0;
 					}
 				}
+			}
+		}
+	}
+}
+
+pair<int*, int> Network::SimplifyTreeDefaultElimOrd() {
+
+	// Remove all the barren nodes
+	set<int> to_be_removed;
+	for (int i=0; i<n_nodes-1; ++i) {    // The 0-th node is root.
+		bool observed = false, need_to_be_removed = true;
+		Node *ptr_curr_node = GivenIndexToFindNodePointer(i);
+		for (auto p : network_evidence) {
+			if (p.first == tree_default_elim_ord[i]) {    // If it is observed.
+				observed = true;
 				break;
 			}
 		}
-		factorsList.push_back(factor);
-	}
-	return factorsList;
-}
-*/
+		if (observed) continue;
 
-vector<Factor> Network::constructFactors(int* Z, int nz, Node* Y) {
-	vector<Factor> factorsList;
-	Factor factor;
-	factor.constructFactor(Y);
-	factorsList.push_back(factor);
-	for (int i=0; i<nz; i++) {
-		Node* n = givenIndexToFindNodePointer(Z[i]);
-		Factor factor;
-		factor.constructFactor(n);
-		factorsList.push_back(factor);
-	}
-	return factorsList;
-}
-
-void Network::loadEvidence(vector<Factor>* factorsList, Combination E) {
-	for (vector<Factor>::iterator itFL=factorsList->begin(); itFL!=factorsList->end(); itFL++) {	// For each factor
-		for (Combination::iterator itE=E.begin(); itE!=E.end(); itE++) {	// For each node's observation in E
-			if ((*itFL).relatedVariables.find((*itE).first)!=(*itFL).relatedVariables.end()) {	// If this factor is related to this node
-				for (set<Combination>::iterator itCL=(*itFL).combList.begin(); itCL!=(*itFL).combList.end(); itCL++) {	// Update each row of potentialsList
-					// If (*itCL) is not compatible with (*itE), set potentialsList[*itCL]=0.
-					if ((*itCL).find(*itE)==(*itCL).end()) {
-						(*itFL).potentialsList[*itCL] = 0;
-					}
+		if (!ptr_curr_node->set_children_pointers.empty()) {        // If it is not a leaf.
+			for (auto ptr_child : ptr_curr_node->set_children_pointers) {
+				if (to_be_removed.find(ptr_child->GetNodeIndex()) != to_be_removed.end()) {
+					need_to_be_removed = false;        // And if its children are not all removed.
+					break;
 				}
 			}
 		}
+		if (need_to_be_removed) to_be_removed.insert(i);
 	}
+
+	// Remove all m-separated nodes.
+	set<int> visited;
+	DepthFirstTraversalUntillMeetObserved(0,visited,to_be_removed);	// Start at root.
+
+	// Record all the remaining nodes in array "simplified_order".
+	int num_of_remain = n_nodes-1-to_be_removed.size();		// The 0-th node is root and do not need to be eliminated.
+	int* simplified_order = new int[num_of_remain];
+	for (int i=0, j=1; i<num_of_remain; ++i) {		// j=1 because the 0-th node is root.
+		while (to_be_removed.find(j)!=to_be_removed.end()) {++j;}
+		simplified_order[i] = j++;	// "j++" is to move to the next j, or else it will stuck at the first j that is not in "to_be_removed".
+	}
+
+
+	pair<int*, int> simplified_order_and_nodes_number = make_pair(simplified_order, num_of_remain);
+	return simplified_order_and_nodes_number;
 }
 
-Factor Network::sumProductVariableElimination(vector<Factor> factorsList, int* Z, int nz) {
+void Network::DepthFirstTraversalUntillMeetObserved(int start, set<int>& visited, set<int>& to_be_removed) {
+
+	// Base case
+	if (visited.find(start)!=visited.end()) return;
+	visited.insert(start);
+
+	bool observed=false;
+	auto att = network_evidence.begin();
+	for (auto p : network_evidence) {
+		if (p.first == start) {	// If it is observed.
+			observed = true;
+			break;
+		}
+	}
+	if (observed) {
+		DepthFirstTraversalToRemoveMSeparatedNodes(start, visited, to_be_removed); // Cut down all the descendent.
+		return;
+	}
+
+	// If not observed
+	// Recursive case
+	Node* ptr_curr_node = GivenIndexToFindNodePointer(start);
+	for (auto ptr_child : ptr_curr_node->set_children_pointers) {
+		int child_index = ptr_child->GetNodeIndex();
+		DepthFirstTraversalUntillMeetObserved(child_index, visited, to_be_removed);
+	}
+
+}
+
+void Network::DepthFirstTraversalToRemoveMSeparatedNodes(int start, set<int>& visited, set<int>& to_be_removed) {
+	visited.insert(start);
+	Node* ptr_curr_node = GivenIndexToFindNodePointer(start);
+	for (auto it_ptr_child=ptr_curr_node->set_children_pointers.begin();
+	     it_ptr_child!=ptr_curr_node->set_children_pointers.end() && visited.find((*it_ptr_child)->GetNodeIndex())==visited.end();
+	     ++it_ptr_child) {
+		to_be_removed.insert((*it_ptr_child)->GetNodeIndex());
+		DepthFirstTraversalToRemoveMSeparatedNodes((*it_ptr_child)->GetNodeIndex(), visited, to_be_removed);
+	}
+
+}
+
+Factor Network::SumProductVarElim(vector<Factor> factors_list, int *Z, int nz) {
 	for (int i=0; i<nz; i++) {
 		vector<Factor> tempFactorsList;
-		Node* nodePtr = givenIndexToFindNodePointer(Z[i]);
-		// Move every factor that is related to the node Z[i] from factorsList to tempFactorsList.
+		Node* nodePtr = GivenIndexToFindNodePointer(Z[i]);
+		// Move every factor that is related to the node Z[i] from factors_list to tempFactorsList.
 		/*
 		 * Note: This for loop does not contain "it++" in the parentheses.
 		 * 		 Because if we do so, it may cause some logic faults which, however, will not cause runtime error, so hard to debug.
 		 * 		 For example:
 		 * 		 	When "it" reaches the second to last element, and this element is related to the node.
-		 * 		 	Then this element will be erase from factorsList, and then "it++" which will move "it" to the end.
+		 * 		 	Then this element will be erase from factors_list, and then "it++" which will move "it" to the end.
 		 * 		 	Then the for loop will end because "it" has reached the end.
 		 * 		 	However, at this time, the last element has been ignored, even if it is related to the node.
 		 */
-		for (vector<Factor>::iterator it=factorsList.begin(); it!=factorsList.end(); /* no it++ */) {
-			if ((*it).relatedVariables.find(nodePtr->nodeName)!=(*it).relatedVariables.end()) {
+		for (auto it=factors_list.begin(); it!=factors_list.end(); /* no ++it */) {
+			if ((*it).related_variables.find(nodePtr->GetNodeIndex())!=(*it).related_variables.end()) {
 				tempFactorsList.push_back(*it);
-				factorsList.erase(it);
+				factors_list.erase(it);
 				continue;
 			} else {
-				it++;
+				++it;
 			}
 		}
 		while(tempFactorsList.size()>1) {
@@ -519,100 +531,89 @@ Factor Network::sumProductVariableElimination(vector<Factor> factorsList, int* Z
 			tempFactorsList.pop_back();
 			temp2 = tempFactorsList.back();
 			tempFactorsList.pop_back();
-			product = temp1.multiplyWithFactor(temp2);
+			product = temp1.MultiplyWithFactor(temp2);
 			tempFactorsList.push_back(product);
 		}
-		Factor newFactor = tempFactorsList.back().sumProductOverVariable(nodePtr);
-		factorsList.push_back(newFactor);
+		Factor newFactor = tempFactorsList.back().SumProductOverVariable(nodePtr);
+		factors_list.push_back(newFactor);
 	}
 
 	/*
 	 * 	If we are calculating a node's posterior probability given evidence about its children,
 	 * 	then when the program runs to here,
-	 * 	the "factorsList" will contain several factors about the same node which is the query node Y.
+	 * 	the "factors_list" will contain several factors about the same node which is the query node Y.
 	 * 	When it happens, we need to multiply these several factors.
 	 */
-	while (factorsList.size()>1) {
+	while (factors_list.size()>1) {
 		Factor temp1, temp2, product;
-		temp1 = factorsList.back();
-		factorsList.pop_back();
-		temp2 = factorsList.back();
-		factorsList.pop_back();
-		product = temp1.multiplyWithFactor(temp2);
-		factorsList.push_back(product);
+		temp1 = factors_list.back();
+		factors_list.pop_back();
+		temp2 = factors_list.back();
+		factors_list.pop_back();
+		product = temp1.MultiplyWithFactor(temp2);
+		factors_list.push_back(product);
 	}
 
-	return factorsList.back();	// After all the processing shown above, the only remaining factor is the factor about Y.
+	return factors_list.back();	// After all the processing shown above, the only remaining factor is the factor about Y.
 }
 
-Factor Network::variableEliminationInferenceReturningPossibilities(int* Z, int nz, Combination E, Node* Y) {
-	vector<Factor> factorsList = constructFactors(Z, nz, Y);
-	loadEvidence(&factorsList,E);
-	Factor F = sumProductVariableElimination(factorsList, Z, nz);
-	F.normalize();
+Factor Network::VarElimInferReturnPossib(int *Z, int nz, Combination E, Node *Y) {
+	vector<Factor> factorsList = ConstructFactors(Z, nz, Y);
+	LoadEvidence(&factorsList, E);
+	Factor F = SumProductVarElim(factorsList, Z, nz);
+	F.Normalize();
 	return F;
 }
 
-Factor Network::variableEliminationInferenceReturningPossibilities(Combination E, Node* Y) {
-	return this->variableEliminationInferenceReturningPossibilities(treeDefaultEliminationOrder, numOfNodes-1, E, Y);
+Factor Network::VarElimInferReturnPossib(Combination E, Node *Y) {
+	pair<int*, int> simplified_elimination_order = SimplifyTreeDefaultElimOrd();
+	return this->VarElimInferReturnPossib(simplified_elimination_order.first, simplified_elimination_order.second, E, Y);
 }
 
-
-
-double Network::testingNetworkReturnAccuracy(Trainer* tester) {
+double Network::TestNetReturnAccuracy(Trainer *tester) {
 
 	cout << "=======================================================================" << '\n'
-		 << "Begin testing the trained network." << endl;
+	     << "Begin testing the trained network." << endl;
 
 	cout << "Progress indicator: ";
 
-	int numOfCorrect=0, numOfWrong=0, m=tester->n_training_instance, m10=m/10, percent=0;
+	int num_of_correct=0, num_of_wrong=0, m=tester->n_train_instance, m10=m/10, percent=0;
 
-	for (int i=0; i<tester->n_training_instance; i++) {	// For each row i of testing set
+	for (int i=0; i<m; i++) {	// For each sample in test set
 
 		if (i%m10==0) {
-			cout << (percent++)*10 << '%' << endl;
+			cout << (percent++)*10 << "%... " << flush;
 		}
 
-		Node* Y = givenIndexToFindNodePointer(0);
+		Node *Y = GivenIndexToFindNodePointer(0);
 
-		/* todo
-		 *	This implementation is not good.
-		 *	I know the final tree structure and CPD of the ChowLiu tree trained with dataset "a1a".
-		 *	So I hard-coding the elimination order and evidences in program.
-		 *	It should have been generated by algorithm!!!
-		 *	It should have been generated by algorithm!!!
-		 *	It should have been generated by algorithm!!!
-		 */
-
-		// These 5 nodes provide the most useful information.
-		int nZ=5, *Z=new int[nZ]{39,40,51,75,76};
-		int eNum=5, *eIndex=new int[eNum], *eValue=new int[eNum];
-		for (int j=0; j<eNum; j++) {
-			eIndex[j] = Z[j];
-			eValue[j] = tester->trainingSet[i][eIndex[j]];
+		// For now, only support complete data.
+		int e_num=n_nodes-1, *e_index=new int[e_num], *e_value=new int[e_num];
+		for (int j=0; j<e_num; ++j) {
+			e_index[j] = j+1;
+			e_value[j] = tester->train_set_X[i][j];
 		}
-		Combination E = constructEvidence(eIndex,eValue,eNum);
-		Factor F = variableEliminationInferenceReturningPossibilities(Z,nZ,E, Y);
-		double maxProb = 0;
-		Combination combPredict;
-		for (auto comb : F.combList) {
-			if (F.potentialsList[comb] > maxProb) {
-				maxProb = F.potentialsList[comb];
-				combPredict = comb;
+		Combination E = ConstructEvidence(e_index, e_value, e_num);
+		this->network_evidence = E;
+		Factor F = VarElimInferReturnPossib(E, Y);
+		double max_prob = 0;
+		Combination comb_predict;
+		for (auto &comb : F.set_combinations) {
+			if (F.map_potentials[comb] > max_prob) {
+				max_prob = F.map_potentials[comb];
+				comb_predict = comb;
 			}
 		}
+		int label_predict = comb_predict.begin()->second;
 
-		if ((*combPredict.begin()).second == tester->trainingSet[i][0]) {
-			numOfCorrect++;
-			//cout << "y, ";
+		if (label_predict == tester->train_set_y[i]) {
+			num_of_correct++;
 		} else {
-			numOfWrong++;
-			//cout << "n, ";
+			num_of_wrong++;
 		}
 
 	}
-	double accuracy = numOfCorrect / (double)(numOfCorrect+numOfWrong);
+	double accuracy = num_of_correct / (double)(num_of_correct+num_of_wrong);
 	cout << '\n' << "Accuracy: " << accuracy << endl;
 	return accuracy;
 }

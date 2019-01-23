@@ -6,7 +6,7 @@
 
 
 /*
- * A function for generateParentsCombinations() of Node.
+ * A function for GenerateParentsCombinations() of Node.
  *
  * Input several sets,
  * output all possible combinations of elements of each set,
@@ -25,21 +25,20 @@
 set<Combination> generate_all_possible_combinations_from_several_sets(set<Combination>* setOfSets) {
 
 	// Error Case
-	if (setOfSets->size()<1) {
+	if (setOfSets->empty()) {
 		cout << "The size of setOfSets is less than 1." << endl;
 		exit(1);
 	}
 
 
-	set<Combination>::iterator its=setOfSets->begin();
+	auto its=setOfSets->begin();
 	Combination toBeAdded;
 	toBeAdded =  *its;
 	set<Combination> result;
 
 	// Base Case
 	if (setOfSets->size()==1) {
-		for (Combination::iterator itTBA=toBeAdded.begin(); itTBA!=toBeAdded.end(); itTBA++){
-			pair<string, int> p = (*itTBA);
+		for (auto &p : toBeAdded){
 			Combination c;
 			c.insert(p);
 			result.insert(c);
@@ -50,10 +49,8 @@ set<Combination> generate_all_possible_combinations_from_several_sets(set<Combin
 	// Recursive Case (the size of setOfSets is greater than 1)
 	setOfSets->erase(its);
 	result = generate_all_possible_combinations_from_several_sets(setOfSets);
-	for (Combination::iterator itTBA=toBeAdded.begin(); itTBA!=toBeAdded.end(); itTBA++){
-		for (set<Combination>::iterator itResult=result.begin(); itResult!=result.end(); itResult++) {
-			Combination c = (*itResult);
-			pair<string, int> p = *itTBA;
+	for (auto &p : toBeAdded){
+		for (auto c : result) {
 			c.insert(p);
 			result.insert(c);
 		}
@@ -76,8 +73,8 @@ set<Combination> generate_all_possible_combinations_from_several_sets(set<Combin
  *
  * */
 bool full_first_is_compatible_with_partial_second(Combination* first, Combination* second) {
-	for (Combination::iterator it1=first->begin(); it1!=first->end(); it1++) {
-		if (second->find(*it1)==second->end()) return false;
+	for (auto &f : *first) {
+		if (second->find(f)==second->end()) return false;
 	}
 	return true;
 }
@@ -105,16 +102,16 @@ bool full_first_is_compatible_with_partial_second(Combination* first, Combinatio
  * return true.
  * */
 bool partial_first_is_compatible_with_partial_second_on_common_variable(Combination* first, Combination* second) {
-	for (Combination::iterator it1=first->begin(); it1!=first->end(); it1++) {
-		for (Combination::iterator it2=second->begin(); it2!=second->end(); it2++) {
-			if ((*it1).first==(*it2).first && (*it1).second!=(*it2).second) return false;
+	for (auto &f : *first) {
+		for (auto &s : *second) {
+			if (f.first==s.first && f.second!=s.second) return false;
 		}
 	}
 	return true;
 }
 
 
-int* widthFirstTraversalWithAdjacencyMatirx(int** graph, int numOfNodes, int start) {
+int* widthFirstTraversalWithAdjacencyMatrix(int **graph, int numOfNodes, int start) {
 	int* result = new int[numOfNodes];
 	int itResult = 0;
 	queue<int> que;

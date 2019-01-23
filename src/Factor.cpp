@@ -6,103 +6,104 @@
 
 Factor::Factor() {}
 
-void Factor::constructFactor(Node* node) {
+void Factor::ConstructFactor(Node *node) {
 
-	relatedVariables.insert(node->nodeName);
+	related_variables.insert(node->GetNodeIndex());
 
-	set<pair<string,int>> tempPairSet;
-	for (int i=0; i<node->numOfPotentialValues; i++) {
-		Combination tempComb;
-		pair<string, int> tempPair;
-		tempPair.first = node->nodeName;
-		tempPair.second = node->potentialValues[i];
-		tempPairSet.insert(tempPair);
+	set<pair<int,int>> set_pair_temp;
+	for (int i=0; i<node->num_of_potential_values; ++i) {
+		Combination comb_temp;
+		pair<int, int> pair_temp;
+		pair_temp.first = node->GetNodeIndex();
+		pair_temp.second = node->potential_values[i];
+		set_pair_temp.insert(pair_temp);
 	}
 
-	if (node->parentsPointers.empty()) {	// If this node has no parents.
-		for (set<pair<string, int>>::iterator it=tempPairSet.begin(); it!=tempPairSet.end(); it++) {
+	// If this node has no parents.
+	if (node->set_parents_pointers.empty()) {
+		for (auto &p : set_pair_temp) {
 			Combination c;
-			c.insert(*it);
-			combList.insert(c);
-			potentialsList[c] = node->margProbTable[(*it).second];
+			c.insert(p);
+			set_combinations.insert(c);
+			map_potentials[c] = node->map_marg_prob_table[p.second];
 		}
 		return;
 	}
 
-	// If this node has parents
-	for (set<pair<string, int>>::iterator it=tempPairSet.begin(); it!=tempPairSet.end(); it++) {
-		for (auto p : node->parentsPointers) {
-			relatedVariables.insert(p->nodeName);
-		}
-		for (set<pair<string, int>>::iterator it=tempPairSet.begin(); it!=tempPairSet.end(); it++) {
-			for (set<Combination>::iterator itP=node->parentsCombinations.begin(); itP!=node->parentsCombinations.end(); itP++) {
-				Combination cP = (*itP);
-				pair<string, int> p = (*it);
-				cP.insert(p);
-				combList.insert(cP);
-				potentialsList[cP] = node->condProbTable[p.second][*itP];
-			}
+	// If this node has parents, the outer loop is for the node, and the inner loop is for the parents.
+	for (auto &p : node->set_parents_pointers) {
+		related_variables.insert(p->GetNodeIndex());
+	}
+	for (auto &p : set_pair_temp) {
+		for (auto it_pc=node->set_parents_combinations.begin(); it_pc!=node->set_parents_combinations.end(); ++it_pc) {
+			Combination c = (*it_pc);
+			c.insert(p);
+			set_combinations.insert(c);
+			map_potentials[c] = node->map_cond_prob_table[p.second][*it_pc];
 		}
 	}
-	return;
 }
 
 
-Factor Factor::multiplyWithFactor(Factor secondFactor) {
+Factor Factor::MultiplyWithFactor(Factor second_factor) {
 	Factor newFactor;
-	newFactor.relatedVariables.insert(this->relatedVariables.begin(),this->relatedVariables.end());
-	newFactor.relatedVariables.insert(secondFactor.relatedVariables.begin(),secondFactor.relatedVariables.end());
-	set<string> commonRelatedVariables;
-	set_intersection(this->relatedVariables.begin(),this->relatedVariables.end(),
-					  secondFactor.relatedVariables.begin(),secondFactor.relatedVariables.end(),
-					  std::inserter(commonRelatedVariables,commonRelatedVariables.begin()));
-	for (set<Combination>::iterator it=this->combList.begin(); it!=this->combList.end(); it++) {
-		for (set<Combination>::iterator itSF=secondFactor.combList.begin(); itSF!=secondFactor.combList.end(); itSF++) {
-			Combination first, second;
-			first = *it;
-			second = *itSF;
-			if (!partial_first_is_compatible_with_partial_second_on_common_variable(&first,&second)) continue;	// solve the bug about common variables
-			Combination nComb;
-			nComb.insert((*it).begin(),(*it).end());
-			nComb.insert((*itSF).begin(),(*itSF).end());
-			newFactor.combList.insert(nComb);
-			newFactor.potentialsList[nComb] = this->potentialsList[*it] * secondFactor.potentialsList[*itSF];
+
+	newFactor.related_variables.insert(this->related_variables.begin(),this->related_variables.end());
+	newFactor.related_variables.insert(second_factor.related_variables.begin(),second_factor.related_variables.end());
+
+	set<int> common_related_variables;
+	set_intersection(this->related_variables.begin(),this->related_variables.end(),
+					  second_factor.related_variables.begin(),second_factor.related_variables.end(),
+					  std::inserter(common_related_variables,common_related_variables.begin()));
+
+	for (auto first: set_combinations) {
+		for (auto second : second_factor.set_combinations) {
+
+			// solve the bug about common variables
+			// If two combinations have different values on common variables,
+			// then these two combinations can not form a legal entry.
+			if (!partial_first_is_compatible_with_partial_second_on_common_variable(&first,&second)) continue;
+
+			Combination new_comb;
+			new_comb.insert(first.begin(),first.end());
+			new_comb.insert(second.begin(),second.end());
+			newFactor.set_combinations.insert(new_comb);
+			newFactor.map_potentials[new_comb] = this->map_potentials[first] * second_factor.map_potentials[second];
 		}
 	}
 	return newFactor;
 }
 
-Factor Factor::sumProductOverVariable(Node* node) {
+Factor Factor::SumProductOverVariable(Node *node) {
 	Factor newFactor;
-	this->relatedVariables.erase(node->nodeName);
-	newFactor.relatedVariables = this->relatedVariables;
-	for (set<Combination>::iterator it=this->combList.begin(); it!=this->combList.end(); it++) {
-		pair<string, int> pairToBeErased;
-		for (Combination::iterator itC=(*it).begin(); itC!=(*it).end(); itC++) {
-			if ((*itC).first==node->nodeName) {
-				pairToBeErased = (*itC);
+	this->related_variables.erase(node->GetNodeIndex());
+	newFactor.related_variables = this->related_variables;
+	for (auto comb : set_combinations) {
+		pair<int, int> pair_to_be_erased;
+		for (auto p : comb) {
+			if (p.first==node->GetNodeIndex()) {
+				pair_to_be_erased = p;
 				break;
 			}
 		}
-		Combination comb = *it;
-		double temp = this->potentialsList[comb];
-		comb.erase(pairToBeErased);
-		if (newFactor.combList.find(comb)!=newFactor.combList.end()) {
-			newFactor.potentialsList[comb] += temp;
+		double temp = this->map_potentials[comb];
+		comb.erase(pair_to_be_erased);
+		if (newFactor.set_combinations.find(comb)!=newFactor.set_combinations.end()) {
+			newFactor.map_potentials[comb] += temp;
 		} else {
-			newFactor.combList.insert(comb);
-			newFactor.potentialsList[comb] = temp;
+			newFactor.set_combinations.insert(comb);
+			newFactor.map_potentials[comb] = temp;
 		}
 	}
 	return newFactor;
 }
 
-void Factor::normalize() {
+void Factor::Normalize() {
 	double denominator = 0;
-	for (auto comb : combList) {
-		denominator += potentialsList[comb];
+	for (auto &comb : set_combinations) {
+		denominator += map_potentials[comb];
 	}
-	for (auto comb : combList) {
-		potentialsList[comb] /= denominator;
+	for (auto &comb : set_combinations) {
+		map_potentials[comb] /= denominator;
 	}
 }

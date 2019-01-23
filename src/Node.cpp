@@ -5,34 +5,40 @@
 #include "Node.h"
 
 
-Node::Node() {
-	// todo do something
+Node::Node() {}
+
+int Node::GetNodeIndex() {
+	return node_index;
+}
+void Node::SetNodeIndex(int i) {
+	if (i<0) exit(1);
+	node_index = i;
 }
 
-void Node::addParent(Node* p) {
-	parentsPointers.insert(p);
+void Node::AddParent(Node *p) {
+	set_parents_pointers.insert(p);
 }
 
-void Node::addChild(Node* c) {
-	childrenPointers.insert(c);
+void Node::AddChild(Node *c) {
+	set_children_pointers.insert(c);
 }
 
-void Node::generateParentsCombinations() {
+void Node::GenerateParentsCombinations() {
 	// Preprocess
-	set<Combination> setOfSets;
-	if (parentsPointers.size()<1) return;
-	for (auto par : parentsPointers) {
+	set<Combination> set_of_sets;
+	if (set_parents_pointers.empty()) return;
+	for (auto par_ptr : set_parents_pointers) {
 		Combination cb;
-		pair<string, int> ele;
-		for (int i=0; i<par->numOfPotentialValues; i++) {
-			ele.first = par->nodeName;
-			ele.second = par->potentialValues[i];
+		pair<int, int> ele;
+		for (int i=0; i<par_ptr->num_of_potential_values; i++) {
+			ele.first = par_ptr->node_index;
+			ele.second = par_ptr->potential_values[i];
 			cb.insert(ele);
 		}
-		setOfSets.insert(cb);
+		set_of_sets.insert(cb);
 	}
 
 	// Generate
-	parentsCombinations = generate_all_possible_combinations_from_several_sets(&setOfSets);
+	set_parents_combinations = generate_all_possible_combinations_from_several_sets(&set_of_sets);
 
 }
