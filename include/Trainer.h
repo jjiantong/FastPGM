@@ -8,6 +8,7 @@
 #include <string>
 #include <set>
 #include <vector>
+#include <map>
 #include <utility>
 #include <iostream>
 #include <fstream>
@@ -16,27 +17,29 @@
 
 using namespace std;
 
-typedef set< pair<string, int> > Combination;
+typedef set< pair<int, int> > Combination;
 
 class Trainer {
 
 public:
-	int n_training_instance;
+	int n_train_instance;
 	int n_feature;
-	string* featuresNames;
-	bool* isFeaturesDiscrete;
-	int* numOfPossibleValuesOfFeatures;
-	int numOfPossibleValuesOfClass;
-	int** trainingSet; // For now, the training set contains only discrete values. Future work is to let it support continuous values;
-	vector<vector<pair<int,int>>> trainingSet_X_vector;
-	vector<int> trainingSet_y_vector;
-	// incompleteData;
-	// incompleteDataExpectation;
-
+	bool* is_features_discrete;
+	int* num_of_possible_values_of_features;
+	map<int,set<int>> map_feature_possible_values;
+	int num_of_possible_values_of_label;
+	set<int> set_label_possible_values;
+	int *train_set_y;
+	int **train_set_X;
+	int **train_set_y_X;  // This is for the convenience of calculating mutual information.
+	vector<vector<pair<int,int>>> train_set_X_vector;
+	vector<int> train_set_y_vector;
+	// incomp_data;
+	// incomp_data_expectation;
 
 	Trainer();
-	void loadLIBSVMData_AutoDetectConfig(string);
-	void convertVectorDatasetIntoArrayDataset();
+	void LoadLIBSVMDataAutoDetectConfig(string);
+	void ConvertVectorDatasetIntoArrayDataset();
 };
 
 

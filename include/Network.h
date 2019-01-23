@@ -18,16 +18,16 @@
 
 using namespace std;
 
-typedef set< pair<string, int> > Combination;
+typedef set< pair<int, int> > Combination;
+
 
 class Network {
 public:
-	int numOfNodes;
-	string* nodesOrder;
-	set<Node*> nodesContainer;
-	//set<Edge*> edgesContainer;
+	int n_nodes;
+	set<Node*> set_node_ptr_container;
+	//set<Edge*> edges_container;
 
-	/* About "treeDefaultEliminationOrder":
+	/* About "tree_default_elim_ord":
 	 * 		This attribute is not supposed to exist.
 	 * 		But for now, I have just implemented the part of ChowLiu tree.
 	 * 		And I have not implemented the part of generating an elimination order automatically.
@@ -35,26 +35,35 @@ public:
 	 * 		The order is fixed for one tree, but different for different trees.
 	 * 		It is just the reverse order of topological sorting using width-first-traversal start at the root node.
 	 * */
-	int* treeDefaultEliminationOrder;
+	int* tree_default_elim_ord;
+	Combination network_evidence;
 
 	Network();
 
-	Node* givenIndexToFindNodePointer(int);
-	int givenNodePointerToFindIndex(Node*);
-	int givenNodeNameToFindIndex(string);
-	double computeMutualInformation(Node*, Node*, const Trainer*);
-	void structLearn_ChowLiu_CompData(const Trainer *trainer);
-	void trainNetwork_KnowStruct_CompData(const Trainer*);
-	void setParentChild(Node*, Node*);
+	Node* GivenIndexToFindNodePointer(int);
 
-	Combination constructEvidence(int*, int*, int);
-	vector<Factor> constructFactors(int*, int, Node*);
-	void loadEvidence(vector<Factor>*, Combination);
-	Factor sumProductVariableElimination(vector<Factor>, int*, int);
-	Factor variableEliminationInferenceReturningPossibilities(int*, int, Combination, Node*);
-	Factor variableEliminationInferenceReturningPossibilities(Combination, Node*);
+	double ComputeMutualInformation(Node *, Node *, const Trainer *);
+	void StructLearnChowLiuTreeCompData(Trainer *);
 
-	double testingNetworkReturnAccuracy(Trainer*);
+	void LearnParmsKnowStructCompData(const Trainer *);
+
+	void SetParentChild(int, int);
+	void SetParentChild(Node *, Node *);
+
+	Combination ConstructEvidence(int *, int *, int);
+
+	vector<Factor> ConstructFactors(int *, int, Node *);
+	void LoadEvidence(vector<Factor> *, Combination);
+
+	pair<int*, int> SimplifyTreeDefaultElimOrd();
+	void DepthFirstTraversalUntillMeetObserved(int, set<int>&, set<int>&);
+	void DepthFirstTraversalToRemoveMSeparatedNodes(int, set<int>&, set<int>&);
+
+	Factor SumProductVarElim(vector<Factor>, int *, int);
+	Factor VarElimInferReturnPossib(int *, int, Combination, Node *);
+	Factor VarElimInferReturnPossib(Combination, Node *);
+
+	double TestNetReturnAccuracy(Trainer *);
 };
 
 

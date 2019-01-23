@@ -16,20 +16,20 @@
 
 using namespace std;
 
-typedef set< pair<string, int> > Combination;
+typedef set< pair<int, int> > Combination;
 
 class Factor {
 public:
 
-	set<string> relatedVariables;
-	set<Combination> combList;
-	map<Combination, double> potentialsList;
+	set<int> related_variables;
+	set<Combination> set_combinations;
+	map<Combination, double> map_potentials;
 
 	Factor();
-	void constructFactor(Node*);
-	Factor multiplyWithFactor(Factor);
-	Factor sumProductOverVariable(Node*);
-	void normalize();
+	void ConstructFactor(Node *);
+	Factor MultiplyWithFactor(Factor);
+	Factor SumProductOverVariable(Node *);
+	void Normalize();
 };
 
 

@@ -12,11 +12,11 @@
 #include <iostream>
 
 using namespace std;
-typedef set< pair<string, int> > Combination;
+typedef set< pair<int, int> > Combination;
 
 set<Combination> generate_all_possible_combinations_from_several_sets(set<Combination>*);
 bool full_first_is_compatible_with_partial_second(Combination*, Combination*);
 bool partial_first_is_compatible_with_partial_second_on_common_variable(Combination*, Combination*);
-int* widthFirstTraversalWithAdjacencyMatirx(int **, int, int);
+int* widthFirstTraversalWithAdjacencyMatrix(int **, int, int);
 
 #endif //BAYESIANNETWORK_GADGET_H

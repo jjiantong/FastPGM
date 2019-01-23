@@ -13,24 +13,27 @@
 
 using namespace std;
 
-typedef set< pair<string, int> > Combination;
+typedef set< pair<int, int> > Combination;
 
 class Node {
+private:
+	int node_index;
 public:
-	string nodeName;
-	bool isDiscrete;
-	int numOfPotentialValues;
-	int* potentialValues;
-	set<Node*> parentsPointers;
-	set<Node*> childrenPointers;
-	set<Combination> parentsCombinations;
-	map<int, map<Combination, double> >  condProbTable;
-	map<int, double>  margProbTable;
+	bool is_discrete;
+	int num_of_potential_values;
+	int* potential_values;
+	set<Node*> set_parents_pointers;
+	set<Node*> set_children_pointers;
+	set<Combination> set_parents_combinations;
+	map<int, map<Combination, double> >  map_cond_prob_table;
+	map<int, double>  map_marg_prob_table;
 
 	Node();
-	void addChild(Node*);
-	void addParent(Node*);
-	void generateParentsCombinations();
+	int GetNodeIndex();
+	void SetNodeIndex(int);
+	void AddChild(Node *);
+	void AddParent(Node *);
+	void GenerateParentsCombinations();
 };
 
 
