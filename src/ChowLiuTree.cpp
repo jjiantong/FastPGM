@@ -4,7 +4,7 @@
 
 #include "ChowLiuTree.h"
 
-double ChowLiuTree::ComputeMutualInformation(Node *Xi, Node *Xj, const Trainer *trainer) {
+double Network::ComputeMutualInformation(Node *Xi, Node *Xj, const Trainer *trainer) {
 	// Find the indexes of these two features in training set.
 	int xi=Xi->GetNodeIndex(), xj=Xj->GetNodeIndex();
 
@@ -65,11 +65,11 @@ double ChowLiuTree::ComputeMutualInformation(Node *Xi, Node *Xj, const Trainer *
 	return mutualInformation;
 }
 
-void ChowLiuTree::StructLearnChowLiuTreeCompData(Trainer *trainer, Network *net) {
+void Network::StructLearnChowLiuTreeCompData(Trainer *trainer) {
 	cout << "=======================================================================" << '\n'
 	     << "Begin structural learning. \nConstructing Chow-Liu tree with complete data......" << endl;
-	net->n_nodes = trainer->n_feature+1;  // "+1" is for the label node.
-	for (int i=0; i<net->n_nodes; ++i) {
+	n_nodes = trainer->n_feature+1;  // "+1" is for the label node.
+	for (int i=0; i<n_nodes; ++i) {
 		Node *node_ptr = new Node();
 		node_ptr->SetNodeIndex(i);
 		node_ptr->is_discrete = trainer->is_features_discrete[i];
@@ -92,13 +92,13 @@ void ChowLiuTree::StructLearnChowLiuTreeCompData(Trainer *trainer, Network *net)
 			}
 		}
 
-		net->set_node_ptr_container.insert(node_ptr);
+		set_node_ptr_container.insert(node_ptr);
 	}
 
 	cout << "=======================================================================" << '\n'
 	     << "Constructing mutual information table......" << endl;
 
-	int n = net->n_nodes;
+	int n = n_nodes;
 	double** mutualInfoTab = new double* [n];
 	for (int i=0; i<n; i++) {
 		mutualInfoTab[i] = new double[n]();		// The parentheses at end will initialize the array to be all zeros.
@@ -113,7 +113,7 @@ void ChowLiuTree::StructLearnChowLiuTreeCompData(Trainer *trainer, Network *net)
 				// To calculate the mutual information, we need to find the nodes which correspond to the indexes i and j.
 				Node* Xi = nullptr;
 				Node* Xj = nullptr;
-				for (auto it=net->set_node_ptr_container.begin(); it!=net->set_node_ptr_container.end(); it++) {
+				for (auto it=set_node_ptr_container.begin(); it!=set_node_ptr_container.end(); it++) {
 					if ((*it)->GetNodeIndex()==i && Xi==nullptr) {
 						Xi = *it;
 					} else if ((*it)->GetNodeIndex()==j && Xj==nullptr) {
@@ -159,9 +159,9 @@ void ChowLiuTree::StructLearnChowLiuTreeCompData(Trainer *trainer, Network *net)
 
 
 	// !!! See the comments for "tree_default_elim_ord" in the "Network.h" file.
-	net->tree_default_elim_ord = new int[n-1];
+	tree_default_elim_ord = new int[n-1];
 	for (int i=1; i<n; i++) {
-		net->tree_default_elim_ord[i-1] = topologicalSortedPermutation[n-i];
+		tree_default_elim_ord[i-1] = topologicalSortedPermutation[n-i];
 	}
 
 
@@ -182,12 +182,12 @@ void ChowLiuTree::StructLearnChowLiuTreeCompData(Trainer *trainer, Network *net)
 					}
 				}
 
-				Node* Xi = net->GivenIndexToFindNodePointer(i);
-				Node* Xj = net->GivenIndexToFindNodePointer(j);
+				Node* Xi = GivenIndexToFindNodePointer(i);
+				Node* Xj = GivenIndexToFindNodePointer(j);
 				if (topoIndexI<topoIndexJ) {
-					net->SetParentChild(Xi, Xj);
+					SetParentChild(Xi, Xj);
 				} else {
-					net->SetParentChild(Xj, Xi);
+					SetParentChild(Xj, Xi);
 				}
 			}
 		}
@@ -195,7 +195,7 @@ void ChowLiuTree::StructLearnChowLiuTreeCompData(Trainer *trainer, Network *net)
 
 	cout << "=======================================================================" << '\n'
 	     << "Generating parents combinations for each node......" << endl;
-	for (auto n_ptr : net->set_node_ptr_container) {
+	for (auto n_ptr : set_node_ptr_container) {
 		n_ptr->GenerateParentsCombinations();
 	}
 
@@ -225,7 +225,7 @@ void ChowLiuTree::StructLearnChowLiuTreeCompData(Trainer *trainer, Network *net)
 
 	cout << "=======================================================================" << '\n'
 	     << "Each node's parents: " << endl;
-	for (auto ptr_this_node : net->set_node_ptr_container) {
+	for (auto ptr_this_node : set_node_ptr_container) {
 		cout << ptr_this_node->GetNodeIndex() << ":\t";
 		for (auto ptr_par_node : ptr_this_node->set_parents_pointers) {
 			cout << ptr_par_node->GetNodeIndex() << '\t';
@@ -235,7 +235,7 @@ void ChowLiuTree::StructLearnChowLiuTreeCompData(Trainer *trainer, Network *net)
 
 	cout << "=======================================================================" << '\n'
 	     << "Each node's children: " << endl;
-	for (auto ptr_this_node : net->set_node_ptr_container) {
+	for (auto ptr_this_node : set_node_ptr_container) {
 		cout << ptr_this_node->GetNodeIndex() << ":\t";
 		for (auto ptr_child_node : ptr_this_node->set_children_pointers) {
 			cout << ptr_child_node->GetNodeIndex() << '\t';
@@ -245,7 +245,7 @@ void ChowLiuTree::StructLearnChowLiuTreeCompData(Trainer *trainer, Network *net)
 
 	cout << "=======================================================================" << '\n'
 	     << "Each node's parents' combination: " << endl;
-	for (auto ptr_this_node : net->set_node_ptr_container) {
+	for (auto ptr_this_node : set_node_ptr_container) {
 		cout << ptr_this_node->GetNodeIndex() << ":\t";
 		if (ptr_this_node->set_parents_combinations.empty()) continue;
 		cout << "Num of par comb: " << ptr_this_node->set_parents_combinations.size() << endl;
@@ -256,6 +256,90 @@ void ChowLiuTree::StructLearnChowLiuTreeCompData(Trainer *trainer, Network *net)
 			cout << "." << endl;
 		}
 		cout << endl;
+	}
+
+}
+
+pair<int*, int> Network::SimplifyTreeDefaultElimOrd() {
+
+	// Remove all the barren nodes
+	set<int> to_be_removed;
+	for (int i=0; i<n_nodes-1; ++i) {    // The 0-th node is root.
+		bool observed = false, need_to_be_removed = true;
+		Node *ptr_curr_node = GivenIndexToFindNodePointer(i);
+		for (auto p : network_evidence) {
+			if (p.first == tree_default_elim_ord[i]) {    // If it is observed.
+				observed = true;
+				break;
+			}
+		}
+		if (observed) continue;
+
+		if (!ptr_curr_node->set_children_pointers.empty()) {        // If it is not a leaf.
+			for (auto ptr_child : ptr_curr_node->set_children_pointers) {
+				if (to_be_removed.find(ptr_child->GetNodeIndex()) != to_be_removed.end()) {
+					need_to_be_removed = false;        // And if its children are not all removed.
+					break;
+				}
+			}
+		}
+		if (need_to_be_removed) to_be_removed.insert(i);
+	}
+
+	// Remove all m-separated nodes.
+	set<int> visited;
+	DepthFirstTraversalUntillMeetObserved(0,visited,to_be_removed);	// Start at root.
+
+	// Record all the remaining nodes in array "simplified_order".
+	int num_of_remain = n_nodes-1-to_be_removed.size();		// The 0-th node is root and do not need to be eliminated.
+	int* simplified_order = new int[num_of_remain];
+	for (int i=0, j=1; i<num_of_remain; ++i) {		// j=1 because the 0-th node is root.
+		while (to_be_removed.find(j)!=to_be_removed.end()) {++j;}
+		simplified_order[i] = j++;	// "j++" is to move to the next j, or else it will stuck at the first j that is not in "to_be_removed".
+	}
+
+
+	pair<int*, int> simplified_order_and_nodes_number = make_pair(simplified_order, num_of_remain);
+	return simplified_order_and_nodes_number;
+}
+
+void Network::DepthFirstTraversalUntillMeetObserved(int start, set<int>& visited, set<int>& to_be_removed) {
+
+	// Base case
+	if (visited.find(start)!=visited.end()) return;
+	visited.insert(start);
+
+	bool observed=false;
+	auto att = network_evidence.begin();
+	for (auto p : network_evidence) {
+		if (p.first == start) {	// If it is observed.
+			observed = true;
+			break;
+		}
+	}
+	if (observed) {
+		DepthFirstTraversalToRemoveMSeparatedNodes(start, visited, to_be_removed); // Cut down all the descendent.
+		return;
+	}
+
+	// If not observed
+	// Recursive case
+	Node* ptr_curr_node = GivenIndexToFindNodePointer(start);
+	for (auto ptr_child : ptr_curr_node->set_children_pointers) {
+		int child_index = ptr_child->GetNodeIndex();
+		DepthFirstTraversalUntillMeetObserved(child_index, visited, to_be_removed);
+	}
+
+}
+
+void Network::DepthFirstTraversalToRemoveMSeparatedNodes(int start, set<int>& visited, set<int>& to_be_removed) {
+	visited.insert(start);
+	Node* ptr_curr_node = GivenIndexToFindNodePointer(start);
+	for (auto it_ptr_child=ptr_curr_node->set_children_pointers.begin();
+	     it_ptr_child!=ptr_curr_node->set_children_pointers.end() && visited.find((*it_ptr_child)->GetNodeIndex())==visited.end();
+	     ++it_ptr_child) {
+		to_be_removed.insert((*it_ptr_child)->GetNodeIndex());
+		DepthFirstTraversalToRemoveMSeparatedNodes((*it_ptr_child)->GetNodeIndex(), visited, to_be_removed);
 	}
 
 }
