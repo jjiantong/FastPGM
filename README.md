@@ -3,27 +3,22 @@
 Developed by Linjian Li, using Clion 2018.3.1
 
 ## Important notes
-Consumed time and accuracy for the whose process on "a1a" (load data -> train -> test)
-* Using elimination order specified for "a1a", it can be done within **30 seconds**, and achieve accuracy of **0.8332**
-* Using general elimination order, it takes **11 minutes** and and achieve accuracy of **0.762792**
 
 
 ## Feature
-
   * Structural learning with complete data
     * Chow-Liu tree
   * Exact inference
     * Variable elimination
+        * Optimal elimination order for **tree shape** network
 
 ### supported problems
 classification with discrete feature values
 
-### to do: 
- * obtain an optimal sequence for variable elimination
+### to do:
  * classification with features of continues values
  * explore regression
  * support graph structures beyond  trees
-
 
 ## How to use
 Create a directory called ```bin``` under the root directory. In Linux, you can use the following command.
@@ -34,10 +29,8 @@ mkdir bin
 
 Then, go into ```bin``` directory and issue ```cmake ..``` to generate the make file.
 
-
 ## Dependencies
-Boost C++ Libraries. It is used to parse the string from dataset. Users need to download the librayies and modify the path to the libraries in `CMakeLists.txt`. 
-
+Boost C++ Libraries. It is used to parse the string from dataset. Users need to download the libraries and modify the path to the libraries in `CMakeLists.txt`.
 
 ## Performance
 
@@ -47,8 +40,14 @@ As a benchmark,
  * Logistic regression achieves accuracy of **0.8332**
  * sklearn.naive_bayes.BernoulliNB achieves accuracy of **0.7935**
  
-My bayesian network achieved accuracy of **0.8276** using **Chow-Liu Tree** and **variable elimination inference**.
+My bayesian network using **Chow-Liu Tree** and **variable elimination inference**
+Consumed time and accuracy for the whose process on "a1a" (load data -> train -> test)
+ * Using optimal elimination order for **tree shape** network, it takes **3 minutes** and and achieve accuracy of **0.823782**
 
+### LIBSVM dataset "a2a"
+ * 3 minutes, accuracy of **0.826281**
+
+### LIBSVM dataset "w1a"
+ * 26 minutes, accuracy of **0.972436**
 
 ## blah blah
-
