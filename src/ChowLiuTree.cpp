@@ -4,7 +4,7 @@
 
 #include "ChowLiuTree.h"
 
-double Network::ComputeMutualInformation(Node *Xi, Node *Xj, const Trainer *trainer) {
+double ChowLiuTree::ComputeMutualInformation(Node *Xi, Node *Xj, const Trainer *trainer) {
 	// Find the indexes of these two features in training set.
 	int xi=Xi->GetNodeIndex(), xj=Xj->GetNodeIndex();
 
@@ -65,7 +65,11 @@ double Network::ComputeMutualInformation(Node *Xi, Node *Xj, const Trainer *trai
 	return mutualInformation;
 }
 
-void Network::StructLearnChowLiuTreeCompData(Trainer *trainer) {
+void ChowLiuTree::StructLearnCompData(Trainer *trainer) {
+	StructLearnChowLiuTreeCompData(trainer);
+}
+
+void ChowLiuTree::StructLearnChowLiuTreeCompData(Trainer *trainer) {
 	cout << "=======================================================================" << '\n'
 	     << "Begin structural learning. \nConstructing Chow-Liu tree with complete data......" << endl;
 	n_nodes = trainer->n_feature+1;  // "+1" is for the label node.
@@ -158,10 +162,10 @@ void Network::StructLearnChowLiuTreeCompData(Trainer *trainer) {
 	int* topologicalSortedPermutation = widthFirstTraversalWithAdjacencyMatrix(graphAdjacencyMatrix, n, 0);
 
 
-	// !!! See the comments for "tree_default_elim_ord" in the "Network.h" file.
-	tree_default_elim_ord = new int[n-1];
+	// !!! See the comments for "default_elim_ord" in the "ChowLiuTree.h" file.
+	default_elim_ord = new int[n-1];
 	for (int i=1; i<n; i++) {
-		tree_default_elim_ord[i-1] = topologicalSortedPermutation[n-i];
+		default_elim_ord[i-1] = topologicalSortedPermutation[n-i];
 	}
 
 
@@ -260,7 +264,11 @@ void Network::StructLearnChowLiuTreeCompData(Trainer *trainer) {
 
 }
 
-pair<int*, int> Network::SimplifyTreeDefaultElimOrd() {
+pair<int*, int> ChowLiuTree::SimplifyDefaultElimOrd() {
+	return SimplifyTreeDefaultElimOrd();
+}
+
+pair<int*, int> ChowLiuTree::SimplifyTreeDefaultElimOrd() {
 
 	// Remove all the barren nodes
 	set<int> to_be_removed;
@@ -268,7 +276,7 @@ pair<int*, int> Network::SimplifyTreeDefaultElimOrd() {
 		bool observed = false, need_to_be_removed = true;
 		Node *ptr_curr_node = GivenIndexToFindNodePointer(i);
 		for (auto p : network_evidence) {
-			if (p.first == tree_default_elim_ord[i]) {    // If it is observed.
+			if (p.first == default_elim_ord[i]) {    // If it is observed.
 				observed = true;
 				break;
 			}
@@ -303,7 +311,7 @@ pair<int*, int> Network::SimplifyTreeDefaultElimOrd() {
 	return simplified_order_and_nodes_number;
 }
 
-void Network::DepthFirstTraversalUntillMeetObserved(int start, set<int>& visited, set<int>& to_be_removed) {
+void ChowLiuTree::DepthFirstTraversalUntillMeetObserved(int start, set<int>& visited, set<int>& to_be_removed) {
 
 	// Base case
 	if (visited.find(start)!=visited.end()) return;
@@ -332,7 +340,7 @@ void Network::DepthFirstTraversalUntillMeetObserved(int start, set<int>& visited
 
 }
 
-void Network::DepthFirstTraversalToRemoveMSeparatedNodes(int start, set<int>& visited, set<int>& to_be_removed) {
+void ChowLiuTree::DepthFirstTraversalToRemoveMSeparatedNodes(int start, set<int>& visited, set<int>& to_be_removed) {
 	visited.insert(start);
 	Node* ptr_curr_node = GivenIndexToFindNodePointer(start);
 	for (auto it_ptr_child=ptr_curr_node->set_children_pointers.begin();
