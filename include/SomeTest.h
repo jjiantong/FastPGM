@@ -15,6 +15,7 @@
 
 #include "Trainer.h"
 #include "Network.h"
+#include "CustomNetwork.h"
 
 class SomeTest {
 public:
@@ -22,6 +23,8 @@ public:
 		std::cout << "doing some tests..." << std::endl;
 
 		// do some test
+		auto *network = new CustomNetwork();
+		network->ConstructCustomNetworkFromFile("../data/custom_network_file.txt");
 
 		std::cout << "test finished" << std::endl;
 	}

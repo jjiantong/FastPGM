@@ -23,6 +23,14 @@ void Node::AddChild(Node *c) {
 	set_children_pointers.insert(c);
 }
 
+void Node::RemoveChild(Node *c) {
+	set_children_pointers.erase(c);
+}
+
+void Node::RemoveParent(Node *p) {
+	set_parents_pointers.erase(p);
+}
+
 void Node::GenerateParentsCombinations() {
 	// Preprocess
 	set<Combination> set_of_sets;

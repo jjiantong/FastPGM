@@ -41,6 +41,9 @@ public:
 	void SetParentChild(int, int);
 	void SetParentChild(Node *, Node *);
 
+	void RemoveParentChild(int, int);
+	void RemoveParentChild(Node *, Node *);
+
 	virtual pair<int*, int> SimplifyDefaultElimOrd() = 0;
 
 	Combination ConstructEvidence(int *, int *, int);
