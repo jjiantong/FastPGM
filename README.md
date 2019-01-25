@@ -10,7 +10,12 @@ Developed by Linjian Li, using Clion 2018.3.1
     * Chow-Liu tree
   * Exact inference
     * Variable elimination
-        * Optimal elimination order for **tree shape** network
+      * Optimal elimination order for **tree shape** network
+  * Construct custom network from files
+    * Format of file's contents
+      * The first line is an integer of the number of nodes
+      * Each line from the second till the end represents a node and its child(ren) separated by white space
+        * node_index -> child_1 child_2 ...
 
 ### supported problems
 classification with discrete feature values

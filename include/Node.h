@@ -33,6 +33,8 @@ public:
 	void SetNodeIndex(int);
 	void AddChild(Node *);
 	void AddParent(Node *);
+	void RemoveChild(Node *);
+	void RemoveParent(Node *);
 	void GenerateParentsCombinations();
 };
 

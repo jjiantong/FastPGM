@@ -34,6 +34,16 @@ void Network::SetParentChild(Node *p, Node *c) {
 	c->AddParent(p);
 }
 
+void Network::RemoveParentChild(int p_index, int c_index) {
+	Node *p = GivenIndexToFindNodePointer(p_index), *c = GivenIndexToFindNodePointer(c_index);
+	RemoveParentChild(p,c);
+}
+
+void Network::RemoveParentChild(Node *p, Node *c) {
+	p->RemoveChild(c);
+	c->RemoveParent(p);
+}
+
 void Network::LearnParmsKnowStructCompData(const Trainer *trainer){
 	cout << "=======================================================================" << '\n'
 	     << "Begin learning parameters with known structure and complete data." << endl;
