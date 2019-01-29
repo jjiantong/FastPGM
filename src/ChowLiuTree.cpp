@@ -4,6 +4,7 @@
 
 #include "ChowLiuTree.h"
 
+
 double ChowLiuTree::ComputeMutualInformation(Node *Xi, Node *Xj, const Trainer *trainer) {
 	// Find the indexes of these two features in training set.
 	int xi=Xi->GetNodeIndex(), xj=Xj->GetNodeIndex();
@@ -65,9 +66,11 @@ double ChowLiuTree::ComputeMutualInformation(Node *Xi, Node *Xj, const Trainer *
 	return mutualInformation;
 }
 
+
 void ChowLiuTree::StructLearnCompData(Trainer *trainer) {
 	StructLearnChowLiuTreeCompData(trainer);
 }
+
 
 void ChowLiuTree::StructLearnChowLiuTreeCompData(Trainer *trainer) {
 	cout << "=======================================================================" << '\n'
@@ -264,9 +267,11 @@ void ChowLiuTree::StructLearnChowLiuTreeCompData(Trainer *trainer) {
 
 }
 
+
 pair<int*, int> ChowLiuTree::SimplifyDefaultElimOrd() {
 	return SimplifyTreeDefaultElimOrd();
 }
+
 
 pair<int*, int> ChowLiuTree::SimplifyTreeDefaultElimOrd() {
 
@@ -311,6 +316,7 @@ pair<int*, int> ChowLiuTree::SimplifyTreeDefaultElimOrd() {
 	return simplified_order_and_nodes_number;
 }
 
+
 void ChowLiuTree::DepthFirstTraversalUntillMeetObserved(int start, set<int>& visited, set<int>& to_be_removed) {
 
 	// Base case
@@ -339,6 +345,7 @@ void ChowLiuTree::DepthFirstTraversalUntillMeetObserved(int start, set<int>& vis
 	}
 
 }
+
 
 void ChowLiuTree::DepthFirstTraversalToRemoveMSeparatedNodes(int start, set<int>& visited, set<int>& to_be_removed) {
 	visited.insert(start);

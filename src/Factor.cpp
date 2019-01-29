@@ -4,7 +4,9 @@
 
 #include "Factor.h"
 
+
 Factor::Factor() {}
+
 
 void Factor::ConstructFactor(Node *node) {
 
@@ -74,6 +76,7 @@ Factor Factor::MultiplyWithFactor(Factor second_factor) {
 	return newFactor;
 }
 
+
 Factor Factor::SumProductOverVariable(Node *node) {
 	Factor newFactor;
 	this->related_variables.erase(node->GetNodeIndex());
@@ -97,6 +100,7 @@ Factor Factor::SumProductOverVariable(Node *node) {
 	}
 	return newFactor;
 }
+
 
 void Factor::Normalize() {
 	double denominator = 0;

@@ -4,7 +4,9 @@
 
 #include "Network.h"
 
+
 Network::Network() {}
+
 
 Node* Network::GivenIndexToFindNodePointer(int index) {
 	if (index<0 || index>n_nodes) {
@@ -24,25 +26,30 @@ Node* Network::GivenIndexToFindNodePointer(int index) {
 	return node_ptr;
 }
 
+
 void Network::SetParentChild(int p_index, int c_index) {
 	Node *p = GivenIndexToFindNodePointer(p_index), *c = GivenIndexToFindNodePointer(c_index);
 	SetParentChild(p,c);
 }
+
 
 void Network::SetParentChild(Node *p, Node *c) {
 	p->AddChild(c);
 	c->AddParent(p);
 }
 
+
 void Network::RemoveParentChild(int p_index, int c_index) {
 	Node *p = GivenIndexToFindNodePointer(p_index), *c = GivenIndexToFindNodePointer(c_index);
 	RemoveParentChild(p,c);
 }
 
+
 void Network::RemoveParentChild(Node *p, Node *c) {
 	p->RemoveChild(c);
 	c->RemoveParent(p);
 }
+
 
 void Network::LearnParmsKnowStructCompData(const Trainer *trainer){
 	cout << "=======================================================================" << '\n'
@@ -132,6 +139,7 @@ void Network::LearnParmsKnowStructCompData(const Trainer *trainer){
 	}
 }
 
+
 Combination Network::ConstructEvidence(int *nodes_indexes, int *observations, int num_of_observations) {
 	Combination result;
 	pair<int, int> p;
@@ -142,6 +150,7 @@ Combination Network::ConstructEvidence(int *nodes_indexes, int *observations, in
 	}
 	return result;
 }
+
 
 vector<Factor> Network::ConstructFactors(int *Z, int nz, Node *Y) {
 	vector<Factor> factors_list;
@@ -157,6 +166,7 @@ vector<Factor> Network::ConstructFactors(int *Z, int nz, Node *Y) {
 	return factors_list;
 }
 
+
 void Network::LoadEvidence(vector<Factor> *factors_list, Combination E) {
 	for (auto &f : *factors_list) {	// For each factor
 		for (auto &p : E) {	// For each node's observation in E
@@ -171,6 +181,7 @@ void Network::LoadEvidence(vector<Factor> *factors_list, Combination E) {
 		}
 	}
 }
+
 
 Factor Network::SumProductVarElim(vector<Factor> factors_list, int *Z, int nz) {
 	for (int i=0; i<nz; i++) {
@@ -227,6 +238,7 @@ Factor Network::SumProductVarElim(vector<Factor> factors_list, int *Z, int nz) {
 	return factors_list.back();	// After all the processing shown above, the only remaining factor is the factor about Y.
 }
 
+
 Factor Network::VarElimInferReturnPossib(int *Z, int nz, Combination E, Node *Y) {
 	vector<Factor> factorsList = ConstructFactors(Z, nz, Y);
 	LoadEvidence(&factorsList, E);
@@ -235,10 +247,12 @@ Factor Network::VarElimInferReturnPossib(int *Z, int nz, Combination E, Node *Y)
 	return F;
 }
 
+
 Factor Network::VarElimInferReturnPossib(Combination E, Node *Y) {
 	pair<int*, int> simplified_elimination_order = SimplifyDefaultElimOrd();
 	return this->VarElimInferReturnPossib(simplified_elimination_order.first, simplified_elimination_order.second, E, Y);
 }
+
 
 double Network::TestNetReturnAccuracy(Trainer *tester) {
 

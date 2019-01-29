@@ -19,4 +19,4 @@ include_directories(${PROJECT_SOURCE_DIR}/include)
 file(GLOB SRC src/*.cpp)
 file(GLOB HEAD include/*.h)
 
-add_executable(BayesianNetwork ${SRC} ${HEAD} include/CustomNetwork.h src/CustomNetwork.cpp)
+add_executable(BayesianNetwork ${SRC} ${HEAD})

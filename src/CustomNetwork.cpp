@@ -4,6 +4,7 @@
 
 #include "CustomNetwork.h"
 
+
 void CustomNetwork::ConstructCustomNetworkFromFile(string file_path) {
 
 	ifstream in_file;
@@ -68,7 +69,13 @@ void CustomNetwork::ConstructCustomNetworkFromFile(string file_path) {
 	}
 }
 
-void CustomNetwork::StructLearnCompData(Trainer *) {}
+
+void CustomNetwork::StructLearnCompData(Trainer *) {
+	// todo: implement
+	return;
+}
+
+
 pair<int*, int> CustomNetwork::SimplifyDefaultElimOrd() {
 	// todo: implement
 	return pair<int*, int> (default_elim_ord, n_nodes-1);
