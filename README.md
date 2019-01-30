@@ -59,7 +59,7 @@ classification with discrete feature values
 
 ### to do:
  * classification with features of continues values
-   * Gaussian Bayesian network
+   * Gaussian Bayesian network (related to regression)
  * explore regression
  * support graph structures beyond trees
    * Custom network *(working on...)*
