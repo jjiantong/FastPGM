@@ -189,12 +189,10 @@ void ChowLiuTree::StructLearnChowLiuTreeCompData(Trainer *trainer) {
 					}
 				}
 
-				Node* Xi = GivenIndexToFindNodePointer(i);
-				Node* Xj = GivenIndexToFindNodePointer(j);
 				if (topoIndexI<topoIndexJ) {
-					SetParentChild(Xi, Xj);
+					SetParentChild(i, j);
 				} else {
-					SetParentChild(Xj, Xi);
+					SetParentChild(j, i);
 				}
 			}
 		}

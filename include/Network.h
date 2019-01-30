@@ -55,6 +55,9 @@ public:
 	Factor VarElimInferReturnPossib(int *, int, Combination, Node *);
 	Factor VarElimInferReturnPossib(Combination, Node *);
 
+	int PredictUseVarElimInfer(int *, int, Combination, int);
+	int PredictUseVarElimInfer(Combination, int);
+
 	double TestNetReturnAccuracy(Trainer *);
 };
 

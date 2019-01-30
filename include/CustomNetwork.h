@@ -27,23 +27,8 @@ public:
 
 	CustomNetwork() = default;
 
-	/*
-	 * Support generating custom network from a file.
-	 * The format of the file:
-	 *   The first line is the number of nodes.
-	 *   Each line from the second line till the end represents a node and its child(ren) separated by white space.
-	 *   For example: {
-	 *     3
-	 *     0 -> 1 2
-	 *     1 -> 2
-	 *     2 ->
-	 *   }
-	 *   The above example means that there are 3 nodes.
-	 *   n_0 (node 0) has children n_1 and n_2.
-	 *   n_1 has child n_2.
-	 *   n_2 has no child.
-	 */
-	void ConstructCustomNetworkFromFile(string);
+	void ConstructCustomNetworkStructFromFile(string);
+	void SetCustomNetworkParamsFromFile(string);
 	void StructLearnCompData(Trainer *);
 	pair<int*, int> SimplifyDefaultElimOrd();
 

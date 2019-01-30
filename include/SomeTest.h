@@ -24,7 +24,8 @@ public:
 
 		// do some test
 		auto *network = new CustomNetwork();
-		network->ConstructCustomNetworkFromFile("../data/custom_network_file.txt");
+		network->ConstructCustomNetworkStructFromFile("../data/example_custom_network_file.txt");
+		network->SetCustomNetworkParamsFromFile("../data/example_custom_network_file.txt");
 
 		std::cout << "test finished" << std::endl;
 	}

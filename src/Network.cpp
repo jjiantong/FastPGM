@@ -10,10 +10,7 @@ Network::Network() {}
 
 Node* Network::GivenIndexToFindNodePointer(int index) {
 	if (index<0 || index>n_nodes) {
-		cout << "=======================================================================" << '\n'
-		     << "Node* Network::GivenIndexToFindNodePointer(int index) \n"
-		     << "Invalid index!!! \n"
-		     << "Index starts at 0 and the 0-th index is the root node's. " << endl;
+		fprintf(stderr, "Error in function %s! \nInvalid index!", __FUNCTION__);
 		exit(1);
 	}
 	Node* node_ptr = nullptr;
@@ -254,6 +251,38 @@ Factor Network::VarElimInferReturnPossib(Combination E, Node *Y) {
 }
 
 
+int Network::PredictUseVarElimInfer(int *Z, int nz, Combination E, int Y_index) {
+	Node *Y = GivenIndexToFindNodePointer(Y_index);
+	Factor F = VarElimInferReturnPossib(Z, nz, E, Y);
+	double max_prob = 0;
+	Combination comb_predict;
+	for (auto &comb : F.set_combinations) {
+		if (F.map_potentials[comb] > max_prob) {
+			max_prob = F.map_potentials[comb];
+			comb_predict = comb;
+		}
+	}
+	int label_predict = comb_predict.begin()->second;
+	return label_predict;
+}
+
+
+int Network::PredictUseVarElimInfer(Combination E, int Y_index) {
+	Node *Y = GivenIndexToFindNodePointer(Y_index);
+	Factor F = VarElimInferReturnPossib(E, Y);
+	double max_prob = 0;
+	Combination comb_predict;
+	for (auto &comb : F.set_combinations) {
+		if (F.map_potentials[comb] > max_prob) {
+			max_prob = F.map_potentials[comb];
+			comb_predict = comb;
+		}
+	}
+	int label_predict = comb_predict.begin()->second;
+	return label_predict;
+}
+
+
 double Network::TestNetReturnAccuracy(Trainer *tester) {
 
 	cout << "=======================================================================" << '\n'
@@ -279,17 +308,7 @@ double Network::TestNetReturnAccuracy(Trainer *tester) {
 		}
 		Combination E = ConstructEvidence(e_index, e_value, e_num);
 		this->network_evidence = E;
-		Factor F = VarElimInferReturnPossib(E, Y);
-		double max_prob = 0;
-		Combination comb_predict;
-		for (auto &comb : F.set_combinations) {
-			if (F.map_potentials[comb] > max_prob) {
-				max_prob = F.map_potentials[comb];
-				comb_predict = comb;
-			}
-		}
-		int label_predict = comb_predict.begin()->second;
-
+		int label_predict = PredictUseVarElimInfer(E, 0); // The root node (label) has index of 0.
 		if (label_predict == tester->train_set_y[i]) {
 			num_of_correct++;
 		} else {
