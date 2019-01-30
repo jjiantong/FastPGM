@@ -59,8 +59,21 @@ classification with discrete feature values
 
 ### to do:
  * classification with features of continues values
+   * Gaussian Bayesian network
  * explore regression
- * support graph structures beyond  trees
+ * support graph structures beyond trees
+   * Custom network *(working on...)*
+   * Structual learning algorithms
+     * Search and Score
+     * Tree-Augmented Naive Bayes (TAN)
+ * Soft evidence (help support incomplete data)
+ * Incomplete data
+ * Inference
+   * Message Passing and the Junction Tree Algorithm
+   * Sum Product algorithm
+   * MCMC Sampling (approximate inference)
+   * Exact Propagation (Gaussian Bayesian Networks)
+ * Latent variables
 
 ## How to use
 Create a directory called ```bin``` under the root directory. In Linux, you can use the following command.
