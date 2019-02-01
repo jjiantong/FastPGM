@@ -9,10 +9,10 @@ set(CMAKE_CXX_STANDARD 14)
 
 #But this way does not work for me (Linjian Li).
 #I will just keep this method on GitHub and change to the previous method on my computer.
-FIND_PACKAGE(Boost)
+find_package(Boost REQUIRED)
 
 include_directories(${Boost_INCLUDE_DIR})
-link_directories(${Boost_LIBRARY_DIR})
+link_directories(${Boost_LIBRARY_DIRS})
 
 include_directories(${PROJECT_SOURCE_DIR}/include)
 
