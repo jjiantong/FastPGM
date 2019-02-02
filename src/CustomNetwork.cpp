@@ -131,7 +131,7 @@ void CustomNetwork::SetCustomNetworkParamsFromFile(string file_path) {
 	// Set set_parents_combinations
 	for (int i=0; i<n_nodes; ++i) {
 		Node *node_ptr = GivenIndexToFindNodePointer(i);
-		node_ptr->GenerateParentsCombinations();
+		node_ptr->GenParCombs();
 	}
 
 	// Set probability table

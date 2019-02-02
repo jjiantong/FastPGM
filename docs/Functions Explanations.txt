@@ -1,0 +1,52 @@
+In "Node.h":
+
+1. GenParCombs
+	Generate parents combinations.
+	Example:
+		Node C has parents A and B.
+		The domains of A and B are {0,1} and {8,9} respectively.
+		After running C.GenParCombs(), C.set_parents_combinations now becomes:
+			{{<A,0>,<B,8>},{<A,1>,<B,8>},{<A,0>,<B,9>},{<A,1>,<B,9>}}
+
+
+
+
+In "gadget.h":
+
+Note: The definition of "Combination" is "typedef set< pair<int, int> > Combination;", but I write it as "set<pair<char,int>>" in order to make it more readable.
+
+1. set<Combination> GenAllCombFromSets(set<Combination> *)
+	A recursive function generate all possible combinations from several sets.
+	Input several sets, output all possible combinations of elements of each set, by picking one element in each set.
+	Example:
+		A={1,3,5}, B={a,b,c}, set_of_sets={A,B}
+		result=GenAllCombFromSets(set_of_sets)
+		then, result={1a,1b,1c,3a,3b,3c,5a,5b,5c}
+
+2. bool EachFirstIsInSecond(Combination *first, Combination *second)
+	A function that is used when multipling two factors.
+	If each element in the first Combination is in the second Combination, return true.
+	Examples:
+		case 1: first={ <a,1> , <b,2> }, second={ <a,1> , <b,2> , <c,3> , whatever more... }
+			return true
+		case 2: first={ <a,0> , <b,2> }, second={ <a,1> , <b,2> , <c,3> , whatever more... }
+			return false
+		case 3: first={ <a,1> , <b,2> , <c,3> }, second={ <a,1> , <b,2> }
+			return false
+
+3. bool FirstCompatibleSecond(Combination *first, Combination *second)
+	A function that is used when multipling two factors.
+	If elements in the first Combination is compatible with the second Combination, return true.
+	Examples:
+		case 1: first={ <a,1> , <b,2> }, second={ <a,1> , <b,2> , <c,3> , whatever more... }
+			return true
+		case 2: first={ <a,0> , <b,2> }, second={ <a,1> , <b,2> , <c,3> , whatever more... }
+			return false
+		case 3: first={ <a,1> , <b,2> , <c,3> }, second={ <a,1> , <b,2> }
+			return true
+		case 4: first={ <a,1> , <b,2> , <c,3> }, second={ <a,1> , <b,2> , <d,4> }
+			return true
+		case 5: first={ <a,1> , <b,2> , <c,3> }, second={ <a,1> , <b,2> , <c,4> }
+			return false
+		case 6: first={ <a,1> , <b,2> }, second={ <c,3> , <d,4> }
+			return true

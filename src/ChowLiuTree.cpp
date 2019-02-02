@@ -162,7 +162,7 @@ void ChowLiuTree::StructLearnChowLiuTreeCompData(Trainer *trainer) {
 		graphAdjacencyMatrix[maxI][maxJ] = graphAdjacencyMatrix[maxJ][maxI] = 1;
 	}
 	// Add arrows in tree, set parents and childrens
-	int* topologicalSortedPermutation = widthFirstTraversalWithAdjacencyMatrix(graphAdjacencyMatrix, n, 0);
+	int* topologicalSortedPermutation = WidthFirstTraversalWithAdjacencyMatrix(graphAdjacencyMatrix, n, 0);
 
 
 	// !!! See the comments for "default_elim_ord" in the "ChowLiuTree.h" file.
@@ -201,7 +201,7 @@ void ChowLiuTree::StructLearnChowLiuTreeCompData(Trainer *trainer) {
 	cout << "=======================================================================" << '\n'
 	     << "Generating parents combinations for each node......" << endl;
 	for (auto n_ptr : set_node_ptr_container) {
-		n_ptr->GenerateParentsCombinations();
+		n_ptr->GenParCombs();
 	}
 
 	cout << "=======================================================================" << '\n'

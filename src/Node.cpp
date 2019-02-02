@@ -39,7 +39,7 @@ void Node::RemoveParent(Node *p) {
 }
 
 
-void Node::GenerateParentsCombinations() {
+void Node::GenParCombs() {
 	// Preprocess
 	set<Combination> set_of_sets;
 	if (set_parents_pointers.empty()) return;
@@ -55,6 +55,6 @@ void Node::GenerateParentsCombinations() {
 	}
 
 	// Generate
-	set_parents_combinations = generate_all_possible_combinations_from_several_sets(&set_of_sets);
+	set_parents_combinations = GenAllCombFromSets(&set_of_sets);
 
 }

@@ -64,7 +64,7 @@ Factor Factor::MultiplyWithFactor(Factor second_factor) {
 			// solve the bug about common variables
 			// If two combinations have different values on common variables,
 			// then these two combinations can not form a legal entry.
-			if (!partial_first_is_compatible_with_partial_second_on_common_variable(&first,&second)) continue;
+			if (!FirstCompatibleSecond(&first, &second)) continue;
 
 			Combination new_comb;
 			new_comb.insert(first.begin(),first.end());

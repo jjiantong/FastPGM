@@ -35,7 +35,7 @@ public:
 	void AddParent(Node *);
 	void RemoveChild(Node *);
 	void RemoveParent(Node *);
-	void GenerateParentsCombinations();
+	void GenParCombs();
 };
 
 
