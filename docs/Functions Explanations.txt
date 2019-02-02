@@ -10,7 +10,6 @@ In "Node.h":
 
 
 
-
 In "gadget.h":
 
 Note: The definition of "Combination" is "typedef set< pair<int, int> > Combination;", but I write it as "set<pair<char,int>>" in order to make it more readable.
