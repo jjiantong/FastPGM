@@ -1,0 +1,2 @@
+Gaussian Bayesian networks:
+https://www.coursera.org/lecture/probabilistic-graphical-models/continuous-variables-wkNvM
