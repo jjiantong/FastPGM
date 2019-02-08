@@ -58,7 +58,7 @@ Developed by Linjian Li, using Clion 2018.3.1
 classification with discrete feature values
 
 ### to do:
- * classification with features of continues values
+ * classification with features of continuous values
    * Gaussian Bayesian network (related to regression)
  * explore regression
  * support graph structures beyond trees
@@ -69,11 +69,20 @@ classification with discrete feature values
  * Soft evidence (help support incomplete data)
  * Incomplete data
  * Inference
-   * Message Passing and the Junction Tree Algorithm
-   * Sum Product algorithm
-   * MCMC Sampling (approximate inference)
-   * Exact Propagation (Gaussian Bayesian Networks)
+   * Message passing and the Junction tree algorithm
+   * Cowell algorithm
+   * Join tree algorithm
+   * Sum-Product algorithm
+   * MCMC sampling (approximate inference)
+   * Gibbs sampling
+   * Rejection sampling
+   * Exact propagation (Gaussian Bayesian networks)
  * Latent variables
+ * Common network file format
+   * Graph Modeling Language (GML)
+   * GraphML (XML-based)
+
+The Cowell algorithm is used to do inference on continuous-value node. It is based on the earlier Lauritzen and Jensen junction tree algorithm. It is numerically stable bacause it avoids repeated matrix inversions. (McGeachie, "CGBayesNets", 2014)
 
 ## How to use
 Create a directory called ```bin``` under the root directory. In Linux, you can use the following command.
