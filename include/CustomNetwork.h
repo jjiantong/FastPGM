@@ -23,14 +23,14 @@ using namespace std;
 typedef set< pair<int, int> > Combination;
 
 class CustomNetwork : public Network {
-public:
+ public:
 
-	CustomNetwork() = default;
+  CustomNetwork() = default;
 
-	void ConstructCustomNetworkStructFromFile(string);
-	void SetCustomNetworkParamsFromFile(string);
-	void StructLearnCompData(Trainer *);
-	pair<int*, int> SimplifyDefaultElimOrd();
+  void ConstructCustomNetworkStructFromFile(string);
+  void SetCustomNetworkParamsFromFile(string);
+  void StructLearnCompData(Trainer *);
+  pair<int*, int> SimplifyDefaultElimOrd();
 
 };
 

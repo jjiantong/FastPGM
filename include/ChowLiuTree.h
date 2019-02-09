@@ -23,25 +23,25 @@ typedef set< pair<int, int> > Combination;
 
 
 class ChowLiuTree : public Network {
-public:
+ public:
 
-	/* About (tree)"default_elim_ord":
-	 * 		This attribute is not supposed to exist.
-	 * 		But for now, I have just implemented the part of ChowLiu tree.
-	 * 		And I have not implemented the part of generating an elimination order automatically.
-	 * 		So, I just add this attribute to store a relatively "fixed" order.
-	 * 		The order is fixed for one tree, but different for different trees.
-	 * 		It is just the reverse order of topological sorting using width-first-traversal start at the root node.
-	 */
-	int *default_elim_ord;
-	double ComputeMutualInformation(Node *, Node *, const Trainer *);
-	void StructLearnCompData(Trainer *);
-	void StructLearnChowLiuTreeCompData(Trainer *);
+  /* About (tree)"default_elim_ord":
+   *   This attribute is not supposed to exist.
+   *   But for now, I have just implemented the part of ChowLiu tree.
+   *   And I have not implemented the part of generating an elimination order automatically.
+   *   So, I just add this attribute to store a relatively "fixed" order.
+   *   The order is fixed for one tree, but different for different trees.
+   *   It is just the reverse order of topological sorting using width-first-traversal start at the root node.
+   */
+  int *default_elim_ord;
+  double ComputeMutualInformation(Node *, Node *, const Trainer *);
+  void StructLearnCompData(Trainer *);
+  void StructLearnChowLiuTreeCompData(Trainer *);
 
-	pair<int*, int> SimplifyDefaultElimOrd();
-	pair<int*, int> SimplifyTreeDefaultElimOrd();
-	void DepthFirstTraversalUntillMeetObserved(int, set<int> &, set<int> &);
-	void DepthFirstTraversalToRemoveMSeparatedNodes(int, set<int> &, set<int> &);
+  pair<int*, int> SimplifyDefaultElimOrd();
+  pair<int*, int> SimplifyTreeDefaultElimOrd();
+  void DepthFirstTraversalUntillMeetObserved(int, set<int> &, set<int> &);
+  void DepthFirstTraversalToRemoveMSeparatedNodes(int, set<int> &, set<int> &);
 
 };
 

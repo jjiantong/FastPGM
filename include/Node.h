@@ -16,26 +16,26 @@ using namespace std;
 typedef set< pair<int, int> > Combination;
 
 class Node {
-private:
-	int node_index;
-public:
-	bool is_discrete;
-	int num_of_potential_values;
-	int* potential_values;
-	set<Node*> set_parents_pointers;
-	set<Node*> set_children_pointers;
-	set<Combination> set_parents_combinations;
-	map<int, map<Combination, double> >  map_cond_prob_table;
-	map<int, double>  map_marg_prob_table;
+ protected:
+  int node_index;
+ public:
+  bool is_discrete;
+  int num_potential_vals;
+  int* potential_vals;
+  set<Node*> set_parents_ptrs;
+  set<Node*> set_children_ptrs;
+  set<Combination> set_parents_combinations;
+  map<int, map<Combination, double> >  map_cond_prob_table;
+  map<int, double>  map_marg_prob_table;
 
-	Node();
-	int GetNodeIndex();
-	void SetNodeIndex(int);
-	void AddChild(Node *);
-	void AddParent(Node *);
-	void RemoveChild(Node *);
-	void RemoveParent(Node *);
-	void GenParCombs();
+  Node();
+  int GetNodeIndex();
+  void SetNodeIndex(int);
+  void AddChild(Node *);
+  void AddParent(Node *);
+  void RemoveChild(Node *);
+  void RemoveParent(Node *);
+  void GenParCombs();
 };
 
 

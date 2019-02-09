@@ -22,43 +22,43 @@ typedef set< pair<int, int> > Combination;
 
 
 class Network {
-public:
-	int n_nodes;
-	set<Node*> set_node_ptr_container;
-	//set<Edge*> edges_container;
+ public:
+  int n_nodes;
+  set<Node*> set_node_ptr_container;
+  //set<Edge*> edges_container;
 
-	int *default_elim_ord;
-	Combination network_evidence;
+  int *default_elim_ord;
+  Combination network_evidence;
 
-	Network();
+  Network();
 
-	Node* GivenIndexToFindNodePointer(int);
+  Node* GivenIndexToFindNodePointer(int);
 
-	virtual void StructLearnCompData(Trainer *) = 0;
+  virtual void StructLearnCompData(Trainer *) = 0;
 
-	void LearnParmsKnowStructCompData(const Trainer *);
+  void LearnParmsKnowStructCompData(const Trainer *);
 
-	void SetParentChild(int, int);
-	void SetParentChild(Node *, Node *);
+  void SetParentChild(int, int);
+  void SetParentChild(Node *, Node *);
 
-	void RemoveParentChild(int, int);
-	void RemoveParentChild(Node *, Node *);
+  void RemoveParentChild(int, int);
+  void RemoveParentChild(Node *, Node *);
 
-	virtual pair<int*, int> SimplifyDefaultElimOrd() = 0;
+  virtual pair<int*, int> SimplifyDefaultElimOrd() = 0;
 
-	Combination ConstructEvidence(int *, int *, int);
+  Combination ConstructEvidence(int *, int *, int);
 
-	vector<Factor> ConstructFactors(int *, int, Node *);
-	void LoadEvidence(vector<Factor> *, Combination);
+  vector<Factor> ConstructFactors(int *, int, Node *);
+  void LoadEvidence(vector<Factor> *, Combination);
 
-	Factor SumProductVarElim(vector<Factor>, int *, int);
-	Factor VarElimInferReturnPossib(int *, int, Combination, Node *);
-	Factor VarElimInferReturnPossib(Combination, Node *);
+  Factor SumProductVarElim(vector<Factor>, int *, int);
+  Factor VarElimInferReturnPossib(int *, int, Combination, Node *);
+  Factor VarElimInferReturnPossib(Combination, Node *);
 
-	int PredictUseVarElimInfer(int *, int, Combination, int);
-	int PredictUseVarElimInfer(Combination, int);
+  int PredictUseVarElimInfer(int *, int, Combination, int);
+  int PredictUseVarElimInfer(Combination, int);
 
-	double TestNetReturnAccuracy(Trainer *);
+  double TestNetReturnAccuracy(Trainer *);
 };
 
 

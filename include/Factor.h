@@ -21,15 +21,15 @@ typedef set< pair<int, int> > Combination;
 class Factor {
 public:
 
-	set<int> related_variables;
-	set<Combination> set_combinations;
-	map<Combination, double> map_potentials;
+  set<int> related_variables;
+  set<Combination> set_combinations;
+  map<Combination, double> map_potentials;
 
-	Factor();
-	void ConstructFactor(Node *);
-	Factor MultiplyWithFactor(Factor);
-	Factor SumProductOverVariable(Node *);
-	void Normalize();
+  Factor();
+  void ConstructFactor(Node *);
+  Factor MultiplyWithFactor(Factor);
+  Factor SumProductOverVariable(Node *);
+  void Normalize();
 };
 
 

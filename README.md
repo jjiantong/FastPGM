@@ -59,7 +59,7 @@ classification with discrete feature values
 
 ### to do:
  * classification with features of continuous values
-   * Gaussian Bayesian network (related to regression)
+   * Gaussian Bayesian network (related to regression) *(working on...)*
  * explore regression
  * support graph structures beyond trees
    * Custom network *(working on...)*
@@ -78,7 +78,7 @@ classification with discrete feature values
    * Rejection sampling
    * Exact propagation (Gaussian Bayesian networks)
  * Latent variables
- * Common network file format
+ * Common network file format (rather than format created by Linjian Li)
    * Graph Modeling Language (GML)
    * GraphML (XML-based)
 
