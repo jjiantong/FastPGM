@@ -78,3 +78,36 @@ int* WidthFirstTraversalWithAdjacencyMatrix(int **graph, int numOfNodes, int sta
   }
   return result;
 }
+
+
+string TrimRight(string s) {
+  while (s.size()!=0 && s[s.size()-1]<33) { // ASCII. \t=09, \n=10, \r=13, space=32.
+    s.erase(s.size()-1);
+  }
+  return s;
+}
+
+
+string TrimLeft(string s) {
+  while (s.size()!=0 && s[0]<33) { // ASCII. \t=09, \n=10, \r=13, space=32.
+    s.erase(0);
+  }
+  return s;
+}
+
+
+string Trim(string s) {
+  return TrimLeft( TrimRight(s) );
+}
+
+
+vector<string> Split(string &s, string delimiter) {
+  vector<string> result;
+  size_t begin=0, end=0;
+  while ((end=s.find_first_of(delimiter, begin))!=string::npos) {
+    result.push_back(s.substr(begin, end-begin));
+    begin = ++end;
+  }
+  result.push_back(s.substr(begin, s.size()-begin));
+  return result;
+}

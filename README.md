@@ -93,9 +93,6 @@ mkdir bin
 
 Then, go into ```bin``` directory and issue ```cmake ..``` to generate the make file.
 
-## Dependencies
-Boost C++ Libraries. It is used to parse the string from dataset. If CMake is unable to find Boost, users need to specify the BOOST_ROOT variable pointing to the directory which contains Boost in `CMakeLists.txt`.
-
 
 ## Performance
 

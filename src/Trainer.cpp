@@ -31,15 +31,15 @@ void Trainer::LoadLIBSVMDataAutoDetectConfig(string data_file_path) {
   getline(in_file, sample);
   while (!in_file.eof()) {
     // There is a whitespace at the end of each line of libSVM data set format, which will will cause a bug.
-    sample = boost::algorithm::trim_right_copy(sample);
-    boost::algorithm::split(parsed_sample, sample, boost::algorithm::is_space());
+    sample = TrimRight(sample);
+    parsed_sample = Split(sample, " ");
     it=parsed_sample.begin();
     set_label_possible_values.insert(stoi(*it));
     train_set_y_vector.push_back(stoi(*it));
     ++it;
     vector<pair<int,int>> single_sample_vector;
     for (/*pass*/ ; it!=parsed_sample.end(); ++it) {
-      boost::algorithm::split(parsed_feature, *it, boost::algorithm::is_any_of(":"));
+      parsed_feature = Split(*it, ":");
       index = stoi(parsed_feature[0]);
       value = stoi(parsed_feature[1]);
       max_index_occurred = index>max_index_occurred ? index : max_index_occurred;

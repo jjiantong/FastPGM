@@ -48,8 +48,8 @@ void CustomNetwork::ConstructCustomNetworkStructFromFile(string file_path) {
       exit(1);
     }
 
-    node_and_children = boost::algorithm::trim_right_copy(node_and_children);
-    boost::algorithm::split(vec_parsed_node_and_children, node_and_children, boost::algorithm::is_space());
+    node_and_children = TrimRight(node_and_children);
+    vec_parsed_node_and_children = Split(node_and_children, " ");
 
     it=vec_parsed_node_and_children.begin();
     int par_node_index = stoi(*it);
@@ -117,8 +117,8 @@ void CustomNetwork::SetCustomNetworkParamsFromFile(string file_path) {
   // Set num_potential_vals and potential_vals
   for (int i=0; i<n_nodes; ++i) {
     getline(in_file, node_and_params);
-    node_and_params = boost::algorithm::trim_right_copy(node_and_params);
-    boost::algorithm::split(vec_parsed_node_and_params, node_and_params, boost::algorithm::is_space());
+    node_and_params = TrimRight(node_and_params);
+    vec_parsed_node_and_params = Split(node_and_params, " ");
     Node *node_ptr = GivenIndexToFindNodePointer(stoi(vec_parsed_node_and_params[0]));
     node_ptr->is_discrete = true;
     node_ptr->num_potential_vals = vec_parsed_node_and_params.size()-2;
@@ -137,10 +137,9 @@ void CustomNetwork::SetCustomNetworkParamsFromFile(string file_path) {
   // Set probability table
   for (int i=0; i<n_nodes; ++i) {
     getline(in_file, node_and_params);
-    node_and_params = boost::algorithm::trim_right_copy(node_and_params);
-    boost::algorithm::split(vec_parsed_node_and_params, node_and_params, boost::algorithm::is_space());
+    node_and_params = TrimRight(node_and_params);
+    vec_parsed_node_and_params = Split(node_and_params, " ");
     Node *node_ptr = GivenIndexToFindNodePointer(stoi(vec_parsed_node_and_params[0]));
-    // todo: implement
     if (vec_parsed_node_and_params[1]=="--marg") {
       map<int, double> *MPT = &(node_ptr->map_marg_prob_table);
 
@@ -150,7 +149,8 @@ void CustomNetwork::SetCustomNetworkParamsFromFile(string file_path) {
       // It only contain query and conditions and probability.
 
       for (auto &parm : vec_parsed_node_and_params) {
-        boost::algorithm::split(vec_parsed_query_and_cond_prob, parm, boost::algorithm::is_any_of("@"));
+        //boost::algorithm::split(vec_parsed_query_and_cond_prob, parm, boost::algorithm::is_any_of("@"));
+        vec_parsed_query_and_cond_prob = Split(parm, "@");
         int query_value = stoi(vec_parsed_query_and_cond_prob[0]);
         double posibility = stod(vec_parsed_query_and_cond_prob[1]);
         (*MPT)[query_value] = posibility;
@@ -166,7 +166,7 @@ void CustomNetwork::SetCustomNetworkParamsFromFile(string file_path) {
       // It only contain query and conditions and probability.
 
       for (auto &parm : vec_parsed_node_and_params) {  // For each entry in probability table.
-        boost::algorithm::split(vec_parsed_query_and_cond_prob, parm, boost::algorithm::is_any_of("|"));
+        vec_parsed_query_and_cond_prob = Split(parm, "|");
         int query_value = stoi(vec_parsed_query_and_cond_prob[0]);
 
         vec_parsed_query_and_cond_prob.erase(vec_parsed_query_and_cond_prob.begin());
@@ -174,7 +174,7 @@ void CustomNetwork::SetCustomNetworkParamsFromFile(string file_path) {
         // Now, vec_parsed_query_and_cond_prob does not contain the query value.
         // It only contain conditions and probability.
 
-        boost::algorithm::split(vec_parsed_cond_and_prob, vec_parsed_query_and_cond_prob[0], boost::algorithm::is_any_of("@"));
+        vec_parsed_cond_and_prob = Split(vec_parsed_query_and_cond_prob[0], "@");
         double probability = stod(vec_parsed_cond_and_prob.back());
 
         vec_parsed_cond_and_prob.pop_back();
@@ -182,10 +182,10 @@ void CustomNetwork::SetCustomNetworkParamsFromFile(string file_path) {
         // Now, vec_parsed_cond_and_prob does not contain probability.
         // It only contain conditions.
 
-        boost::algorithm::split(vec_parsed_conds, vec_parsed_cond_and_prob[0], boost::algorithm::is_any_of(","));
+        vec_parsed_conds = Split(vec_parsed_cond_and_prob[0], ",");
         Combination comb_condition;
         for (auto &cond : vec_parsed_conds) {
-          boost::algorithm::split(vec_parsed_single_cond, cond, boost::algorithm::is_any_of(":"));
+          vec_parsed_single_cond = Split(cond, ":");
           index = stoi(vec_parsed_single_cond[0]);
           value = stoi(vec_parsed_single_cond[1]);
           comb_condition.insert(pair<int,int>(index,value));
@@ -210,7 +210,8 @@ void CustomNetwork::SetCustomNetworkParamsFromFile(string file_path) {
       exit(1);
     }
     getline(in_file, node_and_params);
-    node_and_params = boost::algorithm::trim_right_copy(node_and_params);
+    //node_and_params = boost::algorithm::trim_right_copy(node_and_params);
+    node_and_params = TrimRight(node_and_params);
   }
 
   cout << "Finish setting parameters. " << endl;
@@ -219,12 +220,10 @@ void CustomNetwork::SetCustomNetworkParamsFromFile(string file_path) {
 
 
 void CustomNetwork::StructLearnCompData(Trainer *) {
-  // todo: implement
   return;
 }
 
 
 pair<int*, int> CustomNetwork::SimplifyDefaultElimOrd() {
-  // todo: implement
   return pair<int*, int> (default_elim_ord, n_nodes-1);
 }
