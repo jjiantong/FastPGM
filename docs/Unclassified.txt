@@ -1,27 +1,29 @@
-------------------------------
+ï»¿------------------------------
 
-ÆäËûÏàËÆÏîÄ¿
+å…¶ä»–ç›¸ä¼¼é¡¹ç›®
 
 http://dlib.net/bayes.html
+
+http://www.bnlearn.com/documentation/topics.html
 
 https://www.bayesserver.com
 
 https://github.com/eBay/bayesian-belief-networks
-ËüÔÚgraph.pyÀïÒ²ÓÃµ½ÁËtopological sort¡£
+å®ƒåœ¨graph.pyé‡Œä¹Ÿç”¨åˆ°äº†topological sortã€‚
 
 ------------------------------
 
-ÎªÊ²Ã´ÒªÓĞtrain_set_y_X
+ä¸ºä»€ä¹ˆè¦æœ‰train_set_y_X
 
-ÔÚTrainer.hÖĞ£¬ÓĞ3¸öÊı×é£ºtrain_set_y¡¢train_set_X¡¢train_set_y_X¡£
+åœ¨Trainer.hä¸­ï¼Œæœ‰3ä¸ªæ•°ç»„ï¼štrain_set_yã€train_set_Xã€train_set_y_Xã€‚
 
-ÎªÊ²Ã´ÒªÓĞtrain_set_y_X£¿
+ä¸ºä»€ä¹ˆè¦æœ‰train_set_y_Xï¼Ÿ
 
-ÒòÎªÔÚ¼ÆËãmutual informationµÄÊ±ºòÓÃËü»á·½±ãºÜ¶à£¬ÔÚÉú³ÉChow-Liu treeµÄÊ±ºò£¬label nodeºÍfeature nodeÆäÊµÊÇÆ½µÈµÄ£¬Ö»ÊÇÎÒÃÇÒª×öclassificationµÄÈÎÎñËùÒÔÈËÎªµØ°ÑÄ³¸önodeÑ¡ÎªÁËroot£¨¼´label node£©¡£
+å› ä¸ºåœ¨è®¡ç®—mutual informationçš„æ—¶å€™ç”¨å®ƒä¼šæ–¹ä¾¿å¾ˆå¤šï¼Œåœ¨ç”ŸæˆChow-Liu treeçš„æ—¶å€™ï¼Œlabel nodeå’Œfeature nodeå…¶å®æ˜¯å¹³ç­‰çš„ï¼Œåªæ˜¯æˆ‘ä»¬è¦åšclassificationçš„ä»»åŠ¡æ‰€ä»¥äººä¸ºåœ°æŠŠæŸä¸ªnodeé€‰ä¸ºäº†rootï¼ˆå³label nodeï¼‰ã€‚
 
 ------------------------------
 
-ÓÅ»¯variable elimination¹ı³Ì
+ä¼˜åŒ–variable eliminationè¿‡ç¨‹
 
 Zhang, N.L. & Poole, D. A simple approach to Bayesian network computations.
 	* According to Theorem 1 and Corollary 1, we can remove a batch of nodes starting from each barren node.

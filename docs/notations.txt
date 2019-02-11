@@ -1,1 +1,1 @@
-Variable elimination inference: "Y" is the query variable(s), "E" is the evidence(s), "Z" is the elimination order.
+﻿Variable elimination inference: "Y" is the query variable(s), "E" is the evidence(s), "Z" is the elimination order.

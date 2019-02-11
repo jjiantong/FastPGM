@@ -1,4 +1,4 @@
-In "Node.h":
+﻿In "Node.h":
 
 1. GenParCombs
 	Generate parents combinations.

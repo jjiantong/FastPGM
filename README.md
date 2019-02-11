@@ -69,10 +69,10 @@ classification with discrete feature values
  * Soft evidence (help support incomplete data)
  * Incomplete data
  * Inference
-   * Message passing and the Junction tree algorithm
+   * Junction tree algorithm
    * Cowell algorithm
    * Join tree algorithm
-   * Sum-Product algorithm
+   * Belief Propagation (a.k.a. Sum-Product Message Passing algorithm)
    * MCMC sampling (approximate inference)
    * Gibbs sampling
    * Rejection sampling
