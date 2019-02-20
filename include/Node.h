@@ -22,6 +22,7 @@ class Node {
   bool is_discrete;
   int num_potential_vals;
   int* potential_vals;
+  set<int> set_potential_vals;
   set<Node*> set_parents_ptrs;
   set<Node*> set_children_ptrs;
   set<Combination> set_parents_combinations;

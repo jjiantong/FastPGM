@@ -18,7 +18,9 @@ typedef set< pair<int, int> > Combination;
 set<Combination> GenAllCombFromSets(set<Combination> *);
 bool EachFirstIsInSecond(Combination *, Combination *);
 bool FirstCompatibleSecond(Combination *, Combination *);
+bool Confilct(Combination *, Combination *);
 int* WidthFirstTraversalWithAdjacencyMatrix(int **, int, int);
+int* TopoSortOfDAGZeroOutDegreeFirst(int **, int);
 
 string TrimRight(string);
 string TrimLeft(string);

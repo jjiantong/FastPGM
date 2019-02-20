@@ -11,6 +11,8 @@ https://www.bayesserver.com
 https://github.com/eBay/bayesian-belief-networks
 它在graph.py里也用到了topological sort。
 
+Samlam (UCLA) (closed-source)
+
 ------------------------------
 
 为什么要有train_set_y_X

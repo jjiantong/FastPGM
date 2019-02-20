@@ -10,13 +10,15 @@ Factor::Factor() {}
 
 void Factor::ConstructFactor(Node *node) {
 
-  related_variables.insert(node->GetNodeIndex());
+  int node_index = node->GetNodeIndex();
+
+  related_variables.insert(node_index);
 
   set<pair<int,int>> set_pair_temp;
   for (int i=0; i<node->num_potential_vals; ++i) {
     Combination comb_temp;
     pair<int, int> pair_temp;
-    pair_temp.first = node->GetNodeIndex();
+    pair_temp.first = node_index;
     pair_temp.second = node->potential_vals[i];
     set_pair_temp.insert(pair_temp);
   }

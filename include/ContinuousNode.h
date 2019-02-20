@@ -8,6 +8,7 @@
 
 #include <set>
 #include <map>
+#include <vector>
 #include <utility>
 #include <string>
 #include "Node.h"
@@ -20,9 +21,14 @@ typedef set< pair<int, int> > Combination;
 class ContinuousNode : public Node {
  public:
   bool is_discrete = false;
-  double mu;  // Unconditional mean.
-  double *b;  // Linear coefficients.
-  double v;   // Conditional variance.
+
+                               // Linear Gaussian Bayesian network
+                               //   * All variables are continuous
+                               //   * All CPDs are linear Gaussian
+  double         mu;           // Unconditional mean.
+  vector<int>    par_indexes;  // Parents should have an order, because coefficients are corresponding.
+  vector<double> b;            // Linear coefficients for parents.
+  double         v;            // Unconditional variance.
 };
 
 

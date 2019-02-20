@@ -59,8 +59,18 @@ bool FirstCompatibleSecond(Combination *first, Combination *second) {
 }
 
 
-int* WidthFirstTraversalWithAdjacencyMatrix(int **graph, int numOfNodes, int start) {
-  int* result = new int[numOfNodes];
+bool Conflict(Combination *first, Combination *second) {
+  for (auto &f : *first) {
+    for (auto &s : *second) {
+      if (f.first==s.first && f.second!=s.second) return true;
+    }
+  }
+  return false;
+}
+
+
+int* WidthFirstTraversalWithAdjacencyMatrix(int **graph, int num_nodes, int start) {
+  int *result = new int[num_nodes];
   int itResult = 0;
   queue<int> que;
   set<int> markSet;
@@ -70,7 +80,7 @@ int* WidthFirstTraversalWithAdjacencyMatrix(int **graph, int numOfNodes, int sta
     result[itResult++] = pos;
     markSet.insert(pos);
     que.pop();
-    for (int i=0; i<numOfNodes; i++) {
+    for (int i=0; i<num_nodes; i++) {
       if (graph[pos][i]!=0 && markSet.find(i)==markSet.end()) {
         que.push(i);
       }
@@ -80,8 +90,38 @@ int* WidthFirstTraversalWithAdjacencyMatrix(int **graph, int numOfNodes, int sta
 }
 
 
+int* TopoSortOfDAGZeroInDegreeFirst(int **graph, int num_nodes) {
+  int *result = new int[num_nodes];
+  queue<int> que;
+
+  int *in_degrees = new int[num_nodes](); // The parentheses at end will initialize the array to be all zeros.
+  for (int i=0; i<num_nodes; ++i) {
+    for (int j=0; j<num_nodes; ++j) {
+      if (graph[i][j]==1) {++in_degrees[j];}
+    }
+  }
+
+  int count = 0;
+  for (int i=0; i<num_nodes; ++i) {
+    if (in_degrees[i]==0) {que.push(i);}
+  }
+  while (!que.empty()) {
+    for (int j=0; j<num_nodes; ++j) {
+      if (graph[que.front()][j]==1) {
+        --in_degrees[j];
+        if (in_degrees[j]==0) {que.push(j);}
+      }
+    }
+    result[count++] = que.front();
+    que.pop();
+  }
+
+  return result;
+}
+
+
 string TrimRight(string s) {
-  while (s.size()!=0 && s[s.size()-1]<33) { // ASCII. \t=09, \n=10, \r=13, space=32.
+  while (s.empty() && s[s.size()-1]<33) { // ASCII. \t=09, \n=10, \r=13, space=32.
     s.erase(s.size()-1);
   }
   return s;
@@ -89,7 +129,7 @@ string TrimRight(string s) {
 
 
 string TrimLeft(string s) {
-  while (s.size()!=0 && s[0]<33) { // ASCII. \t=09, \n=10, \r=13, space=32.
+  while (s.empty() && s[0]<33) { // ASCII. \t=09, \n=10, \r=13, space=32.
     s.erase(0);
   }
   return s;

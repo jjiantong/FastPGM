@@ -19,8 +19,7 @@ using namespace std;
 typedef set< pair<int, int> > Combination;
 
 class Factor {
-public:
-
+ public:
   set<int> related_variables;
   set<Combination> set_combinations;
   map<Combination, double> map_potentials;

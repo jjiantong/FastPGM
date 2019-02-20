@@ -59,7 +59,12 @@ classification with discrete feature values
 
 ### to do:
  * classification with features of continuous values
-   * Gaussian Bayesian network (related to regression) *(working on...)*
+   * Gaussian Bayesian network ***(need to implement junction tree algorithm first)***
+     * Linear Gaussian Bayesian network *(working on...)*
+       * ALL variables are continuous
+       * ALL CPDs are linear Gaussians
+     * Conditional Gaussian Bayesian network
+       * Discrete and continuous variables
  * explore regression
  * support graph structures beyond trees
    * Custom network *(working on...)*
