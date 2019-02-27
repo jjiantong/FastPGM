@@ -41,17 +41,20 @@ class SomeTest {
   void test2(Network* network, Trainer *tester, int i) {
     cout << __FUNCTION__ << endl;
     int e_num=network->n_nodes-1, *e_index=new int[e_num], *e_value=new int[e_num];
-    cout << "Evidence: { ";
     for (int j=0; j<e_num; ++j) {
       e_index[j] = j+1;
       e_value[j] = tester->train_set_X[i][j];
-      if (e_value[j]==1) {
-        cout << e_index[j] << ':' << e_value[j] << ' ';
-      }
     }
-    cout << " }" << endl;
+
     Combination E;
     //E = network->ConstructEvidence(e_index, e_value, e_num);
+    cout << "Size of evidence: " << E.size() << endl;
+    cout << "Evidence (only print 1): { ";
+    for (auto &e : E) {
+      cout << e.first << ':' << e.second << ' ';
+    }
+    cout << " }" << endl;
+
     Node *node_ptr = network->GivenIndexToFindNodePointer(i);
     Factor f1 = network->VarElimInferReturnPossib(E,node_ptr);
     f1.PrintPotentials();

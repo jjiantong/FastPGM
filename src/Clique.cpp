@@ -43,34 +43,29 @@ Factor Clique::Collect() {
 
     ptr_separator->ptr_upstream_clique = this;  // Let the callee know the caller.
     Factor f = ptr_separator->Collect();  // Collect from downstream.
-    MultiplyWithFactorSumOverExternalVars(f);  // Update itself.
+    UpdateUseMessage(f);  // Update itself.
   }
 
   // Prepare message for the upstream.
-  Factor result_factor;
-  result_factor.SetMembers(related_variables,set_combinations,map_potentials);
-
-  return result_factor;
+  return ConstructMessage();
 }
 
 
 void Clique::Distribute() {
-  Factor f;
-  f.SetMembers(related_variables, set_combinations, map_potentials);
+  Factor f = ConstructMessage();
   for (auto &sep : set_neighbours_ptr) {
     sep->Distribute(f);
   }
 }
 
 
-void Clique::Distribute(Factor f) {
+void Clique::Distribute(Factor &f) {
   // First update itself, then distribute to its downstream.
 
-  MultiplyWithFactorSumOverExternalVars(f);  // Update itself.
+  UpdateUseMessage(f);  // Update itself.
 
   // Prepare message for the downstream.
-  Factor distribute_factor;
-  distribute_factor.SetMembers(related_variables,set_combinations,map_potentials);
+  Factor distribute_factor = ConstructMessage();
 
   for (auto &ptr_separator : set_neighbours_ptr) {
 
@@ -85,8 +80,7 @@ void Clique::Distribute(Factor f) {
   }
 }
 
-
-void Clique::MultiplyWithFactorSumOverExternalVars(Factor &f) {
+void Clique::SumOutExternalVars(Factor &f) {
   Factor factor_of_this_clique;
   factor_of_this_clique.SetMembers(related_variables,set_combinations,map_potentials);
 
@@ -99,10 +93,29 @@ void Clique::MultiplyWithFactorSumOverExternalVars(Factor &f) {
   for (auto &ex_vars : set_external_vars) {
     f = f.SumOverVar(ex_vars);
   }
+}
+
+
+void Clique::MultiplyWithFactorSumOverExternalVars(Factor &f) {
+  Factor factor_of_this_clique;
+  factor_of_this_clique.SetMembers(related_variables,set_combinations,map_potentials);
+
+  SumOutExternalVars(f);
 
   factor_of_this_clique = factor_of_this_clique.MultiplyWithFactor(f);
 
   map_potentials = factor_of_this_clique.map_potentials;
+}
+
+
+void Clique::UpdateUseMessage(Factor &f) {
+  MultiplyWithFactorSumOverExternalVars(f);
+}
+
+Factor Clique::ConstructMessage() {
+  Factor message_factor;
+  message_factor.SetMembers(related_variables,set_combinations,map_potentials);
+  return message_factor;
 }
 
 
