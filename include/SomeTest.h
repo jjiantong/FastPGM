@@ -14,101 +14,67 @@
 #include "Trainer.h"
 #include "Network.h"
 #include "CustomNetwork.h"
+#include "JunctionTree.h"
 
 class SomeTest {
  public:
   void test1() {
-    std::cout << "doing some tests..." << std::endl;
+    std::cout << "doing test1..." << std::endl;
 
-    // do some test
     auto *network = new CustomNetwork();
     network->ConstructCustomNetworkStructFromFile("../data/example_custom_network_file.txt");
     network->SetCustomNetworkParamsFromFile("../data/example_custom_network_file.txt");
 
-    std::cout << "test finished" << std::endl;
+    JunctionTree *jt = new JunctionTree(network);
+    Combination e;
+    pair<int, int> p;
+    p.first = 3;
+    p.second = -1;
+    e.insert(p);
+    jt->LoadEvidence(e);
+    jt->MessagePassingUpdateJT();
+
+    std::cout << "test1 finished" << std::endl;
   }
 
-  void test2(Network* network) {
-    /*
-     * For a1a dataset, the node 0 is the root.
-     * The children of node "0" are {12,39,40,51,60,75,76,89,96,111,116,120,121,122,123}.
-     * There exists a path:    0(root) -> 75 -> 74(leaf)
-     */
 
-/*
-    Node* Y = network->GivenIndexToFindNodePointer(0);
-    int nZ=2, *Z=new int[nZ]{39,75};
-    int eNum=2, *eIndex=new int[eNum]{39,75}, *eValue=new int[eNum]{1,1};
-    Combination E = network->ConstructEvidence(eIndex,eValue,eNum);
-    Factor F = network->VarElimInferReturnPossib(Z, nZ, E, Y);
-    cout << "=======================================================================" << '\n'
-       << "Given: " ;
-    for (int i = 0; i < eNum; ++i) {
-      cout << "\"" << eIndex[i] << "\"=" << eValue[i] << " , " ;
+  void test2(Network* network, Trainer *tester, int i) {
+    cout << __FUNCTION__ << endl;
+    int e_num=network->n_nodes-1, *e_index=new int[e_num], *e_value=new int[e_num];
+    cout << "Evidence: { ";
+    for (int j=0; j<e_num; ++j) {
+      e_index[j] = j+1;
+      e_value[j] = tester->train_set_X[i][j];
+      if (e_value[j]==1) {
+        cout << e_index[j] << ':' << e_value[j] << ' ';
+      }
     }
-    cout << '\n' << "Exact inferences: \n";
-    for (auto comb : F.set_combinations) {
-      cout << "P(\"" << (*comb.begin()).first << "\'=" << (*comb.begin()).second << ")=" << F.map_potentials[comb] << endl;
+    cout << " }" << endl;
+    Combination E;
+    //E = network->ConstructEvidence(e_index, e_value, e_num);
+    Node *node_ptr = network->GivenIndexToFindNodePointer(i);
+    Factor f1 = network->VarElimInferReturnPossib(E,node_ptr);
+    f1.PrintPotentials();
+    JunctionTree *jt = new JunctionTree(network);
+    jt->LoadEvidence(E);
+
+    cout << "**********************************" << endl;
+    for (auto &c : jt->set_clique_ptr_container) {
+      if (c->related_variables.find(0)!=c->related_variables.end()) {c->PrintPotentials();}
     }
-*/
+
+    jt->MessagePassingUpdateJT();
 
 
-/*
-    Node* Y = network->GivenIndexToFindNodePointer(0);
-    int nZ=4, *Z=new int[nZ]{12,39,74,75};
-    int eNum=4, *eIndex=new int[eNum]{12,39,74,75}, *eValue=new int[eNum]{0,1,0,1};
-    Combination E = network->ConstructEvidence(eIndex,eValue,eNum);
-    Factor F = network->VarElimInferReturnPossib(Z, nZ, E, Y);
-    cout << "=======================================================================" << '\n'
-       << "Given: " ;
-    for (int i = 0; i < eNum; ++i) {
-      cout << "\"" << eIndex[i] << "\"=" << eValue[i] << " , " ;
+    cout << "**********************************" << endl;
+    for (auto &c : jt->set_clique_ptr_container) {
+      if (c->related_variables.find(0)!=c->related_variables.end()) {c->PrintPotentials();}
     }
-    cout << '\n' << "Exact inferences: \n";
-    for (auto comb : F.set_combinations) {
-      cout << "P(\"" << (*comb.begin()).first << "\'=" << (*comb.begin()).second << ")=" << F.map_potentials[comb] << endl;
-    }
-*/
 
-
-/*
-    Node* Y = network->GivenIndexToFindNodePointer(0);
-    int nZ=15, *Z=new int[nZ]{12,39,40,51,60,75,76,89,96,111,116,120,121,122,123};
-    int eNum=4, *eIndex=new int[eNum]{12,39,74,75}, *eValue=new int[eNum]{0,1,0,1};
-    Combination E = network->ConstructEvidence(eIndex,eValue,eNum);
-    Factor F = network->VarElimInferReturnPossib(Z, nZ, E, Y);
-    cout << "=======================================================================" << '\n'
-       << "Given: " ;
-    for (int i = 0; i < eNum; ++i) {
-      cout << "\"" << eIndex[i] << "\"=" << eValue[i] << " , " ;
-    }
-    cout << '\n' << "Exact inferences: \n";
-    for (auto comb : F.set_combinations) {
-      cout << "P(\"" << (*comb.begin()).first << "\'=" << (*comb.begin()).second << ")=" << F.map_potentials[comb] << endl;
-    }
-*/
-
-
-
-/**/
-    Node* Y = network->GivenIndexToFindNodePointer(0);
-    int eNum=4, *eIndex=new int[eNum]{12,39,74,75}, *eValue=new int[eNum]{0,1,0,1};
-    Combination E = network->ConstructEvidence(eIndex, eValue, eNum);
-    Factor F = network->VarElimInferReturnPossib(E, Y);
-    cout << "=======================================================================" << '\n'
-       << "Without specifying the elimination order explicitly. \n"
-       << "Given: " ;
-    for (int i = 0; i < eNum; ++i) {
-      cout << "\"" << eIndex[i] << "\"=" << eValue[i] << " , " ;
-    }
-    cout << '\n' << "Exact inferences: \n";
-    for (auto comb : F.set_combinations) {
-      cout << "P(\"" << (*comb.begin()).first << "\'=" << (*comb.begin()).second << ")=" << F.map_potentials[comb] << endl;
-    }
-/**/
-
-
-
+    set<int> indexes;
+    indexes.insert(i);
+    Factor f2 = jt->InferenceForVarIndexsReturnPossib(indexes);
+    f2.PrintPotentials();
   }
 
 };

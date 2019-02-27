@@ -14,7 +14,10 @@ int Node::GetNodeIndex() {
 
 
 void Node::SetNodeIndex(int i) {
-  if (i<0) exit(1);
+  if (i<0) {
+    fprintf(stderr, "Error in function %s! \nInvalid index!", __FUNCTION__);
+    exit(1);
+  }
   node_index = i;
 }
 

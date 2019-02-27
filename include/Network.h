@@ -28,7 +28,7 @@ class Network {
   //set<Edge*> edges_container;
 
   int *default_elim_ord;
-  Combination network_evidence;
+  vector<int> topo_ord;
 
   Network();
 
@@ -44,7 +44,7 @@ class Network {
   void RemoveParentChild(int, int);
   void RemoveParentChild(Node *, Node *);
 
-  virtual pair<int*, int> SimplifyDefaultElimOrd() = 0;
+  virtual pair<int*, int> SimplifyDefaultElimOrd(Combination) = 0;
 
   Combination ConstructEvidence(int *, int *, int);
 
@@ -59,6 +59,8 @@ class Network {
   int PredictUseVarElimInfer(Combination, int);
 
   double TestNetReturnAccuracy(Trainer *);
+
+  vector<int> TopoSort();
 };
 
 

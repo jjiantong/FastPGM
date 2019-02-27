@@ -20,7 +20,7 @@ bool EachFirstIsInSecond(Combination *, Combination *);
 bool FirstCompatibleSecond(Combination *, Combination *);
 bool Confilct(Combination *, Combination *);
 int* WidthFirstTraversalWithAdjacencyMatrix(int **, int, int);
-int* TopoSortOfDAGZeroOutDegreeFirst(int **, int);
+vector<int> TopoSortOfDAGZeroInDegreeFirst(int **, int);
 
 string TrimRight(string);
 string TrimLeft(string);

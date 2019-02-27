@@ -24,11 +24,15 @@ class Factor {
   set<Combination> set_combinations;
   map<Combination, double> map_potentials;
 
-  Factor();
-  void ConstructFactor(Node *);
+  Factor() = default;
+  void SetMembers(set<int>, set<Combination>, map<Combination, double>);
+  void ConstructFactor(Node*);
   Factor MultiplyWithFactor(Factor);
-  Factor SumProductOverVariable(Node *);
+  Factor SumOverVar(Node *);
+  Factor SumOverVar(int);
   void Normalize();
+
+  void PrintPotentials();
 };
 
 

@@ -10,6 +10,7 @@ void CustomNetwork::ConstructCustomNetworkStructFromFile(string file_path) {
   ifstream in_file;
   in_file.open(file_path);
   if (!in_file.is_open()) {
+    fprintf(stderr, "Error in function %s!", __FUNCTION__);
     fprintf(stderr, "Unable to open file %s!", file_path.c_str());
     exit(1);
   }
@@ -20,6 +21,7 @@ void CustomNetwork::ConstructCustomNetworkStructFromFile(string file_path) {
   getline(in_file, sentinel);
   while(sentinel.substr(0,18)!="BEGIN_OF_STRUCTURE") {
     if (in_file.eof()) {
+      fprintf(stderr, "Error in function %s!", __FUNCTION__);
       fprintf(stderr, "Unable to find \"BEGIN_OF_STRUCTURE\"!");
       exit(1);
     }
@@ -44,6 +46,7 @@ void CustomNetwork::ConstructCustomNetworkStructFromFile(string file_path) {
 
   while (node_and_children.substr(0,16)!="END_OF_STRUCTURE") {
     if (in_file.eof()) {
+      fprintf(stderr, "Error in function %s!", __FUNCTION__);
       fprintf(stderr, "Unable to find \"END_OF_STRUCTURE\"!");
       exit(1);
     }
@@ -88,6 +91,7 @@ void CustomNetwork::SetCustomNetworkParamsFromFile(string file_path) {
   ifstream in_file;
   in_file.open(file_path);
   if (!in_file.is_open()) {
+    fprintf(stderr, "Error in function %s!", __FUNCTION__);
     fprintf(stderr, "Unable to open file %s!", file_path.c_str());
     exit(1);
   }
@@ -98,6 +102,7 @@ void CustomNetwork::SetCustomNetworkParamsFromFile(string file_path) {
   getline(in_file, sentinel);
   while(sentinel.substr(0,19)!="BEGIN_OF_PARAMETERS") {
     if (in_file.eof()) {
+      fprintf(stderr, "Error in function %s!", __FUNCTION__);
       fprintf(stderr, "Unable to find \"BEGIN_OF_PARAMETERS\"!");
       exit(1);
     }
@@ -206,6 +211,7 @@ void CustomNetwork::SetCustomNetworkParamsFromFile(string file_path) {
 
   while (node_and_params.substr(0,17)!="END_OF_PARAMETERS") {
     if (in_file.eof()) {
+      fprintf(stderr, "Error in function %s!", __FUNCTION__);
       fprintf(stderr, "Unable to find \"END_OF_PARAMETERS\"!");
       exit(1);
     }
@@ -220,10 +226,10 @@ void CustomNetwork::SetCustomNetworkParamsFromFile(string file_path) {
 
 
 void CustomNetwork::StructLearnCompData(Trainer *) {
-  return;
+
 }
 
 
-pair<int*, int> CustomNetwork::SimplifyDefaultElimOrd() {
-  return pair<int*, int> (default_elim_ord, n_nodes-1);
+pair<int*, int> CustomNetwork::SimplifyDefaultElimOrd(Combination evidence) {
+  return {default_elim_ord, n_nodes-1};
 }

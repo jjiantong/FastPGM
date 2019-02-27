@@ -17,6 +17,7 @@ Developed by Linjian Li, using Clion 2018.3.1
       * The last line of the structure is "END_OF_STRUCTURE"
       * The second line is an integer of the number of nodes
       * Each line from the third till the second to the last represents a node and its child(ren) separated by whitespace
+      * The node index should start at 0 instead of 1
       
       for example:
       ```

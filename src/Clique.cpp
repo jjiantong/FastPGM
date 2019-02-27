@@ -5,6 +5,10 @@
 #include "Clique.h"
 
 Clique::Clique(set<Node*> set_node_ptr) {
+  InitializeClique(set_node_ptr);
+}
+
+void Clique::InitializeClique(set<Node*> set_node_ptr) {
   clique_size = set_node_ptr.size();
 
   set<Combination> set_of_sets;
@@ -13,7 +17,7 @@ Clique::Clique(set<Node*> set_node_ptr) {
     related_variables.insert(n->GetNodeIndex());
     Combination c;
     for (int i=0; i<n->num_potential_vals; ++i) {
-      c.insert(pair(n->GetNodeIndex(),n->potential_vals[i]));
+      c.insert(pair<int,int>(n->GetNodeIndex(),n->potential_vals[i]));
     }
     set_of_sets.insert(c);
   }
@@ -23,18 +27,91 @@ Clique::Clique(set<Node*> set_node_ptr) {
   for (auto &c : set_combinations) {
     map_potentials[c] = 1;  // Initialize clique potential to be 1.
   }
+
+  ptr_upstream_clique = nullptr;
+}
+
+Factor Clique::Collect() {
+  // First collect from its downstream, then update itself.
+
+  for (auto &ptr_separator : set_neighbours_ptr) {
+
+    // The message passes from downstream to upstream.
+    // Also, when it reaches a leaf, the only neighbour is the upstream,
+    // which can be viewed as the base case of recursive function.
+    if (ptr_separator==ptr_upstream_clique) {continue;}
+
+    ptr_separator->ptr_upstream_clique = this;  // Let the callee know the caller.
+    Factor f = ptr_separator->Collect();  // Collect from downstream.
+    MultiplyWithFactorSumOverExternalVars(f);  // Update itself.
+  }
+
+  // Prepare message for the upstream.
+  Factor result_factor;
+  result_factor.SetMembers(related_variables,set_combinations,map_potentials);
+
+  return result_factor;
 }
 
 
+void Clique::Distribute() {
+  Factor f;
+  f.SetMembers(related_variables, set_combinations, map_potentials);
+  for (auto &sep : set_neighbours_ptr) {
+    sep->Distribute(f);
+  }
+}
 
 
+void Clique::Distribute(Factor f) {
+  // First update itself, then distribute to its downstream.
 
-void Clique::MultiplyWithFactor(Factor f) {
-  Factor f_temp;
-  f_temp.related_variables = related_variables;
-  f_temp.map_potentials = map_potentials;
-  f_temp = f_temp.MultiplyWithFactor(f);
+  MultiplyWithFactorSumOverExternalVars(f);  // Update itself.
 
-  related_variables = f_temp.related_variables;
-  f_temp.map_potentials = f_temp.map_potentials;
+  // Prepare message for the downstream.
+  Factor distribute_factor;
+  distribute_factor.SetMembers(related_variables,set_combinations,map_potentials);
+
+  for (auto &ptr_separator : set_neighbours_ptr) {
+
+    // The message passes from upstream to downstream.
+    // Also, when it reaches a leaf, the only neighbour is the upstream,
+    // which can be viewed as the base case of recursive function.
+    if (ptr_separator==ptr_upstream_clique) {continue;}
+
+    ptr_separator->ptr_upstream_clique = this;  // Let the callee know the caller.
+    ptr_separator->Distribute(distribute_factor); // Distribute to downstream.
+
+  }
+}
+
+
+void Clique::MultiplyWithFactorSumOverExternalVars(Factor &f) {
+  Factor factor_of_this_clique;
+  factor_of_this_clique.SetMembers(related_variables,set_combinations,map_potentials);
+
+  set<int> set_external_vars;
+  set_difference(f.related_variables.begin(), f.related_variables.end(),
+                 factor_of_this_clique.related_variables.begin(), factor_of_this_clique.related_variables.end(),
+                 inserter(set_external_vars, set_external_vars.begin()));
+
+  // Sum over the variables that are not in the scope of this clique/separator, so as to eliminate them.
+  for (auto &ex_vars : set_external_vars) {
+    f = f.SumOverVar(ex_vars);
+  }
+
+  factor_of_this_clique = factor_of_this_clique.MultiplyWithFactor(f);
+
+  map_potentials = factor_of_this_clique.map_potentials;
+}
+
+
+void Clique::PrintPotentials() {
+  for (auto &potentials_key_value : map_potentials) {
+    for (auto &vars_index_value : potentials_key_value.first) {
+      cout << '(' << vars_index_value.first << ',' << vars_index_value.second << ") ";
+    }
+    cout << "\t: " << potentials_key_value.second << endl;
+  }
+  cout << "----------" << endl;
 }

@@ -17,18 +17,29 @@ typedef set< pair<int, int> > Combination;
 
 class Clique {
  public:
+
+  bool is_separator = false;
+
   int clique_size;
   set<int> related_variables;
   set<Combination> set_combinations;
   map<Combination, double> map_potentials;
   set<Clique*> set_neighbours_ptr;
 
-  Clique();
-  Clique(set<Node*>);
-  map<Combination, double> Collect();
-  map<Combination, double> Distribute();
+  // In junction tree algorithm,
+  // the "Collect" force messages to flow from downstream to upstream,
+  // and the "Distribute" force messages flow from upstream to downstream.
+  // So, we need a member to record the upstream of this clique (node).
+  Clique *ptr_upstream_clique;
 
-  void MultiplyWithFactor(Factor);
+  Clique() = default;
+  Clique(set<Node*>);
+  void InitializeClique(set<Node*>);
+  Factor Collect();
+  void Distribute();
+  void Distribute(Factor);
+  void MultiplyWithFactorSumOverExternalVars(Factor &);
+  void PrintPotentials();
 
 };
 

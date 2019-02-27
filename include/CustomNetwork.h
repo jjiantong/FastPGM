@@ -30,7 +30,7 @@ class CustomNetwork : public Network {
   void ConstructCustomNetworkStructFromFile(string);
   void SetCustomNetworkParamsFromFile(string);
   void StructLearnCompData(Trainer *);
-  pair<int*, int> SimplifyDefaultElimOrd();
+  pair<int*, int> SimplifyDefaultElimOrd(Combination) override;
 
 };
 

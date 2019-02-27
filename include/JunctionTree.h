@@ -14,15 +14,27 @@
 
 class JunctionTree {
  public:
+  Network *network;
   set<Clique*> set_clique_ptr_container;
   set<Separator*> set_separator_ptr_container;
 
+  JunctionTree() = default;
   JunctionTree(Network*);
 
   int** ConvertDAGNetworkToAdjacencyMatrix(Network*);
-  void Moralize(int**, int);
-  void Triangulate(Network*, int**, const int&, vector<int>, set<Clique*>&);
-  void FormJunctionTree(set<Clique*>);
+  void Moralize(int**, int&);
+  vector<int> MinNeighbourElimOrd(int**, int&);
+  void Triangulate(Network*, int**, int&, vector<int>, set<Clique*>&);
+  void ElimRedundantCliques();
+  void FormJunctionTree(set<Clique*>&);
+  void AssignPotentials();
+  void LoadEvidence(Combination);
+  void MessagePassingUpdateJT();
+
+  void PrintAllCliquesPotentials();
+  void PrintAllSeparatorsPotentials();
+
+  Factor InferenceForVarIndexsReturnPossib(set<int>&);
 
 };
 

@@ -15,6 +15,7 @@ void Trainer::LoadLIBSVMDataAutoDetectConfig(string data_file_path) {
   ifstream in_file;
   in_file.open(data_file_path);
   if (!in_file.is_open()) {
+    fprintf(stderr, "Error in function %s!", __FUNCTION__);
     fprintf(stderr, "Unable to open file %s!", data_file_path.c_str());
     exit(1);
   }

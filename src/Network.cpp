@@ -166,11 +166,10 @@ vector<Factor> Network::ConstructFactors(int *Z, int nz, Node *Y) {
 
 void Network::LoadEvidence(vector<Factor> *factors_list, Combination E) {
   for (auto &f : *factors_list) {  // For each factor
-    for (auto &p : E) {  // For each node's observation in E
-      if (f.related_variables.find(p.first)!=f.related_variables.end()) {  // If this factor is related to this node
+    for (auto &e : E) {  // For each node's observation in E
+      if (f.related_variables.find(e.first)!=f.related_variables.end()) {  // If this factor is related to this node
         for (auto &comb : f.set_combinations) {  // Update each row of map_potentials
-          // If (*itCL) is not compatible with (*itE), set map_potentials[*itCL]=0.
-          if (comb.find(p)==comb.end()) {
+          if (comb.find(e)==comb.end()) {
             f.map_potentials[comb] = 0;
           }
         }
@@ -212,7 +211,7 @@ Factor Network::SumProductVarElim(vector<Factor> factors_list, int *Z, int nz) {
       product = temp1.MultiplyWithFactor(temp2);
       tempFactorsList.push_back(product);
     }
-    Factor newFactor = tempFactorsList.back().SumProductOverVariable(nodePtr);
+    Factor newFactor = tempFactorsList.back().SumOverVar(nodePtr);
     factors_list.push_back(newFactor);
   }
 
@@ -246,7 +245,7 @@ Factor Network::VarElimInferReturnPossib(int *Z, int nz, Combination E, Node *Y)
 
 
 Factor Network::VarElimInferReturnPossib(Combination E, Node *Y) {
-  pair<int*, int> simplified_elimination_order = SimplifyDefaultElimOrd();
+  pair<int*, int> simplified_elimination_order = SimplifyDefaultElimOrd(E);
   return this->VarElimInferReturnPossib(simplified_elimination_order.first, simplified_elimination_order.second, E, Y);
 }
 
@@ -270,6 +269,7 @@ int Network::PredictUseVarElimInfer(int *Z, int nz, Combination E, int Y_index) 
 int Network::PredictUseVarElimInfer(Combination E, int Y_index) {
   Node *Y = GivenIndexToFindNodePointer(Y_index);
   Factor F = VarElimInferReturnPossib(E, Y);
+
   double max_prob = 0;
   Combination comb_predict;
   for (auto &comb : F.set_combinations) {
@@ -307,7 +307,6 @@ double Network::TestNetReturnAccuracy(Trainer *tester) {
       e_value[j] = tester->train_set_X[i][j];
     }
     Combination E = ConstructEvidence(e_index, e_value, e_num);
-    this->network_evidence = E;
     int label_predict = PredictUseVarElimInfer(E, 0); // The root node (label) has index of 0.
     if (label_predict == tester->train_set_y[i]) {
       num_of_correct++;
@@ -319,4 +318,27 @@ double Network::TestNetReturnAccuracy(Trainer *tester) {
   double accuracy = num_of_correct / (double)(num_of_correct+num_of_wrong);
   cout << '\n' << "Accuracy: " << accuracy << endl;
   return accuracy;
+}
+
+
+vector<int> Network::TopoSort() {
+  // Convert network to directed adjacency matrix.
+  int num_nodes = n_nodes;
+  int **adjac_matrix = new int* [num_nodes];
+  for (int i=0; i<num_nodes; ++i) {
+    adjac_matrix[i] = new int[num_nodes]();
+  }
+  for (auto &node_ptr : set_node_ptr_container) {
+    int from, from2, to;
+    from = node_ptr->GetNodeIndex();
+    for (auto &child_ptr : node_ptr->set_children_ptrs) {
+      to = child_ptr->GetNodeIndex();
+      adjac_matrix[from][to] = 1;
+    }
+  }
+
+  // Topological sort.
+  topo_ord = TopoSortOfDAGZeroInDegreeFirst(adjac_matrix, n_nodes);
+
+  return topo_ord;
 }

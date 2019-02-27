@@ -5,7 +5,13 @@
 #include "Factor.h"
 
 
-Factor::Factor() {}
+void Factor::SetMembers(set<int> related_variables,
+               set<Combination> set_combinations,
+               map<Combination, double> map_potentials) {
+  this->related_variables = related_variables;
+  this->map_potentials = map_potentials;
+  this->set_combinations = set_combinations;
+}
 
 
 void Factor::ConstructFactor(Node *node) {
@@ -65,6 +71,7 @@ Factor Factor::MultiplyWithFactor(Factor second_factor) {
 
       // solve the bug about common variables
       // If two combinations have different values on common variables,
+      // which means that they conflict,
       // then these two combinations can not form a legal entry.
       if (!FirstCompatibleSecond(&first, &second)) continue;
 
@@ -78,15 +85,14 @@ Factor Factor::MultiplyWithFactor(Factor second_factor) {
   return newFactor;
 }
 
-
-Factor Factor::SumProductOverVariable(Node *node) {
+Factor Factor::SumOverVar(int index) {
   Factor newFactor;
-  this->related_variables.erase(node->GetNodeIndex());
+  this->related_variables.erase(index);
   newFactor.related_variables = this->related_variables;
   for (auto comb : set_combinations) {
     pair<int, int> pair_to_be_erased;
     for (auto p : comb) {
-      if (p.first==node->GetNodeIndex()) {
+      if (p.first==index) {
         pair_to_be_erased = p;
         break;
       }
@@ -103,6 +109,10 @@ Factor Factor::SumProductOverVariable(Node *node) {
   return newFactor;
 }
 
+Factor Factor::SumOverVar(Node *node) {
+  return SumOverVar(node->GetNodeIndex());
+}
+
 
 void Factor::Normalize() {
   double denominator = 0;
@@ -112,4 +122,15 @@ void Factor::Normalize() {
   for (auto &comb : set_combinations) {
     map_potentials[comb] /= denominator;
   }
+}
+
+
+void Factor::PrintPotentials() {
+  for (auto &potentials_key_value : map_potentials) {
+    for (auto &vars_index_value : potentials_key_value.first) {
+      cout << '(' << vars_index_value.first << ',' << vars_index_value.second << ") ";
+    }
+    cout << "\t: " << potentials_key_value.second << endl;
+  }
+  cout << "----------" << endl;
 }

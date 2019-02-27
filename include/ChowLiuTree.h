@@ -38,9 +38,9 @@ class ChowLiuTree : public Network {
   void StructLearnCompData(Trainer *);
   void StructLearnChowLiuTreeCompData(Trainer *);
 
-  pair<int*, int> SimplifyDefaultElimOrd();
-  pair<int*, int> SimplifyTreeDefaultElimOrd();
-  void DepthFirstTraversalUntillMeetObserved(int, set<int> &, set<int> &);
+  pair<int*, int> SimplifyDefaultElimOrd(Combination) override;
+  pair<int*, int> SimplifyTreeDefaultElimOrd(Combination);
+  void DepthFirstTraversalUntillMeetObserved(Combination, int, set<int> &, set<int> &);
   void DepthFirstTraversalToRemoveMSeparatedNodes(int, set<int> &, set<int> &);
 
 };

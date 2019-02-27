@@ -9,18 +9,17 @@ set<Combination> GenAllCombFromSets(set<Combination> *set_of_sets) {
 
   // Error Case
   if (set_of_sets->empty()) {
-    cout << "The size of set_of_sets is less than 1." << endl;
+    fprintf(stderr, "Error in function %s! \nThe size of set_of_sets is less than 1", __FUNCTION__);
     exit(1);
   }
 
   auto its=set_of_sets->begin();
-  Combination toBeAdded;
-  toBeAdded =  *its;
-  set<Combination> result;
+  Combination to_be_inserted = *its;
+  set<Combination> result, temp_result;
 
   // Base Case
   if (set_of_sets->size()==1) {
-    for (auto &p : toBeAdded){
+    for (auto &p : to_be_inserted){
       Combination c;
       c.insert(p);
       result.insert(c);
@@ -30,9 +29,9 @@ set<Combination> GenAllCombFromSets(set<Combination> *set_of_sets) {
 
   // Recursive Case (the size of set_of_sets is greater than 1)
   set_of_sets->erase(its);
-  result = GenAllCombFromSets(set_of_sets);
-  for (auto &p : toBeAdded){
-    for (auto c : result) {
+  temp_result = GenAllCombFromSets(set_of_sets);
+  for (auto &p : to_be_inserted){
+    for (Combination c : temp_result) {
       c.insert(p);
       result.insert(c);
     }
@@ -90,8 +89,8 @@ int* WidthFirstTraversalWithAdjacencyMatrix(int **graph, int num_nodes, int star
 }
 
 
-int* TopoSortOfDAGZeroInDegreeFirst(int **graph, int num_nodes) {
-  int *result = new int[num_nodes];
+vector<int> TopoSortOfDAGZeroInDegreeFirst(int **graph, int num_nodes) {
+  vector<int> result;
   queue<int> que;
 
   int *in_degrees = new int[num_nodes](); // The parentheses at end will initialize the array to be all zeros.
@@ -112,7 +111,7 @@ int* TopoSortOfDAGZeroInDegreeFirst(int **graph, int num_nodes) {
         if (in_degrees[j]==0) {que.push(j);}
       }
     }
-    result[count++] = que.front();
+    result.push_back(que.front());
     que.pop();
   }
 
@@ -121,7 +120,7 @@ int* TopoSortOfDAGZeroInDegreeFirst(int **graph, int num_nodes) {
 
 
 string TrimRight(string s) {
-  while (s.empty() && s[s.size()-1]<33) { // ASCII. \t=09, \n=10, \r=13, space=32.
+  while (!s.empty() && s[s.size()-1]<33) { // ASCII. \t=09, \n=10, \r=13, space=32.
     s.erase(s.size()-1);
   }
   return s;
@@ -129,7 +128,7 @@ string TrimRight(string s) {
 
 
 string TrimLeft(string s) {
-  while (s.empty() && s[0]<33) { // ASCII. \t=09, \n=10, \r=13, space=32.
+  while (!s.empty() && s[0]<33) { // ASCII. \t=09, \n=10, \r=13, space=32.
     s.erase(0);
   }
   return s;
