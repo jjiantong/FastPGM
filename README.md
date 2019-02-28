@@ -11,6 +11,7 @@ Developed by Linjian Li, using Clion 2018.3.1
   * Exact inference
     * Variable elimination
       * Optimal elimination order for **tree shape** network
+    * Junction tree algorithm
   * Construct custom network from files
     * Format of custom network structure
       * The first line is a string "BEGIN_OF_STRUCTURE"
@@ -18,7 +19,7 @@ Developed by Linjian Li, using Clion 2018.3.1
       * The second line is an integer of the number of nodes
       * Each line from the third till the second to the last represents a node and its child(ren) separated by whitespace
       * The node index should start at 0 instead of 1
-      
+
       for example:
       ```
       BEGIN_OF_STRUCTURE
@@ -40,7 +41,7 @@ Developed by Linjian Li, using Clion 2018.3.1
         * The query value and the condition are separated by "|", and the probability value comes after "@"
         * If the condition consists of multiple nodes, nodes are separated by ","
         * For each node in the condition, its index and value are separated by ":"
-      
+
       for example:
       ```
       BEGIN_OF_PARAMETERS
@@ -48,7 +49,7 @@ Developed by Linjian Li, using Clion 2018.3.1
       1 : 0 1
       2 : -1 1
       3 : -1 1
-      0 --marg 0@0.5 1@0.5
+      0 --marg 0@0.3 1@0.7
       1 --cond 0|0:0@0.3 1|0:0@0.7 0|0:1@0.4 1|0:1@0.6
       2 --cond -1|0:0,1:0@0.3 1|0:0,1:0@0.7 -1|0:1,1:0@0.2 1|0:1,1:0@0.8 -1|0:0,1:1@0.1 1|0:0,1:1@0.9 -1|0:1,1:1@0.5 1|0:1,1:1@0.5 
       3 --cond -1|1:0,2:-1@0.3 1|1:0,2:-1@0.7 -1|1:1,2:-1@0.2 1|1:1,2:-1@0.8 -1|1:0,2:1@0.1 1|1:0,2:1@0.9 -1|1:1,2:1@0.5 1|1:1,2:1@0.5
@@ -75,10 +76,7 @@ classification with discrete feature values
  * Soft evidence (help support incomplete data)
  * Incomplete data
  * Inference
-   * Junction tree algorithm
    * Cowell algorithm
-   * Join tree algorithm
-   * Belief Propagation (a.k.a. Sum-Product Message Passing algorithm)
    * MCMC sampling (approximate inference)
    * Gibbs sampling
    * Rejection sampling
