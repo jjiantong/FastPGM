@@ -113,6 +113,8 @@ void JunctionTree::Triangulate(Network *net,
 
 
 void JunctionTree::ElimRedundantCliques() {
+  set<Clique*> to_be_eliminated;
+
   for (auto &ptr_clq1 : set_clique_ptr_container) {
     for (auto &ptr_clq2 : set_clique_ptr_container) {
       if (ptr_clq1==ptr_clq2) {continue;}
@@ -129,11 +131,14 @@ void JunctionTree::ElimRedundantCliques() {
                        ptr_bigger_clique->related_variables.begin(),ptr_bigger_clique->related_variables.end(),
                        std::inserter(intersection,intersection.begin()));
       if (intersection==ptr_smaller_clique->related_variables) {
-        set_clique_ptr_container.erase(ptr_smaller_clique);
-        delete ptr_smaller_clique;  // I am not sure if this is right.
+        to_be_eliminated.insert(ptr_smaller_clique);
         break;
       }
     }
+  }
+
+  for (auto &ptr_clq : to_be_eliminated) {
+    set_clique_ptr_container.erase(ptr_clq);
   }
 }
 
@@ -180,30 +185,39 @@ void JunctionTree::FormJunctionTree(set<Clique*> &cliques) {
     }
   }
 
-  // Second, use Kruskal's to form a maximum spanning tree.
-  vector<Separator*> vec_separators;
-  for (auto &sep_ptr : all_possible_seps) {
-    vec_separators.push_back(sep_ptr);
-  }
+  // Second, use Prim's algorithm to form a maximum spanning tree.
+  set<Clique*> tree_so_far;
+  tree_so_far.insert(*cliques.begin()); // randomly insert a clique in tree
+  while (tree_so_far.size()<cliques.size()) {
+    Separator* max_weight_sep = nullptr;
+    for (auto &sep_ptr : all_possible_seps) {
+      auto iter = sep_ptr->set_neighbours_ptr.begin();
+      Clique *clq1 = *iter, *clq2 = *(++iter);
 
-  // Use lambda expression to sort the vector, with bigger weight coming first.
-  sort(vec_separators.begin(),vec_separators.end(),[](Separator *a, Separator *b){return a->weight > b->weight;});
-  set<Clique*> mark_clique;
-  for (auto &sep_ptr : vec_separators) {
-    if (mark_clique.find(*sep_ptr->set_neighbours_ptr.begin())==mark_clique.end() || mark_clique.find(* ++ sep_ptr->set_neighbours_ptr.begin())==mark_clique.end()) {
-      set_separator_ptr_container.insert(sep_ptr);
-      mark_clique.insert(*sep_ptr->set_neighbours_ptr.begin());
-      mark_clique.insert(* ++ sep_ptr->set_neighbours_ptr.begin());
+      if (tree_so_far.find(clq1)!=tree_so_far.end()
+          &&
+          tree_so_far.find(clq2)==tree_so_far.end()
+          ||
+          tree_so_far.find(clq1)==tree_so_far.end()
+          &&
+          tree_so_far.find(clq2)!=tree_so_far.end()) {
+        if (max_weight_sep==nullptr || max_weight_sep->weight < sep_ptr->weight) {
+          max_weight_sep = sep_ptr;
+        }
+      }
     }
+
+    set_separator_ptr_container.insert(max_weight_sep);
+    auto iter = max_weight_sep->set_neighbours_ptr.begin();
+    Clique *clq1 = *iter, *clq2 = *(++iter);
+    tree_so_far.insert(clq1);
+    tree_so_far.insert(clq2);
   }
 
   // Now let the cliques to know the separators that they connect to.
   for (auto &sep_ptr : set_separator_ptr_container) {
-    Clique *clq1, *clq2;
-    auto it = sep_ptr->set_neighbours_ptr.begin();
-    clq1 = *it;
-    ++it;
-    clq2 = *it;
+    auto iter = sep_ptr->set_neighbours_ptr.begin();
+    Clique *clq1 = *iter, *clq2 = *(++iter);
     clq1->set_neighbours_ptr.insert(sep_ptr);
     clq2->set_neighbours_ptr.insert(sep_ptr);
   }
@@ -260,7 +274,9 @@ void JunctionTree::LoadEvidence(Combination E) {
 
 void JunctionTree::MessagePassingUpdateJT() {
   // Arbitrarily select a clique as the root.
-  Clique *arb_root = *set_clique_ptr_container.begin();
+  auto iter = set_clique_ptr_container.begin();
+  Clique *arb_root = *iter;
+  while (arb_root->related_variables.find(0)==arb_root->related_variables.end()) {++iter; arb_root=*iter;}  // todo: delete. just for debug
   arb_root->Collect();
   arb_root->Distribute();
 }

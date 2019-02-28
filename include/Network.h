@@ -26,7 +26,6 @@ class Network {
   int n_nodes;
   set<Node*> set_node_ptr_container;
   //set<Edge*> edges_container;
-
   int *default_elim_ord;
   vector<int> topo_ord;
 
