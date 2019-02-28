@@ -11,7 +11,8 @@ Developed by Linjian Li, using Clion 2018.3.1
   * Exact inference
     * Variable elimination
       * Optimal elimination order for **tree shape** network
-    * Junction tree algorithm
+    * Junction tree algorithm (Some call it clique tree algorithm. But a clique tree is not necessary a junction tree.)
+      * Belief propagation (a.k.a. message passing, sum-product)
   * Construct custom network from files
     * Format of custom network structure
       * The first line is a string "BEGIN_OF_STRUCTURE"
