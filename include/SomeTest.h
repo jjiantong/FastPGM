@@ -135,8 +135,9 @@ class SomeTest {
   void test3(Network* network, int i) {
     fprintf(stdout,"%s\n",__FUNCTION__);
     Combination E;
-    E.insert(pair<int,int>(39,1));
-    E.insert(pair<int,int>(49,1));
+    E.insert(pair<int,int>(104,1));
+    E.insert(pair<int,int>(112,1));
+    E.insert(pair<int,int>(99,1));
     cout << "Size of evidence: " << E.size() << endl;
     cout << "Evidence (only print 1): { ";
     for (auto &e : E) {
@@ -159,6 +160,7 @@ class SomeTest {
     Factor f2 = jt->InferenceForVarIndexsReturnPossib(indexes);
     f2.PrintPotentials();
   }
+
 };
 
 

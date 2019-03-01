@@ -10,8 +10,8 @@ Separator::Separator(set<Node*> set_node_ptr) {
   if (weight!=0) {InitializeClique(set_node_ptr);}
 }
 
-void Separator::UpdateUseMessage(Factor &f) {
-  SumOutExternalVars(f);
+void Separator::UpdateUseMessage(Factor f) {
+  f = SumOutExternalVars(f);
   map_old_potentials = map_potentials;
   map_potentials = f.map_potentials;
 }

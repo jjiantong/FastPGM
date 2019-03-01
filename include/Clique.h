@@ -36,10 +36,10 @@ class Clique {
   void InitializeClique(set<Node*>);
   Factor Collect();
   void Distribute();
-  void Distribute(Factor&);
-  void SumOutExternalVars(Factor&);
-  void MultiplyWithFactorSumOverExternalVars(Factor&);
-  virtual void UpdateUseMessage(Factor&);
+  void Distribute(Factor);
+  Factor SumOutExternalVars(Factor);
+  void MultiplyWithFactorSumOverExternalVars(Factor);
+  virtual void UpdateUseMessage(Factor);
   virtual Factor ConstructMessage();
   void PrintPotentials();
 

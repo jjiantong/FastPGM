@@ -59,7 +59,7 @@ void Clique::Distribute() {
 }
 
 
-void Clique::Distribute(Factor &f) {
+void Clique::Distribute(Factor f) {
   // First update itself, then distribute to its downstream.
 
   UpdateUseMessage(f);  // Update itself.
@@ -80,7 +80,7 @@ void Clique::Distribute(Factor &f) {
   }
 }
 
-void Clique::SumOutExternalVars(Factor &f) {
+Factor Clique::SumOutExternalVars(Factor f) {
   Factor factor_of_this_clique;
   factor_of_this_clique.SetMembers(related_variables,set_combinations,map_potentials);
 
@@ -93,14 +93,15 @@ void Clique::SumOutExternalVars(Factor &f) {
   for (auto &ex_vars : set_external_vars) {
     f = f.SumOverVar(ex_vars);
   }
+  return f;
 }
 
 
-void Clique::MultiplyWithFactorSumOverExternalVars(Factor &f) {
+void Clique::MultiplyWithFactorSumOverExternalVars(Factor f) {
   Factor factor_of_this_clique;
   factor_of_this_clique.SetMembers(related_variables,set_combinations,map_potentials);
 
-  SumOutExternalVars(f);
+  f = SumOutExternalVars(f);
 
   factor_of_this_clique = factor_of_this_clique.MultiplyWithFactor(f);
 
@@ -108,7 +109,7 @@ void Clique::MultiplyWithFactorSumOverExternalVars(Factor &f) {
 }
 
 
-void Clique::UpdateUseMessage(Factor &f) {
+void Clique::UpdateUseMessage(Factor f) {
   MultiplyWithFactorSumOverExternalVars(f);
 }
 

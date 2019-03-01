@@ -276,7 +276,6 @@ void JunctionTree::MessagePassingUpdateJT() {
   // Arbitrarily select a clique as the root.
   auto iter = set_clique_ptr_container.begin();
   Clique *arb_root = *iter;
-  while (arb_root->related_variables.find(0)==arb_root->related_variables.end()) {++iter; arb_root=*iter;}  // todo: delete. just for debug
   arb_root->Collect();
   arb_root->Distribute();
 }
