@@ -7,7 +7,7 @@ Developed by Linjian Li, using Clion 2018.3.1
 
 ## Feature
   * Structural learning with complete data
-    * Chow-Liu tree
+    * Chow-Liu tree (Tree-Augmented Naive Bayes (TAN))
   * Exact inference
     * Variable elimination
       * Optimal elimination order for **tree shape** network
@@ -72,8 +72,11 @@ classification with discrete feature values
  * support graph structures beyond trees
    * Custom network *(working on...)*
    * Structual learning algorithms
-     * Search and Score
-     * Tree-Augmented Naive Bayes (TAN)
+     * Score-based
+       * K2
+       * BD, BDe, BDeu
+       * AIC
+       * MDL
  * Soft evidence (help support incomplete data)
  * Incomplete data
  * Inference
@@ -86,6 +89,8 @@ classification with discrete feature values
  * Common network file format (rather than format created by Linjian Li)
    * Graph Modeling Language (GML)
    * GraphML (XML-based)
+   * XML BIF (supported by Weka)
+   * arff (Weka)
 
 The Cowell algorithm is used to do inference on continuous-value node. It is based on the earlier Lauritzen and Jensen junction tree algorithm. It is numerically stable bacause it avoids repeated matrix inversions. (McGeachie, "CGBayesNets", 2014)
 
