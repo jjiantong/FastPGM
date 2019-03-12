@@ -75,8 +75,8 @@ void ChowLiuTree::StructLearnCompData(Trainer *trainer) {
 void ChowLiuTree::StructLearnChowLiuTreeCompData(Trainer *trainer) {
   cout << "=======================================================================" << '\n'
        << "Begin structural learning. \nConstructing Chow-Liu tree with complete data......" << endl;
-  n_nodes = trainer->n_feature+1;  // "+1" is for the label node.
-  for (int i=0; i<n_nodes; ++i) {
+  num_nodes = trainer->n_vars;
+  for (int i=0; i<num_nodes; ++i) {
     Node *node_ptr = new Node();
     node_ptr->SetNodeIndex(i);
     node_ptr->is_discrete = trainer->is_features_discrete[i];
@@ -105,7 +105,7 @@ void ChowLiuTree::StructLearnChowLiuTreeCompData(Trainer *trainer) {
   cout << "=======================================================================" << '\n'
        << "Constructing mutual information table......" << endl;
 
-  int n = n_nodes;
+  int n = num_nodes;
   double** mutualInfoTab = new double* [n];
   for (int i=0; i<n; i++) {
     mutualInfoTab[i] = new double[n]();    // The parentheses at end will initialize the array to be all zeros.
@@ -263,7 +263,7 @@ pair<int*, int> ChowLiuTree::SimplifyTreeDefaultElimOrd(Combination evidence) {
 
   // Remove all the barren nodes
   set<int> to_be_removed;
-  for (int i=0; i<n_nodes-1; ++i) {
+  for (int i=0; i<num_nodes-1; ++i) {
     Node *ptr_curr_node = GivenIndexToFindNodePointer(default_elim_ord[i]);
     bool observed = false, need_to_be_removed = true;
     for (auto p : evidence) {
@@ -292,7 +292,7 @@ pair<int*, int> ChowLiuTree::SimplifyTreeDefaultElimOrd(Combination evidence) {
   DepthFirstTraversalUntillMeetObserved(evidence, 0,visited,to_be_removed);  // Start at root.
 
   // Record all the remaining nodes in array "simplified_order".
-  int num_of_remain = n_nodes-1-to_be_removed.size();    // The 0-th node is root and do not need to be eliminated.
+  int num_of_remain = num_nodes-1-to_be_removed.size();    // The 0-th node is root and do not need to be eliminated.
   int* simplified_order = new int[num_of_remain];
   for (int i=0, j=1; i<num_of_remain; ++i) {    // j=1 because the 0-th node is root.
     while (to_be_removed.find(j)!=to_be_removed.end()) {++j;}

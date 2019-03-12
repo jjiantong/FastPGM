@@ -150,3 +150,12 @@ vector<string> Split(string &s, string delimiter) {
   result.push_back(s.substr(begin, s.size()-begin));
   return result;
 }
+
+int FactorialForSmallInteger(int n) {
+  if (n==0) {return 1;}
+  int result = 1;
+  while (n>0) {
+    result *= n--;
+  }
+  return result;
+}

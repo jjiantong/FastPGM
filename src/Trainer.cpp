@@ -56,6 +56,7 @@ void Trainer::LoadLIBSVMDataAutoDetectConfig(string data_file_path) {
 
   n_train_instance = train_set_y_vector.size();
   n_feature = max_index_occurred;
+  n_vars = n_feature + 1;
   is_features_discrete = new bool[n_feature];
   num_of_possible_values_of_features = new int[n_feature];
   num_of_possible_values_of_label = set_label_possible_values.size();
@@ -91,9 +92,9 @@ void Trainer::ConvertVectorDatasetIntoArrayDataset() {
       train_set_X[s][p.first-1] = p.second;
     }
 
-    train_set_y_X[s] = new int[n_feature+1]();
+    train_set_y_X[s] = new int[n_vars]();
     train_set_y_X[s][0] = train_set_y[s];
-    for (int i=1; i<=n_feature; ++i) {
+    for (int i=1; i<n_vars; ++i) {
       train_set_y_X[s][i] = train_set_X[s][i-1];
     }
   }

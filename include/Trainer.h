@@ -23,6 +23,7 @@ class Trainer {
  public:
   int n_train_instance;
   int n_feature;
+  int n_vars; // For classification, n_vars should be equal to n_feature+1.
   bool* is_features_discrete;
   int* num_of_possible_values_of_features;
   map<int,set<int>> map_feature_possible_values;

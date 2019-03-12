@@ -28,9 +28,9 @@ void CustomNetwork::ConstructCustomNetworkStructFromFile(string file_path) {
     getline(in_file, sentinel);
   }
 
-  in_file >> n_nodes;
+  in_file >> num_nodes;
 
-  for (int i=0; i<n_nodes; ++i) {
+  for (int i=0; i<num_nodes; ++i) {
     Node *node_ptr = new Node();
     node_ptr->SetNodeIndex(i);
     set_node_ptr_container.insert(node_ptr);
@@ -120,7 +120,7 @@ void CustomNetwork::SetCustomNetworkParamsFromFile(string file_path) {
   int index, value;
 
   // Set num_potential_vals and potential_vals
-  for (int i=0; i<n_nodes; ++i) {
+  for (int i=0; i<num_nodes; ++i) {
     getline(in_file, node_and_params);
     node_and_params = TrimRight(node_and_params);
     vec_parsed_node_and_params = Split(node_and_params, " ");
@@ -134,13 +134,13 @@ void CustomNetwork::SetCustomNetworkParamsFromFile(string file_path) {
   }
 
   // Set set_parents_combinations
-  for (int i=0; i<n_nodes; ++i) {
+  for (int i=0; i<num_nodes; ++i) {
     Node *node_ptr = GivenIndexToFindNodePointer(i);
     node_ptr->GenParCombs();
   }
 
   // Set probability table
-  for (int i=0; i<n_nodes; ++i) {
+  for (int i=0; i<num_nodes; ++i) {
     getline(in_file, node_and_params);
     node_and_params = TrimRight(node_and_params);
     vec_parsed_node_and_params = Split(node_and_params, " ");
@@ -231,5 +231,5 @@ void CustomNetwork::StructLearnCompData(Trainer *) {
 
 
 pair<int*, int> CustomNetwork::SimplifyDefaultElimOrd(Combination evidence) {
-  return {default_elim_ord, n_nodes-1};
+  return {default_elim_ord, num_nodes-1};
 }

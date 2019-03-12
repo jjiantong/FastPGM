@@ -18,6 +18,9 @@
 
 class SomeTest {
  public:
+
+  SomeTest()= default;
+
   void test1() {
     fprintf(stdout,"%s\n",__FUNCTION__);
 
@@ -92,7 +95,7 @@ class SomeTest {
 
   void test2(Network* network, Trainer *tester, int i) {
     fprintf(stdout,"%s\n",__FUNCTION__);
-    int e_num=network->n_nodes-1, *e_index=new int[e_num], *e_value=new int[e_num];
+    int e_num=network->num_nodes-1, *e_index=new int[e_num], *e_value=new int[e_num];
     for (int j=0; j<e_num; ++j) {
       e_index[j] = j+1;
       e_value[j] = tester->train_set_X[i][j];

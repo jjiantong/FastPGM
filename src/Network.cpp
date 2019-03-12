@@ -9,7 +9,7 @@ Network::Network() {}
 
 
 Node* Network::GivenIndexToFindNodePointer(int index) {
-  if (index<0 || index>n_nodes) {
+  if (index<0 || index>num_nodes) {
     fprintf(stderr, "Error in function %s! \nInvalid index!", __FUNCTION__);
     exit(1);
   }
@@ -67,7 +67,7 @@ void Network::LearnParmsKnowStructCompData(const Trainer *trainer){
   }
 
   // For every feature node.
-  for (int i=1; i<trainer->n_feature+1; ++i) { // Because feature index start at 1.
+  for (int i=1; i<trainer->n_vars; ++i) { // Because feature index start at 1.
                                                      // Using "train_set_y_X".
     Node *this_node = GivenIndexToFindNodePointer(i);
 
@@ -301,7 +301,7 @@ double Network::TestNetReturnAccuracy(Trainer *tester) {
     Node *Y = GivenIndexToFindNodePointer(0);
 
     // For now, only support complete data.
-    int e_num=n_nodes-1, *e_index=new int[e_num], *e_value=new int[e_num];
+    int e_num=num_nodes-1, *e_index=new int[e_num], *e_value=new int[e_num];
     for (int j=0; j<e_num; ++j) {
       e_index[j] = j+1;
       e_value[j] = tester->train_set_X[i][j];
@@ -323,7 +323,7 @@ double Network::TestNetReturnAccuracy(Trainer *tester) {
 
 vector<int> Network::TopoSort() {
   // Convert network to directed adjacency matrix.
-  int num_nodes = n_nodes;
+  int num_nodes = num_nodes;
   int **adjac_matrix = new int* [num_nodes];
   for (int i=0; i<num_nodes; ++i) {
     adjac_matrix[i] = new int[num_nodes]();
@@ -338,7 +338,7 @@ vector<int> Network::TopoSort() {
   }
 
   // Topological sort.
-  topo_ord = TopoSortOfDAGZeroInDegreeFirst(adjac_matrix, n_nodes);
+  topo_ord = TopoSortOfDAGZeroInDegreeFirst(adjac_matrix, num_nodes);
 
   return topo_ord;
 }

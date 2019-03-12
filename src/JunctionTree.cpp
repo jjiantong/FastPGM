@@ -7,10 +7,10 @@
 JunctionTree::JunctionTree(Network *net) {
   network = net;
   int **direc_adjac_matrix = ConvertDAGNetworkToAdjacencyMatrix(network);
-  Moralize(direc_adjac_matrix, network->n_nodes);
+  Moralize(direc_adjac_matrix, network->num_nodes);
   int **undirec_adjac_matrix = direc_adjac_matrix;  // Because it has been moralized.
-  vector<int> elim_ord = MinNeighbourElimOrd(undirec_adjac_matrix, network->n_nodes);
-  Triangulate(network, undirec_adjac_matrix, network->n_nodes, elim_ord, set_clique_ptr_container);
+  vector<int> elim_ord = MinNeighbourElimOrd(undirec_adjac_matrix, network->num_nodes);
+  Triangulate(network, undirec_adjac_matrix, network->num_nodes, elim_ord, set_clique_ptr_container);
 
   // Theoretically, this step is not necessary.
   ElimRedundantCliques();
@@ -22,7 +22,7 @@ JunctionTree::JunctionTree(Network *net) {
 
 
 int** JunctionTree::ConvertDAGNetworkToAdjacencyMatrix(Network *net) {
-  int num_nodes = net->n_nodes;
+  int num_nodes = net->num_nodes;
   int **adjac_matrix = new int* [num_nodes];
   for (int i=0; i<num_nodes; ++i) {
     adjac_matrix[i] = new int[num_nodes]();
