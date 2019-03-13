@@ -63,20 +63,20 @@ classification with discrete feature values
 ### to do:
  * classification with features of continuous values
    * Gaussian Bayesian network ***(need to implement junction tree algorithm first)***
-     * Linear Gaussian Bayesian network *(working on...)*
+     * Linear Gaussian Bayesian network
        * ALL variables are continuous
        * ALL CPDs are linear Gaussians
      * Conditional Gaussian Bayesian network
        * Discrete and continuous variables
  * explore regression
  * support graph structures beyond trees
-   * Custom network *(working on...)*
+   * Custom network
    * Structual learning algorithms
-     * Score-based
-       * K2
-       * BD, BDe, BDeu
-       * AIC
-       * MDL
+     * Score-based (the asterisk means the scoring function has been implemented but not the search function)
+       * K2*
+       * BDe, BDeu
+       * AIC*
+       * MDL/BIC*
  * Soft evidence (help support incomplete data)
  * Incomplete data
  * Inference
@@ -89,7 +89,7 @@ classification with discrete feature values
  * Common network file format (rather than format created by Linjian Li)
    * Graph Modeling Language (GML)
    * GraphML (XML-based)
-   * XML BIF (supported by Weka)
+   * BIF (supported by Weka)
    * arff (Weka)
 
 The Cowell algorithm is used to do inference on continuous-value node. It is based on the earlier Lauritzen and Jensen junction tree algorithm. It is numerically stable bacause it avoids repeated matrix inversions. (McGeachie, "CGBayesNets", 2014)
