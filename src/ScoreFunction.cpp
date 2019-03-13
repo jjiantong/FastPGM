@@ -65,13 +65,13 @@ double ScoreFunction::K2(Network *net, Trainer *trn) {
   // Since it is equal for all structures, I will just ignore it.
   // (Or, I can say that I set it to be 1.)
 
-  double sum_over_i = 0;
+  double multiply_over_i = 1;
 
   for (auto &node_ptr : net->set_node_ptr_container) {
     int node_index = node_ptr->GetNodeIndex();
     int r_i = node_ptr->num_potential_vals;
 
-    double sum_over_j = 0;
+    double multiply_over_j = 1;
 
     for (auto &par_comb : node_ptr->set_parents_combinations) {
 
@@ -94,7 +94,7 @@ double ScoreFunction::K2(Network *net, Trainer *trn) {
 
       }
 
-      int sum_of_factorial_of_n_ijk = 0;
+      int multiply_over_k = 1;
       for (int k=0; k<r_i; ++k){
         int n_ijk = 0;
         for (auto &s : set_instances_parent_compatible) {
@@ -102,21 +102,21 @@ double ScoreFunction::K2(Network *net, Trainer *trn) {
           // Check this node.
           n_ijk += (trn->train_set_y_X[s][node_index] == val) ? 1 : 0;
         }
-        sum_of_factorial_of_n_ijk += FactorialForSmallInteger(n_ijk);
+        multiply_over_k *= FactorialForSmallInteger(n_ijk);
       }
 
-      sum_over_j +=
+      multiply_over_j *=
               (FactorialForSmallInteger(r_i-1)
               *
-              sum_of_factorial_of_n_ijk
+              multiply_over_k
               /
               (double)FactorialForSmallInteger(n_ij+r_i-1));
     }
 
-    sum_over_i += sum_over_j;
+    multiply_over_i *= multiply_over_j;
   }
 
-  return sum_over_i;
+  return multiply_over_i;
 }
 
 double ScoreFunction::BDe(Network *net, Trainer *trn) {
