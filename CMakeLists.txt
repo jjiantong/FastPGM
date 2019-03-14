@@ -5,7 +5,8 @@ set(CMAKE_CXX_STANDARD 14)
 
 include_directories(${PROJECT_SOURCE_DIR}/include)
 
-add_subdirectory(src/test)
+add_subdirectory(src)
+add_subdirectory(test)
 
 file(GLOB SRC src/*.cpp)
 file(GLOB HEAD include/*.h)

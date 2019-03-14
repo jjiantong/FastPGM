@@ -151,7 +151,7 @@ vector<string> Split(string &s, string delimiter) {
   return result;
 }
 
-inline int FactorialForSmallInteger(int n) {
+int FactorialForSmallInteger(int n) {
   int result = 1;
   while (n>0) {
     result *= n--;

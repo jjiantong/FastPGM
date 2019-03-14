@@ -27,6 +27,6 @@ string TrimLeft(string);
 string Trim(string &);
 vector<string> Split(string &, string);
 
-inline int FactorialForSmallInteger(int);
+int FactorialForSmallInteger(int);
 
 #endif //BAYESIANNETWORK_GADGET_H
