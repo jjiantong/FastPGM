@@ -8,7 +8,7 @@ ScoreFunction::ScoreFunction(Network *net, Trainer *trn) {
   this->net = net;
   this->trn = trn;
   num_network_params = 0;
-  for (auto &node_ptr : net->set_node_ptr_container) {
+  for (const auto &node_ptr : net->set_node_ptr_container) {
     num_network_params += node_ptr->num_potential_vals * node_ptr->set_parents_combinations.size();
   }
 }
@@ -18,11 +18,12 @@ double ScoreFunction::LogLikelihoodForNode(Node *node_ptr, Network *net, Trainer
 
   // Use the notation like the papers (e.g. r_i, q_i, N_ij, N_ijk).
 
+  const int &r_i = node_ptr->num_potential_vals;
   double log_likelihood = 0;
-  for (int i=0; i<node_ptr->num_potential_vals; ++i) {
+  for (int i=0; i<r_i; ++i) {
     int index = node_ptr->GetNodeIndex();
     int val = node_ptr->potential_vals[i];
-    for (auto &par_comb : node_ptr->set_parents_combinations) {
+    for (const auto &par_comb : node_ptr->set_parents_combinations) {
       int n_ijk = 0;
       for (int s=0; s<trn->n_train_instance; ++s) {
 
@@ -30,7 +31,7 @@ double ScoreFunction::LogLikelihoodForNode(Node *node_ptr, Network *net, Trainer
         bool compatible = (trn->train_set_y_X[s][index]==val);
 
         // Check parents.
-        for (auto &p : par_comb) {
+        for (const auto &p : par_comb) {
           if (!compatible) {break;}
           compatible = (trn->train_set_y_X[s][p.first]==p.second);
         }
@@ -67,13 +68,13 @@ double ScoreFunction::K2(Network *net, Trainer *trn) {
 
   double multiply_over_i = 1;
 
-  for (auto &node_ptr : net->set_node_ptr_container) {
-    int node_index = node_ptr->GetNodeIndex();
-    int r_i = node_ptr->num_potential_vals;
+  for (const auto &node_ptr : net->set_node_ptr_container) {
+    const int &node_index = node_ptr->GetNodeIndex();
+    const int &r_i = node_ptr->num_potential_vals;
 
     double multiply_over_j = 1;
 
-    for (auto &par_comb : node_ptr->set_parents_combinations) {
+    for (const auto &par_comb : node_ptr->set_parents_combinations) {
 
       set<int> set_instances_parent_compatible;
       int n_ij = 0;
@@ -82,7 +83,7 @@ double ScoreFunction::K2(Network *net, Trainer *trn) {
 
         // Check parents.
         bool parents_compatible = true;
-        for (auto &p : par_comb) {
+        for (const auto &p : par_comb) {
           if (!parents_compatible) {break;}
           parents_compatible = (trn->train_set_y_X[s][p.first]==p.second);
         }
@@ -97,7 +98,7 @@ double ScoreFunction::K2(Network *net, Trainer *trn) {
       int multiply_over_k = 1;
       for (int k=0; k<r_i; ++k){
         int n_ijk = 0;
-        for (auto &s : set_instances_parent_compatible) {
+        for (const auto &s : set_instances_parent_compatible) {
           int val = node_ptr->potential_vals[k];
           // Check this node.
           n_ijk += (trn->train_set_y_X[s][node_index] == val) ? 1 : 0;
@@ -119,12 +120,71 @@ double ScoreFunction::K2(Network *net, Trainer *trn) {
   return multiply_over_i;
 }
 
-double ScoreFunction::BDe(Network *net, Trainer *trn) {
-  fprintf(stderr, "Function %s! is not implemented!", __FUNCTION__);
-  exit(1);
+double ScoreFunction::BDeu(Network *net, Trainer *trn, int equi_sample_size=10) {
+  // todo: check the correctness
+  // Use the notation like the paper (e.g. r_i, q_i, N_ij, N_ijk).
+  // In the paper, N' is the equivalent sample size.
+
+  // Assume equal prior on every possible structure.
+  // Since it is equal for all structures, I will just ignore it.
+  // (Or, I can say that I set it to be 1.)
+
+  double multiply_over_i = 1;
+
+  for (const auto &node_ptr : net->set_node_ptr_container) {
+    const int &node_index = node_ptr->GetNodeIndex();
+    const int &r_i = node_ptr->num_potential_vals;
+    const int &q_i = node_ptr->set_parents_combinations.size();
+    double multiply_over_j = 1;
+
+    for (const auto &par_comb : node_ptr->set_parents_combinations) {
+
+      set<int> set_instances_parent_compatible;
+      int n_ij = 0;
+
+      for (int s=0; s<trn->n_train_instance; ++s) {
+
+        // Check parents.
+        bool parents_compatible = true;
+        for (const auto &p : par_comb) {
+          if (!parents_compatible) {break;}
+          parents_compatible = (trn->train_set_y_X[s][p.first]==p.second);
+        }
+
+        if (parents_compatible) {
+          set_instances_parent_compatible.insert(s);
+          ++n_ij;
+        }
+
+      }
+
+      double multiply_over_k = 1;
+      for (int k=0; k<r_i; ++k){
+        int n_ijk = 0;
+        for (const auto &s : set_instances_parent_compatible) {
+          int val = node_ptr->potential_vals[k];
+          // Check this node.
+          n_ijk += (trn->train_set_y_X[s][node_index] == val) ? 1 : 0;
+        }
+
+        double n_ijk_prime = equi_sample_size/(r_i*q_i);
+        multiply_over_k *= tgamma(n_ijk + n_ijk_prime)/tgamma(n_ijk_prime);
+      }
+
+      double n_ij_prime = equi_sample_size/q_i;
+
+      multiply_over_j *=
+              (tgamma(n_ij_prime) / tgamma(n_ij + n_ij_prime) * multiply_over_k);
+    }
+
+    multiply_over_i *= multiply_over_j;
+  }
+
+  return multiply_over_i;
 }
 
-double ScoreFunction::BDeu(Network *net, Trainer *trn) {
+double ScoreFunction::BDe(Network *net, Trainer *trn,  int equi_sample_size=10) {
+  // todo: implement
   fprintf(stderr, "Function %s! is not implemented!", __FUNCTION__);
   exit(1);
 }
@@ -149,8 +209,4 @@ double ScoreFunction::MDL(Network *net, Trainer *trn) {
   double log_likelihood = LogLikelihood(net, trn);
 
   return (log_likelihood + penalty);
-}
-
-int ScoreFunction::GammaFunctionForInteger(int n) {
-  return (int)tgamma(n);
 }

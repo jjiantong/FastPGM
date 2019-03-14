@@ -151,11 +151,11 @@ vector<string> Split(string &s, string delimiter) {
   return result;
 }
 
-int FactorialForSmallInteger(int n) {
-  if (n==0) {return 1;}
+inline int FactorialForSmallInteger(int n) {
   int result = 1;
   while (n>0) {
     result *= n--;
   }
   return result;
 }
+

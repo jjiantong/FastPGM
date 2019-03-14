@@ -47,13 +47,12 @@ class ScoreFunction {
   double LogLikelihoodForNode(Node*, Network*, Trainer*);
   double LogLikelihood(Network*, Trainer*);
   double K2(Network*, Trainer*);
-  double BDe(Network*, Trainer*);
-  double BDeu(Network*, Trainer*);
+  double BDe(Network*, Trainer*, int);
+  double BDeu(Network*, Trainer*, int);
   double AIC(Network*, Trainer*);
   double BIC(Network*, Trainer*);
   double MDL(Network*, Trainer*);
 
-  int GammaFunctionForInteger(int);
 };
 
 
