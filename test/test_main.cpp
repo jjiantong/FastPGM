@@ -14,6 +14,7 @@
 #include "ChowLiuTree.h"
 #include "JunctionTree.h"
 #include "CustomNetwork.h"
+#include "ScoreFunction.h"
 #include "gadget.h"
 
 class NetworkTest : public ::testing::Test {
@@ -164,8 +165,20 @@ TEST_F(NetworkTest, DISABLED_custom_network) { // The prefix "DISABLED" disable 
   f2.PrintPotentials();
 }
 
-TEST_F(NetworkTest, jun_tree_accuracy) {
+TEST_F(NetworkTest, DISABLED_jun_tree_accuracy) {
   auto *jt = new JunctionTree(network);
   double accuracy = jt->TestNetReturnAccuracy(0,tester);
   EXPECT_GT(accuracy,0.6);
+}
+
+TEST_F(NetworkTest, score_usability) {
+  auto *sf = new ScoreFunction(network,trainer);
+  //double score = sf->AIC();
+  //cout << "Score: " << score << endl;
+  //EXPECT_GT(score,-INT32_MAX);
+
+  EXPECT_GT(sf->AIC(),-INT32_MAX);
+  EXPECT_GT(sf->BIC(),-INT32_MAX);
+  EXPECT_GT(sf->BDeu(),-INT32_MAX);
+  EXPECT_GT(sf->K2(),-INT32_MAX);
 }

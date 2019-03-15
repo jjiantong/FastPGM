@@ -20,29 +20,41 @@ double ScoreFunction::LogLikelihoodForNode(Node *node_ptr, Network *net, Trainer
 
   const int &r_i = node_ptr->num_potential_vals;
   double log_likelihood = 0;
-  for (int i=0; i<r_i; ++i) {
+  for (const auto &par_comb : node_ptr->set_parents_combinations) {
     int index = node_ptr->GetNodeIndex();
-    int val = node_ptr->potential_vals[i];
-    for (const auto &par_comb : node_ptr->set_parents_combinations) {
-      int n_ijk = 0;
-      for (int s=0; s<trn->n_train_instance; ++s) {
 
-        // Check this node.
-        bool compatible = (trn->train_set_y_X[s][index]==val);
+    set<int> set_instances_parent_compatible;
+    int n_ij = 0;
 
-        // Check parents.
-        for (const auto &p : par_comb) {
-          if (!compatible) {break;}
-          compatible = (trn->train_set_y_X[s][p.first]==p.second);
-        }
+    for (int s=0; s<trn->n_train_instance; ++s) {
 
-        n_ijk += compatible ? 1 : 0;
+      // Check parents.
+      bool parents_compatible = true;
+      for (const auto &p : par_comb) {
+        if (!parents_compatible) {break;}
+        parents_compatible = (trn->train_set_y_X[s][p.first]==p.second);
       }
 
-      log_likelihood +=
-              (n_ijk
-               *
-               log(node_ptr->map_cond_prob_table[val][par_comb]));
+      if (parents_compatible) {
+        set_instances_parent_compatible.insert(s);
+        ++n_ij;
+      }
+
+    }
+
+    for (int k=0; k<r_i; ++k){
+      int val = node_ptr->potential_vals[k];
+
+      int n_ijk = 0;
+
+      for (const auto &s : set_instances_parent_compatible) {
+        // Check this node.
+        n_ijk += (trn->train_set_y_X[s][index] == val) ? 1 : 0;
+      }
+
+      double tmp = n_ijk==0 ? 0 : log((double)n_ijk/n_ij);
+
+      log_likelihood += n_ijk * tmp;
     }
   }
   return log_likelihood;
@@ -55,6 +67,10 @@ double ScoreFunction::LogLikelihood(Network *net, Trainer *trn) {
     log_likelihood += LogLikelihoodForNode(node_ptr, net, trn);
   }
   return log_likelihood;
+}
+
+double ScoreFunction::K2() {
+  return K2(net,trn);
 }
 
 double ScoreFunction::K2(Network *net, Trainer *trn) {
@@ -120,7 +136,11 @@ double ScoreFunction::K2(Network *net, Trainer *trn) {
   return multiply_over_i;
 }
 
-double ScoreFunction::BDeu(Network *net, Trainer *trn, int equi_sample_size=10) {
+double ScoreFunction::BDeu() {
+  return BDeu(net,trn,10);
+}
+
+double ScoreFunction::BDeu(Network *net, Trainer *trn, int equi_sample_size) {
   // todo: check the correctness
   // Use the notation like the paper (e.g. r_i, q_i, N_ij, N_ijk).
   // In the paper, N' is the equivalent sample size.
@@ -168,6 +188,7 @@ double ScoreFunction::BDeu(Network *net, Trainer *trn, int equi_sample_size=10) 
         }
 
         double n_ijk_prime = equi_sample_size/(r_i*q_i);
+        double tmp = tgamma(n_ijk);
         multiply_over_k *= tgamma(n_ijk + n_ijk_prime)/tgamma(n_ijk_prime);
       }
 
@@ -189,6 +210,10 @@ double ScoreFunction::BDe(Network *net, Trainer *trn,  int equi_sample_size=10) 
   exit(1);
 }
 
+double ScoreFunction::AIC() {
+  return AIC(net,trn);
+}
+
 double ScoreFunction::AIC(Network *net, Trainer *trn) {
   // todo: check the correctness
   double penalty = -num_network_params;
@@ -198,7 +223,15 @@ double ScoreFunction::AIC(Network *net, Trainer *trn) {
   return (log_likelihood + penalty);
 }
 
+double ScoreFunction::BIC() {
+  return BIC(net,trn);
+}
+
 double ScoreFunction::BIC(Network *net, Trainer *trn) {
+  return MDL(net,trn);
+}
+
+double ScoreFunction::MDL() {
   return MDL(net,trn);
 }
 
