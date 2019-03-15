@@ -3,6 +3,10 @@
 Developed by Linjian Li, using Clion 2018.3.1
 
 ## Important notes
+I have meet some difficulties about K2 and BDeu scoring function.
+I implement them according to the original equations in the papers.
+But the intermediate result is *too large* (e.g. factorial of 2000) so that the variable cannot store it and becomes `inf`.
+I need to find other equations.
 
 
 ## Feature
@@ -73,8 +77,8 @@ classification with discrete feature values
    * Custom network
    * Structural learning algorithms
      * Score-based (the asterisk means the scoring function has been implemented but not the search function)
-       * K2*
-       * BDe, BDeu*
+       * K2
+       * BDe, BDeu
        * AIC*
        * MDL*/BIC*
  * Soft evidence (help support incomplete data)

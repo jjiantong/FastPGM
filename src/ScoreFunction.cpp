@@ -119,6 +119,7 @@ double ScoreFunction::K2(Network *net, Trainer *trn) {
           // Check this node.
           n_ijk += (trn->train_set_y_X[s][node_index] == val) ? 1 : 0;
         }
+        int tmp = FactorialForSmallInteger(n_ijk); // todo: Delete this line.
         multiply_over_k *= FactorialForSmallInteger(n_ijk);
       }
 
@@ -188,14 +189,16 @@ double ScoreFunction::BDeu(Network *net, Trainer *trn, int equi_sample_size) {
         }
 
         double n_ijk_prime = equi_sample_size/(r_i*q_i);
-        double tmp = tgamma(n_ijk);
+        double tmp = tgamma(n_ijk); // todo: Delete this line.
         multiply_over_k *= tgamma(n_ijk + n_ijk_prime)/tgamma(n_ijk_prime);
       }
 
       double n_ij_prime = equi_sample_size/q_i;
 
-      multiply_over_j *=
-              (tgamma(n_ij_prime) / tgamma(n_ij + n_ij_prime) * multiply_over_k);
+      double gma_np = tgamma(n_ij_prime);
+      double gma_n_plus_np = tgamma(n_ij + n_ij_prime);
+
+      multiply_over_j *= gma_np / gma_n_plus_np * multiply_over_k;
     }
 
     multiply_over_i *= multiply_over_j;
