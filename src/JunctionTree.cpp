@@ -17,6 +17,7 @@ JunctionTree::JunctionTree(Network *net) {
 
   FormJunctionTree(set_clique_ptr_container);
   AssignPotentials();
+  BackUpJunctionTree();
 }
 
 
@@ -256,6 +257,24 @@ void JunctionTree::AssignPotentials() {
   }
 }
 
+void JunctionTree::BackUpJunctionTree() {
+  for (const auto &c : set_clique_ptr_container) {
+    map_cliques_backup[c] = *c;
+  }
+  for (const auto &s : set_separator_ptr_container) {
+    map_separators_backup[s] = *s;
+  }
+}
+
+void JunctionTree::ResetJunctionTree() {
+  for (auto &c : set_clique_ptr_container) {
+    *c = map_cliques_backup[c];
+  }
+  for (auto &s : set_separator_ptr_container) {
+    *s = map_separators_backup[s];
+  }
+}
+
 void JunctionTree::LoadEvidence(Combination E) {
   if (E.empty()) {return;}
   for (auto &clique_ptr : set_clique_ptr_container) {  // For each clique
@@ -296,7 +315,10 @@ void JunctionTree::PrintAllSeparatorsPotentials() {
   cout << "=======================================================================" << endl;
 }
 
-Factor JunctionTree::InferenceForVarIndexsReturnPossib(set<int> &indexes) {
+Factor JunctionTree::BeliefPropagationReturnPossib(set<int> &indexes) {
+
+  // The input is a set of indexes of variables.
+  // The output is a factor representing the joint marginal of these variables.
 
   int min_potential_size = INT32_MAX;
   Clique *selected_clique = nullptr;
@@ -329,5 +351,58 @@ Factor JunctionTree::InferenceForVarIndexsReturnPossib(set<int> &indexes) {
   return f;
 
 
-  // todo: implement the case where the query vairables appear in different cliques.
+  // todo: implement the case where the query variables appear in different cliques.
+}
+
+int JunctionTree::InferenceUsingBeliefPropagation(set<int> &indexes) {
+  Factor f = BeliefPropagationReturnPossib(indexes);
+  double max_prob = 0;
+  Combination comb_predict;
+  for (auto &comb : f.set_combinations) {
+    if (f.map_potentials[comb] > max_prob) {
+      max_prob = f.map_potentials[comb];
+      comb_predict = comb;
+    }
+  }
+  int label_predict = comb_predict.begin()->second;
+  return label_predict;
+}
+
+double JunctionTree::TestNetReturnAccuracy(int class_var, Trainer *tst) {
+  set<int> query;
+  query.insert(class_var);
+  cout << "=======================================================================" << '\n'
+       << "Begin testing the trained network." << endl;
+
+  cout << "Progress indicator: ";
+
+  int num_of_correct=0, num_of_wrong=0, m=tst->n_train_instance, m10=m/10, percent=0;
+
+  for (int i=0; i<m; i++) {  // For each sample in test set
+
+    if (i%m10==0) {
+      cout << (percent++)*10 << "%... " << flush;
+    }
+
+
+    // For now, only support complete data.
+    int e_num=network->num_nodes-1, *e_index=new int[e_num], *e_value=new int[e_num];
+    for (int j=0; j<e_num; ++j) {
+      e_index[j] = j+1;
+      e_value[j] = tst->train_set_X[i][j];
+    }
+    Combination E = network->ConstructEvidence(e_index, e_value, e_num);
+    LoadEvidence(E);
+    MessagePassingUpdateJT();
+    int label_predict = InferenceUsingBeliefPropagation(query); // The root node (label) has index of 0.
+    if (label_predict == tst->train_set_y[i]) {
+      num_of_correct++;
+    } else {
+      num_of_wrong++;
+    }
+    ResetJunctionTree();
+  }
+  double accuracy = num_of_correct / (double)(num_of_correct+num_of_wrong);
+  cout << '\n' << "Accuracy: " << accuracy << endl;
+  return accuracy;
 }

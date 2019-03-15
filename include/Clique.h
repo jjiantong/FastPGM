@@ -32,6 +32,7 @@ class Clique {
   // So, we need a member to record the upstream of this clique (node).
   Clique *ptr_upstream_clique;
 
+  Clique() = default;
   Clique(set<Node*>);
   void InitializeClique(set<Node*>);
   Factor Collect();
@@ -43,8 +44,6 @@ class Clique {
   virtual Factor ConstructMessage();
   void PrintPotentials();
 
- protected:
-  Clique() = default;
 };
 
 

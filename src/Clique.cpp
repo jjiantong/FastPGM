@@ -8,6 +8,7 @@ Clique::Clique(set<Node*> set_node_ptr) {
   InitializeClique(set_node_ptr);
 }
 
+
 void Clique::InitializeClique(set<Node*> set_node_ptr) {
   clique_size = set_node_ptr.size();
 

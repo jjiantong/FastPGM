@@ -298,7 +298,6 @@ double Network::TestNetReturnAccuracy(Trainer *tester) {
       cout << (percent++)*10 << "%... " << flush;
     }
 
-    Node *Y = GivenIndexToFindNodePointer(0);
 
     // For now, only support complete data.
     int e_num=num_nodes-1, *e_index=new int[e_num], *e_value=new int[e_num];

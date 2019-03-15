@@ -71,12 +71,12 @@ classification with discrete feature values
  * explore regression
  * support graph structures beyond trees
    * Custom network
-   * Structual learning algorithms
+   * Structural learning algorithms
      * Score-based (the asterisk means the scoring function has been implemented but not the search function)
        * K2*
-       * BDe, BDeu
+       * BDe, BDeu*
        * AIC*
-       * MDL/BIC*
+       * MDL*/BIC*
  * Soft evidence (help support incomplete data)
  * Incomplete data
  * Inference
@@ -117,9 +117,12 @@ Consumed time and accuracy for the whose process on "a1a" (load data -> train ->
  * Using optimal elimination order for **tree shape** network, it takes **3 minutes** and and achieve accuracy of **0.823782**
 
 ### LIBSVM dataset "a2a"
- * 3 minutes, accuracy of **0.826281**
+ * Chow-Liu Tree, variable elimination, 3 minutes, accuracy of **0.826281**
+
+### LIBSVM dataset "a3a"
+ * Junction Tree, belief propagation, did not record time spent, accuracy of **0.823393**
 
 ### LIBSVM dataset "w1a"
- * 26 minutes, accuracy of **0.972436**
+ * Chow-Liu Tree, variable elimination, 26 minutes, accuracy of **0.972436**
 
 ## blah blah

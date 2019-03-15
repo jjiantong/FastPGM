@@ -54,16 +54,16 @@ class NetworkTest : public ::testing::Test {
   Network *network;
 };
 
-TEST_F(NetworkTest,usablity_of_gtest) {
+TEST_F(NetworkTest,DISABLED_usablity_of_gtest) {
   EXPECT_EQ(1,1);
   EXPECT_EQ(tgamma(6),FactorialForSmallInteger(5));
 }
 
-TEST_F(NetworkTest,accuracy) {
+TEST_F(NetworkTest,DISABLED_chow_liu_tree_var_elim_accuracy) { // The prefix "DISABLED" disable this test.
   network->TestNetReturnAccuracy(tester);
 }
 
-TEST_F(NetworkTest,var_elim_and_jun_tree) {
+TEST_F(NetworkTest,DISABLED_var_elim_and_jun_tree) { // The prefix "DISABLED" disable this test.
   Combination E;
   E.insert(pair<int,int>(104,1));
   E.insert(pair<int,int>(112,1));
@@ -87,7 +87,7 @@ TEST_F(NetworkTest,var_elim_and_jun_tree) {
 
   set<int> indexes;
   indexes.insert(0);
-  Factor f2 = jt->InferenceForVarIndexsReturnPossib(indexes);
+  Factor f2 = jt->BeliefPropagationReturnPossib(indexes);
   f2.PrintPotentials();
 
   for (auto &c : f1.set_combinations) {
@@ -97,7 +97,7 @@ TEST_F(NetworkTest,var_elim_and_jun_tree) {
   }
 }
 
-TEST_F(NetworkTest, custom_network) {
+TEST_F(NetworkTest, DISABLED_custom_network) { // The prefix "DISABLED" disable this test.
   auto *network = new CustomNetwork();
   network->ConstructCustomNetworkStructFromFile("../../data/example_custom_network_file2.txt");
   network->SetCustomNetworkParamsFromFile("../../data/example_custom_network_file2.txt");
@@ -140,26 +140,32 @@ TEST_F(NetworkTest, custom_network) {
   cout << "********************************** Junction Tree Algorithm" << endl;
   set<int> indexes;
   indexes.insert(0);
-  Factor f2 = jt->InferenceForVarIndexsReturnPossib(indexes);
+  Factor f2 = jt->BeliefPropagationReturnPossib(indexes);
   f2.PrintPotentials();
   indexes.clear();
   indexes.insert(1);
-  f2 = jt->InferenceForVarIndexsReturnPossib(indexes);
+  f2 = jt->BeliefPropagationReturnPossib(indexes);
   f2.PrintPotentials();
   indexes.clear();
   indexes.insert(2);
-  f2 = jt->InferenceForVarIndexsReturnPossib(indexes);
+  f2 = jt->BeliefPropagationReturnPossib(indexes);
   f2.PrintPotentials();
   indexes.clear();
   indexes.insert(3);
-  f2 = jt->InferenceForVarIndexsReturnPossib(indexes);
+  f2 = jt->BeliefPropagationReturnPossib(indexes);
   f2.PrintPotentials();
   indexes.clear();
   indexes.insert(4);
-  f2 = jt->InferenceForVarIndexsReturnPossib(indexes);
+  f2 = jt->BeliefPropagationReturnPossib(indexes);
   f2.PrintPotentials();
   indexes.clear();
   indexes.insert(5);
-  f2 = jt->InferenceForVarIndexsReturnPossib(indexes);
+  f2 = jt->BeliefPropagationReturnPossib(indexes);
   f2.PrintPotentials();
+}
+
+TEST_F(NetworkTest, jun_tree_accuracy) {
+  auto *jt = new JunctionTree(network);
+  double accuracy = jt->TestNetReturnAccuracy(0,tester);
+  EXPECT_GT(accuracy,0.6);
 }

@@ -11,12 +11,13 @@ class Separator : public Clique {
  public:
   int weight;
   map<Combination, double> map_old_potentials;
+
+  Separator() = default;
   Separator(set<Node*>);
   void UpdateUseMessage(Factor) override;
   Factor ConstructMessage() override;
 
- protected:
-  Separator() = default;
+
 };
 
 
