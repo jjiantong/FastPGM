@@ -11,6 +11,7 @@
 #include <queue>
 #include <vector>
 #include <iostream>
+#include <cmath>
 
 using namespace std;
 typedef set< pair<int, int> > Combination;
@@ -28,5 +29,6 @@ string Trim(string &);
 vector<string> Split(string &, string);
 
 int FactorialForSmallInteger(int);
+double LogOfFactorial(int);
 
 #endif //BAYESIANNETWORK_GADGET_H

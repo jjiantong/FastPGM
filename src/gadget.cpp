@@ -159,3 +159,10 @@ int FactorialForSmallInteger(int n) {
   return result;
 }
 
+double LogOfFactorial(int n) {
+  double result = 0;
+  while (n>1) {
+    result += log(n--);
+  }
+  return result;
+}

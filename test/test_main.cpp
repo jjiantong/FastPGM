@@ -55,7 +55,7 @@ class NetworkTest : public ::testing::Test {
   Network *network;
 };
 
-TEST_F(NetworkTest,DISABLED_usablity_of_gtest) {
+TEST(OtherTest,DISABLED_usablity_of_gtest) {
   EXPECT_EQ(1,1);
   EXPECT_EQ(tgamma(6),FactorialForSmallInteger(5));
 }
@@ -171,14 +171,35 @@ TEST_F(NetworkTest, DISABLED_jun_tree_accuracy) {
   EXPECT_GT(accuracy,0.6);
 }
 
-TEST_F(NetworkTest, score_usability) {
+TEST_F(NetworkTest, DISABLED_score_usability) {
   auto *sf = new ScoreFunction(network,trainer);
-  //double score = sf->AIC();
-  //cout << "Score: " << score << endl;
-  //EXPECT_GT(score,-INT32_MAX);
-
   EXPECT_GT(sf->AIC(),-INT32_MAX);
   EXPECT_GT(sf->BIC(),-INT32_MAX);
   EXPECT_GT(sf->BDeu(),-INT32_MAX);
   EXPECT_GT(sf->K2(),-INT32_MAX);
+}
+
+TEST_F(NetworkTest, score_comparison) {
+  auto *sf1 = new ScoreFunction(network,trainer);
+  double score1 = sf1->BDeu();
+
+  for (auto &n : network->set_node_ptr_container) {
+    if (0==n->GetNodeIndex()) {continue;}
+    if (0==(*n->set_parents_ptrs.begin())->GetNodeIndex()) {
+      continue;
+    }
+    n->set_parents_combinations.clear();
+  }
+
+  auto *sf2 = new ScoreFunction(network,trainer);
+  double score2 = sf2->BDeu();
+
+  EXPECT_GT(score1,score2);
+}
+
+TEST(OtherTest, DISABLED_log_of_factorial) {
+  cout << FactorialForSmallInteger(2000) << '\n'
+       << log(2000) << '\n'
+       << LogOfFactorial(2000) << endl;
+  EXPECT_GT(LogOfFactorial(2000),0);
 }
