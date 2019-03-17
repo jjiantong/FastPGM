@@ -30,7 +30,7 @@ class NetworkTest : public ::testing::Test {
     train_set_file_path =
             //  "../../data/a1a.txt"
             //  "../../data/a2a.txt"
-              "../../data/a3a.txt"
+              "../../data/dataset/a3a.txt"
       //  "../../data/w1a.txt"
       //  "../../data/w7a.txt"
             ;
@@ -38,7 +38,7 @@ class NetworkTest : public ::testing::Test {
     test_set_file_path =
             //  "../../data/a1a.test.txt"
             //  "../../data/a2a.test.txt"
-              "../../data/a3a.test.txt"
+              "../../data/dataset/a3a.test.txt"
       //  "../../data/w1a.test.txt"
       //  "../../data/w7a.test.txt"
             ;
@@ -100,8 +100,8 @@ TEST_F(NetworkTest,DISABLED_var_elim_and_jun_tree) { // The prefix "DISABLED" di
 
 TEST_F(NetworkTest, DISABLED_custom_network) { // The prefix "DISABLED" disable this test.
   auto *network = new CustomNetwork();
-  network->ConstructCustomNetworkStructFromFile("../../data/example_custom_network_file2.txt");
-  network->SetCustomNetworkParamsFromFile("../../data/example_custom_network_file2.txt");
+  network->ConstructCustomNetworkStructFromFile("../../data/interchange-format-file/example_custom_network_file2.txt");
+  network->SetCustomNetworkParamsFromFile("../../data/interchange-format-file/example_custom_network_file2.txt");
 
   Combination e;
   e.insert(pair<int,int>(1,0));

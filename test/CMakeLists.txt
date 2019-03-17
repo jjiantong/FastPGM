@@ -3,10 +3,9 @@ project(BayesianNetwork)
 
 set(CMAKE_CXX_STANDARD 14)
 
-#add_subdirectory(../lib/googletest-release-1.8.1)
-#include_directories(../lib/googletest-release-1.8.1/googletest/include)
 
-add_executable(test_exe test_main.cpp)
+add_executable(test_exe test_network.cpp test_tinyxml2.cpp)
 
 target_link_libraries(test_exe gtest gtest_main)
+target_link_libraries(test_exe tinyxml2)
 target_link_libraries(test_exe lib_src)
