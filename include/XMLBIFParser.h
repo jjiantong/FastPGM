@@ -1,0 +1,14 @@
+//
+// Created by llj on 3/17/19.
+//
+
+#ifndef BAYESIANNETWORK_XMLBIFPARSER_H
+#define BAYESIANNETWORK_XMLBIFPARSER_H
+
+
+class XMLBIFParser {
+
+};
+
+
+#endif //BAYESIANNETWORK_XMLBIFPARSER_H
