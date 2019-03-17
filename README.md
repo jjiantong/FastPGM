@@ -77,23 +77,28 @@ classification with discrete feature values
    * Custom network
    * Structural learning algorithms
      * Score-based (the asterisk means the scoring function has been implemented but not the search function)
-       * K2
-       * BDe, BDeu
+       * K2*
+       * BDe, BDeu*
        * AIC*
        * MDL*/BIC*
  * Soft evidence (help support incomplete data)
  * Incomplete data
  * Inference
    * Cowell algorithm
+   * Stochastic simulation (sampling)
+   * Importance sampling
    * MCMC sampling (approximate inference)
    * Gibbs sampling
+   * Markov blanket sampling
    * Rejection sampling
+   * Likelihood weighting
    * Exact propagation (Gaussian Bayesian networks)
  * Latent variables
  * Common network file format (rather than format created by Linjian Li)
    * Graph Modeling Language (GML)
    * GraphML (XML-based)
-   * BIF (supported by Weka)
+   * XMLBIF (supported by Weka)
+   * BIF (not the same as XMLBIF)
    * arff (Weka)
 
 The Cowell algorithm is used to do inference on continuous-value node. It is based on the earlier Lauritzen and Jensen junction tree algorithm. It is numerically stable bacause it avoids repeated matrix inversions. (McGeachie, "CGBayesNets", 2014)
