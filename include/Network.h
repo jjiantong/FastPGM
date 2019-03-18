@@ -23,6 +23,7 @@ typedef set< pair<int, int> > Combination;
 
 class Network {
  public:
+  string name;
   int num_nodes;
   set<Node*> set_node_ptr_container;
   //set<Edge*> edges_container;

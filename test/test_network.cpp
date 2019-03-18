@@ -179,7 +179,7 @@ TEST_F(NetworkTest, DISABLED_score_usability) {
   EXPECT_GT(sf->K2(),-INT32_MAX);
 }
 
-TEST_F(NetworkTest, score_comparison) {
+TEST_F(NetworkTest, DISABLED_score_comparison) {
   auto *sf1 = new ScoreFunction(network,trainer);
   double score1 = sf1->BDeu();
 

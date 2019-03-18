@@ -31,4 +31,6 @@ vector<string> Split(string &, string);
 int FactorialForSmallInteger(int);
 double LogOfFactorial(int);
 
+vector<vector<int>> NaryCount(vector<int>);
+
 #endif //BAYESIANNETWORK_GADGET_H

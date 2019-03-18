@@ -13,3 +13,4 @@ file(GLOB SRC src/*.cpp)
 file(GLOB HEAD include/*.h)
 
 add_executable(BayesianNetwork ${SRC} ${HEAD})
+target_link_libraries(BayesianNetwork tinyxml2)

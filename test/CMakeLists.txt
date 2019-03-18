@@ -3,8 +3,9 @@ project(BayesianNetwork)
 
 set(CMAKE_CXX_STANDARD 14)
 
+file(GLOB TEST ./*.cpp)
 
-add_executable(test_exe test_network.cpp test_tinyxml2.cpp)
+add_executable(test_exe ${TEST})
 
 target_link_libraries(test_exe gtest gtest_main)
 target_link_libraries(test_exe tinyxml2)
