@@ -135,7 +135,7 @@ string TrimLeft(string s) {
 }
 
 
-string Trim(string s) {
+string Trim(string &s) {
   return TrimLeft( TrimRight(s) );
 }
 

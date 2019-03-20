@@ -8,8 +8,8 @@
 #include "Trainer.h"
 #include "Network.h"
 #include "Node.h"
-#include "Edge.h"
 #include "Factor.h"
+#include "XMLBIFParser.h"
 #include "gadget.h"
 #include <string>
 #include <set>
@@ -31,6 +31,8 @@ class CustomNetwork : public Network {
   void SetCustomNetworkParamsFromFile(string);
   void StructLearnCompData(Trainer *);
   pair<int*, int> SimplifyDefaultElimOrd(Combination) override;
+
+  void GetNetFromXMLBIFFile(string);
 
 };
 

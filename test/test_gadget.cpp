@@ -11,13 +11,13 @@
 
 #include "gadget.h"
 
-TEST(GadgetTest,t1) {
+TEST(GadgetTest, DISABLED_nary_count) {
   vector<int> vec_range_each_digit {2,2,3};
   vector<vector<int>> counts = NaryCount(vec_range_each_digit);
   for (auto &c : counts) {
     for (auto &d : c) {
       cout << d;
     }
-    cout << '\n';
+    cout << ", ";
   }
 }

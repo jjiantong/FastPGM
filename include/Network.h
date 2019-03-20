@@ -7,7 +7,6 @@
 
 #include "Trainer.h"
 #include "Node.h"
-#include "Edge.h"
 #include "Factor.h"
 #include "gadget.h"
 #include <set>
@@ -23,14 +22,16 @@ typedef set< pair<int, int> > Combination;
 
 class Network {
  public:
-  string name;
+  string network_name;
   int num_nodes;
   set<Node*> set_node_ptr_container;
-  //set<Edge*> edges_container;
+
   int *default_elim_ord;
   vector<int> topo_ord;
 
-  Network();
+  Network() = default;
+
+  void PrintNetworkStruct();
 
   Node* GivenIndexToFindNodePointer(int);
 

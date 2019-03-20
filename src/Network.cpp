@@ -5,8 +5,15 @@
 #include "Network.h"
 
 
-Network::Network() {}
-
+void Network::PrintNetworkStruct() {
+  for (auto &node_ptr : set_node_ptr_container) {
+    cout << node_ptr->GetNodeIndex() << ":\t";
+    for (auto &par_node_ptr : node_ptr->set_parents_ptrs) {
+      cout << par_node_ptr->GetNodeIndex() << '\t';
+    }
+    cout << endl;
+  }
+}
 
 Node* Network::GivenIndexToFindNodePointer(int index) {
   if (index<0 || index>num_nodes) {

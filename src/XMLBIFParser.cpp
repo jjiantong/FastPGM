@@ -33,7 +33,7 @@ XMLBIFParser::XMLBIFParser(string &file) {
   LoadFile(file);
 }
 
-vector<Node*> XMLBIFParser::GetNodes() {
+vector<Node*> XMLBIFParser::GetUnconnectedNodes() {
   if (!xml_network_ptr) {
     fprintf(stderr, "Error in function %s! nullptr!", __FUNCTION__);
     exit(1);
@@ -66,7 +66,12 @@ vector<Node*> XMLBIFParser::GetNodes() {
 }
 
 void XMLBIFParser::AssignProbsToNodes(vector<XMLElement*> vec_xml_elems_ptr, vector<Node*> vec_nodes_ptr) {
-  for (auto &xpp : vec_xml_elems_ptr) {
+  for (auto &xpp : vec_xml_elems_ptr) { // Parse each "PROBABILITY" element.
+
+
+
+    // Parse "FOR"
+
     string str_for = (string)(xpp->FirstChildElement("FOR")->GetText());
     Node* for_np = nullptr;
     // Find the variable corresponding to this probability.
@@ -81,11 +86,15 @@ void XMLBIFParser::AssignProbsToNodes(vector<XMLElement*> vec_xml_elems_ptr, vec
       exit(1);
     }
 
+
+
+    // Parse "GIVEN"
+
     // Store variables of all "GIVEN" in a vector.
-    // Because, if the parameters are given in the form of table,
+    // Because, if the parameters are given in the form of "TABLE",
     // we need to do something like binary counting (change from right)
     // for the variables' values in "GIVEN".
-    vector<Node*> vec_given_vars;
+    vector<Node*> vec_given_vars_ptrs;
     XMLElement *xg = xpp->FirstChildElement("GIVEN");
     while (xg!=nullptr) {
       string str_given = (string)(xg->GetText());
@@ -101,15 +110,85 @@ void XMLBIFParser::AssignProbsToNodes(vector<XMLElement*> vec_xml_elems_ptr, vec
                 __FUNCTION__,str_given.c_str());
         exit(1);
       }
-      vec_given_vars.push_back(given_np);
+      vec_given_vars_ptrs.push_back(given_np);
       xg = xg->NextSiblingElement("GIVEN");
     }
-    int num_given = vec_given_vars.size();
-    int *num_range_givens = new int[num_given];
-    for (int i=0; i<num_given; ++i) {
-      num_range_givens[i] = vec_given_vars[i]->num_potential_vals;
+
+    for (auto &gvp : vec_given_vars_ptrs) {
+      for_np->AddParent(gvp);
+      gvp->AddChild(for_np);
     }
 
+    for_np->GenParCombs();
 
+
+
+    // Parse "TABLE"
+
+    string str_table = xpp->FirstChildElement("TABLE")->GetText();
+    str_table = Trim(str_table);
+    vector<string> vec_str_table_entry = Split(str_table," ");
+    vector<double> vec_db_table_entry;
+    vec_db_table_entry.reserve(vec_str_table_entry.size());
+    for (auto &str : vec_str_table_entry) {
+      vec_db_table_entry.push_back(stod(str));
+    }
+
+    // The following lines are to generate
+    // all combinations of values of variables in "GIVEN".
+    vector<int> vec_range_each_digit;
+    int num_given = vec_given_vars_ptrs.size();
+    vec_range_each_digit.reserve(num_given+1);
+
+    // The first "digit" is for this node.
+    vec_range_each_digit.push_back(for_np->num_potential_vals);
+
+    // The following "digits" are for parents of this node.
+    for (int i=0; i<num_given; ++i) {
+      vec_range_each_digit.push_back(vec_given_vars_ptrs[i]->num_potential_vals);
+    }
+
+    vector<vector<int>> nary_counts = NaryCount(vec_range_each_digit);
+
+    // Now, nary_counts and vec_db_table_entry should correspond on position.
+    // So, they should have the same size.
+    if (nary_counts.size()!=vec_db_table_entry.size()) {
+      fprintf(stderr, "Error in function %s! Two vectors with different sizes!",__FUNCTION__);
+      exit(1);
+    }
+
+    // Now, set the node's conditional probability map.
+    for (int i=0; i<nary_counts.size(); ++i) {
+      vector<int> &digits = nary_counts[i];
+
+      // The first (left-most) digit is for this node.
+      int query = for_np->vec_potential_vals[digits[0]];
+      Combination comb;
+
+      // The first (left-most) digit is for this node not the parents.
+      // So, the number of parents is one smaller than the number of "digits".
+      for (int j=0; j<digits.size()-1; ++j) {
+        comb.insert(
+                pair<int,int>(
+                        vec_given_vars_ptrs[j]->GetNodeIndex(),
+                        vec_given_vars_ptrs[j]->vec_potential_vals[digits[j]])
+        );
+      }
+
+      if (digits.size()==1) {
+        // If true, then this node does not have parent.
+        for_np->map_marg_prob_table[query] = vec_db_table_entry[i];
+      } else {
+        for_np->map_cond_prob_table[query][comb] = vec_db_table_entry[i];
+      }
+
+    }
   }
+}
+
+vector<Node*> XMLBIFParser::GetConnectedNodes() {
+  vector<Node*> unconnected_nodes = GetUnconnectedNodes();
+  AssignProbsToNodes(vec_xml_probs_ptr,unconnected_nodes);
+  vector<Node*> &connected_nodes = unconnected_nodes; // Just change a name.
+  return connected_nodes;
 }

@@ -14,7 +14,6 @@
 #include "Network.h"
 #include "Trainer.h"
 #include "Node.h"
-#include "Edge.h"
 #include "Factor.h"
 #include "gadget.h"
 

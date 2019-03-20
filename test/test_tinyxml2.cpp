@@ -10,10 +10,13 @@
 #include "gtest/gtest.h"
 #include "tinyxml2.h"
 
+#include "XMLBIFParser.h"
+#include "CustomNetwork.h"
+
 using namespace std;
 using namespace tinyxml2;
 
-TEST(TinyXML, DISABLED_usability) {
+TEST(XMLBIFParser, DISABLED_usability) {
   string file = "../../data/interchange-format-file/dog-problem.xml";
   XMLDocument doc;
   doc.LoadFile(file.c_str());
@@ -34,4 +37,11 @@ TEST(TinyXML, DISABLED_usability) {
                        ->FirstChildElement()->GetText(),
              "light-on");
 
+}
+
+TEST(XMLBIFParser, dog_problem_xmlbif) {
+  string file = "../../data/interchange-format-file/dog-problem.xml";
+  CustomNetwork dog_net;
+  dog_net.GetNetFromXMLBIFFile(file);
+  EXPECT_EQ(1,2);
 }
