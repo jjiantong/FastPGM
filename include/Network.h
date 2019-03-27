@@ -45,6 +45,8 @@ class Network {
   void RemoveParentChild(int, int);
   void RemoveParentChild(Node *, Node *);
 
+  vector<int> GenTopoOrd();
+
   virtual pair<int*, int> SimplifyDefaultElimOrd(Combination) = 0;
 
   Combination ConstructEvidence(int *, int *, int);

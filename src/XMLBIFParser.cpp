@@ -42,12 +42,12 @@ vector<Node*> XMLBIFParser::GetUnconnectedNodes() {
     fprintf(stderr, "Error in function %s! No variables!", __FUNCTION__);
     exit(1);
   }
-  vector<Node*> vec_ndoe_ptrs;
+  vector<Node*> vec_node_ptrs;
   for (auto &xvp : vec_xml_vars_ptr) {
     Node *n_p = new Node();
     n_p->node_name = xvp->FirstChildElement("NAME")->GetText();
     n_p->is_discrete =
-            ((string)xvp->FirstChildElement("NAME")->GetText())=="discrete";
+            ((string)xvp->FirstChildElement("TYPE")->GetText())=="discrete";
 
     XMLElement *xml_val_ptr = xvp->FirstChildElement("VALUE");
     while (xml_val_ptr!=nullptr) {
@@ -60,9 +60,10 @@ vector<Node*> XMLBIFParser::GetUnconnectedNodes() {
       n_p->potential_vals[i] = i;
       n_p->vec_potential_vals.push_back(i);
     }
-    vec_ndoe_ptrs.push_back(n_p);
+    n_p->SetNodeIndex(vec_node_ptrs.size());
+    vec_node_ptrs.push_back(n_p);
   }
-  return vec_ndoe_ptrs;
+  return vec_node_ptrs;
 }
 
 void XMLBIFParser::AssignProbsToNodes(vector<XMLElement*> vec_xml_elems_ptr, vector<Node*> vec_nodes_ptr) {

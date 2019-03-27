@@ -252,4 +252,6 @@ void CustomNetwork::GetNetFromXMLBIFFile(string file_path) {
   for (auto &node_ptr : connected_nodes) {
     set_node_ptr_container.insert(node_ptr);
   }
+
+  GenTopoOrd();
 }

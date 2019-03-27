@@ -232,9 +232,7 @@ void JunctionTree::AssignPotentials() {
   // First, convert the probabilities of nodes to factors, which make the "multiply" operation easier.
   vector<Factor> factors; // Can not use std::set, because Factor does not have definition on operator "<".
   for (auto &node_ptr : network->set_node_ptr_container) {
-    Factor f;
-    f.ConstructFactor(node_ptr);
-    factors.push_back(f);
+    factors.push_back(Factor(node_ptr));
   }
 
   // Second, assign these factors to some appropriate cliques.

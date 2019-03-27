@@ -25,6 +25,7 @@ class Factor {
   map<Combination, double> map_potentials;
 
   Factor() = default;
+  Factor(Node*);
   void SetMembers(set<int>, set<Combination>, map<Combination, double>);
   void ConstructFactor(Node*);
   Factor MultiplyWithFactor(Factor);

@@ -49,6 +49,22 @@ void Network::RemoveParentChild(int p_index, int c_index) {
 }
 
 
+vector<int> Network::GenTopoOrd() {
+
+  // First, convert the network to a directed adjacency matrix.
+  int **graph = new int*[num_nodes];
+  for (int i=0; i<num_nodes; ++i) {graph[i] = new int[num_nodes]();}
+  for (auto &n_p : set_node_ptr_container) {
+    for (auto &p_p : n_p->set_children_ptrs) {
+      graph[n_p->GetNodeIndex()][p_p->GetNodeIndex()] = 1;
+    }
+  }
+
+  topo_ord = TopoSortOfDAGZeroInDegreeFirst(graph, num_nodes);
+  return topo_ord;
+}
+
+
 void Network::RemoveParentChild(Node *p, Node *c) {
   p->RemoveChild(c);
   c->RemoveParent(p);
@@ -158,14 +174,10 @@ Combination Network::ConstructEvidence(int *nodes_indexes, int *observations, in
 
 vector<Factor> Network::ConstructFactors(int *Z, int nz, Node *Y) {
   vector<Factor> factors_list;
-  Factor factor;
-  factor.ConstructFactor(Y);
-  factors_list.push_back(factor);
+  factors_list.push_back(Factor(Y));
   for (int i=0; i<nz; i++) {
     Node* n = GivenIndexToFindNodePointer(Z[i]);
-    Factor factor;
-    factor.ConstructFactor(n);
-    factors_list.push_back(factor);
+    factors_list.push_back(Factor(n));
   }
   return factors_list;
 }

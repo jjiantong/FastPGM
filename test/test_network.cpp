@@ -60,7 +60,7 @@ TEST(OtherTest,DISABLED_usablity_of_gtest) {
   EXPECT_EQ(tgamma(6),FactorialForSmallInteger(5));
 }
 
-TEST_F(NetworkTest,DISABLED_chow_liu_tree_var_elim_accuracy) { // The prefix "DISABLED" disable this test.
+TEST_F(NetworkTest,chow_liu_tree_var_elim_accuracy) { // The prefix "DISABLED" disable this test.
   network->TestNetReturnAccuracy(tester);
 }
 
