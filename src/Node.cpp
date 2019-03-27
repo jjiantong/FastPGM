@@ -42,8 +42,11 @@ void Node::RemoveParent(Node *p) {
 }
 
 
+/**
+ * Generate all combinations of values of parents.
+ */
 void Node::GenParCombs() {
-  // Preprocess
+  // Preprocess. Construct set of sets.
   set<Combination> set_of_sets;
   if (set_parents_ptrs.empty()) return;
   for (auto par_ptr : set_parents_ptrs) {

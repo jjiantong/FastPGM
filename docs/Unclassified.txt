@@ -13,6 +13,8 @@ https://github.com/eBay/bayesian-belief-networks
 
 Samlam (UCLA) (closed-source)
 
+http://www.cs.cmu.edu/~javabayes/
+
 ------------------------------
 
 为什么要有train_set_y_X

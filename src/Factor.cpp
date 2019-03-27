@@ -14,6 +14,11 @@ void Factor::SetMembers(set<int> related_variables,
 }
 
 
+Factor::Factor(Node *node) {
+  ConstructFactor(node);
+}
+
+
 void Factor::ConstructFactor(Node *node) {
 
   int node_index = node->GetNodeIndex();

@@ -124,7 +124,7 @@ void CustomNetwork::SetCustomNetworkParamsFromFile(string file_path) {
     getline(in_file, node_and_params);
     node_and_params = TrimRight(node_and_params);
     vec_parsed_node_and_params = Split(node_and_params, " ");
-    Node *node_ptr = GivenIndexToFindNodePointer(stoi(vec_parsed_node_and_params[0]));
+    Node *node_ptr = FindNodePtrByIndex(stoi(vec_parsed_node_and_params[0]));
     node_ptr->is_discrete = true;
     node_ptr->num_potential_vals = vec_parsed_node_and_params.size()-2;
     node_ptr->potential_vals = new int[node_ptr->num_potential_vals];
@@ -135,7 +135,7 @@ void CustomNetwork::SetCustomNetworkParamsFromFile(string file_path) {
 
   // Set set_parents_combinations
   for (int i=0; i<num_nodes; ++i) {
-    Node *node_ptr = GivenIndexToFindNodePointer(i);
+    Node *node_ptr = FindNodePtrByIndex(i);
     node_ptr->GenParCombs();
   }
 
@@ -144,7 +144,7 @@ void CustomNetwork::SetCustomNetworkParamsFromFile(string file_path) {
     getline(in_file, node_and_params);
     node_and_params = TrimRight(node_and_params);
     vec_parsed_node_and_params = Split(node_and_params, " ");
-    Node *node_ptr = GivenIndexToFindNodePointer(stoi(vec_parsed_node_and_params[0]));
+    Node *node_ptr = FindNodePtrByIndex(stoi(vec_parsed_node_and_params[0]));
     if (vec_parsed_node_and_params[1]=="--marg") {
       map<int, double> *MPT = &(node_ptr->map_marg_prob_table);
 
@@ -232,4 +232,26 @@ void CustomNetwork::StructLearnCompData(Trainer *) {
 
 pair<int*, int> CustomNetwork::SimplifyDefaultElimOrd(Combination evidence) {
   return {default_elim_ord, num_nodes-1};
+}
+
+void CustomNetwork::GetNetFromXMLBIFFile(string file_path) {
+  
+  // Check if the file exists.
+  FILE *test_f_ptr = fopen(file_path.c_str(),"r");
+  if (test_f_ptr==nullptr) {
+    fprintf(stderr, "Error in function %s!", __FUNCTION__);
+    fprintf(stderr, "Unable to open file %s!", file_path.c_str());
+    exit(1);
+  }
+  
+  XMLBIFParser xbp(file_path);
+  vector<Node*> connected_nodes = xbp.GetConnectedNodes();
+  
+  network_name = xbp.xml_network_name_ptr->GetText();
+  num_nodes = connected_nodes.size();
+  for (auto &node_ptr : connected_nodes) {
+    set_node_ptr_container.insert(node_ptr);
+  }
+
+  GenTopoOrd();
 }

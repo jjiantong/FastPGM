@@ -1,0 +1,185 @@
+<?XML VERSION="1.0"?>
+
+
+<!--
+	Bayesian network in BIF (BayesNet Interchange Format)
+	Produced by JavaBayes (http://www.cs.cmu.edu/~javabayes/
+	Output created Fri Nov 14 13:13:39 GMT+00:00 1997
+-->
+
+
+
+<!-- DTD for the BIF format -->
+<!DOCTYPE BIF [
+	<!ELEMENT PROPERTY (#PCDATA)>
+	<!ELEMENT TYPE (#PCDATA)>
+	<!ELEMENT VALUE (#PCDATA)>
+	<!ELEMENT NAME (#PCDATA)>
+	<!ELEMENT NETWORK
+		( NAME, ( PROPERTY | VARIABLE | PROBABILITY )* )>
+	<!ELEMENT VARIABLE ( NAME, TYPE, ( VALUE |  PROPERTY )* ) >
+	<!ELEMENT PROBABILITY
+		( FOR | GIVEN | TABLE | ENTRY | DEFAULT | PROPERTY )* >
+	<!ELEMENT TABLE (#PCDATA)>
+	<!ELEMENT DEFAULT (TABLE)>
+	<!ELEMENT ENTRY ( VALUE* , TABLE )>
+]>
+
+
+<BIF>
+<NETWORK>
+<NAME>Elimbel2</NAME>
+
+<!-- Variables -->
+<VARIABLE>
+	<NAME>h</NAME>
+	<TYPE>discrete</TYPE>
+	<VALUE>true</VALUE>
+	<VALUE>false</VALUE>
+	<PROPERTY>position = (160, 103)</PROPERTY>
+</VARIABLE>
+
+<VARIABLE>
+	<NAME>y</NAME>
+	<TYPE>discrete</TYPE>
+	<VALUE>good</VALUE>
+	<VALUE>bad</VALUE>
+	<VALUE>ugly</VALUE>
+	<PROPERTY>position = (305, 101)</PROPERTY>
+</VARIABLE>
+
+<VARIABLE>
+	<NAME>x</NAME>
+	<TYPE>discrete</TYPE>
+	<VALUE>good</VALUE>
+	<VALUE>bad</VALUE>
+	<VALUE>ugly</VALUE>
+	<PROPERTY>position = (486, 102)</PROPERTY>
+</VARIABLE>
+
+<VARIABLE>
+	<NAME>da</NAME>
+	<TYPE>discrete</TYPE>
+	<VALUE>good</VALUE>
+	<VALUE>bad</VALUE>
+	<VALUE>ugly</VALUE>
+	<PROPERTY>position = (240, 274)</PROPERTY>
+</VARIABLE>
+
+<VARIABLE>
+	<NAME>ob</NAME>
+	<TYPE>discrete</TYPE>
+	<VALUE>good</VALUE>
+	<VALUE>bad</VALUE>
+	<VALUE>ugly</VALUE>
+	<PROPERTY>position = (82, 170)</PROPERTY>
+</VARIABLE>
+
+<VARIABLE>
+	<NAME>db</NAME>
+	<TYPE>discrete</TYPE>
+	<VALUE>good</VALUE>
+	<VALUE>bad</VALUE>
+	<VALUE>ugly</VALUE>
+	<PROPERTY>position = (240, 170)</PROPERTY>
+</VARIABLE>
+
+<VARIABLE>
+	<NAME>oa</NAME>
+	<TYPE>discrete</TYPE>
+	<VALUE>good</VALUE>
+	<VALUE>bad</VALUE>
+	<VALUE>ugly</VALUE>
+	<PROPERTY>position = (487, 181)</PROPERTY>
+</VARIABLE>
+
+<VARIABLE>
+	<NAME>sb</NAME>
+	<TYPE>discrete</TYPE>
+	<VALUE>good</VALUE>
+	<VALUE>bad</VALUE>
+	<VALUE>ugly</VALUE>
+	<PROPERTY>position = (181, 348)</PROPERTY>
+</VARIABLE>
+
+<VARIABLE>
+	<NAME>sa</NAME>
+	<TYPE>discrete</TYPE>
+	<VALUE>good</VALUE>
+	<VALUE>bad</VALUE>
+	<VALUE>ugly</VALUE>
+	<PROPERTY>position = (389, 279)</PROPERTY>
+</VARIABLE>
+
+<VARIABLE>
+	<NAME>g</NAME>
+	<TYPE>discrete</TYPE>
+	<VALUE>true</VALUE>
+	<VALUE>false</VALUE>
+	<PROPERTY>position = (309, 463)</PROPERTY>
+</VARIABLE>
+
+
+<!-- Probability distributions -->
+<PROBABILITY>
+	<FOR>h</FOR>
+	<TABLE>0.5 0.5 </TABLE>
+</PROBABILITY>
+
+<PROBABILITY>
+	<FOR>y</FOR>
+	<TABLE>0.9 0.09 0.01 </TABLE>
+</PROBABILITY>
+
+<PROBABILITY>
+	<FOR>x</FOR>
+	<TABLE>0.92 0.075 0.0050 </TABLE>
+</PROBABILITY>
+
+<PROBABILITY>
+	<FOR>da</FOR>
+	<TABLE>0.25 0.3 0.45 </TABLE>
+</PROBABILITY>
+
+<PROBABILITY>
+	<FOR>ob</FOR>
+	<GIVEN>h</GIVEN>
+	<TABLE>0.5 0.2 0.3 0.2 0.2 0.6 </TABLE>
+</PROBABILITY>
+
+<PROBABILITY>
+	<FOR>db</FOR>
+	<GIVEN>h</GIVEN>
+	<GIVEN>y</GIVEN>
+	<TABLE>0.5 0.45 0.3 0.25 0.04 0.02 0.35 0.3 0.2 0.15 0.03 0.015 0.15 0.25 0.5 0.6 0.93 0.965 </TABLE>
+</PROBABILITY>
+
+<PROBABILITY>
+	<FOR>oa</FOR>
+	<GIVEN>x</GIVEN>
+	<TABLE>0.8 0.5 0.15 0.15 0.3 0.15 0.05 0.2 0.7 </TABLE>
+</PROBABILITY>
+
+<PROBABILITY>
+	<FOR>sb</FOR>
+	<GIVEN>da</GIVEN>
+	<GIVEN>ob</GIVEN>
+	<TABLE>0.3 0.55 0.78 0.1 0.35 0.45 0.03 0.12 0.32 0.5 0.3 0.18 0.3 0.5 0.35 0.11 0.22 0.4 0.2 0.15 0.04 0.6 0.15 0.2 0.86 0.66 0.28 </TABLE>
+</PROBABILITY>
+
+<PROBABILITY>
+	<FOR>sa</FOR>
+	<GIVEN>db</GIVEN>
+	<GIVEN>oa</GIVEN>
+	<TABLE>0.4 0.75 0.88 0.17 0.42 0.52 0.07 0.17 0.38 0.48 0.2 0.07 0.37 0.47 0.34 0.19 0.3 0.38 0.12 0.05 0.05 0.46 0.11 0.14 0.74 0.53 0.24 </TABLE>
+</PROBABILITY>
+
+<PROBABILITY>
+	<FOR>g</FOR>
+	<GIVEN>sb</GIVEN>
+	<GIVEN>sa</GIVEN>
+	<TABLE>0.5 0.35 0.15 0.35 0.5 0.35 0.15 0.35 0.5 0.5 0.65 0.85 0.65 0.5 0.65 0.85 0.65 0.5 </TABLE>
+</PROBABILITY>
+
+
+</BIF>

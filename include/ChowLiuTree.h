@@ -8,7 +8,6 @@
 #include "Trainer.h"
 #include "Network.h"
 #include "Node.h"
-#include "Edge.h"
 #include "Factor.h"
 #include "gadget.h"
 #include <set>
