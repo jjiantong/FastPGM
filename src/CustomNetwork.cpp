@@ -124,7 +124,7 @@ void CustomNetwork::SetCustomNetworkParamsFromFile(string file_path) {
     getline(in_file, node_and_params);
     node_and_params = TrimRight(node_and_params);
     vec_parsed_node_and_params = Split(node_and_params, " ");
-    Node *node_ptr = GivenIndexToFindNodePointer(stoi(vec_parsed_node_and_params[0]));
+    Node *node_ptr = FindNodePtrByIndex(stoi(vec_parsed_node_and_params[0]));
     node_ptr->is_discrete = true;
     node_ptr->num_potential_vals = vec_parsed_node_and_params.size()-2;
     node_ptr->potential_vals = new int[node_ptr->num_potential_vals];
@@ -135,7 +135,7 @@ void CustomNetwork::SetCustomNetworkParamsFromFile(string file_path) {
 
   // Set set_parents_combinations
   for (int i=0; i<num_nodes; ++i) {
-    Node *node_ptr = GivenIndexToFindNodePointer(i);
+    Node *node_ptr = FindNodePtrByIndex(i);
     node_ptr->GenParCombs();
   }
 
@@ -144,7 +144,7 @@ void CustomNetwork::SetCustomNetworkParamsFromFile(string file_path) {
     getline(in_file, node_and_params);
     node_and_params = TrimRight(node_and_params);
     vec_parsed_node_and_params = Split(node_and_params, " ");
-    Node *node_ptr = GivenIndexToFindNodePointer(stoi(vec_parsed_node_and_params[0]));
+    Node *node_ptr = FindNodePtrByIndex(stoi(vec_parsed_node_and_params[0]));
     if (vec_parsed_node_and_params[1]=="--marg") {
       map<int, double> *MPT = &(node_ptr->map_marg_prob_table);
 

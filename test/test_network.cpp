@@ -60,7 +60,7 @@ TEST(OtherTest,DISABLED_usablity_of_gtest) {
   EXPECT_EQ(tgamma(6),FactorialForSmallInteger(5));
 }
 
-TEST_F(NetworkTest,chow_liu_tree_var_elim_accuracy) { // The prefix "DISABLED" disable this test.
+TEST_F(NetworkTest,DISABLED_chow_liu_tree_var_elim_accuracy) { // The prefix "DISABLED" disable this test.
   network->TestNetReturnAccuracy(tester);
 }
 
@@ -76,7 +76,7 @@ TEST_F(NetworkTest,DISABLED_var_elim_and_jun_tree) { // The prefix "DISABLED" di
   }
   cout << " }" << endl;
 
-  Node *node_ptr = network->GivenIndexToFindNodePointer(0);
+  Node *node_ptr = network->FindNodePtrByIndex(0);
   Factor f1 = network->VarElimInferReturnPossib(E,node_ptr);
   f1.PrintPotentials();
 
@@ -109,27 +109,27 @@ TEST_F(NetworkTest, DISABLED_custom_network) { // The prefix "DISABLED" disable 
 
   cout << "********************************** Variable Elimination Algorithm" << endl;
   int z[5] = {5,4,3,2,1};
-  Node *node_ptr = network->GivenIndexToFindNodePointer(0);
+  Node *node_ptr = network->FindNodePtrByIndex(0);
   Factor f1 = network->VarElimInferReturnPossib(z,5,e,node_ptr);
   f1.PrintPotentials();
   int z1[5] = {5,4,3,2,0};
-  node_ptr = network->GivenIndexToFindNodePointer(1);
+  node_ptr = network->FindNodePtrByIndex(1);
   f1 = network->VarElimInferReturnPossib(z1,5,e,node_ptr);
   f1.PrintPotentials();
   int z2[5] = {5,4,3,1,0};
-  node_ptr = network->GivenIndexToFindNodePointer(2);
+  node_ptr = network->FindNodePtrByIndex(2);
   f1 = network->VarElimInferReturnPossib(z2,5,e,node_ptr);
   f1.PrintPotentials();
   int z3[5] = {5,4,2,1,0};
-  node_ptr = network->GivenIndexToFindNodePointer(3);
+  node_ptr = network->FindNodePtrByIndex(3);
   f1 = network->VarElimInferReturnPossib(z3,5,e,node_ptr);
   f1.PrintPotentials();
   int z4[5] = {5,3,2,1,0};
-  node_ptr = network->GivenIndexToFindNodePointer(4);
+  node_ptr = network->FindNodePtrByIndex(4);
   f1 = network->VarElimInferReturnPossib(z4,5,e,node_ptr);
   f1.PrintPotentials();
   int z5[5] = {4,3,2,1,0};
-  node_ptr = network->GivenIndexToFindNodePointer(5);
+  node_ptr = network->FindNodePtrByIndex(5);
   f1 = network->VarElimInferReturnPossib(z5,5,e,node_ptr);
   f1.PrintPotentials();
 

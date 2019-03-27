@@ -81,7 +81,7 @@ void JunctionTree::Triangulate(Network *net,
   set<int> set_neighbours;
   set<Node*> set_node_ptrs_to_form_a_clique;
   int first_node_in_elim_ord = elim_ord.front();
-  set_node_ptrs_to_form_a_clique.insert(net->GivenIndexToFindNodePointer(first_node_in_elim_ord));
+  set_node_ptrs_to_form_a_clique.insert(net->FindNodePtrByIndex(first_node_in_elim_ord));
   for (int j=0; j<num_nodes; ++j) {
     if (adjac_matrix[first_node_in_elim_ord][j]==1) {
       set_neighbours.insert(j);
@@ -96,7 +96,7 @@ void JunctionTree::Triangulate(Network *net,
         adjac_matrix[index2][nei] = 1;
       }
     }
-    set_node_ptrs_to_form_a_clique.insert(net->GivenIndexToFindNodePointer(nei));
+    set_node_ptrs_to_form_a_clique.insert(net->FindNodePtrByIndex(nei));
   }
 
   cliques.insert(new Clique(set_node_ptrs_to_form_a_clique));
@@ -172,7 +172,7 @@ void JunctionTree::FormJunctionTree(set<Clique*> &cliques) {
 
       set<Node*> common_related_node_ptrs;
       for (auto &v : common_related_variables) {
-        common_related_node_ptrs.insert(network->GivenIndexToFindNodePointer(v));
+        common_related_node_ptrs.insert(network->FindNodePtrByIndex(v));
       }
 
       Separator *sep = new Separator(common_related_node_ptrs);

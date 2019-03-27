@@ -33,7 +33,9 @@ class Network {
 
   void PrintNetworkStruct();
 
-  Node* GivenIndexToFindNodePointer(int);
+  Node* FindNodePtrByIndex(int);
+
+  Node* FindNodePtrByName(string);
 
   virtual void StructLearnCompData(Trainer *) = 0;
 

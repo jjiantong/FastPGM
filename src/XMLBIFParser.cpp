@@ -73,7 +73,7 @@ void XMLBIFParser::AssignProbsToNodes(vector<XMLElement*> vec_xml_elems_ptr, vec
 
     // Parse "FOR"
 
-    string str_for = (string)(xpp->FirstChildElement("FOR")->GetText());
+    string str_for = (xpp->FirstChildElement("FOR")->GetText());
     Node* for_np = nullptr;
     // Find the variable corresponding to this probability.
     for (auto &vnp : vec_nodes_ptr) {
@@ -167,12 +167,13 @@ void XMLBIFParser::AssignProbsToNodes(vector<XMLElement*> vec_xml_elems_ptr, vec
       Combination comb;
 
       // The first (left-most) digit is for this node not the parents.
-      // So, the number of parents is one smaller than the number of "digits".
-      for (int j=0; j<digits.size()-1; ++j) {
+      // So, j start at 1.
+      // Also, the number of parents is one smaller than the number of "digits".
+      for (int j=1; j<digits.size(); ++j) {
         comb.insert(
                 pair<int,int>(
-                        vec_given_vars_ptrs[j]->GetNodeIndex(),
-                        vec_given_vars_ptrs[j]->vec_potential_vals[digits[j]])
+                        vec_given_vars_ptrs[j-1]->GetNodeIndex(),
+                        vec_given_vars_ptrs[j-1]->vec_potential_vals[digits[j]])
         );
       }
 

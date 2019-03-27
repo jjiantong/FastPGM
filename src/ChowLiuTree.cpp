@@ -264,7 +264,7 @@ pair<int*, int> ChowLiuTree::SimplifyTreeDefaultElimOrd(Combination evidence) {
   // Remove all the barren nodes
   set<int> to_be_removed;
   for (int i=0; i<num_nodes-1; ++i) {
-    Node *ptr_curr_node = GivenIndexToFindNodePointer(default_elim_ord[i]);
+    Node *ptr_curr_node = FindNodePtrByIndex(default_elim_ord[i]);
     bool observed = false, need_to_be_removed = true;
     for (auto p : evidence) {
       if (p.first == ptr_curr_node->GetNodeIndex()) {    // If it is observed.
@@ -325,7 +325,7 @@ void ChowLiuTree::DepthFirstTraversalUntillMeetObserved(Combination evidence, in
 
   // If not observed
   // Recursive case
-  Node* ptr_curr_node = GivenIndexToFindNodePointer(start);
+  Node* ptr_curr_node = FindNodePtrByIndex(start);
   for (auto ptr_child : ptr_curr_node->set_children_ptrs) {
     int child_index = ptr_child->GetNodeIndex();
     DepthFirstTraversalUntillMeetObserved(evidence, child_index, visited, to_be_removed);
@@ -336,7 +336,7 @@ void ChowLiuTree::DepthFirstTraversalUntillMeetObserved(Combination evidence, in
 
 void ChowLiuTree::DepthFirstTraversalToRemoveMSeparatedNodes(int start, set<int>& visited, set<int>& to_be_removed) {
   visited.insert(start);
-  Node* ptr_curr_node = GivenIndexToFindNodePointer(start);
+  Node* ptr_curr_node = FindNodePtrByIndex(start);
   for (auto it_ptr_child=ptr_curr_node->set_children_ptrs.begin();
        it_ptr_child!=ptr_curr_node->set_children_ptrs.end() && visited.find((*it_ptr_child)->GetNodeIndex())==visited.end();
        ++it_ptr_child) {

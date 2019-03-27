@@ -15,7 +15,7 @@ void Network::PrintNetworkStruct() {
   }
 }
 
-Node* Network::GivenIndexToFindNodePointer(int index) {
+Node* Network::FindNodePtrByIndex(int index) {
   if (index<0 || index>num_nodes) {
     fprintf(stderr, "Error in function %s! \nInvalid index!", __FUNCTION__);
     exit(1);
@@ -31,8 +31,20 @@ Node* Network::GivenIndexToFindNodePointer(int index) {
 }
 
 
+Node* Network::FindNodePtrByName(string name) {
+  Node* node_ptr = nullptr;
+  for (auto n_ptr : set_node_ptr_container) {
+    if (n_ptr->node_name==name) {
+      node_ptr = n_ptr;
+      break;
+    }
+  }
+  return node_ptr;
+}
+
+
 void Network::SetParentChild(int p_index, int c_index) {
-  Node *p = GivenIndexToFindNodePointer(p_index), *c = GivenIndexToFindNodePointer(c_index);
+  Node *p = FindNodePtrByIndex(p_index), *c = FindNodePtrByIndex(c_index);
   SetParentChild(p,c);
 }
 
@@ -44,7 +56,7 @@ void Network::SetParentChild(Node *p, Node *c) {
 
 
 void Network::RemoveParentChild(int p_index, int c_index) {
-  Node *p = GivenIndexToFindNodePointer(p_index), *c = GivenIndexToFindNodePointer(c_index);
+  Node *p = FindNodePtrByIndex(p_index), *c = FindNodePtrByIndex(c_index);
   RemoveParentChild(p,c);
 }
 
@@ -76,7 +88,7 @@ void Network::LearnParmsKnowStructCompData(const Trainer *trainer){
        << "Begin learning parameters with known structure and complete data." << endl;
 
   // The 0-th node is the root which is the label node.
-  Node *label_node = GivenIndexToFindNodePointer(0);
+  Node *label_node = FindNodePtrByIndex(0);
   map<int, double> *MPT = &(label_node->map_marg_prob_table);
   int denominator = 0;
   for (int s = 0; s < trainer->n_train_instance; ++s) {
@@ -92,7 +104,7 @@ void Network::LearnParmsKnowStructCompData(const Trainer *trainer){
   // For every feature node.
   for (int i=1; i<trainer->n_vars; ++i) { // Because feature index start at 1.
                                                      // Using "train_set_y_X".
-    Node *this_node = GivenIndexToFindNodePointer(i);
+    Node *this_node = FindNodePtrByIndex(i);
 
     map<int, map<Combination, double> >* CPT = &(this_node->map_cond_prob_table);
     set<Combination>* ptr_set_par_combs = &(this_node->set_parents_combinations);
@@ -176,7 +188,7 @@ vector<Factor> Network::ConstructFactors(int *Z, int nz, Node *Y) {
   vector<Factor> factors_list;
   factors_list.push_back(Factor(Y));
   for (int i=0; i<nz; i++) {
-    Node* n = GivenIndexToFindNodePointer(Z[i]);
+    Node* n = FindNodePtrByIndex(Z[i]);
     factors_list.push_back(Factor(n));
   }
   return factors_list;
@@ -201,7 +213,7 @@ void Network::LoadEvidence(vector<Factor> *factors_list, Combination E) {
 Factor Network::SumProductVarElim(vector<Factor> factors_list, int *Z, int nz) {
   for (int i=0; i<nz; i++) {
     vector<Factor> tempFactorsList;
-    Node* nodePtr = GivenIndexToFindNodePointer(Z[i]);
+    Node* nodePtr = FindNodePtrByIndex(Z[i]);
     // Move every factor that is related to the node Z[i] from factors_list to tempFactorsList.
     /*
      * Note: This for loop does not contain "it++" in the parentheses.
@@ -270,7 +282,7 @@ Factor Network::VarElimInferReturnPossib(Combination E, Node *Y) {
 
 
 int Network::PredictUseVarElimInfer(int *Z, int nz, Combination E, int Y_index) {
-  Node *Y = GivenIndexToFindNodePointer(Y_index);
+  Node *Y = FindNodePtrByIndex(Y_index);
   Factor F = VarElimInferReturnPossib(Z, nz, E, Y);
   double max_prob = 0;
   Combination comb_predict;
@@ -286,7 +298,7 @@ int Network::PredictUseVarElimInfer(int *Z, int nz, Combination E, int Y_index) 
 
 
 int Network::PredictUseVarElimInfer(Combination E, int Y_index) {
-  Node *Y = GivenIndexToFindNodePointer(Y_index);
+  Node *Y = FindNodePtrByIndex(Y_index);
   Factor F = VarElimInferReturnPossib(E, Y);
 
   double max_prob = 0;
