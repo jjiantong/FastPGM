@@ -86,7 +86,8 @@ int Node::SampleNodeGiven(Combination evidence) {
     weights.push_back(w);
   }
 
-  default_random_engine rand_gen;
+  unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+  default_random_engine rand_gen(seed);
   discrete_distribution<int> this_distribution(weights.begin(),weights.end());
   return potential_vals[this_distribution(rand_gen)];
 }

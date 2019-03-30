@@ -39,7 +39,7 @@ TEST(XMLBIFParser, DISABLED_usability) {
 
 }
 
-TEST(XMLBIFParser, dog_problem_xmlbif) {
+TEST(XMLBIFParser, DISABLED_dog_problem_xmlbif) {
   string file = "../../data/interchange-format-file/dog-problem.xml";
   CustomNetwork dog_net;
   dog_net.GetNetFromXMLBIFFile(file);

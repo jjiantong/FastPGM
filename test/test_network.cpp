@@ -49,7 +49,6 @@ class NetworkTest : public ::testing::Test {
     network->LearnParmsKnowStructCompData(trainer);
   }
 
-
   Trainer *trainer;
   Trainer *tester;
   Network *network;
@@ -195,6 +194,25 @@ TEST_F(NetworkTest, DISABLED_score_comparison) {
   double score2 = sf2->BDeu();
 
   EXPECT_GT(score1,score2);
+}
+
+TEST_F(NetworkTest, sampling) {
+  Node *n_39 = network->FindNodePtrByIndex(39);
+  //Factor fac(n_39);
+  //fac.PrintPotentials();
+
+  Combination e;
+  e.insert(pair<int,int>(0,-1));
+  int count_0 = 0;
+  for (int i=0; i<10000; ++i) {
+    if(0==n_39->SampleNodeGiven(e)) {
+      ++count_0;
+    }
+  }
+  double rate_0 = ((double)count_0) / ((double)10000);
+  //fprintf(stdout, "%f", rate_0);
+  EXPECT_GT(rate_0,0.8);
+  EXPECT_LT(rate_0,0.86);
 }
 
 TEST(OtherTest, DISABLED_log_of_factorial) {
