@@ -64,3 +64,29 @@ void Node::GenParCombs() {
   set_parents_combinations = GenAllCombFromSets(&set_of_sets);
 
 }
+
+
+int Node::SampleNodeGiven(Combination evidence) {
+  // The evidence should contain all parents of this node.
+  // The evidence about other nodes (including children) are ignored.
+  // todo: implement
+  set<int> set_par_indexes;
+  for (auto &par : set_parents_ptrs) {
+    set_par_indexes.insert(par->GetNodeIndex());
+  }
+  Combination par_evi;
+  for (auto &e : evidence) {
+    if (set_par_indexes.find(e.first)!=set_par_indexes.end()) {
+      par_evi.insert(e);
+    }
+  }
+  vector<int> weights;
+  for (int i=0; i<num_potential_vals; ++i) {
+    int w = (int)(map_cond_prob_table[potential_vals[i]][par_evi]*10000);
+    weights.push_back(w);
+  }
+
+  default_random_engine rand_gen;
+  discrete_distribution<int> this_distribution(weights.begin(),weights.end());
+  return potential_vals[this_distribution(rand_gen)];
+}

@@ -66,6 +66,8 @@ class Network {
   double TestNetReturnAccuracy(Trainer *);
 
   vector<int> TopoSort();
+
+  Combination SampleNetworkGiven();
 };
 
 

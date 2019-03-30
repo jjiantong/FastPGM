@@ -9,6 +9,7 @@
 #include <map>
 #include <utility>
 #include <string>
+#include <random>
 #include "gadget.h"
 
 using namespace std;
@@ -48,6 +49,8 @@ class Node {
   void RemoveChild(Node *);
   void RemoveParent(Node *);
   void GenParCombs();
+
+  int SampleNodeGiven(Combination evidence);
 };
 
 

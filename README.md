@@ -18,6 +18,7 @@ I need to find other equations.
     * Junction tree algorithm (Some call it clique tree algorithm. But a clique tree is not necessary a junction tree.)
       * Belief propagation (a.k.a. message passing, sum-product)
   * Construct custom network from files
+    * XMLBIF (which is also supported by Weka)
     * Format of custom network structure
       * The first line is a string "BEGIN_OF_STRUCTURE"
       * The last line of the structure is "END_OF_STRUCTURE"
@@ -97,7 +98,6 @@ classification with discrete feature values
  * Common network file format (rather than format created by Linjian Li)
    * Graph Modeling Language (GML)
    * GraphML (XML-based)
-   * XMLBIF (like XML, supported by Weka) (working on...)
    * BIF (like JSON, not the same as XMLBIF)
    * arff (Weka)
 

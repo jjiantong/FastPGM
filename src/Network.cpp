@@ -372,3 +372,18 @@ vector<int> Network::TopoSort() {
 
   return topo_ord;
 }
+
+
+Combination Network::SampleNetworkGiven() {
+  // todo: implement
+  if (topo_ord.empty()) {
+    fprintf(stderr, "Error in function %s!", __FUNCTION__);
+    exit(1);
+  }
+  Combination instance;
+  for (auto &index : topo_ord) {
+    Node *n_p = FindNodePtrByIndex(index);
+    instance.insert(pair<int,int>(index,n_p->SampleNodeGiven(instance)));
+  }
+  return instance;
+}
