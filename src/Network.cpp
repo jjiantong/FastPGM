@@ -91,7 +91,7 @@ void Network::LearnParmsKnowStructCompData(const Trainer *trainer){
   Node *label_node = FindNodePtrByIndex(0);
   map<int, double> *MPT = &(label_node->map_marg_prob_table);
   int denominator = 0;
-  for (int s = 0; s < trainer->n_train_instance; ++s) {
+  for (int s = 0; s < trainer->num_train_instance; ++s) {
     denominator += 1;
     int query = trainer->train_set_y[s];
     (*MPT)[query] += 1;
@@ -102,7 +102,7 @@ void Network::LearnParmsKnowStructCompData(const Trainer *trainer){
   }
 
   // For every feature node.
-  for (int i=1; i<trainer->n_vars; ++i) { // Because feature index start at 1.
+  for (int i=1; i<trainer->num_vars; ++i) { // Because feature index start at 1.
                                                      // Using "train_set_y_X".
     Node *this_node = FindNodePtrByIndex(i);
 
@@ -110,7 +110,7 @@ void Network::LearnParmsKnowStructCompData(const Trainer *trainer){
     set<Combination>* ptr_set_par_combs = &(this_node->set_parents_combinations);
     for (auto &par_comb : *ptr_set_par_combs) {    // For each column in CPT. Because the sum over column of CPT must be 1.
       int denominator = 0;
-      for (int s=0; s<trainer->n_train_instance; ++s) {
+      for (int s=0; s<trainer->num_train_instance; ++s) {
         int compatibility = 1;  // We assume compatibility is 1,
                                // and set it to 0 if we find that (*it_par_comb) is not compatible with (trainer->train_set[s]).
                                // If we support learning with incomplete data,
@@ -321,7 +321,7 @@ double Network::TestNetReturnAccuracy(Trainer *tester) {
 
   cout << "Progress indicator: ";
 
-  int num_of_correct=0, num_of_wrong=0, m=tester->n_train_instance, m10=m/10, percent=0;
+  int num_of_correct=0, num_of_wrong=0, m=tester->num_train_instance, m10=m/10, percent=0;
 
   for (int i=0; i<m; i++) {  // For each sample in test set
 
@@ -374,10 +374,11 @@ vector<int> Network::TopoSort() {
 }
 
 
-Combination Network::SampleNetworkGiven() {
+Combination Network::SampleNetwork() {
   // todo: implement
   if (topo_ord.empty()) {
     fprintf(stderr, "Error in function %s!", __FUNCTION__);
+    fprintf(stderr, "Do not have a topological order of nodes!");
     exit(1);
   }
   Combination instance;

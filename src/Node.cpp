@@ -80,10 +80,18 @@ int Node::SampleNodeGiven(Combination evidence) {
       par_evi.insert(e);
     }
   }
+
   vector<int> weights;
-  for (int i=0; i<num_potential_vals; ++i) {
-    int w = (int)(map_cond_prob_table[potential_vals[i]][par_evi]*10000);
-    weights.push_back(w);
+  if (par_evi.empty()) {
+    for (int i=0; i<num_potential_vals; ++i) {
+      int w = (int)(map_marg_prob_table[potential_vals[i]]*10000);
+      weights.push_back(w);
+    }
+  } else {
+    for (int i=0; i<num_potential_vals; ++i) {
+      int w = (int)(map_cond_prob_table[potential_vals[i]][par_evi]*10000);
+      weights.push_back(w);
+    }
   }
 
   unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();

@@ -10,7 +10,7 @@ double ChowLiuTree::ComputeMutualInformation(Node *Xi, Node *Xj, const Trainer *
   int xi=Xi->GetNodeIndex(), xj=Xj->GetNodeIndex();
 
   // Initialize the table.
-  int m = trainer->n_train_instance, ri = Xi->num_potential_vals, rj = Xj->num_potential_vals;
+  int m = trainer->num_train_instance, ri = Xi->num_potential_vals, rj = Xj->num_potential_vals;
   double **Pij = new double* [ri];
   for (int i=0; i<ri; i++) {
     Pij[i] = new double[rj]();    // The parentheses at end will initialize the array to be all zeros.
@@ -75,7 +75,7 @@ void ChowLiuTree::StructLearnCompData(Trainer *trainer) {
 void ChowLiuTree::StructLearnChowLiuTreeCompData(Trainer *trainer) {
   cout << "=======================================================================" << '\n'
        << "Begin structural learning. \nConstructing Chow-Liu tree with complete data......" << endl;
-  num_nodes = trainer->n_vars;
+  num_nodes = trainer->num_vars;
   for (int i=0; i<num_nodes; ++i) {
     Node *node_ptr = new Node();
     node_ptr->SetNodeIndex(i);

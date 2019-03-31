@@ -67,7 +67,7 @@ class Network {
 
   vector<int> TopoSort();
 
-  Combination SampleNetworkGiven();
+  Combination SampleNetwork();
 };
 
 

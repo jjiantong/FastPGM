@@ -196,7 +196,7 @@ TEST_F(NetworkTest, DISABLED_score_comparison) {
   EXPECT_GT(score1,score2);
 }
 
-TEST_F(NetworkTest, sampling) {
+TEST_F(NetworkTest, DISABLED_sampling_node) {
   Node *n_39 = network->FindNodePtrByIndex(39);
   //Factor fac(n_39);
   //fac.PrintPotentials();
@@ -213,6 +213,11 @@ TEST_F(NetworkTest, sampling) {
   //fprintf(stdout, "%f", rate_0);
   EXPECT_GT(rate_0,0.8);
   EXPECT_LT(rate_0,0.86);
+}
+
+TEST_F(NetworkTest, sampling_network) {
+  Combination samp = network->SampleNetwork();
+  EXPECT_EQ(1,1);
 }
 
 TEST(OtherTest, DISABLED_log_of_factorial) {
