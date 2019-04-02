@@ -5,11 +5,18 @@
 #include "Network.h"
 
 
-Network::Network() {}
+void Network::PrintNetworkStruct() {
+  for (auto &node_ptr : set_node_ptr_container) {
+    cout << node_ptr->GetNodeIndex() << ":\t";
+    for (auto &par_node_ptr : node_ptr->set_parents_ptrs) {
+      cout << par_node_ptr->GetNodeIndex() << '\t';
+    }
+    cout << endl;
+  }
+}
 
-
-Node* Network::GivenIndexToFindNodePointer(int index) {
-  if (index<0 || index>n_nodes) {
+Node* Network::FindNodePtrByIndex(int index) {
+  if (index<0 || index>num_nodes) {
     fprintf(stderr, "Error in function %s! \nInvalid index!", __FUNCTION__);
     exit(1);
   }
@@ -24,8 +31,20 @@ Node* Network::GivenIndexToFindNodePointer(int index) {
 }
 
 
+Node* Network::FindNodePtrByName(string name) {
+  Node* node_ptr = nullptr;
+  for (auto n_ptr : set_node_ptr_container) {
+    if (n_ptr->node_name==name) {
+      node_ptr = n_ptr;
+      break;
+    }
+  }
+  return node_ptr;
+}
+
+
 void Network::SetParentChild(int p_index, int c_index) {
-  Node *p = GivenIndexToFindNodePointer(p_index), *c = GivenIndexToFindNodePointer(c_index);
+  Node *p = FindNodePtrByIndex(p_index), *c = FindNodePtrByIndex(c_index);
   SetParentChild(p,c);
 }
 
@@ -37,8 +56,24 @@ void Network::SetParentChild(Node *p, Node *c) {
 
 
 void Network::RemoveParentChild(int p_index, int c_index) {
-  Node *p = GivenIndexToFindNodePointer(p_index), *c = GivenIndexToFindNodePointer(c_index);
+  Node *p = FindNodePtrByIndex(p_index), *c = FindNodePtrByIndex(c_index);
   RemoveParentChild(p,c);
+}
+
+
+vector<int> Network::GenTopoOrd() {
+
+  // First, convert the network to a directed adjacency matrix.
+  int **graph = new int*[num_nodes];
+  for (int i=0; i<num_nodes; ++i) {graph[i] = new int[num_nodes]();}
+  for (auto &n_p : set_node_ptr_container) {
+    for (auto &c_p : n_p->set_children_ptrs) {
+      graph[n_p->GetNodeIndex()][c_p->GetNodeIndex()] = 1;
+    }
+  }
+
+  topo_ord = TopoSortOfDAGZeroInDegreeFirst(graph, num_nodes);
+  return topo_ord;
 }
 
 
@@ -53,10 +88,10 @@ void Network::LearnParmsKnowStructCompData(const Trainer *trainer){
        << "Begin learning parameters with known structure and complete data." << endl;
 
   // The 0-th node is the root which is the label node.
-  Node *label_node = GivenIndexToFindNodePointer(0);
+  Node *label_node = FindNodePtrByIndex(0);
   map<int, double> *MPT = &(label_node->map_marg_prob_table);
   int denominator = 0;
-  for (int s = 0; s < trainer->n_train_instance; ++s) {
+  for (int s = 0; s < trainer->num_train_instance; ++s) {
     denominator += 1;
     int query = trainer->train_set_y[s];
     (*MPT)[query] += 1;
@@ -67,15 +102,15 @@ void Network::LearnParmsKnowStructCompData(const Trainer *trainer){
   }
 
   // For every feature node.
-  for (int i=1; i<trainer->n_feature+1; ++i) { // Because feature index start at 1.
+  for (int i=1; i<trainer->num_vars; ++i) { // Because feature index start at 1.
                                                      // Using "train_set_y_X".
-    Node *this_node = GivenIndexToFindNodePointer(i);
+    Node *this_node = FindNodePtrByIndex(i);
 
     map<int, map<Combination, double> >* CPT = &(this_node->map_cond_prob_table);
     set<Combination>* ptr_set_par_combs = &(this_node->set_parents_combinations);
     for (auto &par_comb : *ptr_set_par_combs) {    // For each column in CPT. Because the sum over column of CPT must be 1.
       int denominator = 0;
-      for (int s=0; s<trainer->n_train_instance; ++s) {
+      for (int s=0; s<trainer->num_train_instance; ++s) {
         int compatibility = 1;  // We assume compatibility is 1,
                                // and set it to 0 if we find that (*it_par_comb) is not compatible with (trainer->train_set[s]).
                                // If we support learning with incomplete data,
@@ -151,14 +186,10 @@ Combination Network::ConstructEvidence(int *nodes_indexes, int *observations, in
 
 vector<Factor> Network::ConstructFactors(int *Z, int nz, Node *Y) {
   vector<Factor> factors_list;
-  Factor factor;
-  factor.ConstructFactor(Y);
-  factors_list.push_back(factor);
+  factors_list.push_back(Factor(Y));
   for (int i=0; i<nz; i++) {
-    Node* n = GivenIndexToFindNodePointer(Z[i]);
-    Factor factor;
-    factor.ConstructFactor(n);
-    factors_list.push_back(factor);
+    Node* n = FindNodePtrByIndex(Z[i]);
+    factors_list.push_back(Factor(n));
   }
   return factors_list;
 }
@@ -182,7 +213,7 @@ void Network::LoadEvidence(vector<Factor> *factors_list, Combination E) {
 Factor Network::SumProductVarElim(vector<Factor> factors_list, int *Z, int nz) {
   for (int i=0; i<nz; i++) {
     vector<Factor> tempFactorsList;
-    Node* nodePtr = GivenIndexToFindNodePointer(Z[i]);
+    Node* nodePtr = FindNodePtrByIndex(Z[i]);
     // Move every factor that is related to the node Z[i] from factors_list to tempFactorsList.
     /*
      * Note: This for loop does not contain "it++" in the parentheses.
@@ -251,7 +282,7 @@ Factor Network::VarElimInferReturnPossib(Combination E, Node *Y) {
 
 
 int Network::PredictUseVarElimInfer(int *Z, int nz, Combination E, int Y_index) {
-  Node *Y = GivenIndexToFindNodePointer(Y_index);
+  Node *Y = FindNodePtrByIndex(Y_index);
   Factor F = VarElimInferReturnPossib(Z, nz, E, Y);
   double max_prob = 0;
   Combination comb_predict;
@@ -267,7 +298,7 @@ int Network::PredictUseVarElimInfer(int *Z, int nz, Combination E, int Y_index) 
 
 
 int Network::PredictUseVarElimInfer(Combination E, int Y_index) {
-  Node *Y = GivenIndexToFindNodePointer(Y_index);
+  Node *Y = FindNodePtrByIndex(Y_index);
   Factor F = VarElimInferReturnPossib(E, Y);
 
   double max_prob = 0;
@@ -290,7 +321,7 @@ double Network::TestNetReturnAccuracy(Trainer *tester) {
 
   cout << "Progress indicator: ";
 
-  int num_of_correct=0, num_of_wrong=0, m=tester->n_train_instance, m10=m/10, percent=0;
+  int num_of_correct=0, num_of_wrong=0, m=tester->num_train_instance, m10=m/10, percent=0;
 
   for (int i=0; i<m; i++) {  // For each sample in test set
 
@@ -298,10 +329,9 @@ double Network::TestNetReturnAccuracy(Trainer *tester) {
       cout << (percent++)*10 << "%... " << flush;
     }
 
-    Node *Y = GivenIndexToFindNodePointer(0);
 
     // For now, only support complete data.
-    int e_num=n_nodes-1, *e_index=new int[e_num], *e_value=new int[e_num];
+    int e_num=num_nodes-1, *e_index=new int[e_num], *e_value=new int[e_num];
     for (int j=0; j<e_num; ++j) {
       e_index[j] = j+1;
       e_value[j] = tester->train_set_X[i][j];
@@ -321,24 +351,112 @@ double Network::TestNetReturnAccuracy(Trainer *tester) {
 }
 
 
-vector<int> Network::TopoSort() {
-  // Convert network to directed adjacency matrix.
-  int num_nodes = n_nodes;
-  int **adjac_matrix = new int* [num_nodes];
-  for (int i=0; i<num_nodes; ++i) {
-    adjac_matrix[i] = new int[num_nodes]();
+double Network::TestNetByApproxInferReturnAccuracy(Trainer *tester, int num_samp) {
+
+  cout << "=======================================================================" << '\n'
+       << "Begin testing the trained network." << endl;
+
+  cout << "Progress indicator: ";
+
+  int num_of_correct=0, num_of_wrong=0, m=tester->num_train_instance, m20=m/20, percent=0;
+
+  vector<Combination> samples = this->DrawSamples(10000);
+
+  for (int i=0; i<m; i++) {  // For each sample in test set
+
+    if (i%m20==0) {
+      cout << (percent++)*5 << "%... " << flush;
+    }
+
+
+    // For now, only support complete data.
+    int e_num=num_nodes-1, *e_index=new int[e_num], *e_value=new int[e_num];
+    for (int j=0; j<e_num; ++j) {
+      e_index[j] = j+1;
+      e_value[j] = tester->train_set_X[i][j];
+    }
+    Combination E = ConstructEvidence(e_index, e_value, e_num);
+    int label_predict = ApproxInferByProbLogiRejectSamp(E, 0, samples); // The root node (label) has index of 0.
+    if (label_predict == tester->train_set_y[i]) {
+      num_of_correct++;
+    } else {
+      num_of_wrong++;
+    }
+
   }
-  for (auto &node_ptr : set_node_ptr_container) {
-    int from, from2, to;
-    from = node_ptr->GetNodeIndex();
-    for (auto &child_ptr : node_ptr->set_children_ptrs) {
-      to = child_ptr->GetNodeIndex();
-      adjac_matrix[from][to] = 1;
+  double accuracy = num_of_correct / (double)(num_of_correct+num_of_wrong);
+  cout << '\n' << "Accuracy: " << accuracy << endl;
+  return accuracy;
+}
+
+
+
+Combination Network::ProbLogicSampleNetwork() {
+  // todo: implement
+  if (topo_ord.empty()) {
+    this->GenTopoOrd();
+  }
+  Combination instance;
+  for (auto &index : topo_ord) {
+    Node *n_p = FindNodePtrByIndex(index);
+    instance.insert(pair<int,int>(index,n_p->SampleNodeGiven(instance)));
+  }
+  return instance;
+}
+
+
+vector<Combination> Network::DrawSamples(int num_samp) {
+  vector<Combination> samples;
+  samples.reserve(num_samp);
+  for (int i=0; i<num_samp; ++i) {
+    samples.push_back(this->ProbLogicSampleNetwork());
+  }
+  return samples;
+}
+
+
+int Network::ApproxInferByProbLogiRejectSamp(Combination e, Node *node, vector<Combination> &samples) {
+  Combination possb_values;
+  for (int i=0; i<node->num_potential_vals; ++i) {
+    possb_values.insert(pair<int,int>(node->GetNodeIndex(),node->potential_vals[i]));
+  }
+
+  int *count_each_value = new int[this->num_nodes]();
+  int num_valid_sample = 0;
+  for (auto &samp : samples) {
+    if(!Conflict(&e, &samp)) {
+      ++num_valid_sample;
+      for (auto &pv : possb_values) {
+        if (samp.find(pv)!=samp.end()) {
+          ++count_each_value[pv.second];
+          break;
+        }
+      }
     }
   }
 
-  // Topological sort.
-  topo_ord = TopoSortOfDAGZeroInDegreeFirst(adjac_matrix, n_nodes);
+  // If there is no valid sample, just take a random guess.
+  if (num_valid_sample==0) {
+    unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+    default_random_engine rand_gen(seed);
+    uniform_int_distribution<int> this_distribution(0,node->num_potential_vals-1);
+    return node->potential_vals[this_distribution(rand_gen)];
+  }
 
-  return topo_ord;
+  int lable_index_predict = -1;
+  int max_occurred = 0;
+  for (int i=0; i<node->num_potential_vals; ++i) {
+    if (lable_index_predict==-1 || count_each_value[i]>max_occurred) {
+      lable_index_predict = i;
+      max_occurred = count_each_value[i];
+    }
+  }
+
+  // Return the predicted label instead of the index.
+  return node->potential_vals[lable_index_predict];
+}
+
+
+int Network::ApproxInferByProbLogiRejectSamp(Combination e, int node_index, vector<Combination> &samples) {
+  return ApproxInferByProbLogiRejectSamp(e, FindNodePtrByIndex(node_index), samples);
 }

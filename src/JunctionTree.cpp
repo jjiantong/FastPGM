@@ -7,22 +7,23 @@
 JunctionTree::JunctionTree(Network *net) {
   network = net;
   int **direc_adjac_matrix = ConvertDAGNetworkToAdjacencyMatrix(network);
-  Moralize(direc_adjac_matrix, network->n_nodes);
+  Moralize(direc_adjac_matrix, network->num_nodes);
   int **undirec_adjac_matrix = direc_adjac_matrix;  // Because it has been moralized.
-  vector<int> elim_ord = MinNeighbourElimOrd(undirec_adjac_matrix, network->n_nodes);
-  Triangulate(network, undirec_adjac_matrix, network->n_nodes, elim_ord, set_clique_ptr_container);
+  vector<int> elim_ord = MinNeighbourElimOrd(undirec_adjac_matrix, network->num_nodes);
+  Triangulate(network, undirec_adjac_matrix, network->num_nodes, elim_ord, set_clique_ptr_container);
 
   // Theoretically, this step is not necessary.
   ElimRedundantCliques();
 
   FormJunctionTree(set_clique_ptr_container);
   AssignPotentials();
+  BackUpJunctionTree();
 }
 
 
 
 int** JunctionTree::ConvertDAGNetworkToAdjacencyMatrix(Network *net) {
-  int num_nodes = net->n_nodes;
+  int num_nodes = net->num_nodes;
   int **adjac_matrix = new int* [num_nodes];
   for (int i=0; i<num_nodes; ++i) {
     adjac_matrix[i] = new int[num_nodes]();
@@ -80,7 +81,7 @@ void JunctionTree::Triangulate(Network *net,
   set<int> set_neighbours;
   set<Node*> set_node_ptrs_to_form_a_clique;
   int first_node_in_elim_ord = elim_ord.front();
-  set_node_ptrs_to_form_a_clique.insert(net->GivenIndexToFindNodePointer(first_node_in_elim_ord));
+  set_node_ptrs_to_form_a_clique.insert(net->FindNodePtrByIndex(first_node_in_elim_ord));
   for (int j=0; j<num_nodes; ++j) {
     if (adjac_matrix[first_node_in_elim_ord][j]==1) {
       set_neighbours.insert(j);
@@ -95,7 +96,7 @@ void JunctionTree::Triangulate(Network *net,
         adjac_matrix[index2][nei] = 1;
       }
     }
-    set_node_ptrs_to_form_a_clique.insert(net->GivenIndexToFindNodePointer(nei));
+    set_node_ptrs_to_form_a_clique.insert(net->FindNodePtrByIndex(nei));
   }
 
   cliques.insert(new Clique(set_node_ptrs_to_form_a_clique));
@@ -171,7 +172,7 @@ void JunctionTree::FormJunctionTree(set<Clique*> &cliques) {
 
       set<Node*> common_related_node_ptrs;
       for (auto &v : common_related_variables) {
-        common_related_node_ptrs.insert(network->GivenIndexToFindNodePointer(v));
+        common_related_node_ptrs.insert(network->FindNodePtrByIndex(v));
       }
 
       Separator *sep = new Separator(common_related_node_ptrs);
@@ -231,9 +232,7 @@ void JunctionTree::AssignPotentials() {
   // First, convert the probabilities of nodes to factors, which make the "multiply" operation easier.
   vector<Factor> factors; // Can not use std::set, because Factor does not have definition on operator "<".
   for (auto &node_ptr : network->set_node_ptr_container) {
-    Factor f;
-    f.ConstructFactor(node_ptr);
-    factors.push_back(f);
+    factors.push_back(Factor(node_ptr));
   }
 
   // Second, assign these factors to some appropriate cliques.
@@ -253,6 +252,24 @@ void JunctionTree::AssignPotentials() {
         break;  // Ensure that each factor of the original joint probability is used only once.
       }
     }
+  }
+}
+
+void JunctionTree::BackUpJunctionTree() {
+  for (const auto &c : set_clique_ptr_container) {
+    map_cliques_backup[c] = *c;
+  }
+  for (const auto &s : set_separator_ptr_container) {
+    map_separators_backup[s] = *s;
+  }
+}
+
+void JunctionTree::ResetJunctionTree() {
+  for (auto &c : set_clique_ptr_container) {
+    *c = map_cliques_backup[c];
+  }
+  for (auto &s : set_separator_ptr_container) {
+    *s = map_separators_backup[s];
   }
 }
 
@@ -296,7 +313,10 @@ void JunctionTree::PrintAllSeparatorsPotentials() {
   cout << "=======================================================================" << endl;
 }
 
-Factor JunctionTree::InferenceForVarIndexsReturnPossib(set<int> &indexes) {
+Factor JunctionTree::BeliefPropagationReturnPossib(set<int> &indexes) {
+
+  // The input is a set of indexes of variables.
+  // The output is a factor representing the joint marginal of these variables.
 
   int min_potential_size = INT32_MAX;
   Clique *selected_clique = nullptr;
@@ -329,5 +349,58 @@ Factor JunctionTree::InferenceForVarIndexsReturnPossib(set<int> &indexes) {
   return f;
 
 
-  // todo: implement the case where the query vairables appear in different cliques.
+  // todo: implement the case where the query variables appear in different cliques.
+}
+
+int JunctionTree::InferenceUsingBeliefPropagation(set<int> &indexes) {
+  Factor f = BeliefPropagationReturnPossib(indexes);
+  double max_prob = 0;
+  Combination comb_predict;
+  for (auto &comb : f.set_combinations) {
+    if (f.map_potentials[comb] > max_prob) {
+      max_prob = f.map_potentials[comb];
+      comb_predict = comb;
+    }
+  }
+  int label_predict = comb_predict.begin()->second;
+  return label_predict;
+}
+
+double JunctionTree::TestNetReturnAccuracy(int class_var, Trainer *tst) {
+  set<int> query;
+  query.insert(class_var);
+  cout << "=======================================================================" << '\n'
+       << "Begin testing the trained network." << endl;
+
+  cout << "Progress indicator: ";
+
+  int num_of_correct=0, num_of_wrong=0, m=tst->num_train_instance, m10=m/10, percent=0;
+
+  for (int i=0; i<m; i++) {  // For each sample in test set
+
+    if (i%m10==0) {
+      cout << (percent++)*10 << "%... " << flush;
+    }
+
+
+    // For now, only support complete data.
+    int e_num=network->num_nodes-1, *e_index=new int[e_num], *e_value=new int[e_num];
+    for (int j=0; j<e_num; ++j) {
+      e_index[j] = j+1;
+      e_value[j] = tst->train_set_X[i][j];
+    }
+    Combination E = network->ConstructEvidence(e_index, e_value, e_num);
+    LoadEvidence(E);
+    MessagePassingUpdateJT();
+    int label_predict = InferenceUsingBeliefPropagation(query); // The root node (label) has index of 0.
+    if (label_predict == tst->train_set_y[i]) {
+      num_of_correct++;
+    } else {
+      num_of_wrong++;
+    }
+    ResetJunctionTree();
+  }
+  double accuracy = num_of_correct / (double)(num_of_correct+num_of_wrong);
+  cout << '\n' << "Accuracy: " << accuracy << endl;
+  return accuracy;
 }

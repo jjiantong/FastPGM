@@ -18,6 +18,9 @@ class JunctionTree {
   set<Clique*> set_clique_ptr_container;
   set<Separator*> set_separator_ptr_container;
 
+  map<Clique*,Clique> map_cliques_backup;
+  map<Separator*,Separator> map_separators_backup;
+
   JunctionTree() = default;
   JunctionTree(Network*);
 
@@ -28,13 +31,18 @@ class JunctionTree {
   void ElimRedundantCliques();
   void FormJunctionTree(set<Clique*>&);
   void AssignPotentials();
+  void BackUpJunctionTree();
+  void ResetJunctionTree();
   void LoadEvidence(Combination);
   void MessagePassingUpdateJT();
 
   void PrintAllCliquesPotentials();
   void PrintAllSeparatorsPotentials();
 
-  Factor InferenceForVarIndexsReturnPossib(set<int>&);
+  Factor BeliefPropagationReturnPossib(set<int>&);
+  int InferenceUsingBeliefPropagation(set<int>&);
+
+  double TestNetReturnAccuracy(int,Trainer*);
 
 };
 

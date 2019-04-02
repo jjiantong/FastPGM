@@ -10,7 +10,7 @@ double ChowLiuTree::ComputeMutualInformation(Node *Xi, Node *Xj, const Trainer *
   int xi=Xi->GetNodeIndex(), xj=Xj->GetNodeIndex();
 
   // Initialize the table.
-  int m = trainer->n_train_instance, ri = Xi->num_potential_vals, rj = Xj->num_potential_vals;
+  int m = trainer->num_train_instance, ri = Xi->num_potential_vals, rj = Xj->num_potential_vals;
   double **Pij = new double* [ri];
   for (int i=0; i<ri; i++) {
     Pij[i] = new double[rj]();    // The parentheses at end will initialize the array to be all zeros.
@@ -75,8 +75,8 @@ void ChowLiuTree::StructLearnCompData(Trainer *trainer) {
 void ChowLiuTree::StructLearnChowLiuTreeCompData(Trainer *trainer) {
   cout << "=======================================================================" << '\n'
        << "Begin structural learning. \nConstructing Chow-Liu tree with complete data......" << endl;
-  n_nodes = trainer->n_feature+1;  // "+1" is for the label node.
-  for (int i=0; i<n_nodes; ++i) {
+  num_nodes = trainer->num_vars;
+  for (int i=0; i<num_nodes; ++i) {
     Node *node_ptr = new Node();
     node_ptr->SetNodeIndex(i);
     node_ptr->is_discrete = trainer->is_features_discrete[i];
@@ -105,7 +105,7 @@ void ChowLiuTree::StructLearnChowLiuTreeCompData(Trainer *trainer) {
   cout << "=======================================================================" << '\n'
        << "Constructing mutual information table......" << endl;
 
-  int n = n_nodes;
+  int n = num_nodes;
   double** mutualInfoTab = new double* [n];
   for (int i=0; i<n; i++) {
     mutualInfoTab[i] = new double[n]();    // The parentheses at end will initialize the array to be all zeros.
@@ -263,8 +263,8 @@ pair<int*, int> ChowLiuTree::SimplifyTreeDefaultElimOrd(Combination evidence) {
 
   // Remove all the barren nodes
   set<int> to_be_removed;
-  for (int i=0; i<n_nodes-1; ++i) {
-    Node *ptr_curr_node = GivenIndexToFindNodePointer(default_elim_ord[i]);
+  for (int i=0; i<num_nodes-1; ++i) {
+    Node *ptr_curr_node = FindNodePtrByIndex(default_elim_ord[i]);
     bool observed = false, need_to_be_removed = true;
     for (auto p : evidence) {
       if (p.first == ptr_curr_node->GetNodeIndex()) {    // If it is observed.
@@ -292,7 +292,7 @@ pair<int*, int> ChowLiuTree::SimplifyTreeDefaultElimOrd(Combination evidence) {
   DepthFirstTraversalUntillMeetObserved(evidence, 0,visited,to_be_removed);  // Start at root.
 
   // Record all the remaining nodes in array "simplified_order".
-  int num_of_remain = n_nodes-1-to_be_removed.size();    // The 0-th node is root and do not need to be eliminated.
+  int num_of_remain = num_nodes-1-to_be_removed.size();    // The 0-th node is root and do not need to be eliminated.
   int* simplified_order = new int[num_of_remain];
   for (int i=0, j=1; i<num_of_remain; ++i) {    // j=1 because the 0-th node is root.
     while (to_be_removed.find(j)!=to_be_removed.end()) {++j;}
@@ -325,7 +325,7 @@ void ChowLiuTree::DepthFirstTraversalUntillMeetObserved(Combination evidence, in
 
   // If not observed
   // Recursive case
-  Node* ptr_curr_node = GivenIndexToFindNodePointer(start);
+  Node* ptr_curr_node = FindNodePtrByIndex(start);
   for (auto ptr_child : ptr_curr_node->set_children_ptrs) {
     int child_index = ptr_child->GetNodeIndex();
     DepthFirstTraversalUntillMeetObserved(evidence, child_index, visited, to_be_removed);
@@ -336,7 +336,7 @@ void ChowLiuTree::DepthFirstTraversalUntillMeetObserved(Combination evidence, in
 
 void ChowLiuTree::DepthFirstTraversalToRemoveMSeparatedNodes(int start, set<int>& visited, set<int>& to_be_removed) {
   visited.insert(start);
-  Node* ptr_curr_node = GivenIndexToFindNodePointer(start);
+  Node* ptr_curr_node = FindNodePtrByIndex(start);
   for (auto it_ptr_child=ptr_curr_node->set_children_ptrs.begin();
        it_ptr_child!=ptr_curr_node->set_children_ptrs.end() && visited.find((*it_ptr_child)->GetNodeIndex())==visited.end();
        ++it_ptr_child) {

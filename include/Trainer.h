@@ -12,6 +12,7 @@
 #include <utility>
 #include <iostream>
 #include <fstream>
+#include <stdio.h>
 #include "gadget.h"
 
 using namespace std;
@@ -21,8 +22,9 @@ typedef set< pair<int, int> > Combination;
 class Trainer {
 
  public:
-  int n_train_instance;
-  int n_feature;
+  int num_train_instance;
+  int num_feature; // For classification, num_feature should be equal to num_vars-1.
+  int num_vars;
   bool* is_features_discrete;
   int* num_of_possible_values_of_features;
   map<int,set<int>> map_feature_possible_values;
@@ -39,6 +41,8 @@ class Trainer {
   Trainer();
   void LoadLIBSVMDataAutoDetectConfig(string);
   void ConvertVectorDatasetIntoArrayDataset();
+
+  void SamplesToLIBSVMFile(vector<Combination> &samples, string file);
 };
 
 
