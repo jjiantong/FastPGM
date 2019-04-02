@@ -374,7 +374,7 @@ double JunctionTree::TestNetReturnAccuracy(int class_var, Trainer *tst) {
 
   cout << "Progress indicator: ";
 
-  int num_of_correct=0, num_of_wrong=0, m=tst->n_train_instance, m10=m/10, percent=0;
+  int num_of_correct=0, num_of_wrong=0, m=tst->num_train_instance, m10=m/10, percent=0;
 
   for (int i=0; i<m; i++) {  // For each sample in test set
 

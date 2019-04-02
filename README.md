@@ -17,49 +17,20 @@ I need to find other equations.
       * Optimal elimination order for **tree shape** network
     * Junction tree algorithm (Some call it clique tree algorithm. But a clique tree is not necessary a junction tree.)
       * Belief propagation (a.k.a. message passing, sum-product)
+  * Approximate inference
+      * Probabilistic logic sampling
+        * To verify the correctness of my implementation of probabilistic logic sampling, I did the following things
+          1. Learn a Chow-Liu tree from LIBSVM a3a dataset
+          2. Draw 10000 samples from the Chow-Liu tree by probabilistic logic sampling
+          3. Convert these samples to a file of the LIBSVM data file format
+          4. Learn a new Chow-Liu tree from the file from step 4
+          5. Compare the CPD of each node in the new and old Chow-Liu trees
+          6. Observe that the CPD of two tree are VERY similar
+      * Rejection sampling
   * Construct custom network from files
-    * Format of custom network structure
-      * The first line is a string "BEGIN_OF_STRUCTURE"
-      * The last line of the structure is "END_OF_STRUCTURE"
-      * The second line is an integer of the number of nodes
-      * Each line from the third till the second to the last represents a node and its child(ren) separated by whitespace
-      * The node index should start at 0 instead of 1
+    * XMLBIF (which is also supported by Weka)
+    
 
-      for example:
-      ```
-      BEGIN_OF_STRUCTURE
-      4
-      0 -> 1 2
-      1 -> 2 3
-      2 -> 3
-      3 ->
-      END_OF_STRUCTURE
-      ```
-    * Format of custom network parameters
-      * The first line is a string "BEGIN_OF_PARAMETERS"
-      * The last line is "END_OF_PARAMETERS"
-      * Suppose there are *n* nodes
-      * Each of the first *n* lines after "BEGIN_OF_PARAMETERS" is the domain of each node
-      * Each of the second *n* lines after "BEGIN_OF_PARAMETERS" is the value of each node's query, condition, and probability, separated by whitespace
-        * The first integer is this node's index
-        * If the node has no parent, there should be "--marg". If it has parent(s), there should be "--cond"
-        * The query value and the condition are separated by "|", and the probability value comes after "@"
-        * If the condition consists of multiple nodes, nodes are separated by ","
-        * For each node in the condition, its index and value are separated by ":"
-
-      for example:
-      ```
-      BEGIN_OF_PARAMETERS
-      0 : 0 1
-      1 : 0 1
-      2 : -1 1
-      3 : -1 1
-      0 --marg 0@0.3 1@0.7
-      1 --cond 0|0:0@0.3 1|0:0@0.7 0|0:1@0.4 1|0:1@0.6
-      2 --cond -1|0:0,1:0@0.3 1|0:0,1:0@0.7 -1|0:1,1:0@0.2 1|0:1,1:0@0.8 -1|0:0,1:1@0.1 1|0:0,1:1@0.9 -1|0:1,1:1@0.5 1|0:1,1:1@0.5 
-      3 --cond -1|1:0,2:-1@0.3 1|1:0,2:-1@0.7 -1|1:1,2:-1@0.2 1|1:1,2:-1@0.8 -1|1:0,2:1@0.1 1|1:0,2:1@0.9 -1|1:1,2:1@0.5 1|1:1,2:1@0.5
-      END_OF_PARAMETERS
-      ```
 
 ### supported problems
 classification with discrete feature values
@@ -97,7 +68,6 @@ classification with discrete feature values
  * Common network file format (rather than format created by Linjian Li)
    * Graph Modeling Language (GML)
    * GraphML (XML-based)
-   * XMLBIF (like XML, supported by Weka) (working on...)
    * BIF (like JSON, not the same as XMLBIF)
    * arff (Weka)
 

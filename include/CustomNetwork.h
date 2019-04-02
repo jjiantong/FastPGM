@@ -27,8 +27,6 @@ class CustomNetwork : public Network {
 
   CustomNetwork() = default;
 
-  void ConstructCustomNetworkStructFromFile(string);
-  void SetCustomNetworkParamsFromFile(string);
   void StructLearnCompData(Trainer *);
   pair<int*, int> SimplifyDefaultElimOrd(Combination) override;
 
