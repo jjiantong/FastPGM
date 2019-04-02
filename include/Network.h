@@ -14,6 +14,8 @@
 #include <vector>
 #include <cmath>
 #include <iostream>
+#include <random>
+#include <chrono>
 
 using namespace std;
 
@@ -64,10 +66,17 @@ class Network {
   int PredictUseVarElimInfer(Combination, int);
 
   double TestNetReturnAccuracy(Trainer *);
+  double TestNetByApproxInferReturnAccuracy(Trainer *, int);
 
-  vector<int> TopoSort();
 
-  Combination SampleNetwork();
+  // Probabilistic logic sampling is a method
+  // proposed by Max Henrion at 1988.
+  Combination ProbLogicSampleNetwork();
+
+  vector<Combination> DrawSamples(int num_samp);
+
+  int ApproxInferByProbLogiRejectSamp(Combination e, Node *node, vector<Combination> &samples);
+  int ApproxInferByProbLogiRejectSamp(Combination e, int node_index, vector<Combination> &samples);
 };
 
 

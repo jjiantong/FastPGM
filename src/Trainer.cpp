@@ -99,3 +99,30 @@ void Trainer::ConvertVectorDatasetIntoArrayDataset() {
     }
   }
 }
+
+
+void Trainer::SamplesToLIBSVMFile(vector<Combination> &samples, string file) {
+  FILE *f;
+  f = fopen(file.c_str(), "w");
+
+  for (auto &smp : samples) {
+    string string_to_write = "";
+
+    for (auto &var_and_val : smp) {
+      // The following codes should not use "+=", because the order matters.
+      if(var_and_val.first==0) {
+        string label = var_and_val.second==1 ? "+1" : "-1";
+        string_to_write = label + " " + string_to_write;
+      } else {
+        if (var_and_val.second!=0) {
+          string_to_write = string_to_write
+                            + to_string(var_and_val.first) + ":"
+                            + to_string(var_and_val.second) + " ";
+        }
+      }
+    }
+
+    fprintf(f, "%s\n", string_to_write.c_str());
+  }
+  fclose(f);
+}

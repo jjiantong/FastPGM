@@ -61,7 +61,9 @@ bool FirstCompatibleSecond(Combination *first, Combination *second) {
 bool Conflict(Combination *first, Combination *second) {
   for (auto &f : *first) {
     for (auto &s : *second) {
-      if (f.first==s.first && f.second!=s.second) return true;
+      if (f.first==s.first && f.second!=s.second) {
+        return true;
+      }
     }
   }
   return false;

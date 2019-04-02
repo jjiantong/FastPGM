@@ -63,6 +63,33 @@ TEST_F(NetworkTest,DISABLED_chow_liu_tree_var_elim_accuracy) { // The prefix "DI
   network->TestNetReturnAccuracy(tester);
 }
 
+TEST_F(NetworkTest, DISABLED_approx_inference_accuracy) {
+  network->TestNetByApproxInferReturnAccuracy(tester,100);
+  EXPECT_EQ(1,2);
+}
+
+TEST_F(NetworkTest, DISABLED_samples_to_libsvm_file) {
+  vector<Combination> samples = network->DrawSamples(10000);
+  trainer->SamplesToLIBSVMFile(samples,"./samples_to_LIBSVM_file.txt");
+
+  Trainer *trn_samp = new Trainer();
+  Network *net_samp = new ChowLiuTree();
+  trn_samp->LoadLIBSVMDataAutoDetectConfig("./samples_to_LIBSVM_file.txt");
+  net_samp->StructLearnCompData(trn_samp);
+  net_samp->LearnParmsKnowStructCompData(trn_samp);
+
+  for(int i=0; i<net_samp->num_nodes; ++i) {
+    fprintf(stdout, "\n====================================\n");
+    Factor f1, f2;
+    f1.ConstructFactor(network->FindNodePtrByIndex(i));
+    f1.PrintPotentials();
+    f2.ConstructFactor(net_samp->FindNodePtrByIndex(i));
+    f2.PrintPotentials();
+  }
+
+  EXPECT_EQ(1,1);
+}
+
 TEST_F(NetworkTest,DISABLED_var_elim_and_jun_tree) { // The prefix "DISABLED" disable this test.
   Combination E;
   E.insert(pair<int,int>(104,1));
@@ -215,8 +242,8 @@ TEST_F(NetworkTest, DISABLED_sampling_node) {
   EXPECT_LT(rate_0,0.86);
 }
 
-TEST_F(NetworkTest, sampling_network) {
-  Combination samp = network->SampleNetwork();
+TEST_F(NetworkTest, DISABLED_sampling_network) {
+  Combination samp = network->ProbLogicSampleNetwork();
   EXPECT_EQ(1,1);
 }
 

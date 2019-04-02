@@ -17,6 +17,16 @@ I need to find other equations.
       * Optimal elimination order for **tree shape** network
     * Junction tree algorithm (Some call it clique tree algorithm. But a clique tree is not necessary a junction tree.)
       * Belief propagation (a.k.a. message passing, sum-product)
+  * Approximate inference
+      * Probabilistic logic sampling
+        * To verify the correctness of my implementation of probabilistic logic sampling, I did the following things
+          1. Learn a Chow-Liu tree from LIBSVM a3a dataset
+          2. Draw 10000 samples from the Chow-Liu tree by probabilistic logic sampling
+          3. Convert these samples to a file of the LIBSVM data file format
+          4. Learn a new Chow-Liu tree from the file from step 4
+          5. Compare the CPD of each node in the new and old Chow-Liu trees
+          6. Observe that the CPD of two tree are VERY similar
+      * Rejection sampling
   * Construct custom network from files
     * XMLBIF (which is also supported by Weka)
     * Format of custom network structure
@@ -61,6 +71,8 @@ I need to find other equations.
       3 --cond -1|1:0,2:-1@0.3 1|1:0,2:-1@0.7 -1|1:1,2:-1@0.2 1|1:1,2:-1@0.8 -1|1:0,2:1@0.1 1|1:0,2:1@0.9 -1|1:1,2:1@0.5 1|1:1,2:1@0.5
       END_OF_PARAMETERS
       ```
+
+
 
 ### supported problems
 classification with discrete feature values

@@ -67,8 +67,8 @@ vector<int> Network::GenTopoOrd() {
   int **graph = new int*[num_nodes];
   for (int i=0; i<num_nodes; ++i) {graph[i] = new int[num_nodes]();}
   for (auto &n_p : set_node_ptr_container) {
-    for (auto &p_p : n_p->set_children_ptrs) {
-      graph[n_p->GetNodeIndex()][p_p->GetNodeIndex()] = 1;
+    for (auto &c_p : n_p->set_children_ptrs) {
+      graph[n_p->GetNodeIndex()][c_p->GetNodeIndex()] = 1;
     }
   }
 
@@ -351,35 +351,50 @@ double Network::TestNetReturnAccuracy(Trainer *tester) {
 }
 
 
-vector<int> Network::TopoSort() {
-  // Convert network to directed adjacency matrix.
-  int num_nodes = num_nodes;
-  int **adjac_matrix = new int* [num_nodes];
-  for (int i=0; i<num_nodes; ++i) {
-    adjac_matrix[i] = new int[num_nodes]();
-  }
-  for (auto &node_ptr : set_node_ptr_container) {
-    int from, from2, to;
-    from = node_ptr->GetNodeIndex();
-    for (auto &child_ptr : node_ptr->set_children_ptrs) {
-      to = child_ptr->GetNodeIndex();
-      adjac_matrix[from][to] = 1;
+double Network::TestNetByApproxInferReturnAccuracy(Trainer *tester, int num_samp) {
+
+  cout << "=======================================================================" << '\n'
+       << "Begin testing the trained network." << endl;
+
+  cout << "Progress indicator: ";
+
+  int num_of_correct=0, num_of_wrong=0, m=tester->num_train_instance, m20=m/20, percent=0;
+
+  vector<Combination> samples = this->DrawSamples(10000);
+
+  for (int i=0; i<m; i++) {  // For each sample in test set
+
+    if (i%m20==0) {
+      cout << (percent++)*5 << "%... " << flush;
     }
+
+
+    // For now, only support complete data.
+    int e_num=num_nodes-1, *e_index=new int[e_num], *e_value=new int[e_num];
+    for (int j=0; j<e_num; ++j) {
+      e_index[j] = j+1;
+      e_value[j] = tester->train_set_X[i][j];
+    }
+    Combination E = ConstructEvidence(e_index, e_value, e_num);
+    int label_predict = ApproxInferByProbLogiRejectSamp(E, 0, samples); // The root node (label) has index of 0.
+    if (label_predict == tester->train_set_y[i]) {
+      num_of_correct++;
+    } else {
+      num_of_wrong++;
+    }
+
   }
-
-  // Topological sort.
-  topo_ord = TopoSortOfDAGZeroInDegreeFirst(adjac_matrix, num_nodes);
-
-  return topo_ord;
+  double accuracy = num_of_correct / (double)(num_of_correct+num_of_wrong);
+  cout << '\n' << "Accuracy: " << accuracy << endl;
+  return accuracy;
 }
 
 
-Combination Network::SampleNetwork() {
+
+Combination Network::ProbLogicSampleNetwork() {
   // todo: implement
   if (topo_ord.empty()) {
-    fprintf(stderr, "Error in function %s!", __FUNCTION__);
-    fprintf(stderr, "Do not have a topological order of nodes!");
-    exit(1);
+    this->GenTopoOrd();
   }
   Combination instance;
   for (auto &index : topo_ord) {
@@ -387,4 +402,61 @@ Combination Network::SampleNetwork() {
     instance.insert(pair<int,int>(index,n_p->SampleNodeGiven(instance)));
   }
   return instance;
+}
+
+
+vector<Combination> Network::DrawSamples(int num_samp) {
+  vector<Combination> samples;
+  samples.reserve(num_samp);
+  for (int i=0; i<num_samp; ++i) {
+    samples.push_back(this->ProbLogicSampleNetwork());
+  }
+  return samples;
+}
+
+
+int Network::ApproxInferByProbLogiRejectSamp(Combination e, Node *node, vector<Combination> &samples) {
+  Combination possb_values;
+  for (int i=0; i<node->num_potential_vals; ++i) {
+    possb_values.insert(pair<int,int>(node->GetNodeIndex(),node->potential_vals[i]));
+  }
+
+  int *count_each_value = new int[this->num_nodes]();
+  int num_valid_sample = 0;
+  for (auto &samp : samples) {
+    if(!Conflict(&e, &samp)) {
+      ++num_valid_sample;
+      for (auto &pv : possb_values) {
+        if (samp.find(pv)!=samp.end()) {
+          ++count_each_value[pv.second];
+          break;
+        }
+      }
+    }
+  }
+
+  // If there is no valid sample, just take a random guess.
+  if (num_valid_sample==0) {
+    unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+    default_random_engine rand_gen(seed);
+    uniform_int_distribution<int> this_distribution(0,node->num_potential_vals-1);
+    return node->potential_vals[this_distribution(rand_gen)];
+  }
+
+  int lable_index_predict = -1;
+  int max_occurred = 0;
+  for (int i=0; i<node->num_potential_vals; ++i) {
+    if (lable_index_predict==-1 || count_each_value[i]>max_occurred) {
+      lable_index_predict = i;
+      max_occurred = count_each_value[i];
+    }
+  }
+
+  // Return the predicted label instead of the index.
+  return node->potential_vals[lable_index_predict];
+}
+
+
+int Network::ApproxInferByProbLogiRejectSamp(Combination e, int node_index, vector<Combination> &samples) {
+  return ApproxInferByProbLogiRejectSamp(e, FindNodePtrByIndex(node_index), samples);
 }

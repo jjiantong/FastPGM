@@ -12,6 +12,7 @@
 #include <utility>
 #include <iostream>
 #include <fstream>
+#include <stdio.h>
 #include "gadget.h"
 
 using namespace std;
@@ -40,6 +41,8 @@ class Trainer {
   Trainer();
   void LoadLIBSVMDataAutoDetectConfig(string);
   void ConvertVectorDatasetIntoArrayDataset();
+
+  void SamplesToLIBSVMFile(vector<Combination> &samples, string file);
 };
 
 
