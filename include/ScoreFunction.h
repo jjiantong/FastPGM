@@ -30,7 +30,7 @@ class ScoreFunction {
   double LogLikelihood();
   double K2();
   double BDe();
-  double BDeu();
+  double BDeu(int equi_sample_size = 10);
   double AIC();
   double BIC();
   double MDL();

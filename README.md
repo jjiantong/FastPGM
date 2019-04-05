@@ -3,10 +3,6 @@
 Developed by Linjian Li, using Clion 2018.3.1
 
 ## Important notes
-I have meet some difficulties about K2 and BDeu scoring function.
-I implement them according to the original equations in the papers.
-But the intermediate result is *too large* (e.g. factorial of 2000) so that the variable cannot store it and becomes `inf`.
-I need to find other equations.
 
 
 ## Feature
@@ -65,7 +61,7 @@ classification with discrete feature values
    * Likelihood weighting
    * Exact propagation (Gaussian Bayesian networks)
  * Latent variables
- * Common network file format (rather than format created by Linjian Li)
+ * Common network file format
    * Graph Modeling Language (GML)
    * GraphML (XML-based)
    * BIF (like JSON, not the same as XMLBIF)
