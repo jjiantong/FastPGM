@@ -195,19 +195,40 @@ vector<Factor> Network::ConstructFactors(int *Z, int nz, Node *Y) {
 }
 
 
-void Network::LoadEvidence(vector<Factor> *factors_list, Combination E) {
+void Network::LoadEvidence(vector<Factor> *factors_list, Combination E, set<int> all_related_vars) {
   for (auto &f : *factors_list) {  // For each factor
     for (auto &e : E) {  // For each node's observation in E
       // If this factor is related to this node
       if (f.related_variables.find(e.first)!=f.related_variables.end()) {
+        // Update each row of map_potentials
         for (auto &comb : f.set_combinations) {
-          // Update each row of map_potentials
+          // If this entry is not compatible to the evidence.
           if (comb.find(e)==comb.end()) {
             f.map_potentials[comb] = 0;
           }
         }
       }
     }
+
+    //--------------------------------------------------------------------------------
+    // This block is to fix the bug occurring when the target node
+    // is not the root and the variable elimination order do not start at root.
+    // For example:  A --> B --> C
+    // When given the markov blanket, which is "{B}", of node "C",
+    // there is no need to calculate the other nodes, which is "{A}".
+    // However, when using this function,
+    // the parent of parent of this node, which is "A",
+    // still appears in the constructed factor of the parent which is "B".
+    // todo: check correctness
+    set<int> related_vars_of_f = f.related_variables;
+    for (auto &v : related_vars_of_f) {
+      if (all_related_vars.find(v)==all_related_vars.end()) {
+        f.CopyFactor(f.SumOverVar(v));
+      }
+    }
+    //--------------------------------------------------------------------------------
+
+
   }
 }
 
@@ -282,7 +303,23 @@ Factor Network::VarElimInferReturnPossib(int *Z, int nz, Combination E, Node *Y)
   //       the parent of parent of this node, which is "A",
   //       still appears in the constructed factor of the parent which is "B".
   vector<Factor> factorsList = ConstructFactors(Z, nz, Y);
-  LoadEvidence(&factorsList, E);  // todo: the bug may be caused by this line.
+
+  //--------------------------------------------------------------------------------
+  // This block is to fix the bug occurring when the target node
+  // is not the root and the variable elimination order do not start at root.
+  // For example:  A --> B --> C
+  // When given the markov blanket, which is "{B}", of node "C",
+  // there is no need to calculate the other nodes, which is "{A}".
+  // However, when using this function,
+  // the parent of parent of this node, which is "A",
+  // still appears in the constructed factor of the parent which is "B".
+  set<int> all_related_vars;
+  all_related_vars.insert(Y->GetNodeIndex());
+  for (int i=0; i<nz; ++i) {all_related_vars.insert(Z[i]);}
+  //--------------------------------------------------------------------------------
+
+
+  LoadEvidence(&factorsList, E, all_related_vars);  // todo: the bug may be caused by this line.
   Factor F = SumProductVarElim(factorsList, Z, nz);
   F.Normalize();
   return F;

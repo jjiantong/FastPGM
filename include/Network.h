@@ -56,7 +56,7 @@ class Network {
   Combination ConstructEvidence(int *, int *, int);
 
   vector<Factor> ConstructFactors(int *, int, Node *);
-  void LoadEvidence(vector<Factor> *, Combination);
+  void LoadEvidence(vector<Factor> *factors_list, Combination E,  set<int> all_related_vars);
 
   Factor SumProductVarElim(vector<Factor>, int *, int);
   Factor VarElimInferReturnPossib(int *elim_ord, int num_elim_ord, Combination evidence, Node *target);
