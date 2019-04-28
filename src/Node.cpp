@@ -66,10 +66,9 @@ void Node::GenParCombs() {
 }
 
 
-int Node::SampleNodeGiven(Combination evidence) {
+int Node::SampleNodeGivenParents(Combination evidence) {
   // The evidence should contain all parents of this node.
-  // The evidence about other nodes (including children) are ignored.
-  // todo: implement
+  // The evidence about other nodes (including children) are IGNORED!!!
   set<int> set_par_indexes;
   for (auto &par : set_parents_ptrs) {
     set_par_indexes.insert(par->GetNodeIndex());

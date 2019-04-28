@@ -59,8 +59,8 @@ class Network {
   void LoadEvidence(vector<Factor> *, Combination);
 
   Factor SumProductVarElim(vector<Factor>, int *, int);
-  Factor VarElimInferReturnPossib(int *, int, Combination, Node *);
-  Factor VarElimInferReturnPossib(Combination, Node *);
+  Factor VarElimInferReturnPossib(int *elim_ord, int num_elim_ord, Combination evidence, Node *target);
+  Factor VarElimInferReturnPossib(Combination evidence, Node *target);
 
   int PredictUseVarElimInfer(int *, int, Combination, int);
   int PredictUseVarElimInfer(Combination, int);
@@ -73,7 +73,11 @@ class Network {
   // proposed by Max Henrion at 1988.
   Combination ProbLogicSampleNetwork();
 
-  vector<Combination> DrawSamples(int num_samp);
+  set<int> GetMarkovBlanketIndexesOfNode(Node *node_ptr);
+  int SampleNodeGivenMarkovBlanketReturnValIndex(Node *node_ptr, Combination markov_blanket);
+
+  vector<Combination> DrawSamplesByProbLogiSamp(int num_samp);
+  vector<Combination> DrawSamplesByGibbsSamp(int num_samp, int num_burn_in);
 
   int ApproxInferByProbLogiRejectSamp(Combination e, Node *node, vector<Combination> &samples);
   int ApproxInferByProbLogiRejectSamp(Combination e, int node_index, vector<Combination> &samples);

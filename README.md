@@ -25,7 +25,7 @@ Developed by Linjian Li, using Clion 2018.3.1
       * Rejection sampling
   * Construct custom network from files
     * XMLBIF (which is also supported by Weka)
-    
+
 
 
 ### supported problems
@@ -52,12 +52,9 @@ classification with discrete feature values
  * Incomplete data
  * Inference
    * Cowell algorithm
-   * Stochastic simulation (sampling)
    * Importance sampling
-   * MCMC sampling (approximate inference)
-   * Gibbs sampling
+   * Gibbs sampling (approximate inference, a kind of MCMC sampling)
    * Markov blanket sampling
-   * Rejection sampling
    * Likelihood weighting
    * Exact propagation (Gaussian Bayesian networks)
  * Latent variables

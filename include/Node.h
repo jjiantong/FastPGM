@@ -51,7 +51,7 @@ class Node {
   void RemoveParent(Node *);
   void GenParCombs();
 
-  int SampleNodeGiven(Combination evidence);
+  int SampleNodeGivenParents(Combination evidence);
 };
 
 
