@@ -292,16 +292,6 @@ Factor Network::SumProductVarElim(vector<Factor> factors_list, int *Z, int nz) {
 Factor Network::VarElimInferReturnPossib(int *Z, int nz, Combination E, Node *Y) {
   // Z is the array of variable elimination order.
   // E is the evidences.
-  // todo: Fix the bug.
-  //       There maybe some bugs when
-  //       the target node is not the root
-  //       and the variable elimination order do not start at root.
-  //       For example:  A --> B --> C
-  //       When given the markov blanket, which is "{B}", of node "C",
-  //       there is no need to calculate the other nodes, which is "{A}".
-  //       However, when using this function,
-  //       the parent of parent of this node, which is "A",
-  //       still appears in the constructed factor of the parent which is "B".
   vector<Factor> factorsList = ConstructFactors(Z, nz, Y);
 
   //--------------------------------------------------------------------------------
@@ -319,7 +309,7 @@ Factor Network::VarElimInferReturnPossib(int *Z, int nz, Combination E, Node *Y)
   //--------------------------------------------------------------------------------
 
 
-  LoadEvidence(&factorsList, E, all_related_vars);  // todo: the bug may be caused by this line.
+  LoadEvidence(&factorsList, E, all_related_vars);
   Factor F = SumProductVarElim(factorsList, Z, nz);
   F.Normalize();
   return F;
@@ -532,46 +522,6 @@ vector<Combination> Network::DrawSamplesByGibbsSamp(int num_samp, int num_burn_i
       }
     }
 
-
-
-
-
-
-
-
-
-
-
-
-    // todo : delete
-    string string_to_write = "";
-    for (auto &var_and_val : single_sample) {
-      // The following codes should not use "+=", because the order matters.
-      if(var_and_val.first==0) {
-        string label = var_and_val.second==1 ? "+1" : "-1";
-        string_to_write = label + " " + string_to_write;
-      } else {
-        if (var_and_val.second!=0) {
-          string_to_write = string_to_write
-                            + to_string(var_and_val.first) + ":"
-                            + to_string(var_and_val.second) + " ";
-        }
-      }
-    }
-    fprintf(stdout, "[%d]  ", node_ptr->GetNodeIndex());
-    fprintf(stdout, "%s\n", string_to_write.c_str());
-
-
-
-
-
-
-
-
-
-
-
-
     // After burning in, we can store the samples now.
     if (i>=num_burn_in) {samples.push_back(single_sample);}
   }
@@ -589,11 +539,7 @@ int Network::SampleNodeGivenMarkovBlanketReturnValIndex(Node *node_ptr, Combinat
     var_elim_ord[temp++] = n_v.first;
   }
 
-  // todo: fix bug here
   Factor f = VarElimInferReturnPossib(var_elim_ord, num_elim_ord, markov_blanket, node_ptr);
-
-
-
 
   vector<int> weights;
   for (int i=0; i<node_ptr->num_potential_vals; ++i) {
@@ -601,21 +547,6 @@ int Network::SampleNodeGivenMarkovBlanketReturnValIndex(Node *node_ptr, Combinat
     temp.insert(pair<int,int>(node_ptr->GetNodeIndex(),node_ptr->potential_vals[i]));
     weights.push_back(f.map_potentials[temp]*10000);
   }
-
-
-  // todo: delete
-  fprintf(stdout,"[%d]  ", node_ptr->GetNodeIndex());
-  for (auto w:weights) {
-    fprintf(stdout,"%d  ", w);
-  }
-  fprintf(stdout,"\n");
-
-
-
-
-
-
-
 
   unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
   default_random_engine rand_gen(seed);

@@ -69,7 +69,7 @@ TEST_F(NetworkTest, DISABLED_approx_inference_accuracy) {
 }
 
 TEST_F(NetworkTest, gibbs_samples_to_libsvm_file) {
-  vector<Combination> samples = network->DrawSamplesByGibbsSamp(1000,10000);
+  vector<Combination> samples = network->DrawSamplesByGibbsSamp(10000,1000000);
   trainer->SamplesToLIBSVMFile(samples,"./gibbs_samples_to_LIBSVM_file.txt");
 
   Trainer *trn_samp = new Trainer();
