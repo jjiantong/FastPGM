@@ -90,6 +90,12 @@ As a benchmark,
  * SVM implemented by me using Python achieves accuracy of **0.8286**
  * Logistic regression achieves accuracy of **0.8332**
  * sklearn.naive_bayes.BernoulliNB achieves accuracy of **0.7935**
+ * Weka
+   * logistic regression: **0.832181**
+   * SMO: **83.8254**
+   * BayesNet: **0.774809** (in fact, weka simply learns a naive Bayes according to the output of network structure)
+   * NaiveBayes: **0.803269**
+   * RandomForest: **0.828886**
  
 My bayesian network using **Chow-Liu Tree** and **variable elimination inference**
 Consumed time and accuracy for the whose process on "a1a" (load data -> train -> test)
