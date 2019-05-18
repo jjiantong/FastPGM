@@ -44,11 +44,11 @@ class Node {
 
   Node();
   int GetNodeIndex();
-  void SetNodeIndex(int);
-  void AddChild(Node *);
-  void AddParent(Node *);
-  void RemoveChild(Node *);
-  void RemoveParent(Node *);
+  void SetNodeIndex(int index);
+  void AddChild(Node *node_ptr);
+  void AddParent(Node *node_ptr);
+  void RemoveChild(Node *node_ptr);
+  void RemoveParent(Node *node_ptr);
   void GenParCombs();
 
   int SampleNodeGivenParents(Combination evidence);

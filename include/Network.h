@@ -35,34 +35,34 @@ class Network {
 
   void PrintNetworkStruct();
 
-  Node* FindNodePtrByIndex(int);
+  Node* FindNodePtrByIndex(int index);
 
-  Node* FindNodePtrByName(string);
+  Node* FindNodePtrByName(string name);
 
   virtual void StructLearnCompData(Trainer *) = 0;
 
   void LearnParmsKnowStructCompData(const Trainer *);
 
   void SetParentChild(int, int);
-  void SetParentChild(Node *, Node *);
+  void SetParentChild(Node *par, Node *chi);
 
   void RemoveParentChild(int, int);
-  void RemoveParentChild(Node *, Node *);
+  void RemoveParentChild(Node *par, Node *chi);
 
   vector<int> GenTopoOrd();
 
   virtual pair<int*, int> SimplifyDefaultElimOrd(Combination) = 0;
 
-  Combination ConstructEvidence(int *, int *, int);
+  Combination ConstructEvidence(int *nodes_indexes, int *observations, int num_of_observations);
 
-  vector<Factor> ConstructFactors(int *, int, Node *);
+  vector<Factor> ConstructFactors(int *Z, int nz, Node *Y);
   void LoadEvidence(vector<Factor> *factors_list, Combination E,  set<int> all_related_vars);
 
   Factor SumProductVarElim(vector<Factor>, int *, int);
   Factor VarElimInferReturnPossib(int *elim_ord, int num_elim_ord, Combination evidence, Node *target);
   Factor VarElimInferReturnPossib(Combination evidence, Node *target);
 
-  int PredictUseVarElimInfer(int *, int, Combination, int);
+  int PredictUseVarElimInfer(int *Z, int nz, Combination E, int Y_index);
   int PredictUseVarElimInfer(Combination, int);
 
   double TestNetReturnAccuracy(Trainer *);
