@@ -23,9 +23,11 @@ Developed by Linjian Li, using Clion 2018.3.1
           5. Compare the CPD of each node in the new and old Chow-Liu trees
           6. Observe that the CPD of two tree are VERY similar
       * Rejection sampling
+      * MCMC sampling
+        * Gibbs sampling **(todo: verify the correctness of the implementation)**
   * Construct custom network from files
     * XMLBIF (which is also supported by Weka)
-    
+
 
 
 ### supported problems
@@ -52,12 +54,8 @@ classification with discrete feature values
  * Incomplete data
  * Inference
    * Cowell algorithm
-   * Stochastic simulation (sampling)
    * Importance sampling
-   * MCMC sampling (approximate inference)
-   * Gibbs sampling
    * Markov blanket sampling
-   * Rejection sampling
    * Likelihood weighting
    * Exact propagation (Gaussian Bayesian networks)
  * Latent variables

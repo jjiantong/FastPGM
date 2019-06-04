@@ -195,17 +195,40 @@ vector<Factor> Network::ConstructFactors(int *Z, int nz, Node *Y) {
 }
 
 
-void Network::LoadEvidence(vector<Factor> *factors_list, Combination E) {
+void Network::LoadEvidence(vector<Factor> *factors_list, Combination E, set<int> all_related_vars) {
   for (auto &f : *factors_list) {  // For each factor
     for (auto &e : E) {  // For each node's observation in E
-      if (f.related_variables.find(e.first)!=f.related_variables.end()) {  // If this factor is related to this node
-        for (auto &comb : f.set_combinations) {  // Update each row of map_potentials
+      // If this factor is related to this node
+      if (f.related_variables.find(e.first)!=f.related_variables.end()) {
+        // Update each row of map_potentials
+        for (auto &comb : f.set_combinations) {
+          // If this entry is not compatible to the evidence.
           if (comb.find(e)==comb.end()) {
             f.map_potentials[comb] = 0;
           }
         }
       }
     }
+
+    //--------------------------------------------------------------------------------
+    // This block is to fix the bug occurring when the target node
+    // is not the root and the variable elimination order do not start at root.
+    // For example:  A --> B --> C
+    // When given the markov blanket, which is "{B}", of node "C",
+    // there is no need to calculate the other nodes, which is "{A}".
+    // However, when using this function,
+    // the parent of parent of this node, which is "A",
+    // still appears in the constructed factor of the parent which is "B".
+    // todo: check correctness
+    set<int> related_vars_of_f = f.related_variables;
+    for (auto &v : related_vars_of_f) {
+      if (all_related_vars.find(v)==all_related_vars.end()) {
+        f.CopyFactor(f.SumOverVar(v));
+      }
+    }
+    //--------------------------------------------------------------------------------
+
+
   }
 }
 
@@ -267,8 +290,26 @@ Factor Network::SumProductVarElim(vector<Factor> factors_list, int *Z, int nz) {
 
 
 Factor Network::VarElimInferReturnPossib(int *Z, int nz, Combination E, Node *Y) {
+  // Z is the array of variable elimination order.
+  // E is the evidences.
   vector<Factor> factorsList = ConstructFactors(Z, nz, Y);
-  LoadEvidence(&factorsList, E);
+
+  //--------------------------------------------------------------------------------
+  // This block is to fix the bug occurring when the target node
+  // is not the root and the variable elimination order do not start at root.
+  // For example:  A --> B --> C
+  // When given the markov blanket, which is "{B}", of node "C",
+  // there is no need to calculate the other nodes, which is "{A}".
+  // However, when using this function,
+  // the parent of parent of this node, which is "A",
+  // still appears in the constructed factor of the parent which is "B".
+  set<int> all_related_vars;
+  all_related_vars.insert(Y->GetNodeIndex());
+  for (int i=0; i<nz; ++i) {all_related_vars.insert(Z[i]);}
+  //--------------------------------------------------------------------------------
+
+
+  LoadEvidence(&factorsList, E, all_related_vars);
   Factor F = SumProductVarElim(factorsList, Z, nz);
   F.Normalize();
   return F;
@@ -353,6 +394,7 @@ double Network::TestNetReturnAccuracy(Trainer *tester) {
 
 double Network::TestNetByApproxInferReturnAccuracy(Trainer *tester, int num_samp) {
 
+  // implement by Gibbs sampling
   cout << "=======================================================================" << '\n'
        << "Begin testing the trained network." << endl;
 
@@ -360,7 +402,7 @@ double Network::TestNetByApproxInferReturnAccuracy(Trainer *tester, int num_samp
 
   int num_of_correct=0, num_of_wrong=0, m=tester->num_train_instance, m20=m/20, percent=0;
 
-  vector<Combination> samples = this->DrawSamples(10000);
+  vector<Combination> samples = this->DrawSamplesByProbLogiSamp(10000);
 
   for (int i=0; i<m; i++) {  // For each sample in test set
 
@@ -392,26 +434,124 @@ double Network::TestNetByApproxInferReturnAccuracy(Trainer *tester, int num_samp
 
 
 Combination Network::ProbLogicSampleNetwork() {
-  // todo: implement
   if (topo_ord.empty()) {
     this->GenTopoOrd();
   }
   Combination instance;
   for (auto &index : topo_ord) {
     Node *n_p = FindNodePtrByIndex(index);
-    instance.insert(pair<int,int>(index,n_p->SampleNodeGiven(instance)));
+    instance.insert(pair<int,int>(index, n_p->SampleNodeGivenParents(instance)));
   }
   return instance;
 }
 
 
-vector<Combination> Network::DrawSamples(int num_samp) {
+vector<Combination> Network::DrawSamplesByProbLogiSamp(int num_samp) {
   vector<Combination> samples;
   samples.reserve(num_samp);
   for (int i=0; i<num_samp; ++i) {
     samples.push_back(this->ProbLogicSampleNetwork());
   }
   return samples;
+}
+
+
+set<int> Network::GetMarkovBlanketIndexesOfNode(Node *node_ptr) {
+  //todo : check correctness
+  set<int> markov_blanket_node_index;
+
+  // Add parents.
+  for (auto &par_ptr : node_ptr->set_parents_ptrs) {
+    markov_blanket_node_index.insert(par_ptr->GetNodeIndex());
+  }
+
+  // Add children and parents of children.
+  for (auto &chil_ptr : node_ptr->set_children_ptrs) {
+    markov_blanket_node_index.insert(chil_ptr->GetNodeIndex());
+    for (auto &par_chil_ptr : chil_ptr->set_parents_ptrs) {
+      markov_blanket_node_index.insert(par_chil_ptr->GetNodeIndex());
+    }
+  }
+
+
+  markov_blanket_node_index.erase(node_ptr->GetNodeIndex());
+
+  return markov_blanket_node_index;
+}
+
+
+vector<Combination> Network::DrawSamplesByGibbsSamp(int num_samp, int num_burn_in) {
+  // todo: check correctness
+
+  vector<Combination> samples;
+  samples.reserve(num_samp);
+
+  Combination single_sample = this->ProbLogicSampleNetwork();
+
+  auto it_node = this->set_node_ptr_container.begin();
+
+
+  // Burning in.
+  for (int i=1; i<num_burn_in+num_samp; ++i) {
+
+    Node *node_ptr = *(it_node++);
+    if (it_node==set_node_ptr_container.end()) {
+      it_node = this->set_node_ptr_container.begin();
+    }
+
+    set<int> markov_blanket_node_index = GetMarkovBlanketIndexesOfNode(node_ptr);
+
+    Combination markov_blanket;
+    for (auto &p : single_sample) {
+      if (markov_blanket_node_index.find(p.first)
+          !=
+          markov_blanket_node_index.end()) {
+        markov_blanket.insert(p);
+      }
+    }
+
+    int value_index =
+            SampleNodeGivenMarkovBlanketReturnValIndex(node_ptr,markov_blanket);
+
+    for (auto p : single_sample) {
+      if (p.first == node_ptr->GetNodeIndex()) {
+        single_sample.erase(p);
+        p.second = node_ptr->potential_vals[value_index];
+        single_sample.insert(p);
+        break;
+      }
+    }
+
+    // After burning in, we can store the samples now.
+    if (i>=num_burn_in) {samples.push_back(single_sample);}
+  }
+
+  return samples;
+}
+
+
+int Network::SampleNodeGivenMarkovBlanketReturnValIndex(Node *node_ptr, Combination markov_blanket) {
+  // todo: check correctness
+  int num_elim_ord = markov_blanket.size();
+  int *var_elim_ord = new int[num_elim_ord];
+  int temp = 0;
+  for (auto &n_v : markov_blanket) {
+    var_elim_ord[temp++] = n_v.first;
+  }
+
+  Factor f = VarElimInferReturnPossib(var_elim_ord, num_elim_ord, markov_blanket, node_ptr);
+
+  vector<int> weights;
+  for (int i=0; i<node_ptr->num_potential_vals; ++i) {
+    Combination temp;
+    temp.insert(pair<int,int>(node_ptr->GetNodeIndex(),node_ptr->potential_vals[i]));
+    weights.push_back(f.map_potentials[temp]*10000);
+  }
+
+  unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+  default_random_engine rand_gen(seed);
+  discrete_distribution<int> this_distribution(weights.begin(),weights.end());
+  return this_distribution(rand_gen);
 }
 
 
@@ -443,6 +583,7 @@ int Network::ApproxInferByProbLogiRejectSamp(Combination e, Node *node, vector<C
     return node->potential_vals[this_distribution(rand_gen)];
   }
 
+  // Find the argmax.
   int lable_index_predict = -1;
   int max_occurred = 0;
   for (int i=0; i<node->num_potential_vals; ++i) {

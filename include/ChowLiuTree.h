@@ -33,14 +33,14 @@ class ChowLiuTree : public Network {
    *   It is just the reverse order of topological sorting using width-first-traversal start at the root node.
    */
   int *default_elim_ord;
-  double ComputeMutualInformation(Node *, Node *, const Trainer *);
-  void StructLearnCompData(Trainer *);
-  void StructLearnChowLiuTreeCompData(Trainer *);
+  double ComputeMutualInformation(Node *Xi, Node *Xj, const Trainer *trainer);
+  void StructLearnCompData(Trainer *trainer);
+  void StructLearnChowLiuTreeCompData(Trainer *trainer);
 
-  pair<int*, int> SimplifyDefaultElimOrd(Combination) override;
-  pair<int*, int> SimplifyTreeDefaultElimOrd(Combination);
-  void DepthFirstTraversalUntillMeetObserved(Combination, int, set<int> &, set<int> &);
-  void DepthFirstTraversalToRemoveMSeparatedNodes(int, set<int> &, set<int> &);
+  pair<int*, int> SimplifyDefaultElimOrd(Combination evidence) override;
+  pair<int*, int> SimplifyTreeDefaultElimOrd(Combination evidence);
+  void DepthFirstTraversalUntillMeetObserved(Combination evidence, int start, set<int>& visited, set<int>& to_be_removed);
+  void DepthFirstTraversalToRemoveMSeparatedNodes(int start, set<int>& visited, set<int>& to_be_removed);
 
 };
 

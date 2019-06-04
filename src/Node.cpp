@@ -33,11 +33,19 @@ void Node::AddChild(Node *c) {
 
 
 void Node::RemoveChild(Node *c) {
+  if (set_children_ptrs.find(c)==set_children_ptrs.end()) {
+    fprintf(stderr, "Node #%d does not have parent node #%d!", this->GetNodeIndex, c->GetNodeIndex);
+    return;
+  }
   set_children_ptrs.erase(c);
 }
 
 
 void Node::RemoveParent(Node *p) {
+  if (set_children_ptrs.find(c)==set_children_ptrs.end()) {
+    fprintf(stderr, "Node #%d does not have parent node #%d!", this->GetNodeIndex, c->GetNodeIndex);
+    return;
+  }
   set_parents_ptrs.erase(p);
 }
 
@@ -66,10 +74,9 @@ void Node::GenParCombs() {
 }
 
 
-int Node::SampleNodeGiven(Combination evidence) {
+int Node::SampleNodeGivenParents(Combination evidence) {
   // The evidence should contain all parents of this node.
-  // The evidence about other nodes (including children) are ignored.
-  // todo: implement
+  // The evidence about other nodes (including children) are IGNORED!!!
   set<int> set_par_indexes;
   for (auto &par : set_parents_ptrs) {
     set_par_indexes.insert(par->GetNodeIndex());
