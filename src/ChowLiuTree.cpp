@@ -76,6 +76,7 @@ void ChowLiuTree::StructLearnChowLiuTreeCompData(Trainer *trainer) {
   cout << "=======================================================================" << '\n'
        << "Begin structural learning. \nConstructing Chow-Liu tree with complete data......" << endl;
   num_nodes = trainer->num_vars;
+  // Assign an index for each node.
   for (int i=0; i<num_nodes; ++i) {
     Node *node_ptr = new Node();
     node_ptr->SetNodeIndex(i);
@@ -161,7 +162,7 @@ void ChowLiuTree::StructLearnChowLiuTreeCompData(Trainer *trainer) {
     markSet.insert(maxJ);
     graphAdjacencyMatrix[maxI][maxJ] = graphAdjacencyMatrix[maxJ][maxI] = 1;
   }
-  // Add arrows in tree, set parents and childrens
+  // Add arrows in tree, set parents and children
   int* topologicalSortedPermutation = WidthFirstTraversalWithAdjacencyMatrix(graphAdjacencyMatrix, n, 0);
 
 

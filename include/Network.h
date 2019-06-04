@@ -58,15 +58,15 @@ class Network {
   vector<Factor> ConstructFactors(int *Z, int nz, Node *Y);
   void LoadEvidence(vector<Factor> *factors_list, Combination E,  set<int> all_related_vars);
 
-  Factor SumProductVarElim(vector<Factor>, int *, int);
+  Factor SumProductVarElim(vector<Factor> factors_list, int *Z, int nz);
   Factor VarElimInferReturnPossib(int *elim_ord, int num_elim_ord, Combination evidence, Node *target);
   Factor VarElimInferReturnPossib(Combination evidence, Node *target);
 
   int PredictUseVarElimInfer(int *Z, int nz, Combination E, int Y_index);
-  int PredictUseVarElimInfer(Combination, int);
+  int PredictUseVarElimInfer(Combination E, int Y_index);
 
-  double TestNetReturnAccuracy(Trainer *);
-  double TestNetByApproxInferReturnAccuracy(Trainer *, int);
+  double TestNetReturnAccuracy(Trainer *tester);
+  double TestNetByApproxInferReturnAccuracy(Trainer *tester, int num_samp);
 
 
   // Probabilistic logic sampling is a method

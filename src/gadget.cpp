@@ -154,6 +154,7 @@ vector<string> Split(string &s, string delimiter) {
 }
 
 int FactorialForSmallInteger(int n) {
+  if (n<0) { return -1; }
   int result = 1;
   while (n>0) {
     result *= n--;
@@ -162,6 +163,7 @@ int FactorialForSmallInteger(int n) {
 }
 
 double LogOfFactorial(int n) {
+  if (n<0) { return -1; }
   double result = 0;
   while (n>1) {
     result += log(n--);
@@ -185,6 +187,7 @@ vector<vector<int>> NaryCount(vector<int> vec_range_each_digit) {
   // The left-most digit is the most significant digit.
   // The domain of each digit start at 0,
   // so the max value of this digit is one smaller than the range.
+  
   // While it does not overflow.
   while (single_count[0]<vec_range_each_digit[0]) {
     result_counts.push_back(single_count);

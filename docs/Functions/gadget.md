@@ -43,7 +43,7 @@ print( EachFirstIsInSecond(fir_1, sec_1),
 ```
 Output
 ```
-truefalsefalse
+true false false
 ```
 
 ## bool FirstCompatibleSecond(Combination \*first, Combination \*second)
@@ -83,5 +83,74 @@ Example (pseudocode)
 ```
 Output
 ```
-truefalsetruetruefalsetrue
+true false true true false true
+```
+
+## bool Conflict(Combination \*, Combination \*)
+Input: two `Combination`s
+
+Output: false (if they have different values on the same variable)
+        true (else)
+
+
+## int\* WidthFirstTraversalWithAdjacencyMatrix(int \*\*graph, int num_nodes, int start)
+Input: graph:2-d array representation of the adjacency matrix of the graph
+       num_nodes: number of nodes in the graph
+       start: the index of the starting node
+
+Output: an array containing the node indexes in the order of width-first traversal
+
+## vector<int> TopoSortOfDAGZeroInDegreeFirst(int \*\*graph, int num_nodes)
+Input: graph:2-d array representation of the adjacency matrix of the graph
+       num_nodes: number of nodes in the graph
+
+Output: an array containing the node indexes in the topological sorted order
+
+## string TrimRight(string)
+Trim all `\t`, `\n`, `\r` and whitespace characters on the right of a string.
+
+## string TrimLeft(string)
+Trim all `\t`, `\n`, `\r` and whitespace characters on the left of a string.
+
+## string Trim(string)
+`TrimRight` and `TrimLeft`.
+
+
+## vector<string> Split(string &s, string delimiter)
+Split the string into a `vector` of strings by the delimiter.
+
+
+## int FactorialForSmallInteger(int)
+As the name suggests.
+
+## double LogOfFactorial(int)
+Input: an non-negative integer
+
+Output: the log of the factorial of the integer
+
+## vector<vector<int>> NaryCount(vector<int> vec_range_each_digit)
+N-ary count given the range of each digit. The left-most digit is the most significant digit. The domain of each digit start at 0, so the max value of this digit is one smaller than the range.
+
+Example (pseudocode)
+```
+digit_210 = [2, 2, 3]
+counts = NaryCount(digit_210)
+print(counts)
+```
+Output:
+```
+[
+  [0, 0, 0],
+  [0, 0, 1],
+  [0, 0, 2],
+  [0, 1, 0],
+  [0, 1, 1],
+  [0, 1, 2],
+  [1, 0, 0],
+  [1, 0, 1],
+  [1, 0, 2],
+  [1, 1, 0],
+  [1, 1, 1],
+  [1, 1, 2]
+]
 ```

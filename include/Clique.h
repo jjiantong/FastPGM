@@ -33,8 +33,8 @@ class Clique {
   Clique *ptr_upstream_clique;
 
   Clique() = default;
-  Clique(set<Node*>);
-  void InitializeClique(set<Node*>);
+  Clique(set<Node*> set_node_ptrs);
+  void InitializeClique(set<Node*> set_node_ptrs);
   Factor Collect();
   void Distribute();
   void Distribute(Factor);

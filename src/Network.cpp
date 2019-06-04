@@ -394,7 +394,7 @@ double Network::TestNetReturnAccuracy(Trainer *tester) {
 
 double Network::TestNetByApproxInferReturnAccuracy(Trainer *tester, int num_samp) {
 
-  // todo: implement by Gibbs sampling
+  // implement by Gibbs sampling
   cout << "=======================================================================" << '\n'
        << "Begin testing the trained network." << endl;
 
@@ -583,6 +583,7 @@ int Network::ApproxInferByProbLogiRejectSamp(Combination e, Node *node, vector<C
     return node->potential_vals[this_distribution(rand_gen)];
   }
 
+  // Find the argmax.
   int lable_index_predict = -1;
   int max_occurred = 0;
   for (int i=0; i<node->num_potential_vals; ++i) {

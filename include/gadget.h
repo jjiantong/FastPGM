@@ -20,17 +20,17 @@ set<Combination> GenAllCombFromSets(set<Combination> *);
 bool EachFirstIsInSecond(Combination *, Combination *);
 bool FirstCompatibleSecond(Combination *, Combination *);
 bool Conflict(Combination *, Combination *);
-int* WidthFirstTraversalWithAdjacencyMatrix(int **, int, int);
-vector<int> TopoSortOfDAGZeroInDegreeFirst(int **, int);
+int* WidthFirstTraversalWithAdjacencyMatrix(int **graph, int num_nodes, int start);
+vector<int> TopoSortOfDAGZeroInDegreeFirst(int **graph, int num_nodes);
 
 string TrimRight(string);
 string TrimLeft(string);
 string Trim(string &);
-vector<string> Split(string &, string);
+vector<string> Split(string &s, string delimiter);
 
 int FactorialForSmallInteger(int);
 double LogOfFactorial(int);
 
-vector<vector<int>> NaryCount(vector<int>);
+vector<vector<int>> NaryCount(vector<int> vec_range_each_digit);
 
 #endif //BAYESIANNETWORK_GADGET_H
