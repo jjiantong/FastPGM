@@ -13,6 +13,13 @@ ScoreFunction::ScoreFunction(Network *net, Trainer *trn) {
   }
 }
 
+
+double ScoreFunction::LogLikelihoodForNode(Node *node_ptr) {
+  return LogLikelihoodForNode(node_ptr, net, trn);
+}
+
+
+
 double ScoreFunction::LogLikelihoodForNode(Node *node_ptr, Network *net, Trainer *trn) {
   // todo: check the correctness
 
@@ -59,6 +66,12 @@ double ScoreFunction::LogLikelihoodForNode(Node *node_ptr, Network *net, Trainer
   }
   return log_likelihood;
 }
+
+
+double ScoreFunction::LogLikelihood() {
+  return LogLikelihood(net,trn);
+}
+
 
 double ScoreFunction::LogLikelihood(Network *net, Trainer *trn) {
   // todo: check the correctness
@@ -209,8 +222,8 @@ double ScoreFunction::LogK2(Network *net, Trainer *trn) {
 
 }
 
-double ScoreFunction::BDeu() {
-  return LogBDeu(net,trn,10);
+double ScoreFunction::BDeu(int equi_sample_size) {
+  return LogBDeu(net,trn,equi_sample_size);
 }
 
 double ScoreFunction::BDeu(Network *net, Trainer *trn, int equi_sample_size) {

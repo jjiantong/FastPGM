@@ -14,6 +14,11 @@ void Factor::SetMembers(set<int> related_variables,
 }
 
 
+void Factor::CopyFactor(Factor F) {
+  this->SetMembers(F.related_variables, F.set_combinations, F.map_potentials);
+}
+
+
 Factor::Factor(Node *node) {
   ConstructFactor(node);
 }

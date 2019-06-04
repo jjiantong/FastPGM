@@ -68,13 +68,13 @@ TEST_F(NetworkTest, DISABLED_approx_inference_accuracy) {
   EXPECT_EQ(1,2);
 }
 
-TEST_F(NetworkTest, DISABLED_samples_to_libsvm_file) {
-  vector<Combination> samples = network->DrawSamples(10000);
-  trainer->SamplesToLIBSVMFile(samples,"./samples_to_LIBSVM_file.txt");
+TEST_F(NetworkTest, gibbs_samples_to_libsvm_file) {
+  vector<Combination> samples = network->DrawSamplesByGibbsSamp(10000,1000000);
+  trainer->SamplesToLIBSVMFile(samples,"./gibbs_samples_to_LIBSVM_file.txt");
 
   Trainer *trn_samp = new Trainer();
   Network *net_samp = new ChowLiuTree();
-  trn_samp->LoadLIBSVMDataAutoDetectConfig("./samples_to_LIBSVM_file.txt");
+  trn_samp->LoadLIBSVMDataAutoDetectConfig("./gibbs_samples_to_LIBSVM_file.txt");
   net_samp->StructLearnCompData(trn_samp);
   net_samp->LearnParmsKnowStructCompData(trn_samp);
 
@@ -166,7 +166,7 @@ TEST_F(NetworkTest, DISABLED_sampling_node) {
   e.insert(pair<int,int>(0,-1));
   int count_0 = 0;
   for (int i=0; i<10000; ++i) {
-    if(0==n_39->SampleNodeGiven(e)) {
+    if(0== n_39->SampleNodeGivenParents(e)) {
       ++count_0;
     }
   }

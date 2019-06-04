@@ -1,0 +1,113 @@
+<?XML VERSION="1.0"?>
+
+
+<!--
+	Bayesian network in BIF (BayesNet Interchange Format)
+	Produced by JavaBayes (http://www.cs.cmu.edu/~javabayes/
+	Output created Fri Nov 14 13:13:21 GMT+00:00 1997
+-->
+
+
+
+<!-- DTD for the BIF format -->
+<!DOCTYPE BIF [
+	<!ELEMENT BIF ( NETWORK )*>
+	<!ELEMENT PROPERTY (#PCDATA)>
+	<!ELEMENT TYPE (#PCDATA)>
+	<!ELEMENT VALUE (#PCDATA)>
+	<!ELEMENT NAME (#PCDATA)>
+	<!ELEMENT NETWORK
+		( NAME, ( PROPERTY | VARIABLE | PROBABILITY )* )>
+	<!ELEMENT VARIABLE ( NAME, TYPE, ( VALUE |  PROPERTY )* ) >
+	<!ELEMENT PROBABILITY
+		( FOR | GIVEN | TABLE | ENTRY | DEFAULT | PROPERTY )* >
+	<!ELEMENT FOR (#PCDATA)>
+	<!ELEMENT GIVEN (#PCDATA)>
+	<!ELEMENT TABLE (#PCDATA)>
+	<!ELEMENT DEFAULT (TABLE)>
+	<!ELEMENT ENTRY ( VALUE* , TABLE )>
+]>
+
+
+<BIF>
+<NETWORK>
+<NAME>Dog-Problem</NAME>
+
+<!-- Variables -->
+<VARIABLE>
+	<NAME>light-on</NAME>
+	<TYPE>discrete</TYPE>
+	<VALUE>true</VALUE>
+	<VALUE>false</VALUE>
+	<PROPERTY>position = (218, 195)</PROPERTY>
+</VARIABLE>
+
+<VARIABLE>
+	<NAME>bowel-problem</NAME>
+	<TYPE>discrete</TYPE>
+	<VALUE>true</VALUE>
+	<VALUE>false</VALUE>
+	<PROPERTY>position = (335, 99)</PROPERTY>
+</VARIABLE>
+
+<VARIABLE>
+	<NAME>dog-out</NAME>
+	<TYPE>discrete</TYPE>
+	<VALUE>true</VALUE>
+	<VALUE>false</VALUE>
+	<PROPERTY>position = (300, 195)</PROPERTY>
+</VARIABLE>
+
+<VARIABLE>
+	<NAME>hear-bark</NAME>
+	<TYPE>discrete</TYPE>
+	<VALUE>true</VALUE>
+	<VALUE>false</VALUE>
+	<PROPERTY>position = (296, 268)</PROPERTY>
+</VARIABLE>
+
+<VARIABLE>
+	<NAME>family-out</NAME>
+	<TYPE>discrete</TYPE>
+	<VALUE>true</VALUE>
+	<VALUE>false</VALUE>
+	<PROPERTY>position = (257, 99)</PROPERTY>
+</VARIABLE>
+
+
+<!-- Probability distributions -->
+<PROBABILITY>
+	<FOR>light-on</FOR>
+	<GIVEN>family-out</GIVEN>
+	<TABLE>0.6 0.05 0.4 0.95 </TABLE>
+</PROBABILITY>
+
+<PROBABILITY>
+	<FOR>bowel-problem</FOR>
+	<TABLE>0.01 0.99 </TABLE>
+</PROBABILITY>
+
+<PROBABILITY>
+	<FOR>dog-out</FOR>
+	<GIVEN>bowel-problem</GIVEN>
+	<GIVEN>family-out</GIVEN>
+	<TABLE>0.99 0.97 0.9 0.3 0.01 0.03 0.1 0.7 </TABLE>
+</PROBABILITY>
+
+<!-- add a link from "family-out" to "hear-bark" -->
+<!-- "family-out" does not acutally change the probability distribution -->
+<PROBABILITY>
+	<FOR>hear-bark</FOR>
+	<GIVEN>dog-out</GIVEN>
+	<GIVEN>family-out</GIVEN>
+	<!--<TABLE>0.7 0.01 0.3 0.99 </TABLE>-->
+	<TABLE>0.7 0.7 0.01 0.01 0.3 0.3 0.99 0.99</TABLE>
+</PROBABILITY>
+
+<PROBABILITY>
+	<FOR>family-out</FOR>
+	<TABLE>0.15 0.85 </TABLE>
+</PROBABILITY>
+
+</NETWORK>
+</BIF>

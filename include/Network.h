@@ -35,45 +35,49 @@ class Network {
 
   void PrintNetworkStruct();
 
-  Node* FindNodePtrByIndex(int);
+  Node* FindNodePtrByIndex(int index);
 
-  Node* FindNodePtrByName(string);
+  Node* FindNodePtrByName(string name);
 
   virtual void StructLearnCompData(Trainer *) = 0;
 
   void LearnParmsKnowStructCompData(const Trainer *);
 
   void SetParentChild(int, int);
-  void SetParentChild(Node *, Node *);
+  void SetParentChild(Node *par, Node *chi);
 
   void RemoveParentChild(int, int);
-  void RemoveParentChild(Node *, Node *);
+  void RemoveParentChild(Node *par, Node *chi);
 
   vector<int> GenTopoOrd();
 
   virtual pair<int*, int> SimplifyDefaultElimOrd(Combination) = 0;
 
-  Combination ConstructEvidence(int *, int *, int);
+  Combination ConstructEvidence(int *nodes_indexes, int *observations, int num_of_observations);
 
-  vector<Factor> ConstructFactors(int *, int, Node *);
-  void LoadEvidence(vector<Factor> *, Combination);
+  vector<Factor> ConstructFactors(int *Z, int nz, Node *Y);
+  void LoadEvidence(vector<Factor> *factors_list, Combination E,  set<int> all_related_vars);
 
-  Factor SumProductVarElim(vector<Factor>, int *, int);
-  Factor VarElimInferReturnPossib(int *, int, Combination, Node *);
-  Factor VarElimInferReturnPossib(Combination, Node *);
+  Factor SumProductVarElim(vector<Factor> factors_list, int *Z, int nz);
+  Factor VarElimInferReturnPossib(int *elim_ord, int num_elim_ord, Combination evidence, Node *target);
+  Factor VarElimInferReturnPossib(Combination evidence, Node *target);
 
-  int PredictUseVarElimInfer(int *, int, Combination, int);
-  int PredictUseVarElimInfer(Combination, int);
+  int PredictUseVarElimInfer(int *Z, int nz, Combination E, int Y_index);
+  int PredictUseVarElimInfer(Combination E, int Y_index);
 
-  double TestNetReturnAccuracy(Trainer *);
-  double TestNetByApproxInferReturnAccuracy(Trainer *, int);
+  double TestNetReturnAccuracy(Trainer *tester);
+  double TestNetByApproxInferReturnAccuracy(Trainer *tester, int num_samp);
 
 
   // Probabilistic logic sampling is a method
   // proposed by Max Henrion at 1988.
   Combination ProbLogicSampleNetwork();
 
-  vector<Combination> DrawSamples(int num_samp);
+  set<int> GetMarkovBlanketIndexesOfNode(Node *node_ptr);
+  int SampleNodeGivenMarkovBlanketReturnValIndex(Node *node_ptr, Combination markov_blanket);
+
+  vector<Combination> DrawSamplesByProbLogiSamp(int num_samp);
+  vector<Combination> DrawSamplesByGibbsSamp(int num_samp, int num_burn_in);
 
   int ApproxInferByProbLogiRejectSamp(Combination e, Node *node, vector<Combination> &samples);
   int ApproxInferByProbLogiRejectSamp(Combination e, int node_index, vector<Combination> &samples);
