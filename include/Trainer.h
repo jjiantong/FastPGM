@@ -39,7 +39,7 @@ class Trainer {
   // incomp_data_expectation;
 
   Trainer();
-  void LoadLIBSVMDataAutoDetectConfig(string);
+  void LoadLIBSVMDataAutoDetectConfig(string data_file_path);
   void ConvertVectorDatasetIntoArrayDataset();
 
   void SamplesToLIBSVMFile(vector<Combination> &samples, string file);

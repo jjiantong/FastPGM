@@ -25,8 +25,8 @@
 class ScoreFunction {
  public:
 
-  ScoreFunction(Network*, Trainer*);
-  double LogLikelihoodForNode(Node*);
+  ScoreFunction(Network *net, Trainer *trn);
+  double LogLikelihoodForNode(Node *node_ptr);
   double LogLikelihood();
   double K2();
   double BDe();

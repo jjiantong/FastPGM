@@ -28,9 +28,9 @@ class CustomNetwork : public Network {
   CustomNetwork() = default;
 
   void StructLearnCompData(Trainer *);
-  pair<int*, int> SimplifyDefaultElimOrd(Combination) override;
+  pair<int*, int> SimplifyDefaultElimOrd(Combination evidence) override;
 
-  void GetNetFromXMLBIFFile(string);
+  void GetNetFromXMLBIFFile(string file_path);
 
 };
 

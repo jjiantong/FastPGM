@@ -5,7 +5,7 @@
 #include "CustomNetwork.h"
 
 void CustomNetwork::StructLearnCompData(Trainer *) {
-
+  return;
 }
 
 

@@ -124,6 +124,8 @@ Split the string into a `vector` of strings by the delimiter.
 As the name suggests.
 
 ## double LogOfFactorial(int)
+The reason to us log is that the factorial value may be huge causing overflow while the log may not.
+
 Input: an non-negative integer
 
 Output: the log of the factorial of the integer
