@@ -33,7 +33,7 @@ XMLBIFParser::XMLBIFParser(string &file) {
   LoadFile(file);
 }
 
-vector<Node*> XMLBIFParser::GetUnconnectedNodes() {
+vector<Node*> XMLBIFParser::GetUnconnectedNodes() const {
   if (!xml_network_ptr) {
     fprintf(stderr, "Error in function %s! nullptr!", __FUNCTION__);
     exit(1);

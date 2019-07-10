@@ -297,7 +297,7 @@ void JunctionTree::MessagePassingUpdateJT() {
   arb_root->Distribute();
 }
 
-void JunctionTree::PrintAllCliquesPotentials() {
+void JunctionTree::PrintAllCliquesPotentials() const {
   cout << "Cliques" << '\n';
   for (auto &c : set_clique_ptr_container) {
     c->PrintPotentials();
@@ -305,7 +305,7 @@ void JunctionTree::PrintAllCliquesPotentials() {
   cout << "=======================================================================" << endl;
 }
 
-void JunctionTree::PrintAllSeparatorsPotentials() {
+void JunctionTree::PrintAllSeparatorsPotentials() const {
   cout << "Separators" << '\n';
   for (auto &s : set_separator_ptr_container) {
     s->PrintPotentials();

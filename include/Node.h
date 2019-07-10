@@ -43,7 +43,7 @@ class Node {
   map<int, double>  map_marg_prob_table;
 
   Node();
-  int GetNodeIndex();
+  int GetNodeIndex() const;
   void SetNodeIndex(int index);
   void AddChild(Node *node_ptr);
   void AddParent(Node *node_ptr);

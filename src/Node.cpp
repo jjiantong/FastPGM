@@ -8,7 +8,7 @@
 Node::Node() {}
 
 
-int Node::GetNodeIndex() {
+int Node::GetNodeIndex() const {
   return node_index;
 }
 
@@ -34,7 +34,7 @@ void Node::AddChild(Node *c) {
 
 void Node::RemoveChild(Node *c) {
   if (set_children_ptrs.find(c)==set_children_ptrs.end()) {
-    fprintf(stderr, "Node #%d does not have parent node #%d!", this->GetNodeIndex, c->GetNodeIndex);
+    fprintf(stderr, "Node #%d does not have parent node #%d!", this->GetNodeIndex(), c->GetNodeIndex());
     return;
   }
   set_children_ptrs.erase(c);
@@ -43,7 +43,7 @@ void Node::RemoveChild(Node *c) {
 
 void Node::RemoveParent(Node *p) {
   if (set_children_ptrs.find(c)==set_children_ptrs.end()) {
-    fprintf(stderr, "Node #%d does not have parent node #%d!", this->GetNodeIndex, c->GetNodeIndex);
+    fprintf(stderr, "Node #%d does not have parent node #%d!", this->GetNodeIndex(), c->GetNodeIndex());
     return;
   }
   set_parents_ptrs.erase(p);

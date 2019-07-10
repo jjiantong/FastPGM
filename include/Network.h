@@ -32,12 +32,13 @@ class Network {
   vector<int> topo_ord;
 
   Network() = default;
+  virtual ~Network();
 
   void PrintNetworkStruct();
 
-  Node* FindNodePtrByIndex(int index);
+  Node* FindNodePtrByIndex(int index) const;
 
-  Node* FindNodePtrByName(string name);
+  Node* FindNodePtrByName(string name) const;
 
   virtual void StructLearnCompData(Trainer *) = 0;
 

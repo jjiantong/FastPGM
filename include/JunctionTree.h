@@ -36,8 +36,8 @@ class JunctionTree {
   void LoadEvidence(Combination);
   void MessagePassingUpdateJT();
 
-  void PrintAllCliquesPotentials();
-  void PrintAllSeparatorsPotentials();
+  void PrintAllCliquesPotentials() const;
+  void PrintAllSeparatorsPotentials() const;
 
   Factor BeliefPropagationReturnPossib(set<int>&);
   int InferenceUsingBeliefPropagation(set<int>&);

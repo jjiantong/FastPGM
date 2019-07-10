@@ -34,7 +34,7 @@ class Factor {
   Factor SumOverVar(int);
   void Normalize();
 
-  void PrintPotentials();
+  void PrintPotentials() const;
 };
 
 

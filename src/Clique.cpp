@@ -121,7 +121,7 @@ Factor Clique::ConstructMessage() {
 }
 
 
-void Clique::PrintPotentials() {
+void Clique::PrintPotentials() const {
   for (auto &potentials_key_value : map_potentials) {
     for (auto &vars_index_value : potentials_key_value.first) {
       cout << '(' << vars_index_value.first << ',' << vars_index_value.second << ") ";

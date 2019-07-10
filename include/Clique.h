@@ -42,7 +42,7 @@ class Clique {
   void MultiplyWithFactorSumOverExternalVars(Factor);
   virtual void UpdateUseMessage(Factor);
   virtual Factor ConstructMessage();
-  void PrintPotentials();
+  void PrintPotentials() const;
 
 };
 

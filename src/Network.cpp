@@ -15,7 +15,7 @@ void Network::PrintNetworkStruct() {
   }
 }
 
-Node* Network::FindNodePtrByIndex(int index) {
+Node* Network::FindNodePtrByIndex(int index) const {
   if (index<0 || index>num_nodes) {
     fprintf(stderr, "Error in function %s! \nInvalid index!", __FUNCTION__);
     exit(1);
@@ -31,7 +31,7 @@ Node* Network::FindNodePtrByIndex(int index) {
 }
 
 
-Node* Network::FindNodePtrByName(string name) {
+Node* Network::FindNodePtrByName(string name) const {
   Node* node_ptr = nullptr;
   for (auto n_ptr : set_node_ptr_container) {
     if (n_ptr->node_name==name) {

@@ -101,7 +101,7 @@ void Trainer::ConvertVectorDatasetIntoArrayDataset() {
 }
 
 
-void Trainer::SamplesToLIBSVMFile(vector<Combination> &samples, string file) {
+void Trainer::SamplesToLIBSVMFile(vector<Combination> &samples, string file) const {
   FILE *f;
   f = fopen(file.c_str(), "w");
 
