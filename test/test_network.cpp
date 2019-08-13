@@ -125,7 +125,7 @@ TEST_F(NetworkTest,DISABLED_var_elim_and_jun_tree) { // The prefix "DISABLED" di
 }
 
 
-TEST_F(NetworkTest, DISABLED_jun_tree_accuracy) {
+TEST_F(NetworkTest, jun_tree_accuracy) {
   auto *jt = new JunctionTree(network);
   double accuracy = jt->TestNetReturnAccuracy(0,tester);
   EXPECT_GT(accuracy,0.6);

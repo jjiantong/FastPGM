@@ -32,7 +32,7 @@ class Network {
   vector<int> topo_ord;
 
   Network() = default;
-  virtual ~Network();
+  virtual ~Network() = default;
 
   void PrintNetworkStruct();
 
