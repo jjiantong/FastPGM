@@ -16,6 +16,10 @@
 #include <iostream>
 #include <random>
 #include <chrono>
+#include <sys/time.h>
+#include <locale.h>
+#include "omp.h"
+
 
 using namespace std;
 
@@ -32,9 +36,10 @@ class Network {
   vector<int> topo_ord;
 
   Network() = default;
-  virtual ~Network();
+  virtual ~Network() = default;
 
-  void PrintNetworkStruct();
+  void PrintEachNodeParents();
+  void PrintEachNodeChildren();
 
   Node* FindNodePtrByIndex(int index) const;
 

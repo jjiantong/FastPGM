@@ -42,8 +42,8 @@ void Node::RemoveChild(Node *c) {
 
 
 void Node::RemoveParent(Node *p) {
-  if (set_children_ptrs.find(c)==set_children_ptrs.end()) {
-    fprintf(stderr, "Node #%d does not have parent node #%d!", this->GetNodeIndex(), c->GetNodeIndex());
+  if (set_children_ptrs.find(p)==set_parents_ptrs.end()) {
+    fprintf(stderr, "Node #%d does not have parent node #%d!", this->GetNodeIndex(), p->GetNodeIndex());
     return;
   }
   set_parents_ptrs.erase(p);

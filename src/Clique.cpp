@@ -54,6 +54,20 @@ Factor Clique::Collect() {
 
 void Clique::Distribute() {
   Factor f = ConstructMessage();
+
+  // Store the pointers in an array to make use of OpenMP.
+//  int num_neighbours = set_neighbours_ptr.size();
+//  Clique** arr_neighbours_ptr_container = new Clique*[num_neighbours];
+//  auto iter_nei_ptr = set_neighbours_ptr.begin();
+//  for (int i=0; i<num_neighbours; ++i) {
+//    arr_neighbours_ptr_container[i] = *(iter_nei_ptr++);
+//  }
+//  #pragma omp parallel for
+//  for (int i=0; i<num_neighbours; ++i) {
+//    auto &separator = arr_neighbours_ptr_container[i];
+//    separator->Distribute(f);
+//  }
+
   for (auto &sep : set_neighbours_ptr) {
     sep->Distribute(f);
   }

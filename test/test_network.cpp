@@ -59,8 +59,15 @@ TEST(OtherTest,DISABLED_usablity_of_gtest) {
   EXPECT_EQ(tgamma(6),FactorialForSmallInteger(5));
 }
 
-TEST_F(NetworkTest,DISABLED_chow_liu_tree_var_elim_accuracy) { // The prefix "DISABLED" disable this test.
+TEST_F(NetworkTest, chow_liu_tree_var_elim_accuracy) { // The prefix "DISABLED" disable this test.
   network->TestNetReturnAccuracy(tester);
+  ScoreFunction sf(network, trainer);
+  cout << "Scores\n"
+       << "LogLikelihood: " << sf.LogLikelihood()  << '\n'
+       << "AIC: " <<  sf.AIC() << '\n'
+       << "BIC: " <<  sf.BIC() << '\n'
+       << "K2: " <<  sf.K2()  << '\n'
+       << "BDeu: " <<  sf.BDeu() << endl;
 }
 
 TEST_F(NetworkTest, DISABLED_approx_inference_accuracy) {
@@ -68,7 +75,7 @@ TEST_F(NetworkTest, DISABLED_approx_inference_accuracy) {
   EXPECT_EQ(1,2);
 }
 
-TEST_F(NetworkTest, gibbs_samples_to_libsvm_file) {
+TEST_F(NetworkTest, DISABLED_gibbs_samples_to_libsvm_file) {
   vector<Combination> samples = network->DrawSamplesByGibbsSamp(10000,1000000);
   trainer->SamplesToLIBSVMFile(samples,"./gibbs_samples_to_LIBSVM_file.txt");
 
@@ -125,8 +132,15 @@ TEST_F(NetworkTest,DISABLED_var_elim_and_jun_tree) { // The prefix "DISABLED" di
 }
 
 
-TEST_F(NetworkTest, DISABLED_jun_tree_accuracy) {
+TEST_F(NetworkTest, jun_tree_accuracy) {
   auto *jt = new JunctionTree(network);
+  ScoreFunction sf(network, trainer);
+  cout << "Scores\n"
+       << "LogLikelihood: " << sf.LogLikelihood()  << '\n'
+       << "AIC: " <<  sf.AIC() << '\n'
+       << "BIC: " <<  sf.BIC() << '\n'
+       << "K2: " <<  sf.K2()  << '\n'
+       << "BDeu: " <<  sf.BDeu() << endl;
   double accuracy = jt->TestNetReturnAccuracy(0,tester);
   EXPECT_GT(accuracy,0.6);
 }

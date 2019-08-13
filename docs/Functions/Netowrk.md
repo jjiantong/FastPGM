@@ -1,6 +1,6 @@
 # class Network
 
-## void PrintNetworkStruct();
+## void PrintEachNodeParents();
 Print the network structure. Each line corresponds to a node and its parents.
 
 Example (pseudocode)
@@ -13,7 +13,7 @@ Network structure as
 | A | ---> | B | ---> | C |
 +---+      +---+      +---+
 
-PrintNetworkStruct()
+PrintEachNodeParents()
 ```
 Output
 ```

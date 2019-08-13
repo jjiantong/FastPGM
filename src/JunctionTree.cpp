@@ -5,6 +5,11 @@
 #include "JunctionTree.h"
 
 JunctionTree::JunctionTree(Network *net) {
+
+  struct timeval start, end;
+  double diff;
+  gettimeofday(&start,NULL);
+
   network = net;
   int **direc_adjac_matrix = ConvertDAGNetworkToAdjacencyMatrix(network);
   Moralize(direc_adjac_matrix, network->num_nodes);
@@ -18,6 +23,13 @@ JunctionTree::JunctionTree(Network *net) {
   FormJunctionTree(set_clique_ptr_container);
   AssignPotentials();
   BackUpJunctionTree();
+
+  gettimeofday(&end,NULL);
+  diff = (end.tv_sec-start.tv_sec) + ((double)(end.tv_usec-start.tv_usec))/1.0E6;
+  setlocale(LC_NUMERIC, "");
+  cout << "=======================================================================" << '\n'
+       << "The time spent to construct junction tree is " << diff << " seconds" << endl;
+
 }
 
 
@@ -41,6 +53,7 @@ int** JunctionTree::ConvertDAGNetworkToAdjacencyMatrix(Network *net) {
 
 
 void JunctionTree::Moralize(int **direc_adjac_matrix, int &num_nodes) {
+//  #pragma omp parallel for collapse(2)
   for (int i=0; i<num_nodes; ++i) {
     for (int j=0; j<num_nodes; ++j) {
       if (direc_adjac_matrix[i][j]==1 || direc_adjac_matrix[j][i]==1) {
@@ -367,19 +380,26 @@ int JunctionTree::InferenceUsingBeliefPropagation(set<int> &indexes) {
 }
 
 double JunctionTree::TestNetReturnAccuracy(int class_var, Trainer *tst) {
+  // todo: the accuracy is 0, solve the problem.
   set<int> query;
   query.insert(class_var);
   cout << "=======================================================================" << '\n'
        << "Begin testing the trained network." << endl;
 
+  struct timeval start, end;
+  double diff;
+  gettimeofday(&start,NULL);
+
   cout << "Progress indicator: ";
 
-  int num_of_correct=0, num_of_wrong=0, m=tst->num_train_instance, m10=m/10, percent=0;
-
+  int num_of_correct=0, num_of_wrong=0, m=tst->num_train_instance, m20=m/20, percent=0;
+//  #pragma omp parallel for
   for (int i=0; i<m; i++) {  // For each sample in test set
 
-    if (i%m10==0) {
-      cout << (percent++)*10 << "%... " << flush;
+    if (i % m20 == 0) {
+      cout << percent * 5 << "%... " << flush;
+      if ((percent * 5) % 50 == 0) { cout << endl; }
+      ++percent;
     }
 
 
@@ -394,12 +414,20 @@ double JunctionTree::TestNetReturnAccuracy(int class_var, Trainer *tst) {
     MessagePassingUpdateJT();
     int label_predict = InferenceUsingBeliefPropagation(query); // The root node (label) has index of 0.
     if (label_predict == tst->train_set_y[i]) {
-      num_of_correct++;
+      #pragma omp critical
+      { num_of_correct++; }
     } else {
-      num_of_wrong++;
+      #pragma omp critical
+      { num_of_wrong++; }
     }
-    ResetJunctionTree();
   }
+
+  gettimeofday(&end,NULL);
+  diff = (end.tv_sec-start.tv_sec) + ((double)(end.tv_usec-start.tv_usec))/1.0E6;
+  setlocale(LC_NUMERIC, "");
+  cout << "=======================================================================" << '\n'
+       << "The time spent to test the accuracy is " << diff << " seconds" << endl;
+
   double accuracy = num_of_correct / (double)(num_of_correct+num_of_wrong);
   cout << '\n' << "Accuracy: " << accuracy << endl;
   return accuracy;

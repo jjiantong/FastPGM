@@ -5,10 +5,20 @@
 #include "Network.h"
 
 
-void Network::PrintNetworkStruct() {
+void Network::PrintEachNodeParents() {
   for (auto &node_ptr : set_node_ptr_container) {
     cout << node_ptr->GetNodeIndex() << ":\t";
     for (auto &par_node_ptr : node_ptr->set_parents_ptrs) {
+      cout << par_node_ptr->GetNodeIndex() << '\t';
+    }
+    cout << endl;
+  }
+}
+
+void Network::PrintEachNodeChildren() {
+  for (auto &node_ptr : set_node_ptr_container) {
+    cout << node_ptr->GetNodeIndex() << ":\t";
+    for (auto &par_node_ptr : node_ptr->set_children_ptrs) {
       cout << par_node_ptr->GetNodeIndex() << '\t';
     }
     cout << endl;
@@ -65,6 +75,7 @@ vector<int> Network::GenTopoOrd() {
 
   // First, convert the network to a directed adjacency matrix.
   int **graph = new int*[num_nodes];
+  #pragma omp for
   for (int i=0; i<num_nodes; ++i) {graph[i] = new int[num_nodes]();}
   for (auto &n_p : set_node_ptr_container) {
     for (auto &c_p : n_p->set_children_ptrs) {
@@ -87,6 +98,10 @@ void Network::LearnParmsKnowStructCompData(const Trainer *trainer){
   cout << "=======================================================================" << '\n'
        << "Begin learning parameters with known structure and complete data." << endl;
 
+  struct timeval start, end;
+  double diff;
+  gettimeofday(&start,NULL);
+
   // The 0-th node is the root which is the label node.
   Node *label_node = FindNodePtrByIndex(0);
   map<int, double> *MPT = &(label_node->map_marg_prob_table);
@@ -101,42 +116,53 @@ void Network::LearnParmsKnowStructCompData(const Trainer *trainer){
     (*MPT)[query] /= denominator;
   }
 
-  // For every feature node.
-  for (int i=1; i<trainer->num_vars; ++i) { // Because feature index start at 1.
-                                                     // Using "train_set_y_X".
-    Node *this_node = FindNodePtrByIndex(i);
+  int num_cores = omp_get_num_procs();
+  omp_set_num_threads(num_cores);
+  int max_work_per_thread = (trainer->num_vars-1+num_cores-1)/num_cores;
+  #pragma omp parallel
+  {
+    // For every feature node.
+    for (int i =  max_work_per_thread*omp_get_thread_num()+1;  // Because feature index start at 1 using "train_set_y_X".
+         i < max_work_per_thread*(omp_get_thread_num()+1)+1 && i < trainer->num_vars;
+         ++i) {
+//    for (int i=1; i<trainer->num_vars; ++i) {
 
-    map<int, map<Combination, double> >* CPT = &(this_node->map_cond_prob_table);
-    set<Combination>* ptr_set_par_combs = &(this_node->set_parents_combinations);
-    for (auto &par_comb : *ptr_set_par_combs) {    // For each column in CPT. Because the sum over column of CPT must be 1.
-      int denominator = 0;
-      for (int s=0; s<trainer->num_train_instance; ++s) {
-        int compatibility = 1;  // We assume compatibility is 1,
-                               // and set it to 0 if we find that (*it_par_comb) is not compatible with (trainer->train_set[s]).
-                               // If we support learning with incomplete data,
-                               // the compatibility can be between 0 and 1.
+      Node *this_node = FindNodePtrByIndex(i);
 
-        for (auto &pair_this_node : par_comb) {
-          // int this_node_index = pair_this_node.first;
-          // int this_node_value = pair_this_node.second;
-          if (trainer->train_set_y_X[s][pair_this_node.first] != pair_this_node.second) {
-            compatibility = 0;
-            break;
+      map<int, map<Combination, double> > *CPT = &(this_node->map_cond_prob_table);
+      set<Combination> *ptr_set_par_combs = &(this_node->set_parents_combinations);
+      for (auto &par_comb : *ptr_set_par_combs) {    // For each column in CPT. Because the sum over column of CPT must be 1.
+        int denominator = 0;
+        for (int s = 0; s < trainer->num_train_instance; ++s) {
+          int compatibility = 1;  // We assume compatibility is 1,
+          // and set it to 0 if we find that (*it_par_comb) is not compatible with (trainer->train_set[s]).
+          // If we support learning with incomplete data,
+          // the compatibility can be between 0 and 1.
+
+          for (auto &pair_this_node : par_comb) {
+            // int this_node_index = pair_this_node.first;
+            // int this_node_value = pair_this_node.second;
+            if (trainer->train_set_y_X[s][pair_this_node.first] != pair_this_node.second) {
+              compatibility = 0;
+              break;
+            }
           }
+          denominator += compatibility;
+          int query = trainer->train_set_y_X[s][i];
+          (*CPT)[query][par_comb] += compatibility;
         }
-        denominator += compatibility;
-        int query = trainer->train_set_y_X[s][i];
-        (*CPT)[query][par_comb] += compatibility;
-      }
-      // Normalize so that the sum is 1.
-      for (int j=0; j<this_node->num_potential_vals; ++j) {
-        int query = this_node->potential_vals[j];
-        (*CPT)[query][par_comb] /= denominator;
+        // Normalize so that the sum is 1.
+        for (int j = 0; j < this_node->num_potential_vals; ++j) {
+          int query = this_node->potential_vals[j];
+          (*CPT)[query][par_comb] /= denominator;
+        }
       }
     }
-  }
+  }   // end of: #pragma omp parallel
   cout << "=======================================================================" << '\n'
        << "Finish training with known structure and complete data." << endl;
+
+
 
   // The following code are just to print the result.
   cout << "=======================================================================" << '\n'
@@ -169,6 +195,12 @@ void Network::LearnParmsKnowStructCompData(const Trainer *trainer){
     cout << endl;
 
   }
+
+  gettimeofday(&end,NULL);
+  diff = (end.tv_sec-start.tv_sec) + ((double)(end.tv_usec-start.tv_usec))/1.0E6;
+  setlocale(LC_NUMERIC, "");
+  cout << "=======================================================================" << '\n'
+       << "The time spent to learn the parameters is " << diff << " seconds" << endl;
 }
 
 
@@ -196,40 +228,53 @@ vector<Factor> Network::ConstructFactors(int *Z, int nz, Node *Y) {
 
 
 void Network::LoadEvidence(vector<Factor> *factors_list, Combination E, set<int> all_related_vars) {
-  for (auto &f : *factors_list) {  // For each factor
-    for (auto &e : E) {  // For each node's observation in E
-      // If this factor is related to this node
-      if (f.related_variables.find(e.first)!=f.related_variables.end()) {
-        // Update each row of map_potentials
-        for (auto &comb : f.set_combinations) {
-          // If this entry is not compatible to the evidence.
-          if (comb.find(e)==comb.end()) {
-            f.map_potentials[comb] = 0;
+
+  // I do not know why this function cannot use omp to parallel.
+  // If I set number of threads more than 1, the accuracy will decrease!
+
+//  int num_cores = omp_get_num_procs();
+//  omp_set_num_threads(num_cores);
+//  int max_work_per_thread = (factors_list->size()+num_cores-1)/num_cores;
+//  #pragma omp parallel
+  {
+//    for (int i = omp_get_thread_num() * max_work_per_thread;
+//         i < (omp_get_thread_num()+1) * max_work_per_thread && i < factors_list->size();
+//         ++i) {
+    for (int i=0; i<factors_list->size(); ++i) {
+      Factor &f = factors_list->at(i);   // For each factor. "std::vector::at" returns reference.
+      for (auto &e : E) {  // For each node's observation in E
+        // If this factor is related to this node
+        if (f.related_variables.find(e.first) != f.related_variables.end()) {
+          // Update each row of map_potentials
+          for (auto &comb : f.set_combinations) {
+            // If this entry is not compatible to the evidence.
+            if (comb.find(e) == comb.end()) {
+              f.map_potentials[comb] = 0;
+            }
           }
         }
       }
-    }
 
-    //--------------------------------------------------------------------------------
-    // This block is to fix the bug occurring when the target node
-    // is not the root and the variable elimination order do not start at root.
-    // For example:  A --> B --> C
-    // When given the markov blanket, which is "{B}", of node "C",
-    // there is no need to calculate the other nodes, which is "{A}".
-    // However, when using this function,
-    // the parent of parent of this node, which is "A",
-    // still appears in the constructed factor of the parent which is "B".
-    // todo: check correctness
-    set<int> related_vars_of_f = f.related_variables;
-    for (auto &v : related_vars_of_f) {
-      if (all_related_vars.find(v)==all_related_vars.end()) {
-        f.CopyFactor(f.SumOverVar(v));
+      //--------------------------------------------------------------------------------
+      // This block is to fix the bug occurring when the target node
+      // is not the root and the variable elimination order do not start at root.
+      // For example:  A --> B --> C
+      // When given the markov blanket of node "C", which is "{B}",
+      // there is no need to calculate the other nodes, which is "{A}".
+      // However, when using this function,
+      // the parent of parent of this node, which is "A",
+      // still appears in the constructed factor of the parent which is "B".
+      // todo: check correctness
+      set<int> related_vars_of_f = f.related_variables;
+      for (auto &v : related_vars_of_f) {
+        if (all_related_vars.find(v) == all_related_vars.end()) {
+          f.CopyFactor(f.SumOverVar(v));
+        }
       }
+      //--------------------------------------------------------------------------------
     }
-    //--------------------------------------------------------------------------------
 
-
-  }
+  }   // end of: #pragma omp parallel
 }
 
 
@@ -360,32 +405,50 @@ double Network::TestNetReturnAccuracy(Trainer *tester) {
   cout << "=======================================================================" << '\n'
        << "Begin testing the trained network." << endl;
 
+  struct timeval start, end;
+  double diff;
+  gettimeofday(&start,NULL);
+
   cout << "Progress indicator: ";
 
-  int num_of_correct=0, num_of_wrong=0, m=tester->num_train_instance, m10=m/10, percent=0;
+  int num_of_correct=0, num_of_wrong=0, m=tester->num_train_instance, m20=m/20, percent=0;
 
-  for (int i=0; i<m; i++) {  // For each sample in test set
-
-    if (i%m10==0) {
-      cout << (percent++)*10 << "%... " << flush;
+//  int num_cores = omp_get_num_procs();
+//  omp_set_num_threads(num_cores);
+  // For each sample in test set
+  #pragma omp parallel for
+  for (int i=0; i<m; ++i) {
+    if (i % m20 == 0) {
+      cout << percent * 5 << "%... " << flush;
+      if ((percent * 5) % 50 == 0) { cout << endl; }
+      ++percent;
     }
 
 
     // For now, only support complete data.
-    int e_num=num_nodes-1, *e_index=new int[e_num], *e_value=new int[e_num];
-    for (int j=0; j<e_num; ++j) {
-      e_index[j] = j+1;
+    int e_num = num_nodes - 1, *e_index = new int[e_num], *e_value = new int[e_num];
+    for (int j = 0; j < e_num; ++j) {
+      e_index[j] = j + 1;
       e_value[j] = tester->train_set_X[i][j];
     }
     Combination E = ConstructEvidence(e_index, e_value, e_num);
     int label_predict = PredictUseVarElimInfer(E, 0); // The root node (label) has index of 0.
     if (label_predict == tester->train_set_y[i]) {
-      num_of_correct++;
+      #pragma omp critical
+      { num_of_correct++; }
     } else {
-      num_of_wrong++;
+      #pragma omp critical
+      { num_of_wrong++; }
     }
 
   }
+
+  gettimeofday(&end,NULL);
+  diff = (end.tv_sec-start.tv_sec) + ((double)(end.tv_usec-start.tv_usec))/1.0E6;
+  setlocale(LC_NUMERIC, "");
+  cout << "=======================================================================" << '\n'
+       << "The time spent to test the accuracy is " << diff << " seconds" << endl;
+
   double accuracy = num_of_correct / (double)(num_of_correct+num_of_wrong);
   cout << '\n' << "Accuracy: " << accuracy << endl;
   return accuracy;
@@ -404,6 +467,7 @@ double Network::TestNetByApproxInferReturnAccuracy(Trainer *tester, int num_samp
 
   vector<Combination> samples = this->DrawSamplesByProbLogiSamp(10000);
 
+//  #pragma omp parallel for
   for (int i=0; i<m; i++) {  // For each sample in test set
 
     if (i%m20==0) {
@@ -438,9 +502,13 @@ Combination Network::ProbLogicSampleNetwork() {
     this->GenTopoOrd();
   }
   Combination instance;
-  for (auto &index : topo_ord) {
+  // todo: check the correctness of parallel by omp
+  for (int i=0; i<topo_ord.size(); ++i) {
+    auto &index = topo_ord.at(i);
     Node *n_p = FindNodePtrByIndex(index);
-    instance.insert(pair<int,int>(index, n_p->SampleNodeGivenParents(instance)));
+    int drawn_value = n_p->SampleNodeGivenParents(instance);
+    #pragma omp critical
+    { instance.insert(pair<int,int>(index, drawn_value)); }
   }
   return instance;
 }
@@ -491,7 +559,8 @@ vector<Combination> Network::DrawSamplesByGibbsSamp(int num_samp, int num_burn_i
   auto it_node = this->set_node_ptr_container.begin();
 
 
-  // Burning in.
+  // Need burning in.
+//  #pragma omp parallel for
   for (int i=1; i<num_burn_in+num_samp; ++i) {
 
     Node *node_ptr = *(it_node++);
@@ -523,7 +592,8 @@ vector<Combination> Network::DrawSamplesByGibbsSamp(int num_samp, int num_burn_i
     }
 
     // After burning in, we can store the samples now.
-    if (i>=num_burn_in) {samples.push_back(single_sample);}
+    #pragma omp critical
+    { if (i>=num_burn_in) {samples.push_back(single_sample);} }
   }
 
   return samples;

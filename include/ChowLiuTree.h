@@ -15,6 +15,9 @@
 #include <vector>
 #include <cmath>
 #include <iostream>
+#include <sys/time.h>
+#include <locale.h>
+#include "omp.h"
 
 using namespace std;
 

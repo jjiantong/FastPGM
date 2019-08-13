@@ -68,7 +68,17 @@ double ChowLiuTree::ComputeMutualInformation(Node *Xi, Node *Xj, const Trainer *
 
 
 void ChowLiuTree::StructLearnCompData(Trainer *trainer) {
+  struct timeval start, end;
+  double diff;
+  gettimeofday(&start,NULL);
+
   StructLearnChowLiuTreeCompData(trainer);
+
+  gettimeofday(&end,NULL);
+  diff = (end.tv_sec-start.tv_sec) + ((double)(end.tv_usec-start.tv_usec))/1.0E6;
+  setlocale(LC_NUMERIC, "");
+  cout << "=======================================================================" << '\n'
+       << "The time spent to construct Chow-Liu tree is " << diff << " seconds" << endl;
 }
 
 
@@ -77,20 +87,21 @@ void ChowLiuTree::StructLearnChowLiuTreeCompData(Trainer *trainer) {
        << "Begin structural learning. \nConstructing Chow-Liu tree with complete data......" << endl;
   num_nodes = trainer->num_vars;
   // Assign an index for each node.
+  #pragma omp parallel for
   for (int i=0; i<num_nodes; ++i) {
     Node *node_ptr = new Node();
     node_ptr->SetNodeIndex(i);
     node_ptr->is_discrete = trainer->is_features_discrete[i];
 
-    if (i==0) {
+    if (i == 0) {
       node_ptr->num_potential_vals = trainer->num_of_possible_values_of_label;
     } else {
       node_ptr->num_potential_vals = trainer->num_of_possible_values_of_features[i];
     }
 
     node_ptr->potential_vals = new int[node_ptr->num_potential_vals];
-    int j=0;
-    if (i==0) {  // The 0-th node_ptr denotes the label node.
+    int j = 0;
+    if (i == 0) {  // The 0-th node_ptr denotes the label node.
       for (auto v : trainer->set_label_possible_values) {
         node_ptr->potential_vals[j++] = v;
       }
@@ -99,8 +110,10 @@ void ChowLiuTree::StructLearnChowLiuTreeCompData(Trainer *trainer) {
         node_ptr->potential_vals[j++] = v;
       }
     }
-
-    set_node_ptr_container.insert(node_ptr);
+    #pragma omp critical
+    {
+      set_node_ptr_container.insert(node_ptr);
+    }
   }
 
   cout << "=======================================================================" << '\n'
@@ -113,6 +126,7 @@ void ChowLiuTree::StructLearnChowLiuTreeCompData(Trainer *trainer) {
   }
 
   // Update the mutual information table.
+  #pragma omp parallel for
   for (int i=0; i<n; i++) {
     for (int j=0; j<i; j++) {
       if (i==j) {
@@ -127,6 +141,7 @@ void ChowLiuTree::StructLearnChowLiuTreeCompData(Trainer *trainer) {
           } else if ((*it)->GetNodeIndex()==j && Xj==nullptr) {
             Xj = *it;
           }
+          if (Xi!=nullptr && Xj!=nullptr) { break; }
         }
         mutualInfoTab[i][j] = mutualInfoTab[j][i] = ComputeMutualInformation(Xi, Xj, trainer);  // Mutual information table is symmetric.
       }
@@ -178,19 +193,21 @@ void ChowLiuTree::StructLearnChowLiuTreeCompData(Trainer *trainer) {
 
   cout << "=======================================================================" << '\n'
        << "Setting children and parents......" << endl;
-  for (int i=0; i<n; i++) {
-    for (int j=0; j<i; j++) {  // graphAdjacencyMatrix is symmetric, so loop while j<i instead of j<n
+  #pragma omp parallel for
+  for (int i=0; i<n; ++i) {
+    for (int j=0; j<i; ++j) {  // graphAdjacencyMatrix is symmetric, so loop while j<i instead of j<n
       if (i==j) continue;
       if (graphAdjacencyMatrix[i][j]==1){
 
         // Determine the topological position of i and j.
         int topoIndexI=-1, topoIndexJ=-1;
-        for (int k=0; k<n; k++) {
+        for (int k=0; k<n; ++k) {
           if (topologicalSortedPermutation[k]==i && topoIndexI==-1) {
             topoIndexI = k;
           } else if (topologicalSortedPermutation[k]==j && topoIndexJ==-1) {
             topoIndexJ = k;
           }
+          if (topoIndexI!=-1 && topoIndexJ!=-1) { break; }
         }
 
         if (topoIndexI<topoIndexJ) {
@@ -204,9 +221,18 @@ void ChowLiuTree::StructLearnChowLiuTreeCompData(Trainer *trainer) {
 
   cout << "=======================================================================" << '\n'
        << "Generating parents combinations for each node......" << endl;
-  for (auto n_ptr : set_node_ptr_container) {
-    n_ptr->GenParCombs();
+
+  // Store the pointers in an array to make use of OpenMP.
+  Node** arr_node_ptr_container = new Node*[num_nodes];
+  auto iter_n_ptr = set_node_ptr_container.begin();
+  for (int i=0; i<num_nodes; ++i) {
+    arr_node_ptr_container[i] = *(iter_n_ptr++);
   }
+  #pragma omp parallel for
+  for (int i=0; i<num_nodes; ++i) {
+    arr_node_ptr_container[i]->GenParCombs();
+  }
+
 
   cout << "=======================================================================" << '\n'
        << "Finish structural learning." << endl;
@@ -214,16 +240,16 @@ void ChowLiuTree::StructLearnChowLiuTreeCompData(Trainer *trainer) {
 
   // The following code are just to print the result.
 
-  cout << "=======================================================================" << '\n'
-       << "The Chow-Liu Tree has the following edges (adjacency matrix): " << endl;
-  for (int l = 0; l < n; ++l) {
-    for (int j = 0; j < n; ++j) {
-      if (graphAdjacencyMatrix[l][j]==1) {
-        cout << '<' << l << ',' << j << '>' << '\t';
-      }
-    }
-    cout << endl;
-  }
+//  cout << "=======================================================================" << '\n'
+//       << "The Chow-Liu Tree has the following edges (adjacency matrix): " << endl;
+//  for (int l = 0; l < n; ++l) {
+//    for (int j = 0; j < n; ++j) {
+//      if (graphAdjacencyMatrix[l][j]==1) {
+//        cout << '<' << l << ',' << j << '>' << '\t';
+//      }
+//    }
+//    cout << endl;
+//  }
 
   cout << "=======================================================================" << '\n'
        << "Topological sorted permutation generated using width-first-traversal: " << endl;
@@ -234,24 +260,12 @@ void ChowLiuTree::StructLearnChowLiuTreeCompData(Trainer *trainer) {
 
   cout << "=======================================================================" << '\n'
        << "Each node's parents: " << endl;
-  for (auto ptr_this_node : set_node_ptr_container) {
-    cout << ptr_this_node->GetNodeIndex() << ":\t";
-    for (auto ptr_par_node : ptr_this_node->set_parents_ptrs) {
-      cout << ptr_par_node->GetNodeIndex() << '\t';
-    }
-    cout << endl;
-  }
+  this->PrintEachNodeParents();
 
-  cout << "=======================================================================" << '\n'
-       << "Each node's children: " << endl;
-  for (auto ptr_this_node : set_node_ptr_container) {
-    cout << ptr_this_node->GetNodeIndex() << ":\t";
-    for (auto ptr_child_node : ptr_this_node->set_children_ptrs) {
-      cout << ptr_child_node->GetNodeIndex() << '\t';
-    }
-    cout << endl;
-  }
-
+//  cout << "=======================================================================" << '\n'
+//       << "Each node's children: " << endl;
+//  this->PrintEachNodeChildren();
+//
 }
 
 
@@ -285,7 +299,7 @@ pair<int*, int> ChowLiuTree::SimplifyTreeDefaultElimOrd(Combination evidence) {
         }
       }
     }
-    if (need_to_be_removed) {to_be_removed.insert(ptr_curr_node->GetNodeIndex());}
+    if (need_to_be_removed) { to_be_removed.insert(ptr_curr_node->GetNodeIndex()); }
   }
 
   // Remove all m-separated nodes.
@@ -296,7 +310,7 @@ pair<int*, int> ChowLiuTree::SimplifyTreeDefaultElimOrd(Combination evidence) {
   int num_of_remain = num_nodes-1-to_be_removed.size();    // The 0-th node is root and do not need to be eliminated.
   int* simplified_order = new int[num_of_remain];
   for (int i=0, j=1; i<num_of_remain; ++i) {    // j=1 because the 0-th node is root.
-    while (to_be_removed.find(j)!=to_be_removed.end()) {++j;}
+    while (to_be_removed.find(j)!=to_be_removed.end()) { ++j; }
     simplified_order[i] = j++;  // "j++" is to move to the next j, or else it will stuck at the first j that is not in "to_be_removed".
   }
 

@@ -70,7 +70,7 @@ void Trainer::LoadLIBSVMDataAutoDetectConfig(string data_file_path) {
   ConvertVectorDatasetIntoArrayDataset();
 
   cout << "Finish loading data. " << '\n'
-       << "Number of training samples: " << num_train_instance << ". \n"
+       << "Number of instances: " << num_train_instance << ". \n"
        << "Number of features (maximum feature index occurred): " << num_feature << ". " << endl;
 
   in_file.close();
