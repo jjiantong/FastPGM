@@ -142,6 +142,7 @@ TEST_F(NetworkTest, jun_tree_accuracy) {
        << "K2: " <<  sf.K2()  << '\n'
        << "BDeu: " <<  sf.BDeu() << endl;
   double accuracy = jt->TestNetReturnAccuracy(0,tester);
+  delete jt;
   EXPECT_GT(accuracy,0.6);
 }
 

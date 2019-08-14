@@ -83,6 +83,7 @@ void Trainer::ConvertVectorDatasetIntoArrayDataset() {
   train_set_y = new int [num_train_instance];
   train_set_X = new int *[num_train_instance];
   train_set_y_X = new int *[num_train_instance];
+//  #pragma omp parallel for
   for (int s=0; s<num_train_instance; ++s) {
     train_set_y[s] = train_set_y_vector[s];
 
@@ -105,6 +106,10 @@ void Trainer::SamplesToLIBSVMFile(vector<Combination> &samples, string file) con
   FILE *f;
   f = fopen(file.c_str(), "w");
 
+//  #pragma omp parallel for
+//  for (int i=0; i<samples.size(); ++i) {
+//    auto &smp = samples.at(i);
+
   for (auto &smp : samples) {
     string string_to_write = "";
 
@@ -121,8 +126,8 @@ void Trainer::SamplesToLIBSVMFile(vector<Combination> &samples, string file) con
         }
       }
     }
-
-    fprintf(f, "%s\n", string_to_write.c_str());
+    #pragma omp critical
+    { fprintf(f, "%s\n", string_to_write.c_str()); }
   }
   fclose(f);
 }

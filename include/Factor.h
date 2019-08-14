@@ -27,7 +27,7 @@ class Factor {
   Factor() = default;
   Factor(Node*);
   void CopyFactor(Factor F);
-  void SetMembers(set<int>, set<Combination>, map<Combination, double>);
+  void SetMembers(set<int> &, set<Combination> &, map<Combination, double> &);
   void ConstructFactor(Node*);
   Factor MultiplyWithFactor(Factor);
   Factor SumOverVar(Node *);

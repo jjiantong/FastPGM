@@ -62,6 +62,13 @@ double ChowLiuTree::ComputeMutualInformation(Node *Xi, Node *Xj, const Trainer *
     }
   }
 
+  delete[] Pi;
+  delete[] Pj;
+  for (int i=0; i<ri; i++) {
+    delete[] Pij[i];
+  }
+  delete[] Pij;
+
   // Return
   return mutualInformation;
 }
@@ -153,7 +160,7 @@ void ChowLiuTree::StructLearnChowLiuTreeCompData(Trainer *trainer) {
 
   // Use Prim's algorithm to generate a spanning tree.
   int** graphAdjacencyMatrix = new int* [n];
-  for (int i=0; i<n; i++) {
+  for (int i=0; i<n; ++i) {
     graphAdjacencyMatrix[i] = new int[n]();
   }
   set<int> markSet;
@@ -166,7 +173,7 @@ void ChowLiuTree::StructLearnChowLiuTreeCompData(Trainer *trainer) {
     maxI = maxJ = -1;
     for (it=markSet.begin(); it!=markSet.end(); it++) {
       int i = *it;
-      for (int j=0; j<n; j++) {
+      for (int j=0; j<n; ++j) {
         if (markSet.find(j)==markSet.end() && mutualInfoTab[i][j]>maxMutualInfo) {
           maxMutualInfo = mutualInfoTab[i][j];
           maxI = i;
@@ -232,6 +239,7 @@ void ChowLiuTree::StructLearnChowLiuTreeCompData(Trainer *trainer) {
   for (int i=0; i<num_nodes; ++i) {
     arr_node_ptr_container[i]->GenParCombs();
   }
+  delete[] arr_node_ptr_container;
 
 
   cout << "=======================================================================" << '\n'
@@ -266,6 +274,16 @@ void ChowLiuTree::StructLearnChowLiuTreeCompData(Trainer *trainer) {
 //       << "Each node's children: " << endl;
 //  this->PrintEachNodeChildren();
 //
+
+  for (int i=0; i<n; i++) {
+    delete[] mutualInfoTab[i];
+  }
+  delete[] mutualInfoTab;
+  for (int i=0; i<n; i++) {
+    delete[] graphAdjacencyMatrix[i];
+  }
+  delete[] graphAdjacencyMatrix;
+  delete[] topologicalSortedPermutation;
 }
 
 

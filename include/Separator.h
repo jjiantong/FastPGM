@@ -8,12 +8,18 @@
 #include "Clique.h"
 
 class Separator : public Clique {
+ protected:
+  Separator(const Separator&) = default;
+
  public:
   int weight;
   map<Combination, double> map_old_potentials;
 
   Separator() = default;
-  Separator(set<Node*>);
+  Separator(int id, set<Node*>);
+
+  Separator* CopyWithoutPtr();
+
   void UpdateUseMessage(Factor) override;
   Factor ConstructMessage() override;
 

@@ -435,10 +435,10 @@ double Network::TestNetReturnAccuracy(Trainer *tester) {
     int label_predict = PredictUseVarElimInfer(E, 0); // The root node (label) has index of 0.
     if (label_predict == tester->train_set_y[i]) {
       #pragma omp critical
-      { num_of_correct++; }
+      { ++num_of_correct; }
     } else {
       #pragma omp critical
-      { num_of_wrong++; }
+      { ++num_of_wrong; }
     }
 
   }
@@ -484,9 +484,9 @@ double Network::TestNetByApproxInferReturnAccuracy(Trainer *tester, int num_samp
     Combination E = ConstructEvidence(e_index, e_value, e_num);
     int label_predict = ApproxInferByProbLogiRejectSamp(E, 0, samples); // The root node (label) has index of 0.
     if (label_predict == tester->train_set_y[i]) {
-      num_of_correct++;
+      ++num_of_correct;
     } else {
-      num_of_wrong++;
+      ++num_of_wrong;
     }
 
   }

@@ -5,12 +5,12 @@
 #include "Factor.h"
 
 
-void Factor::SetMembers(set<int> related_variables,
-               set<Combination> set_combinations,
-               map<Combination, double> map_potentials) {
-  this->related_variables = related_variables;
-  this->map_potentials = map_potentials;
-  this->set_combinations = set_combinations;
+void Factor::SetMembers(set<int> &rv,
+               set<Combination> &sc,
+               map<Combination, double> &mp) {
+  this->related_variables = rv;
+  this->set_combinations = sc;
+  this->map_potentials = mp;
 }
 
 

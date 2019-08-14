@@ -23,6 +23,7 @@ class JunctionTree {
 
   JunctionTree() = default;
   JunctionTree(Network*);
+  JunctionTree(JunctionTree*);
 
   int** ConvertDAGNetworkToAdjacencyMatrix(Network*);
   void Moralize(int**, int&);

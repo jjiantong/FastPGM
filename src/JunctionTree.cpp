@@ -13,7 +13,7 @@ JunctionTree::JunctionTree(Network *net) {
   network = net;
   int **direc_adjac_matrix = ConvertDAGNetworkToAdjacencyMatrix(network);
   Moralize(direc_adjac_matrix, network->num_nodes);
-  int **undirec_adjac_matrix = direc_adjac_matrix;  // Because it has been moralized.
+  int **undirec_adjac_matrix = direc_adjac_matrix;  // Change a name because it has been moralized.
   vector<int> elim_ord = MinNeighbourElimOrd(undirec_adjac_matrix, network->num_nodes);
   Triangulate(network, undirec_adjac_matrix, network->num_nodes, elim_ord, set_clique_ptr_container);
 
@@ -29,9 +29,73 @@ JunctionTree::JunctionTree(Network *net) {
   setlocale(LC_NUMERIC, "");
   cout << "=======================================================================" << '\n'
        << "The time spent to construct junction tree is " << diff << " seconds" << endl;
-
+  delete[] undirec_adjac_matrix;
 }
 
+
+JunctionTree::JunctionTree(JunctionTree *jt) {
+  this->network = jt->network;
+
+
+  // The following block is to initialize the matrices
+  // that are used to record the connections in order to restore them.
+  // --------------------------------------------------------------------------
+  int **seps_that_cliques_connect_to = new int* [jt->set_clique_ptr_container.size()],
+      **cliques_that_seps_connect_to = new int* [jt->set_separator_ptr_container.size()];
+  for (int i=0; i<jt->set_clique_ptr_container.size(); ++i) {
+    seps_that_cliques_connect_to[i] = new int[jt->set_separator_ptr_container.size()]();
+  }
+  for (int i=0; i<jt->set_separator_ptr_container.size(); ++i) {
+    cliques_that_seps_connect_to[i] = new int[jt->set_clique_ptr_container.size()]();
+  }
+  // --------------------------------------------------------------------------
+
+
+  // The following block copy the cliques and separators without connections.
+  // --------------------------------------------------------------------------
+  map<int, Clique*> map_cliques;
+  map<int, Separator*> map_separators;
+
+  for (const auto &c : jt->set_clique_ptr_container) {
+    map_cliques[c->clique_id] = c->CopyWithoutPtr();
+    this->set_clique_ptr_container.insert(map_cliques[c->clique_id]);
+    for (const auto &s_p : c->set_neighbours_ptr) {
+      seps_that_cliques_connect_to[c->clique_id][s_p->clique_id] = 1; // Record the connections.
+    }
+  }
+  int count = 0;
+  for (const auto &s : jt->set_separator_ptr_container) {
+    map_separators[s->clique_id] = s->CopyWithoutPtr();
+    this->set_separator_ptr_container.insert(map_separators[s->clique_id]);
+    for (const auto &c_p : s->set_neighbours_ptr) {
+      cliques_that_seps_connect_to[s->clique_id][c_p->clique_id] = 1; // Record the connections
+    }
+  }
+  // --------------------------------------------------------------------------
+
+
+  // The following block is to restore the connections.
+  // --------------------------------------------------------------------------
+//  #pragma omp parallel for collapse(2)
+  for (int i=0; i<jt->set_clique_ptr_container.size(); ++i) {
+    for (int j=0; j<jt->set_separator_ptr_container.size(); ++j) {
+      if (seps_that_cliques_connect_to[i][j]==1) {
+        map_cliques[i]->set_neighbours_ptr.insert(map_separators[j]);
+      }
+    }
+  }
+//  #pragma omp parallel for collapse(2)
+  for (int i=0; i<jt->set_separator_ptr_container.size(); ++i) {
+    for (int j=0; j<jt->set_clique_ptr_container.size(); ++j) {
+      if (cliques_that_seps_connect_to[i][j]==1) {
+        map_separators[i]->set_neighbours_ptr.insert(map_cliques[j]);
+      }
+    }
+  }
+  // --------------------------------------------------------------------------
+
+  this->BackUpJunctionTree();
+}
 
 
 int** JunctionTree::ConvertDAGNetworkToAdjacencyMatrix(Network *net) {
@@ -112,11 +176,12 @@ void JunctionTree::Triangulate(Network *net,
     set_node_ptrs_to_form_a_clique.insert(net->FindNodePtrByIndex(nei));
   }
 
-  cliques.insert(new Clique(set_node_ptrs_to_form_a_clique));
+  // The "cliques.size()" indicates the clique_id of this clique in this clique tree.
+  cliques.insert(new Clique(cliques.size(), set_node_ptrs_to_form_a_clique));
   
   // Remove the first node in elimination ordering, which has already form a clique.
-  // The node has been removed, so the edges connected to it should be removed too.
   elim_ord.erase(elim_ord.begin());
+  // The node has been removed, so the edges connected to it should be removed too.
   for (auto &nei : set_neighbours) {
     adjac_matrix[first_node_in_elim_ord][nei] = 0;
     adjac_matrix[nei][first_node_in_elim_ord] = 0;
@@ -188,7 +253,7 @@ void JunctionTree::FormJunctionTree(set<Clique*> &cliques) {
         common_related_node_ptrs.insert(network->FindNodePtrByIndex(v));
       }
 
-      Separator *sep = new Separator(common_related_node_ptrs);
+      Separator *sep = new Separator(-1, common_related_node_ptrs);
 
       // Let separator know the two cliques that it connects to.
       sep->set_neighbours_ptr.insert(clique_ptr);
@@ -208,6 +273,8 @@ void JunctionTree::FormJunctionTree(set<Clique*> &cliques) {
       auto iter = sep_ptr->set_neighbours_ptr.begin();
       Clique *clq1 = *iter, *clq2 = *(++iter);
 
+      // If one of the cliques connected
+      // by this separator is in the tree_so_far.
       if (tree_so_far.find(clq1)!=tree_so_far.end()
           &&
           tree_so_far.find(clq2)==tree_so_far.end()
@@ -215,18 +282,21 @@ void JunctionTree::FormJunctionTree(set<Clique*> &cliques) {
           tree_so_far.find(clq1)==tree_so_far.end()
           &&
           tree_so_far.find(clq2)!=tree_so_far.end()) {
+        // And if the weight of this separator is the largest.
         if (max_weight_sep==nullptr || max_weight_sep->weight < sep_ptr->weight) {
           max_weight_sep = sep_ptr;
         }
       }
     }
 
+    max_weight_sep->clique_id = set_separator_ptr_container.size();
     set_separator_ptr_container.insert(max_weight_sep);
     auto iter = max_weight_sep->set_neighbours_ptr.begin();
     Clique *clq1 = *iter, *clq2 = *(++iter);
     tree_so_far.insert(clq1);
     tree_so_far.insert(clq2);
-  }
+
+  }   // end of: while. Until all cliques are in "tree_so_far"
 
   // Now let the cliques to know the separators that they connect to.
   for (auto &sep_ptr : set_separator_ptr_container) {
@@ -285,6 +355,7 @@ void JunctionTree::ResetJunctionTree() {
     *s = map_separators_backup[s];
   }
 }
+
 
 void JunctionTree::LoadEvidence(Combination E) {
   if (E.empty()) {return;}
@@ -380,7 +451,6 @@ int JunctionTree::InferenceUsingBeliefPropagation(set<int> &indexes) {
 }
 
 double JunctionTree::TestNetReturnAccuracy(int class_var, Trainer *tst) {
-  // todo: the accuracy is 0, solve the problem.
   set<int> query;
   query.insert(class_var);
   cout << "=======================================================================" << '\n'
@@ -391,8 +461,8 @@ double JunctionTree::TestNetReturnAccuracy(int class_var, Trainer *tst) {
   gettimeofday(&start,NULL);
 
   cout << "Progress indicator: ";
-
-  int num_of_correct=0, num_of_wrong=0, m=tst->num_train_instance, m20=m/20, percent=0;
+// todo: set correct "m" below
+  int num_of_correct=0, num_of_wrong=0, m=tst->num_train_instance/10, m20=m/20, percent=0;
 //  #pragma omp parallel for
   for (int i=0; i<m; i++) {  // For each sample in test set
 
@@ -410,16 +480,21 @@ double JunctionTree::TestNetReturnAccuracy(int class_var, Trainer *tst) {
       e_value[j] = tst->train_set_X[i][j];
     }
     Combination E = network->ConstructEvidence(e_index, e_value, e_num);
+
+//    auto jt = new JunctionTree(this);
     LoadEvidence(E);
     MessagePassingUpdateJT();
     int label_predict = InferenceUsingBeliefPropagation(query); // The root node (label) has index of 0.
+//    delete jt;
+
     if (label_predict == tst->train_set_y[i]) {
-      #pragma omp critical
-      { num_of_correct++; }
+//      #pragma omp critical
+      { ++num_of_correct; }
     } else {
-      #pragma omp critical
-      { num_of_wrong++; }
+//      #pragma omp critical
+      { ++num_of_wrong; }
     }
+    ResetJunctionTree();
   }
 
   gettimeofday(&end,NULL);

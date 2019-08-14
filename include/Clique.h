@@ -16,10 +16,13 @@
 typedef set< pair<int, int> > Combination;
 
 class Clique {
+ protected:
+  Clique(const Clique&) = default;
+
  public:
 
   bool is_separator = false;
-
+  int clique_id;
   int clique_size;
   set<int> related_variables;
   set<Combination> set_combinations;
@@ -33,8 +36,12 @@ class Clique {
   Clique *ptr_upstream_clique;
 
   Clique() = default;
-  Clique(set<Node*> set_node_ptrs);
-  void InitializeClique(set<Node*> set_node_ptrs);
+  Clique(int id, set<Node*> set_node_ptrs);
+  virtual ~Clique() = default;
+
+  Clique* CopyWithoutPtr();
+
+  void InitializeClique(int id, set<Node*> set_node_ptrs);
   Factor Collect();
   void Distribute();
   void Distribute(Factor);
