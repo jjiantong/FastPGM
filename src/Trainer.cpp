@@ -31,15 +31,17 @@ void Trainer::LoadLIBSVMDataAutoDetectConfig(string data_file_path) {
   // Load data.
   getline(in_file, sample);
   while (!in_file.eof()) {
-    // There is a whitespace at the end of each line of libSVM data set format, which will will cause a bug.
+    // There is a whitespace at the end of each line of
+    // libSVM dataset format, which will cause a bug if we do not trim it.
     sample = TrimRight(sample);
     parsed_sample = Split(sample, " ");
-    it=parsed_sample.begin();
+    it=parsed_sample.begin();   // The label is the first element.
     set_label_possible_values.insert(stoi(*it));
     train_set_y_vector.push_back(stoi(*it));
-    ++it;
+
     vector<pair<int,int>> single_sample_vector;
-    for (/*pass*/ ; it!=parsed_sample.end(); ++it) {
+    for (++it; it!=parsed_sample.end(); ++it) {
+      // Each element is in the form of "feature_index:feature_value".
       parsed_feature = Split(*it, ":");
       index = stoi(parsed_feature[0]);
       value = stoi(parsed_feature[1]);
@@ -61,9 +63,11 @@ void Trainer::LoadLIBSVMDataAutoDetectConfig(string data_file_path) {
   num_of_possible_values_of_features = new int[num_feature];
   num_of_possible_values_of_label = set_label_possible_values.size();
 
-  for (int i=1; i<=num_feature; ++i) {  // Note that the feature indexes start at 1 in LIBSVM.
-    map_feature_possible_values[i].insert(0);  // Because feature of LIBSVM format do not record the value of 0, we need to add it in.
-    num_of_possible_values_of_features[i] = map_feature_possible_values[i].size();
+  for (int i=0; i<num_feature; ++i) {   // Note that the feature indexes start at 1 in LIBSVM.
+
+    // Because features of LIBSVM format do not record the value of 0, we need to add it in.
+    map_feature_possible_values[i+1].insert(0);
+    num_of_possible_values_of_features[i] = map_feature_possible_values[i+1].size();
     is_features_discrete[i] = true; // For now, we can only process discrete features.
   }
 

@@ -19,6 +19,7 @@
 
 class NetworkTest : public ::testing::Test {
  protected:
+
   void SetUp() override {
     trainer = new Trainer();
     tester = new Trainer();
@@ -49,6 +50,12 @@ class NetworkTest : public ::testing::Test {
     network->LearnParmsKnowStructCompData(trainer);
   }
 
+  void TearDown() override {
+//    delete trainer;
+//    delete tester;
+//    delete network;
+  }
+
   Trainer *trainer;
   Trainer *tester;
   Network *network;
@@ -60,7 +67,7 @@ TEST(OtherTest,DISABLED_usablity_of_gtest) {
 }
 
 TEST_F(NetworkTest, chow_liu_tree_var_elim_accuracy) { // The prefix "DISABLED" disable this test.
-  network->TestNetReturnAccuracy(tester);
+  double accuracy = network->TestNetReturnAccuracy(tester);
   ScoreFunction sf(network, trainer);
   cout << "Scores\n"
        << "LogLikelihood: " << sf.LogLikelihood()  << '\n'
@@ -68,6 +75,7 @@ TEST_F(NetworkTest, chow_liu_tree_var_elim_accuracy) { // The prefix "DISABLED" 
        << "BIC: " <<  sf.BIC() << '\n'
        << "K2: " <<  sf.K2()  << '\n'
        << "BDeu: " <<  sf.BDeu() << endl;
+  EXPECT_GT(accuracy,0.8);
 }
 
 TEST_F(NetworkTest, DISABLED_approx_inference_accuracy) {
@@ -143,7 +151,7 @@ TEST_F(NetworkTest, jun_tree_accuracy) {
        << "BDeu: " <<  sf.BDeu() << endl;
   double accuracy = jt->TestNetReturnAccuracy(0,tester);
   delete jt;
-  EXPECT_GT(accuracy,0.6);
+  EXPECT_GT(accuracy,0.7);
 }
 
 TEST_F(NetworkTest, DISABLED_score_usability) {

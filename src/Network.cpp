@@ -410,8 +410,8 @@ double Network::TestNetReturnAccuracy(Trainer *tester) {
   gettimeofday(&start,NULL);
 
   cout << "Progress indicator: ";
-
-  int num_of_correct=0, num_of_wrong=0, m=tester->num_train_instance, m20=m/20, percent=0;
+  // todo: set "m" to correct value
+  int num_of_correct=0, num_of_wrong=0, m=tester->num_train_instance/100, m20=m/20, percent=0;
 
 //  int num_cores = omp_get_num_procs();
 //  omp_set_num_threads(num_cores);
@@ -441,6 +441,8 @@ double Network::TestNetReturnAccuracy(Trainer *tester) {
       { ++num_of_wrong; }
     }
 
+    delete[] e_index;
+    delete[] e_value;
   }
 
   gettimeofday(&end,NULL);

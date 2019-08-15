@@ -92,27 +92,30 @@ void ChowLiuTree::StructLearnCompData(Trainer *trainer) {
 void ChowLiuTree::StructLearnChowLiuTreeCompData(Trainer *trainer) {
   cout << "=======================================================================" << '\n'
        << "Begin structural learning. \nConstructing Chow-Liu tree with complete data......" << endl;
+
   num_nodes = trainer->num_vars;
   // Assign an index for each node.
   #pragma omp parallel for
   for (int i=0; i<num_nodes; ++i) {
     Node *node_ptr = new Node();
     node_ptr->SetNodeIndex(i);
-    node_ptr->is_discrete = trainer->is_features_discrete[i];
+    node_ptr->is_discrete = true;  // trainer->is_features_discrete[i];
 
-    if (i == 0) {
+    if (i == 0) {   // The 0-th node_ptr denotes the label node.
       node_ptr->num_potential_vals = trainer->num_of_possible_values_of_label;
     } else {
-      node_ptr->num_potential_vals = trainer->num_of_possible_values_of_features[i];
+      // Number of features is one less than number of nodes.
+      node_ptr->num_potential_vals = trainer->num_of_possible_values_of_features[i-1];
     }
 
     node_ptr->potential_vals = new int[node_ptr->num_potential_vals];
-    int j = 0;
     if (i == 0) {  // The 0-th node_ptr denotes the label node.
+      int j = 0;
       for (auto v : trainer->set_label_possible_values) {
         node_ptr->potential_vals[j++] = v;
       }
     } else {  // The other nodes are features.
+      int j = 0;
       for (auto v : trainer->map_feature_possible_values[i]) {
         node_ptr->potential_vals[j++] = v;
       }
@@ -129,7 +132,8 @@ void ChowLiuTree::StructLearnChowLiuTreeCompData(Trainer *trainer) {
   int n = num_nodes;
   double** mutualInfoTab = new double* [n];
   for (int i=0; i<n; i++) {
-    mutualInfoTab[i] = new double[n]();    // The parentheses at end will initialize the array to be all zeros.
+    // The parentheses at end will initialize the array to be all zeros.
+    mutualInfoTab[i] = new double[n]();
   }
 
   // Update the mutual information table.
@@ -150,7 +154,9 @@ void ChowLiuTree::StructLearnChowLiuTreeCompData(Trainer *trainer) {
           }
           if (Xi!=nullptr && Xj!=nullptr) { break; }
         }
-        mutualInfoTab[i][j] = mutualInfoTab[j][i] = ComputeMutualInformation(Xi, Xj, trainer);  // Mutual information table is symmetric.
+        // Mutual information table is symmetric.
+        mutualInfoTab[i][j] = ComputeMutualInformation(Xi, Xj, trainer);
+        mutualInfoTab[j][i] = ComputeMutualInformation(Xi, Xj, trainer);
       }
     }
   }
@@ -334,6 +340,7 @@ pair<int*, int> ChowLiuTree::SimplifyTreeDefaultElimOrd(Combination evidence) {
 
 
   pair<int*, int> simplified_order_and_nodes_number = make_pair(simplified_order, num_of_remain);
+//  delete[] simplified_order;
   return simplified_order_and_nodes_number;
 }
 
