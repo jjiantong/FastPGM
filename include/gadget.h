@@ -17,9 +17,9 @@ using namespace std;
 typedef set< pair<int, int> > Combination;
 
 set<Combination> GenAllCombFromSets(set<Combination> *);
-bool EachFirstIsInSecond(Combination *, Combination *);
-bool FirstCompatibleSecond(Combination *, Combination *);
-bool Conflict(Combination *, Combination *);
+bool EachFirstIsInSecond(const Combination *, const Combination *);
+bool FirstCompatibleSecond(const Combination *, const Combination *);
+bool Conflict(const Combination *, const Combination *);
 int* WidthFirstTraversalWithAdjacencyMatrix(int **graph, int num_nodes, int start);
 vector<int> TopoSortOfDAGZeroInDegreeFirst(int **graph, int num_nodes);
 

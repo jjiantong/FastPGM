@@ -6,9 +6,9 @@
 
 
 void Network::PrintEachNodeParents() {
-  for (auto &node_ptr : set_node_ptr_container) {
+  for (const auto &node_ptr : set_node_ptr_container) {
     cout << node_ptr->GetNodeIndex() << ":\t";
-    for (auto &par_node_ptr : node_ptr->set_parents_ptrs) {
+    for (const auto &par_node_ptr : node_ptr->set_parents_ptrs) {
       cout << par_node_ptr->GetNodeIndex() << '\t';
     }
     cout << endl;
@@ -16,9 +16,9 @@ void Network::PrintEachNodeParents() {
 }
 
 void Network::PrintEachNodeChildren() {
-  for (auto &node_ptr : set_node_ptr_container) {
+  for (const auto &node_ptr : set_node_ptr_container) {
     cout << node_ptr->GetNodeIndex() << ":\t";
-    for (auto &par_node_ptr : node_ptr->set_children_ptrs) {
+    for (const auto &par_node_ptr : node_ptr->set_children_ptrs) {
       cout << par_node_ptr->GetNodeIndex() << '\t';
     }
     cout << endl;
@@ -31,7 +31,7 @@ Node* Network::FindNodePtrByIndex(int index) const {
     exit(1);
   }
   Node* node_ptr = nullptr;
-  for (auto n_ptr : set_node_ptr_container) {
+  for (const auto n_ptr : set_node_ptr_container) {
     if (n_ptr->GetNodeIndex()==index) {
       node_ptr = n_ptr;
       break;
@@ -43,7 +43,7 @@ Node* Network::FindNodePtrByIndex(int index) const {
 
 Node* Network::FindNodePtrByName(string name) const {
   Node* node_ptr = nullptr;
-  for (auto n_ptr : set_node_ptr_container) {
+  for (const auto n_ptr : set_node_ptr_container) {
     if (n_ptr->node_name==name) {
       node_ptr = n_ptr;
       break;
@@ -139,9 +139,8 @@ void Network::LearnParmsKnowStructCompData(const Trainer *trainer){
           // If we support learning with incomplete data,
           // the compatibility can be between 0 and 1.
 
-          for (auto &pair_this_node : par_comb) {
-            // int this_node_index = pair_this_node.first;
-            // int this_node_value = pair_this_node.second;
+          for (const auto &pair_this_node : par_comb) {
+            // pair.first is the index and pair.second is the value
             if (trainer->train_set_y_X[s][pair_this_node.first] != pair_this_node.second) {
               compatibility = 0;
               break;
@@ -167,7 +166,7 @@ void Network::LearnParmsKnowStructCompData(const Trainer *trainer){
   // The following code are just to print the result.
   cout << "=======================================================================" << '\n'
        << "Each node's conditional probability table: " << endl;
-  for (auto thisNode : set_node_ptr_container) {  // For each node
+  for (const auto thisNode : set_node_ptr_container) {  // For each node
     cout << thisNode->GetNodeIndex() << ":\t";
 
 
@@ -242,11 +241,11 @@ void Network::LoadEvidence(vector<Factor> *factors_list, Combination E, set<int>
 //         ++i) {
     for (int i=0; i<factors_list->size(); ++i) {
       Factor &f = factors_list->at(i);   // For each factor. "std::vector::at" returns reference.
-      for (auto &e : E) {  // For each node's observation in E
+      for (const auto &e : E) {  // For each node's observation in E
         // If this factor is related to this node
         if (f.related_variables.find(e.first) != f.related_variables.end()) {
           // Update each row of map_potentials
-          for (auto &comb : f.set_combinations) {
+          for (const auto &comb : f.set_combinations) {
             // If this entry is not compatible to the evidence.
             if (comb.find(e) == comb.end()) {
               f.map_potentials[comb] = 0;
@@ -284,13 +283,16 @@ Factor Network::SumProductVarElim(vector<Factor> factors_list, int *Z, int nz) {
     Node* nodePtr = FindNodePtrByIndex(Z[i]);
     // Move every factor that is related to the node Z[i] from factors_list to tempFactorsList.
     /*
-     * Note: This for loop does not contain "it++" in the parentheses.
-     *      Because if we do so, it may cause some logic faults which, however, will not cause runtime error, so hard to debug.
+     * Note: This for loop does not contain "++it" in the parentheses.
+     *      Because if we do so, it may cause some logic faults which,
+     *      however, may or may not cause runtime error, causing the program hard to debug.
      *      For example:
      *        When "it" reaches the second to last element, and this element is related to the node.
-     *        Then this element will be erase from factors_list, and then "it++" which will move "it" to the end.
+     *        Then this element will be erase from factors_list,
+     *        and then "++it" which will move "it" to the end.
      *        Then the for loop will end because "it" has reached the end.
-     *        However, at this time, the last element has been ignored, even if it is related to the node.
+     *        However, at this time, the last element has been ignored,
+     *        even if it is related to the node.
      */
     for (auto it=factors_list.begin(); it!=factors_list.end(); /* no ++it */) {
       if ((*it).related_variables.find(nodePtr->GetNodeIndex())!=(*it).related_variables.end()) {
@@ -317,7 +319,8 @@ Factor Network::SumProductVarElim(vector<Factor> factors_list, int *Z, int nz) {
   /*
    *   If we are calculating a node's posterior probability given evidence about its children,
    *   then when the program runs to here,
-   *   the "factors_list" will contain several factors about the same node which is the query node Y.
+   *   the "factors_list" will contain several factors
+   *   about the same node which is the query node Y.
    *   When it happens, we need to multiply these several factors.
    */
   while (factors_list.size()>1) {
@@ -329,8 +332,8 @@ Factor Network::SumProductVarElim(vector<Factor> factors_list, int *Z, int nz) {
     product = temp1.MultiplyWithFactor(temp2);
     factors_list.push_back(product);
   }
-
-  return factors_list.back();  // After all the processing shown above, the only remaining factor is the factor about Y.
+  // After all the processing shown above, the only remaining factor is the factor about Y.
+  return factors_list.back();
 }
 
 
@@ -363,7 +366,12 @@ Factor Network::VarElimInferReturnPossib(int *Z, int nz, Combination E, Node *Y)
 
 Factor Network::VarElimInferReturnPossib(Combination E, Node *Y) {
   pair<int*, int> simplified_elimination_order = SimplifyDefaultElimOrd(E);
-  return this->VarElimInferReturnPossib(simplified_elimination_order.first, simplified_elimination_order.second, E, Y);
+  return this->VarElimInferReturnPossib(
+                  simplified_elimination_order.first,
+                  simplified_elimination_order.second,
+                  E,
+                  Y
+               );
 }
 
 
@@ -411,7 +419,7 @@ double Network::TestNetReturnAccuracy(Trainer *tester) {
 
   cout << "Progress indicator: ";
   // todo: set "m" to correct value
-  int num_of_correct=0, num_of_wrong=0, m=tester->num_train_instance/100, m20=m/20, percent=0;
+  int num_of_correct=0, num_of_wrong=0, m=tester->num_train_instance/50, m20=m/20, percent=0;
 
 //  int num_cores = omp_get_num_procs();
 //  omp_set_num_threads(num_cores);
@@ -635,10 +643,10 @@ int Network::ApproxInferByProbLogiRejectSamp(Combination e, Node *node, vector<C
 
   int *count_each_value = new int[this->num_nodes]();
   int num_valid_sample = 0;
-  for (auto &samp : samples) {
+  for (const auto &samp : samples) {
     if(!Conflict(&e, &samp)) {
       ++num_valid_sample;
-      for (auto &pv : possb_values) {
+      for (const auto &pv : possb_values) {
         if (samp.find(pv)!=samp.end()) {
           ++count_each_value[pv.second];
           break;

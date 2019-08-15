@@ -40,17 +40,17 @@ set<Combination> GenAllCombFromSets(set<Combination> *set_of_sets) {
 }
 
 
-bool EachFirstIsInSecond(Combination *first, Combination *second) {
-  for (auto &f : *first) {
+bool EachFirstIsInSecond(const Combination *first, const Combination *second) {
+  for (const auto &f : *first) {
     if (second->find(f)==second->end()) return false;
   }
   return true;
 }
 
 
-bool FirstCompatibleSecond(Combination *first, Combination *second) {
-  for (auto &f : *first) {
-    for (auto &s : *second) {
+bool FirstCompatibleSecond(const Combination *first, const Combination *second) {
+  for (const auto &f : *first) {
+    for (const auto &s : *second) {
       if (f.first==s.first && f.second!=s.second) return false;
     }
   }
@@ -58,9 +58,9 @@ bool FirstCompatibleSecond(Combination *first, Combination *second) {
 }
 
 
-bool Conflict(Combination *first, Combination *second) {
-  for (auto &f : *first) {
-    for (auto &s : *second) {
+bool Conflict(const Combination *first, const Combination *second) {
+  for (const auto &f : *first) {
+    for (const auto &s : *second) {
       if (f.first==s.first && f.second!=s.second) {
         return true;
       }
@@ -102,7 +102,6 @@ vector<int> TopoSortOfDAGZeroInDegreeFirst(int **graph, int num_nodes) {
     }
   }
 
-  int count = 0;
   for (int i=0; i<num_nodes; ++i) {
     if (in_degrees[i]==0) {que.push(i);}
   }
