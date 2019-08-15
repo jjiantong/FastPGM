@@ -4,8 +4,8 @@
 
 #include "Clique.h"
 
-Clique::Clique(int id, set<Node*> set_node_ptr) {
-  InitializeClique(id, set_node_ptr);
+Clique::Clique(set<Node*> set_node_ptr) {
+  InitializeClique(set_node_ptr);
 }
 
 
@@ -17,8 +17,7 @@ Clique* Clique::CopyWithoutPtr() {
 }
 
 
-void Clique::InitializeClique(int id, set<Node*> set_node_ptr) {
-  clique_id = id;
+void Clique::InitializeClique(set<Node*> set_node_ptr) {
   clique_size = set_node_ptr.size();
 
   set<Combination> set_of_sets;

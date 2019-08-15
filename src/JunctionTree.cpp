@@ -21,6 +21,9 @@ JunctionTree::JunctionTree(Network *net) {
   ElimRedundantCliques();
 
   FormJunctionTree(set_clique_ptr_container);
+
+  NumberTheCliquesAndSeparators();
+
   AssignPotentials();
   BackUpJunctionTree();
 
@@ -29,7 +32,7 @@ JunctionTree::JunctionTree(Network *net) {
   setlocale(LC_NUMERIC, "");
   cout << "=======================================================================" << '\n'
        << "The time spent to construct junction tree is " << diff << " seconds" << endl;
-  delete[] undirec_adjac_matrix;
+  delete[] direc_adjac_matrix;
 }
 
 
@@ -63,7 +66,6 @@ JunctionTree::JunctionTree(JunctionTree *jt) {
       seps_that_cliques_connect_to[c->clique_id][s_p->clique_id] = 1; // Record the connections.
     }
   }
-  int count = 0;
   for (const auto &s : jt->set_separator_ptr_container) {
     map_separators[s->clique_id] = s->CopyWithoutPtr();
     this->set_separator_ptr_container.insert(map_separators[s->clique_id]);
@@ -95,6 +97,16 @@ JunctionTree::JunctionTree(JunctionTree *jt) {
   // --------------------------------------------------------------------------
 
   this->BackUpJunctionTree();
+
+  for (int i=0; i<jt->set_separator_ptr_container.size(); ++i) {
+    delete[] cliques_that_seps_connect_to[i];
+  }
+  delete[] cliques_that_seps_connect_to;
+
+  for (int i=0; i<jt->set_clique_ptr_container.size(); ++i) {
+    delete[] seps_that_cliques_connect_to[i];
+  }
+  delete[] seps_that_cliques_connect_to;
 }
 
 
@@ -176,8 +188,7 @@ void JunctionTree::Triangulate(Network *net,
     set_node_ptrs_to_form_a_clique.insert(net->FindNodePtrByIndex(nei));
   }
 
-  // The "cliques.size()" indicates the clique_id of this clique in this clique tree.
-  cliques.insert(new Clique(cliques.size(), set_node_ptrs_to_form_a_clique));
+  cliques.insert(new Clique(set_node_ptrs_to_form_a_clique));
   
   // Remove the first node in elimination ordering, which has already form a clique.
   elim_ord.erase(elim_ord.begin());
@@ -253,7 +264,7 @@ void JunctionTree::FormJunctionTree(set<Clique*> &cliques) {
         common_related_node_ptrs.insert(network->FindNodePtrByIndex(v));
       }
 
-      Separator *sep = new Separator(-1, common_related_node_ptrs);
+      Separator *sep = new Separator(common_related_node_ptrs);
 
       // Let separator know the two cliques that it connects to.
       sep->set_neighbours_ptr.insert(clique_ptr);
@@ -289,7 +300,7 @@ void JunctionTree::FormJunctionTree(set<Clique*> &cliques) {
       }
     }
 
-    max_weight_sep->clique_id = set_separator_ptr_container.size();
+//    max_weight_sep->clique_id = set_separator_ptr_container.size();
     set_separator_ptr_container.insert(max_weight_sep);
     auto iter = max_weight_sep->set_neighbours_ptr.begin();
     Clique *clq1 = *iter, *clq2 = *(++iter);
@@ -306,6 +317,19 @@ void JunctionTree::FormJunctionTree(set<Clique*> &cliques) {
     clq2->set_neighbours_ptr.insert(sep_ptr);
   }
 }
+
+
+void JunctionTree::NumberTheCliquesAndSeparators() {
+  int i = 0;
+  for (auto c : set_clique_ptr_container) {
+    c->clique_id = i++;
+  }
+  int j = 0;
+  for (auto s : set_separator_ptr_container) {
+    s->clique_id = j++;
+  }
+}
+
 
 void JunctionTree::AssignPotentials() {
 
@@ -461,15 +485,21 @@ double JunctionTree::TestNetReturnAccuracy(int class_var, Trainer *tst) {
   gettimeofday(&start,NULL);
 
   cout << "Progress indicator: ";
-// todo: set correct "m" below
-  int num_of_correct=0, num_of_wrong=0, m=tst->num_train_instance/10, m20=m/20, percent=0;
+
+  int num_of_correct=0, num_of_wrong=0, m=tst->num_train_instance, m20=m/20, progress=0;
+
+  // If I use OpenMP to parallelize,
+  // process may exit with code 137,
+  // which means the memory consumption is too large.
+  // I don't know how to solve yet.
 //  #pragma omp parallel for
   for (int i=0; i<m; i++) {  // For each sample in test set
 
-    if (i % m20 == 0) {
-      cout << percent * 5 << "%... " << flush;
-      if ((percent * 5) % 50 == 0) { cout << endl; }
-      ++percent;
+//    #pragma omp critical
+    { ++progress; }
+
+    if (progress % m20 == 0) {
+      cout << (double)progress/m * 100 << "%... " << endl;
     }
 
 
@@ -481,11 +511,14 @@ double JunctionTree::TestNetReturnAccuracy(int class_var, Trainer *tst) {
     }
     Combination E = network->ConstructEvidence(e_index, e_value, e_num);
 
-//    auto jt = new JunctionTree(this);
-    LoadEvidence(E);
-    MessagePassingUpdateJT();
-    int label_predict = InferenceUsingBeliefPropagation(query); // The root node (label) has index of 0.
-//    delete jt;
+    delete[] e_index;
+    delete[] e_value;
+
+    auto jt = new JunctionTree(this);
+    jt->LoadEvidence(E);
+    jt->MessagePassingUpdateJT();
+    int label_predict = jt->InferenceUsingBeliefPropagation(query); // The root node (label) has index of 0.
+    delete jt;
 
     if (label_predict == tst->train_set_y[i]) {
 //      #pragma omp critical
@@ -494,7 +527,7 @@ double JunctionTree::TestNetReturnAccuracy(int class_var, Trainer *tst) {
 //      #pragma omp critical
       { ++num_of_wrong; }
     }
-    ResetJunctionTree();
+//    ResetJunctionTree();
   }
 
   gettimeofday(&end,NULL);

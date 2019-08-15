@@ -16,7 +16,7 @@ class Separator : public Clique {
   map<Combination, double> map_old_potentials;
 
   Separator() = default;
-  Separator(int id, set<Node*>);
+  Separator(set<Node*>);
 
   Separator* CopyWithoutPtr();
 

@@ -4,10 +4,10 @@
 
 #include "Separator.h"
 
-Separator::Separator(int id, set<Node*> set_node_ptr) {
+Separator::Separator(set<Node*> set_node_ptr) {
   is_separator = true;
   weight = clique_size = set_node_ptr.size();
-  if (weight!=0) {InitializeClique(id, set_node_ptr);}
+  if (weight!=0) {InitializeClique(set_node_ptr);}
 }
 
 Separator* Separator::CopyWithoutPtr() {

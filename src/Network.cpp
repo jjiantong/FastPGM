@@ -418,18 +418,20 @@ double Network::TestNetReturnAccuracy(Trainer *tester) {
   gettimeofday(&start,NULL);
 
   cout << "Progress indicator: ";
-  // todo: set "m" to correct value
-  int num_of_correct=0, num_of_wrong=0, m=tester->num_train_instance/50, m20=m/20, percent=0;
+
+  int num_of_correct=0, num_of_wrong=0, m=tester->num_train_instance, m20=m/20, progress=0;
 
 //  int num_cores = omp_get_num_procs();
 //  omp_set_num_threads(num_cores);
   // For each sample in test set
   #pragma omp parallel for
   for (int i=0; i<m; ++i) {
-    if (i % m20 == 0) {
-      cout << percent * 5 << "%... " << flush;
-      if ((percent * 5) % 50 == 0) { cout << endl; }
-      ++percent;
+
+    #pragma omp critical
+    { ++progress; }
+
+    if (progress % m20 == 0) {
+      cout << (double)progress/m * 100 << "%... " << endl;
     }
 
 
@@ -473,15 +475,18 @@ double Network::TestNetByApproxInferReturnAccuracy(Trainer *tester, int num_samp
 
   cout << "Progress indicator: ";
 
-  int num_of_correct=0, num_of_wrong=0, m=tester->num_train_instance, m20=m/20, percent=0;
+  int num_of_correct=0, num_of_wrong=0, m=tester->num_train_instance, m20=m/20, progress=0;
 
   vector<Combination> samples = this->DrawSamplesByProbLogiSamp(10000);
 
 //  #pragma omp parallel for
   for (int i=0; i<m; i++) {  // For each sample in test set
 
-    if (i%m20==0) {
-      cout << (percent++)*5 << "%... " << flush;
+    #pragma omp critical
+    { ++progress; }
+
+    if (progress % m20 == 0) {
+      cout << (double)progress/m * 100 << "%... " << endl;
     }
 
 

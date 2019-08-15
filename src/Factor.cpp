@@ -5,9 +5,9 @@
 #include "Factor.h"
 
 
-void Factor::SetMembers(set<int> &rv,
-               set<Combination> &sc,
-               map<Combination, double> &mp) {
+void Factor::SetMembers(set<int> rv,
+               set<Combination> sc,
+               map<Combination, double> mp) {
   this->related_variables = rv;
   this->set_combinations = sc;
   this->map_potentials = mp;

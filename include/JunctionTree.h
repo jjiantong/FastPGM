@@ -31,6 +31,7 @@ class JunctionTree {
   void Triangulate(Network*, int**, int&, vector<int>, set<Clique*>&);
   void ElimRedundantCliques();
   void FormJunctionTree(set<Clique*>&);
+  void NumberTheCliquesAndSeparators();
   void AssignPotentials();
   void BackUpJunctionTree();
   void ResetJunctionTree();
