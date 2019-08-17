@@ -517,23 +517,68 @@ Combination Network::ProbLogicSampleNetwork() {
     this->GenTopoOrd();
   }
   Combination instance;
-  // todo: check the correctness of parallel by omp
-  for (int i=0; i<topo_ord.size(); ++i) {
-    auto &index = topo_ord.at(i);
+  // Cannot use OpenMP, because must draw samples in the topological ordering.
+  for (const auto &index : topo_ord) {
     Node *n_p = FindNodePtrByIndex(index);
     int drawn_value = n_p->SampleNodeGivenParents(instance);
-    #pragma omp critical
-    { instance.insert(pair<int,int>(index, drawn_value)); }
+    instance.insert(pair<int,int>(index, drawn_value));
   }
   return instance;
+}
+
+pair<Combination, double> Network::DrawOneLikelihoodWeightingSample(const Combination &evidence) {
+//  todo: test correctness
+  cerr << "Have not be tested yet!" << endl;
+  if (topo_ord.empty()) {
+    this->GenTopoOrd();
+  }
+  Combination instance;
+  double weight = 1;
+  // Cannot use OpenMP, because must draw samples in the topological ordering.
+  for (const auto &index : topo_ord) {
+    Node *n_p = FindNodePtrByIndex(index);
+    bool observed = false;
+    for (const auto &p : evidence) {
+      if (index==p.first) {
+        observed = true;
+        // Set the sample value to be the same as the evidence.
+        instance.insert(pair<int, int>(index, p.second));
+        // Update the weight.
+        if(!n_p->set_parents_ptrs.empty()) {
+          set<int> parents_indexes;
+          for (const auto &par : n_p->set_parents_ptrs) {
+            parents_indexes.insert(par->GetNodeIndex());
+          }
+          Combination parents_index_value;
+          for (const auto &i : instance) {
+            if (parents_indexes.find(i.first) != parents_indexes.end()) {
+              parents_index_value.insert(i);
+            }
+          }
+          weight *= n_p->map_cond_prob_table[p.second][parents_index_value];
+        } else {
+          weight *= n_p->map_marg_prob_table[p.second];
+        }
+        break;
+      }
+    }
+    if (!observed) {
+      int drawn_value = n_p->SampleNodeGivenParents(instance);
+      instance.insert(pair<int,int>(index, drawn_value));
+    }
+  }
+  return pair<Combination, double>(instance, weight);
 }
 
 
 vector<Combination> Network::DrawSamplesByProbLogiSamp(int num_samp) {
   vector<Combination> samples;
   samples.reserve(num_samp);
+  #pragma omp parallel for
   for (int i=0; i<num_samp; ++i) {
-    samples.push_back(this->ProbLogicSampleNetwork());
+    Combination samp = this->ProbLogicSampleNetwork();
+    #pragma omp critical
+    { samples.push_back(samp); }
   }
   return samples;
 }

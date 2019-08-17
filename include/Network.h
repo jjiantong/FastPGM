@@ -79,6 +79,8 @@ class Network {
   // proposed by Max Henrion at 1988.
   Combination ProbLogicSampleNetwork();
 
+  pair<Combination, double> DrawOneLikelihoodWeightingSample(const Combination &evidence);
+
   set<int> GetMarkovBlanketIndexesOfNode(Node *node_ptr);
   int SampleNodeGivenMarkovBlanketReturnValIndex(Node *node_ptr, Combination markov_blanket);
 

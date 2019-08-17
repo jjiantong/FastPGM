@@ -144,11 +144,27 @@ Output: Accuracy on test set
 
 
 ## Combination ProbLogicSampleNetwork()
-Probabilistic logic sampling is a method proposed by Max Henrion in 1988. Draw a sample from the network model, starting from the root node and following the topological order.
+Probabilistic logic sampling is a method proposed by Max Henrion in 1988.
+Draw a sample from the network model, starting from the root node and
+following the topological order.
+
+The algorithm needs to draw samples in the topological ordering of the
+network. Thus, it cannot use OpenMP to parallel.
 
 Input: none
 
 Output: a sample drawn from the network
+
+
+## pair<Combination, double> DrawOneLikelihoodWeightingSample(const Combination &evidence)
+Given the evidence, using the algorithm of the likelihood weighting,
+draw a single sample from the network. For the details of the algorithm, readers can refer to
+* https://my.eng.utah.edu/~mccully/cs5300lw/
+* https://artint.info/2e/html/ArtInt2e.Ch8.S6.SS4.html
+
+The algorithm needs to draw samples in the topological ordering of the
+network. Thus, it cannot use OpenMP to parallel.
+
 
 ## set<int> GetMarkovBlanketIndexesOfNode(Node \*node_ptr)
 Get the indexes of the Markov blanket of the specified node.
