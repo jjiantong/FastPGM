@@ -171,7 +171,7 @@ void Network::LearnParmsKnowStructCompData(const Trainer *trainer){
 
 
     if (thisNode->set_parents_ptrs.empty()) {    // If this node has no parents
-      for(int i=0; i<thisNode->num_potential_vals; i++) {    // For each row of MPT
+      for(int i=0; i<thisNode->num_potential_vals; ++i) {    // For each row of MPT
         int query = thisNode->potential_vals[i];
         cout << "P(" << query << ")=" << thisNode->map_marg_prob_table[query] << '\t';
       }
@@ -206,7 +206,7 @@ void Network::LearnParmsKnowStructCompData(const Trainer *trainer){
 Combination Network::ConstructEvidence(int *nodes_indexes, int *observations, int num_of_observations) {
   Combination result;
   pair<int, int> p;
-  for (int i=0; i<num_of_observations; i++) {
+  for (int i=0; i<num_of_observations; ++i) {
     p.first = nodes_indexes[i];
     p.second = observations[i];
     result.insert(p);
@@ -218,7 +218,7 @@ Combination Network::ConstructEvidence(int *nodes_indexes, int *observations, in
 vector<Factor> Network::ConstructFactors(int *Z, int nz, Node *Y) {
   vector<Factor> factors_list;
   factors_list.push_back(Factor(Y));
-  for (int i=0; i<nz; i++) {
+  for (int i=0; i<nz; ++i) {
     Node* n = FindNodePtrByIndex(Z[i]);
     factors_list.push_back(Factor(n));
   }
@@ -278,7 +278,7 @@ void Network::LoadEvidence(vector<Factor> *factors_list, Combination E, set<int>
 
 
 Factor Network::SumProductVarElim(vector<Factor> factors_list, int *Z, int nz) {
-  for (int i=0; i<nz; i++) {
+  for (int i=0; i<nz; ++i) {
     vector<Factor> tempFactorsList;
     Node* nodePtr = FindNodePtrByIndex(Z[i]);
     // Move every factor that is related to the node Z[i] from factors_list to tempFactorsList.
@@ -480,7 +480,7 @@ double Network::TestNetByApproxInferReturnAccuracy(Trainer *tester, int num_samp
   vector<Combination> samples = this->DrawSamplesByProbLogiSamp(10000);
 
 //  #pragma omp parallel for
-  for (int i=0; i<m; i++) {  // For each sample in test set
+  for (int i=0; i<m; ++i) {  // For each sample in test set
 
     #pragma omp critical
     { ++progress; }
@@ -510,6 +510,61 @@ double Network::TestNetByApproxInferReturnAccuracy(Trainer *tester, int num_samp
   return accuracy;
 }
 
+double Network::TestAccuracyByLikelihoodWeighting(Trainer *tester, int num_samp) {
+  cout << "=======================================================================" << '\n'
+       << "Begin testing the trained network." << endl;
+
+  struct timeval start, end;
+  double diff;
+  gettimeofday(&start,NULL);
+
+  cout << "Progress indicator: ";
+
+  int num_of_correct=0, num_of_wrong=0, m=tester->num_train_instance, m20=m/20, progress=0;
+
+  #pragma omp parallel for
+  for (int i=0; i<m; ++i) {  // For each sample in test set
+
+    #pragma omp critical
+    { ++progress; }
+
+    if (progress % m20 == 0) {
+      cout << (double)progress/m * 100 << "%... " << endl;
+    }
+
+
+    // For now, only support complete data.
+    int e_num=num_nodes-1, *e_index=new int[e_num], *e_value=new int[e_num];
+    for (int j=0; j<e_num; ++j) {
+      e_index[j] = j+1;
+      e_value[j] = tester->train_set_X[i][j];
+    }
+    Combination E = ConstructEvidence(e_index, e_value, e_num);
+    int label_predict = ApproxinferByLikelihoodWeighting(E, 0, num_samp); // The root node (label) has index of 0.
+    if (label_predict == tester->train_set_y[i]) {
+      #pragma omp critical
+      { ++num_of_correct; }
+    } else {
+      #pragma omp critical
+      { ++num_of_wrong; }
+    }
+
+    delete[] e_index;
+    delete[] e_value;
+
+  }
+
+  gettimeofday(&end,NULL);
+  diff = (end.tv_sec-start.tv_sec) + ((double)(end.tv_usec-start.tv_usec))/1.0E6;
+  setlocale(LC_NUMERIC, "");
+  cout << "=======================================================================" << '\n'
+       << "The time spent to test the accuracy is " << diff << " seconds" << endl;
+
+  double accuracy = num_of_correct / (double)(num_of_correct+num_of_wrong);
+  cout << '\n' << "Accuracy: " << accuracy << endl;
+  return accuracy;
+}
+
 
 
 Combination Network::ProbLogicSampleNetwork() {
@@ -527,8 +582,6 @@ Combination Network::ProbLogicSampleNetwork() {
 }
 
 pair<Combination, double> Network::DrawOneLikelihoodWeightingSample(const Combination &evidence) {
-//  todo: test correctness
-  cerr << "Have not be tested yet!" << endl;
   if (topo_ord.empty()) {
     this->GenTopoOrd();
   }
@@ -568,6 +621,81 @@ pair<Combination, double> Network::DrawOneLikelihoodWeightingSample(const Combin
     }
   }
   return pair<Combination, double>(instance, weight);
+}
+
+
+vector<pair<Combination, double>> Network::DrawSamplesByLikelihoodWeighting(const Combination &evidence, int num_samp) {
+  vector<pair<Combination, double>> results;
+  #pragma omp parallel for
+  for (int i=0; i<num_samp; ++i) {
+    auto samp = DrawOneLikelihoodWeightingSample(evidence);
+    #pragma omp critical
+    { results.push_back(samp); }
+  }
+  return results;
+}
+
+Factor Network::CalcuMargWithLikelihoodWeightingSamples(const vector<pair<Combination, double>> &samples, const int &node_index) {
+  map<int, double> value_weight;
+  Node *n_p = this->FindNodePtrByIndex(node_index);
+
+  // Initialize the map.
+  for (int i=0; i<n_p->num_potential_vals; ++i) {
+    value_weight[n_p->potential_vals[i]] = 0;
+  }
+
+  // Calculate the sum of weight for each value. Un-normalized.
+  for (const auto &samp : samples) {
+    for (const auto &feature_value : samp.first) {
+      if (node_index==feature_value.first) {
+        value_weight[feature_value.second] += samp.second;
+        break;
+      }
+    }
+  }
+
+  // Normalization.
+  double denominator = 0;
+  for (const auto &kv : value_weight) {
+    denominator += kv.second;
+  }
+  for (auto &kv : value_weight) {
+    kv.second /= denominator;
+  }
+
+  // Construct a factor to return
+  Factor f;
+  set<int> rv;
+  rv.insert(node_index);
+  set<Combination> sc;
+  for (int i=0; i<n_p->num_potential_vals; ++i) {
+    Combination c;
+    c.insert(pair<int, int>(node_index, n_p->potential_vals[i]));
+    sc.insert(c);
+  }
+  map<Combination, double> mp;
+  for (const auto &c : sc) {
+    int value = (*c.begin()).second;
+    mp[c] = value_weight[value];
+  }
+  f.SetMembers(rv, sc, mp);
+  return f;
+}
+
+
+int Network::ApproxinferByLikelihoodWeighting(Combination e, const int &node_index, const int &num_samp) {
+  vector<pair<Combination, double>> samples_weight = this->DrawSamplesByLikelihoodWeighting(e, num_samp);
+  Factor f = CalcuMargWithLikelihoodWeightingSamples(samples_weight, node_index);
+  // Find the argmax.
+  Combination c;
+  double max = -1;
+  for (const auto &kv : f.map_potentials) {
+    if (kv.second > max) {
+      c = kv.first;
+      max = kv.second;
+    }
+  }
+  return (*c.begin()).second;
 }
 
 

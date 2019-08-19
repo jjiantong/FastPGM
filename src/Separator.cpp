@@ -25,7 +25,6 @@ void Separator::UpdateUseMessage(Factor f) {
 }
 
 Factor Separator::ConstructMessage() {
-  // todo: implement
   Factor f;
   f.SetMembers(related_variables,set_combinations,map_potentials);
   for (auto &comb : set_combinations) {

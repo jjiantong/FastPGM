@@ -12,7 +12,7 @@ double ChowLiuTree::ComputeMutualInformation(Node *Xi, Node *Xj, const Trainer *
   // Initialize the table.
   int m = trainer->num_train_instance, ri = Xi->num_potential_vals, rj = Xj->num_potential_vals;
   double **Pij = new double* [ri];
-  for (int i=0; i<ri; i++) {
+  for (int i=0; i<ri; ++i) {
     Pij[i] = new double[rj]();    // The parentheses at end will initialize the array to be all zeros.
   }
   double* Pi = new double[ri]();
@@ -64,7 +64,7 @@ double ChowLiuTree::ComputeMutualInformation(Node *Xi, Node *Xj, const Trainer *
 
   delete[] Pi;
   delete[] Pj;
-  for (int i=0; i<ri; i++) {
+  for (int i=0; i<ri; ++i) {
     delete[] Pij[i];
   }
   delete[] Pij;
@@ -131,15 +131,15 @@ void ChowLiuTree::StructLearnChowLiuTreeCompData(Trainer *trainer) {
 
   int n = num_nodes;
   double** mutualInfoTab = new double* [n];
-  for (int i=0; i<n; i++) {
+  for (int i=0; i<n; ++i) {
     // The parentheses at end will initialize the array to be all zeros.
     mutualInfoTab[i] = new double[n]();
   }
 
   // Update the mutual information table.
   #pragma omp parallel for
-  for (int i=0; i<n; i++) {
-    for (int j=0; j<i; j++) {
+  for (int i=0; i<n; ++i) {
+    for (int j=0; j<i; ++j) {
       if (i==j) {
         mutualInfoTab[i][j] = -1;
       } else {
@@ -281,11 +281,11 @@ void ChowLiuTree::StructLearnChowLiuTreeCompData(Trainer *trainer) {
 //  this->PrintEachNodeChildren();
 //
 
-  for (int i=0; i<n; i++) {
+  for (int i=0; i<n; ++i) {
     delete[] mutualInfoTab[i];
   }
   delete[] mutualInfoTab;
-  for (int i=0; i<n; i++) {
+  for (int i=0; i<n; ++i) {
     delete[] graphAdjacencyMatrix[i];
   }
   delete[] graphAdjacencyMatrix;

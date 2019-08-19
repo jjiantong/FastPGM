@@ -73,6 +73,7 @@ class Network {
 
   double TestNetReturnAccuracy(Trainer *tester);
   double TestNetByApproxInferReturnAccuracy(Trainer *tester, int num_samp);
+  double TestAccuracyByLikelihoodWeighting(Trainer *tester, int num_samp);
 
 
   // Probabilistic logic sampling is a method
@@ -80,6 +81,9 @@ class Network {
   Combination ProbLogicSampleNetwork();
 
   pair<Combination, double> DrawOneLikelihoodWeightingSample(const Combination &evidence);
+  vector<pair<Combination, double>> DrawSamplesByLikelihoodWeighting(const Combination &evidence, int num_samp);
+  Factor CalcuMargWithLikelihoodWeightingSamples(const vector<pair<Combination, double>> &samples, const int &node_index);
+  int ApproxinferByLikelihoodWeighting(Combination e, const int &node_index, const int &num_samp);
 
   set<int> GetMarkovBlanketIndexesOfNode(Node *node_ptr);
   int SampleNodeGivenMarkovBlanketReturnValIndex(Node *node_ptr, Combination markov_blanket);

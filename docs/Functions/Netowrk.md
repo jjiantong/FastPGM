@@ -158,12 +158,35 @@ Output: a sample drawn from the network
 
 ## pair<Combination, double> DrawOneLikelihoodWeightingSample(const Combination &evidence)
 Given the evidence, using the algorithm of the likelihood weighting,
-draw a single sample from the network. For the details of the algorithm, readers can refer to
+draw a single sample from the network.
+For the details of the algorithm, readers can refer to
 * https://my.eng.utah.edu/~mccully/cs5300lw/
 * https://artint.info/2e/html/ArtInt2e.Ch8.S6.SS4.html
 
 The algorithm needs to draw samples in the topological ordering of the
 network. Thus, it cannot use OpenMP to parallel.
+
+
+## vector<pair<Combination, double>> DrawSamplesByLikelihoodWeighting(const Combination &evidence, int num_samp)
+Given the evidence, using the algorithm of the likelihood weighting,
+draw *num_samp* samples from the network.
+For the details of the algorithm, readers can refer to
+* https://my.eng.utah.edu/~mccully/cs5300lw/
+* https://artint.info/2e/html/ArtInt2e.Ch8.S6.SS4.html
+
+## Factor CalcuMargWithLikelihoodWeightingSamples(const vector<pair<Combination, double>> &samples, const int &node_index)
+Given the drawn samples of likelihood weighting,
+calculate the marginal probability distribution of the node with index of *node_index*.
+For the details of the algorithm, readers can refer to
+* https://my.eng.utah.edu/~mccully/cs5300lw/
+* https://artint.info/2e/html/ArtInt2e.Ch8.S6.SS4.html
+
+## int ApproxinferByLikelihoodWeighting(Combination e, const int &node_index, const int &num_samp)
+Approximate inference by likelihood weighting sampling.
+The procedure can be described as: Given evidence *e*,
+generate *num_samp* samples by likelihood weighting sampling,
+and calculate the marginal for the node with index of *node_index*.
+Choose the predicted value that has the largest probability in the marginal.
 
 
 ## set<int> GetMarkovBlanketIndexesOfNode(Node \*node_ptr)

@@ -11,14 +11,12 @@ void XMLBIFParser::LoadFile(string &file) {
 
   XMLElement *xml_var_ptr = xml_network_ptr->FirstChildElement("VARIABLE");
   while (xml_var_ptr!=nullptr) {
-    // todo: do something
     vec_xml_vars_ptr.push_back(xml_var_ptr);
     xml_var_ptr = xml_var_ptr->NextSiblingElement("VARIABLE");
   }
 
   XMLElement *xml_prob_ptr = xml_network_ptr->FirstChildElement("PROBABILITY");
   while (xml_prob_ptr!=nullptr) {
-    // todo: do something
     vec_xml_probs_ptr.push_back(xml_prob_ptr);
     xml_prob_ptr = xml_prob_ptr->NextSiblingElement("PROBABILITY");
   }

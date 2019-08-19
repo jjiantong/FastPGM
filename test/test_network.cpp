@@ -31,7 +31,7 @@ class NetworkTest : public ::testing::Test {
     train_set_file_path =
             //  "../../data/a1a.txt"
             //  "../../data/a2a.txt"
-              "../../data/dataset/a3a.txt"
+              "../../data/dataset/a3a-medium.txt"
       //  "../../data/w1a.txt"
       //  "../../data/w7a.txt"
             ;
@@ -39,7 +39,7 @@ class NetworkTest : public ::testing::Test {
     test_set_file_path =
             //  "../../data/a1a.test.txt"
             //  "../../data/a2a.test.txt"
-              "../../data/dataset/a3a.test.txt"
+              "../../data/dataset/a3a-medium.test.txt"
       //  "../../data/w1a.test.txt"
       //  "../../data/w7a.test.txt"
             ;
@@ -153,6 +153,20 @@ TEST_F(NetworkTest, jun_tree_accuracy) {
   delete jt;
   EXPECT_GT(accuracy,0.7);
 }
+
+
+TEST_F(NetworkTest, likelihood_weighting_accuracy) {
+  ScoreFunction sf(network, trainer);
+  cout << "Scores\n"
+       << "LogLikelihood: " << sf.LogLikelihood()  << '\n'
+       << "AIC: " <<  sf.AIC() << '\n'
+       << "BIC: " <<  sf.BIC() << '\n'
+       << "K2: " <<  sf.K2()  << '\n'
+       << "BDeu: " <<  sf.BDeu() << endl;
+  double accuracy = network->TestAccuracyByLikelihoodWeighting(tester, 50);
+  EXPECT_GT(accuracy,0.7);
+}
+
 
 TEST_F(NetworkTest, DISABLED_score_usability) {
   auto *sf = new ScoreFunction(network,trainer);
