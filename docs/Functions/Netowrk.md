@@ -39,6 +39,9 @@ A virtual function to do structure learning with complete data.
 ## void LearnParmsKnowStructCompData(const Trainer \*trn)
 Learn parameters of the network, provided with known structure and complete data.
 
+## void ClearParms()
+Clear the parameters in the conditional (or marginal) probability tables.
+
 ## void SetParentChild(Node \*par, Node \*chi);
 Input: two node pointer
 
@@ -57,7 +60,11 @@ Output: remove `chi` from `par` as a child, and remove `par` from `chi` as a par
 Reloaded version.
 
 ## vector<int> GenTopoOrd()
-Generate the topological order of the network.
+Generate the topological order of the network. If the network is a conditional
+Gaussian network, then in the generated topological ordering,
+all discrete variables should occur before any continuous variables. (In
+conditional gaussian network, discrete variables must not have continuous
+parents)
 
 Input: none
 

@@ -46,9 +46,11 @@ class Network {
 
   Node* FindNodePtrByName(const string &name) const;
 
-  virtual void StructLearnCompData(Trainer *) = 0;
+  virtual void StructLearnCompData(Trainer *);
 
-  void LearnParmsKnowStructCompData(const Trainer *);
+  virtual void LearnParmsKnowStructCompData(const Trainer *);
+
+  void ClearParms();
 
   void SetParentChild(int, int);
   void SetParentChild(Node *par, Node *chi);

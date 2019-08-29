@@ -45,8 +45,7 @@ vector<Node*> XMLBIFParser::GetUnconnectedNodes() const {
     if (((string)xvp->FirstChildElement("TYPE")->GetText())=="discrete") {
       Node *n_p = new DiscreteNode();
       n_p->node_name = xvp->FirstChildElement("NAME")->GetText();
-      n_p->is_discrete =
-              ((string)xvp->FirstChildElement("TYPE")->GetText())=="discrete";
+      n_p->is_discrete = true;
 
       XMLElement *xml_val_ptr = xvp->FirstChildElement("VALUE");
       while (xml_val_ptr!=nullptr) {
@@ -63,6 +62,9 @@ vector<Node*> XMLBIFParser::GetUnconnectedNodes() const {
       vec_node_ptrs.push_back(n_p);
     } else {
       // todo: implement continuous node
+      Node *n_p = new ContinuousNode();
+      n_p->node_name = xvp->FirstChildElement("NAME")->GetText();
+      n_p->is_discrete = false;
       fprintf(stderr, "Has not implemented function for continuous node!");
       exit(1);
     }

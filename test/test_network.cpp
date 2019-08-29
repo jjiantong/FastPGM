@@ -8,6 +8,7 @@
 #include <iostream>
 #include <fstream>
 #include "gtest/gtest.h"
+#include "tinyxml2.h"
 
 #include "Trainer.h"
 #include "Network.h"
@@ -16,6 +17,8 @@
 #include "CustomNetwork.h"
 #include "ScoreFunction.h"
 #include "gadget.h"
+#include "XMLBIFParser.h"
+#include "CustomNetwork.h"
 
 class NetworkTest : public ::testing::Test {
  protected:
@@ -46,8 +49,14 @@ class NetworkTest : public ::testing::Test {
 
     trainer->LoadLIBSVMDataAutoDetectConfig(train_set_file_path);
     tester->LoadLIBSVMDataAutoDetectConfig(test_set_file_path);
+    network->pure_discrete = true;
     network->StructLearnCompData(trainer);
     network->LearnParmsKnowStructCompData(trainer);
+
+    string custom_file = "../../data/interchange-format-file/dog-problem.xml";
+    custom_net = new CustomNetwork();
+    custom_net->pure_discrete = true;
+    custom_net->GetNetFromXMLBIFFile(custom_file);
   }
 
   void TearDown() override {
@@ -59,6 +68,7 @@ class NetworkTest : public ::testing::Test {
   Trainer *trainer;
   Trainer *tester;
   Network *network;
+  CustomNetwork *custom_net;
 };
 
 
@@ -80,8 +90,9 @@ TEST_F(NetworkTest, approx_inference_accuracy) {
 }
 
 TEST_F(NetworkTest, DISABLED_gibbs_samples_to_libsvm_file) {
-  vector<Combination> samples = network->DrawSamplesByGibbsSamp(10000,1000000);
-  trainer->SamplesToLIBSVMFile(samples,"./gibbs_samples_to_LIBSVM_file.txt");
+  vector<Combination> samples = network->DrawSamplesByGibbsSamp(1e4,1e5);
+  string sample_file = "./gibbs_samples_to_LIBSVM_file.txt";
+  trainer->SamplesToLIBSVMFile(samples, sample_file);
 
   Trainer *trn_samp = new Trainer();
   Network *net_samp = new ChowLiuTree();
@@ -97,8 +108,6 @@ TEST_F(NetworkTest, DISABLED_gibbs_samples_to_libsvm_file) {
     f2.ConstructFactor(net_samp->FindNodePtrByIndex(i));
     f2.PrintPotentials();
   }
-
-  EXPECT_EQ(1,1);
 }
 
 TEST_F(NetworkTest,var_elim_and_jun_tree) { // The prefix "DISABLED" disable this test.
@@ -211,4 +220,30 @@ TEST_F(NetworkTest, DISABLED_sampling_node) {
 
 TEST_F(NetworkTest, sampling_network) {
   Combination samp = network->ProbLogicSampleNetwork();
+}
+
+TEST_F(NetworkTest, DISABLED_sampling_dog_net_to_libsvm_file_and_relearn) {
+  // todo: implement the test
+  vector<Combination> samples = custom_net->DrawSamplesByGibbsSamp(1e4,1e5);
+  string sample_file = "./gibbs_samples_to_LIBSVM_file.txt";
+  trainer->SamplesToCSVFile(samples, sample_file);
+
+  Trainer *trn_samp = new Trainer();
+  CustomNetwork *net_samp = new CustomNetwork();
+
+  string custom_file = "../../data/interchange-format-file/dog-problem.xml";
+  net_samp->GetNetFromXMLBIFFile(custom_file);
+
+  // todo: clear the parameters in net_samp and re-learn from file
+
+  net_samp->LearnParmsKnowStructCompData(trn_samp);
+
+  for(int i=0; i<net_samp->num_nodes; ++i) {
+    fprintf(stdout, "\n====================================\n");
+    Factor f1, f2;
+    f1.ConstructFactor(custom_net->FindNodePtrByIndex(i));
+    f1.PrintPotentials();
+    f2.ConstructFactor(net_samp->FindNodePtrByIndex(i));
+    f2.PrintPotentials();
+  }
 }

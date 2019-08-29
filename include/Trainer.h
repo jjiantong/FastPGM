@@ -42,7 +42,8 @@ class Trainer {
   void LoadLIBSVMDataAutoDetectConfig(string data_file_path);
   void ConvertVectorDatasetIntoArrayDataset();
 
-  void SamplesToLIBSVMFile(vector<Combination> &samples, string file) const;
+  void SamplesToLIBSVMFile(vector<Combination> &samples, string &file) const;
+  void SamplesToCSVFile(vector<Combination> &samples, string &file) const;
 };
 
 

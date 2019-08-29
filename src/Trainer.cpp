@@ -106,14 +106,9 @@ void Trainer::ConvertVectorDatasetIntoArrayDataset() {
 }
 
 
-void Trainer::SamplesToLIBSVMFile(vector<Combination> &samples, string file) const {
+void Trainer::SamplesToLIBSVMFile(vector<Combination> &samples, string &file) const {
   FILE *f;
   f = fopen(file.c_str(), "w");
-
-//  #pragma omp parallel for
-//  for (int i=0; i<samples.size(); ++i) {
-//    auto &smp = samples.at(i);
-
   for (auto &smp : samples) {
     string string_to_write = "";
 
@@ -130,8 +125,35 @@ void Trainer::SamplesToLIBSVMFile(vector<Combination> &samples, string file) con
         }
       }
     }
-    #pragma omp critical
-    { fprintf(f, "%s\n", string_to_write.c_str()); }
+    fprintf(f, "%s\n", string_to_write.c_str());
   }
+  fclose(f);
+}
+
+void Trainer::SamplesToCSVFile(vector<Combination> &samples, string &file) const {
+  // Detect configuration.
+  Combination &c = samples.front();
+  auto it = c.end();
+  int max_index = (*(--it)).first;
+
+  FILE *f;
+  f = fopen(file.c_str(), "w");
+
+  string first_line = "";   // The first line is like the table head.
+  for (int i=0; i<max_index; ++i) {
+    first_line += to_string(i) + ',';
+  }
+  first_line = first_line.substr(0, first_line.size()-1);   // No comma at the last character.
+  fprintf(f, "%s\n", first_line.c_str());
+
+  for (auto &smp : samples) {
+    string string_to_write = "";
+    for (auto &var_and_val : smp) {
+      string_to_write += to_string(var_and_val.second) + ',';
+    }
+    string_to_write = string_to_write.substr(0, string_to_write.size()-1);   // No comma at the last character.
+    fprintf(f, "%s\n", string_to_write.c_str());
+  }
+
   fclose(f);
 }

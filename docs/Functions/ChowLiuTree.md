@@ -11,13 +11,24 @@ $$ I(X,Y) = \sum_{x \in X, y \in Y} p(x,y) log \frac{p(x,y)}{p(x)p(y)} $$
 Call function `StructLearnChowLiuTreeCompData`.
 
 ## void StructLearnChowLiuTreeCompData(Trainer \*trainer)
-Structure learning with complete data by constructing a Chow-Liu tree. First, construct the mutual information matrix. Second, use Prim's algorithm to generate a maximum-spanning tree. Third, add arrows in the spanning tree, which is to set the parents and children of each node.
+Structure learning with complete data by constructing a Chow-Liu tree.
+First, construct the mutual information matrix.
+Second, use Prim's algorithm to generate a maximum-spanning tree.
+Third, add arrows in the spanning tree, which is to set the parents and children of each node.
+
+## void LearnParmsKnowStructCompData(const Trainer \*trn)
+Learn parameters of the network, provided with known structure and complete data.
 
 ## pair<int\*, int> SimplifyDefaultElimOrd(Combination evidence) override
 Call function `SimplifyTreeDefaultElimOrd`.
 
 ## pair<int\*, int> SimplifyTreeDefaultElimOrd(Combination evidence)
-The default elimination ordering of a Chow-Liu tree is the reversed topological ordering of the tree. Given some evidence (observation), some nodes in default elimination will be summed out while not contribute any useful information. Thus, we can simply remove these nodes. The algorithm is implemented according to the paper *[Zhang and Poole - 1994 - A simple approach to Bayesian network computations.pdf]*. First, remove all barren nodes. Second, remove all m-separated nodes.
+The default elimination ordering of a Chow-Liu tree is the reversed topological
+ordering of the tree. Given some evidence (observation), some nodes in default
+elimination will be summed out while not contribute any useful information.
+Thus, we can simply remove these nodes. The algorithm is implemented according to the paper
+*[Zhang and Poole - 1994 - A simple approach to Bayesian network computations.pdf]*.
+First, remove all barren nodes. Second, remove all m-separated nodes.
 
 ## void DepthFirstTraversalUntillMeetObserved(Combination evidence, int start, set<int>& visited, set<int>& to_be_removed)
 Used by function `SimplifyTreeDefaultElimOrd` in the process of removing all m-separated nodes.

@@ -4,7 +4,6 @@
 
 #include "ChowLiuTree.h"
 
-
 double ChowLiuTree::ComputeMutualInformation(Node *Xi, Node *Xj, const Trainer *trainer) {
   // Find the indexes of these two features in training set.
   int xi=Xi->GetNodeIndex(), xj=Xj->GetNodeIndex();
@@ -290,6 +289,115 @@ void ChowLiuTree::StructLearnChowLiuTreeCompData(Trainer *trainer) {
   }
   delete[] graphAdjacencyMatrix;
   delete[] topologicalSortedPermutation;
+}
+
+
+void ChowLiuTree::LearnParmsKnowStructCompData(const Trainer *trainer){
+  cout << "==================================================" << '\n'
+       << "Begin learning parameters with known structure and complete data." << endl;
+
+  struct timeval start, end;
+  double diff;
+  gettimeofday(&start,NULL);
+
+  // The 0-th node is the root which is the label node.
+  Node *label_node = FindNodePtrByIndex(0);
+  map<int, double> *MPT = &(label_node->map_marg_prob_table);
+  int denominator = 0;
+  for (int s = 0; s < trainer->num_train_instance; ++s) {
+    denominator += 1;
+    int query = trainer->train_set_y[s];
+    (*MPT)[query] += 1;
+  }
+  for (int i = 0; i < label_node->num_potential_vals; ++i) {
+    int query = label_node->potential_vals[i];
+    (*MPT)[query] /= denominator;
+  }
+
+  int num_cores = omp_get_num_procs();
+  omp_set_num_threads(num_cores);
+  int max_work_per_thread = (trainer->num_vars-1+num_cores-1)/num_cores;
+  #pragma omp parallel
+  {
+    // For every feature node.
+    for (int i =  max_work_per_thread*omp_get_thread_num()+1;  // Because feature index start at 1 using "train_set_y_X".
+         i < max_work_per_thread*(omp_get_thread_num()+1)+1 && i < trainer->num_vars;
+         ++i) {
+//    for (int i=1; i<trainer->num_vars; ++i) {
+
+      Node *this_node = FindNodePtrByIndex(i);
+
+      map<int, map<Combination, double> > *CPT = &(this_node->map_cond_prob_table);
+      set<Combination> *ptr_set_par_combs = &(this_node->set_discrete_parents_combinations);
+      for (auto &par_comb : *ptr_set_par_combs) {    // For each column in CPT. Because the sum over column of CPT must be 1.
+        int denominator = 0;
+        for (int s = 0; s < trainer->num_train_instance; ++s) {
+          int compatibility = 1;  // We assume compatibility is 1,
+          // and set it to 0 if we find that (*it_par_comb) is not compatible with (trainer->train_set[s]).
+          // If we support learning with incomplete data,
+          // the compatibility can be between 0 and 1.
+
+          for (const auto &pair_this_node : par_comb) {
+            // pair.first is the index and pair.second is the value
+            if (trainer->train_set_y_X[s][pair_this_node.first] != pair_this_node.second) {
+              compatibility = 0;
+              break;
+            }
+          }
+          denominator += compatibility;
+          int query = trainer->train_set_y_X[s][i];
+          (*CPT)[query][par_comb] += compatibility;
+        }
+        // Normalize so that the sum is 1.
+        for (int j = 0; j < this_node->num_potential_vals; ++j) {
+          int query = this_node->potential_vals[j];
+          (*CPT)[query][par_comb] /= denominator;
+        }
+      }
+    }
+  }   // end of: #pragma omp parallel
+  cout << "==================================================" << '\n'
+       << "Finish training with known structure and complete data." << endl;
+
+
+
+  // The following code are just to print the result.
+  cout << "==================================================" << '\n'
+       << "Each node's conditional probability table: " << endl;
+  for (const auto thisNode : set_node_ptr_container) {  // For each node
+    cout << thisNode->GetNodeIndex() << ":\t";
+
+
+    if (thisNode->set_parents_ptrs.empty()) {    // If this node has no parents
+      for(int i=0; i<thisNode->num_potential_vals; ++i) {    // For each row of MPT
+        int query = thisNode->potential_vals[i];
+        cout << "P(" << query << ")=" << thisNode->map_marg_prob_table[query] << '\t';
+      }
+      cout << endl;
+      continue;
+    }
+
+
+    for(int i=0; i<thisNode->num_potential_vals; ++i) {    // For each row of CPT
+      int query = thisNode->potential_vals[i];
+      for (auto itParCom = thisNode->set_discrete_parents_combinations.begin(); itParCom != thisNode->set_discrete_parents_combinations.end(); ++itParCom) {  // For each column of CPT
+        Combination comb = (*itParCom);
+        string condition;
+        for (auto &p : comb) {
+          condition += ("\"" + to_string(p.first) + "\"=" + to_string(p.second));
+        }
+        cout << "P(" << query << '|' << condition << ")=" << thisNode->map_cond_prob_table[query][comb] << '\t';
+      }
+    }
+    cout << endl;
+
+  }
+
+  gettimeofday(&end,NULL);
+  diff = (end.tv_sec-start.tv_sec) + ((double)(end.tv_usec-start.tv_usec))/1.0E6;
+  setlocale(LC_NUMERIC, "");
+  cout << "==================================================" << '\n'
+       << "The time spent to learn the parameters is " << diff << " seconds" << endl;
 }
 
 

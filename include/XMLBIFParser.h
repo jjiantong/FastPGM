@@ -9,6 +9,7 @@
 #include "tinyxml2.h"
 #include "Node.h"
 #include "DiscreteNode.h"
+#include "ContinuousNode.h"
 
 using namespace tinyxml2;
 

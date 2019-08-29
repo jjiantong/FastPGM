@@ -25,6 +25,9 @@ class ScoreTest : public ::testing::Test {
     origin_dog_net = new CustomNetwork();
     incomplete_dog_net = new CustomNetwork();
     redundant_dog_net = new CustomNetwork();
+    origin_dog_net->pure_discrete = true;
+    incomplete_dog_net->pure_discrete = true;
+    redundant_dog_net->pure_discrete = true;
 
 
     origin_dog_net->GetNetFromXMLBIFFile("../../data/interchange-format-file/dog-problem.xml");
