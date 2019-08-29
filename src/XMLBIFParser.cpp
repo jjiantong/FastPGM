@@ -42,24 +42,31 @@ vector<Node*> XMLBIFParser::GetUnconnectedNodes() const {
   }
   vector<Node*> vec_node_ptrs;
   for (auto &xvp : vec_xml_vars_ptr) {
-    Node *n_p = new Node();
-    n_p->node_name = xvp->FirstChildElement("NAME")->GetText();
-    n_p->is_discrete =
-            ((string)xvp->FirstChildElement("TYPE")->GetText())=="discrete";
+    if (((string)xvp->FirstChildElement("TYPE")->GetText())=="discrete") {
+      Node *n_p = new DiscreteNode();
+      n_p->node_name = xvp->FirstChildElement("NAME")->GetText();
+      n_p->is_discrete =
+              ((string)xvp->FirstChildElement("TYPE")->GetText())=="discrete";
 
-    XMLElement *xml_val_ptr = xvp->FirstChildElement("VALUE");
-    while (xml_val_ptr!=nullptr) {
-      n_p->vec_str_potential_vals.push_back(((string)xml_val_ptr->GetText()));
-      xml_val_ptr = xml_val_ptr->NextSiblingElement("VALUE");
+      XMLElement *xml_val_ptr = xvp->FirstChildElement("VALUE");
+      while (xml_val_ptr!=nullptr) {
+        n_p->vec_str_potential_vals.push_back(((string)xml_val_ptr->GetText()));
+        xml_val_ptr = xml_val_ptr->NextSiblingElement("VALUE");
+      }
+      n_p->num_potential_vals = n_p->vec_str_potential_vals.size();
+      n_p->potential_vals = new int[n_p->num_potential_vals];
+      for (int i=0; i<n_p->num_potential_vals; ++i) {
+        n_p->potential_vals[i] = i;
+        n_p->vec_potential_vals.push_back(i);
+      }
+      n_p->SetNodeIndex(vec_node_ptrs.size());
+      vec_node_ptrs.push_back(n_p);
+    } else {
+      // todo: implement continuous node
+      fprintf(stderr, "Has not implemented function for continuous node!");
+      exit(1);
     }
-    n_p->num_potential_vals = n_p->vec_str_potential_vals.size();
-    n_p->potential_vals = new int[n_p->num_potential_vals];
-    for (int i=0; i<n_p->num_potential_vals; ++i) {
-      n_p->potential_vals[i] = i;
-      n_p->vec_potential_vals.push_back(i);
-    }
-    n_p->SetNodeIndex(vec_node_ptrs.size());
-    vec_node_ptrs.push_back(n_p);
+
   }
   return vec_node_ptrs;
 }
@@ -118,7 +125,7 @@ void XMLBIFParser::AssignProbsToNodes(vector<XMLElement*> vec_xml_elems_ptr, vec
       gvp->AddChild(for_np);
     }
 
-    for_np->GenParCombs();
+    for_np->GenDiscParCombs();
 
 
 

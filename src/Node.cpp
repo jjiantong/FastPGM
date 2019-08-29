@@ -22,16 +22,6 @@ void Node::SetNodeIndex(int i) {
 }
 
 
-void Node::AddParent(Node *p) {
-  set_parents_ptrs.insert(p);
-}
-
-
-void Node::AddChild(Node *c) {
-  set_children_ptrs.insert(c);
-}
-
-
 void Node::RemoveChild(Node *c) {
   if (set_children_ptrs.find(c)==set_children_ptrs.end()) {
     fprintf(stderr, "Node #%d does not have parent node #%d!", this->GetNodeIndex(), c->GetNodeIndex());
@@ -53,7 +43,7 @@ void Node::RemoveParent(Node *p) {
 /**
  * Generate all combinations of values of parents.
  */
-void Node::GenParCombs() {
+void Node::GenDiscParCombs() {
   // Preprocess. Construct set of sets.
   set<Combination> set_of_sets;
   if (set_parents_ptrs.empty()) return;
@@ -69,7 +59,7 @@ void Node::GenParCombs() {
   }
 
   // Generate
-  set_parents_combinations = GenAllCombFromSets(&set_of_sets);
+  set_discrete_parents_combinations = GenAllCombFromSets(&set_of_sets);
 
 }
 

@@ -36,7 +36,7 @@ classification with discrete feature values
 
 ### to do:
  * classification with features of continuous values
-   * Gaussian Bayesian network ***(need to implement junction tree algorithm first)***
+   * Gaussian Bayesian network
      * Linear Gaussian Bayesian network
        * ALL variables are continuous
        * ALL CPDs are linear Gaussians
@@ -100,6 +100,7 @@ Consumed time and accuracy for the whose process on "a1a" (load data -> train ->
 
 ### LIBSVM dataset "a3a"
  * Junction Tree, belief propagation, did not record time spent, accuracy of **0.823393**
+ * Chow-Liu Tree, likelihood weighting, accuracy of **0.806451**
 
 ### LIBSVM dataset "w1a"
  * Chow-Liu Tree, variable elimination, 26 minutes, accuracy of **0.972436**

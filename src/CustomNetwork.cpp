@@ -4,11 +4,6 @@
 
 #include "CustomNetwork.h"
 
-void CustomNetwork::StructLearnCompData(Trainer *) {
-  return;
-}
-
-
 pair<int*, int> CustomNetwork::SimplifyDefaultElimOrd(Combination evidence) {
   return {default_elim_ord, num_nodes-1};
 }

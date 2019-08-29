@@ -25,7 +25,7 @@ void Network::PrintEachNodeChildren() {
   }
 }
 
-Node* Network::FindNodePtrByIndex(int index) const {
+Node* Network::FindNodePtrByIndex(const int &index) const {
   if (index<0 || index>num_nodes) {
     fprintf(stderr, "Error in function %s! \nInvalid index!", __FUNCTION__);
     exit(1);
@@ -41,7 +41,7 @@ Node* Network::FindNodePtrByIndex(int index) const {
 }
 
 
-Node* Network::FindNodePtrByName(string name) const {
+Node* Network::FindNodePtrByName(const string &name) const {
   Node* node_ptr = nullptr;
   for (const auto n_ptr : set_node_ptr_container) {
     if (n_ptr->node_name==name) {
@@ -73,17 +73,97 @@ void Network::RemoveParentChild(int p_index, int c_index) {
 
 vector<int> Network::GenTopoOrd() {
 
-  // First, convert the network to a directed adjacency matrix.
-  int **graph = new int*[num_nodes];
-  #pragma omp for
-  for (int i=0; i<num_nodes; ++i) {graph[i] = new int[num_nodes]();}
-  for (auto &n_p : set_node_ptr_container) {
-    for (auto &c_p : n_p->set_children_ptrs) {
-      graph[n_p->GetNodeIndex()][c_p->GetNodeIndex()] = 1;
+  if (this->pure_discrete) {
+
+    // First, convert the network to a directed adjacency matrix.
+    int **graph = new int*[num_nodes];
+    #pragma omp for
+    for (int i=0; i<num_nodes; ++i) {graph[i] = new int[num_nodes]();}
+    for (auto &n_p : set_node_ptr_container) {
+      for (auto &c_p : n_p->set_children_ptrs) {
+        graph[n_p->GetNodeIndex()][c_p->GetNodeIndex()] = 1;
+      }
     }
+
+    topo_ord = TopoSortOfDAGZeroInDegreeFirst(graph, num_nodes);
+
+    for (int i=0; i<num_nodes; ++i) { delete[] graph[i]; }
+    delete[] graph;
+
+  } else {  // If the network is not pure discrete, then it is conditional Gaussian.
+            // Discrete nodes should not have continuous parents.
+            // Continuous nodes can have both discrete and continuous parents.
+            // In topological ordering, all discrete nodes should
+            // occur before any continuous node.
+            // todo: test correctness of the case of Gaussian network
+
+    set<Node*> set_disc_node_ptr, set_cont_node_ptr;
+    for (const auto &n_p : set_node_ptr_container) {
+      if (n_p->is_discrete) {
+        set_disc_node_ptr.insert(n_p);
+      } else {
+        set_cont_node_ptr.insert(n_p);
+      }
+    }
+    int **graph_disc = new int*[set_disc_node_ptr.size()];
+    int **graph_cont = new int*[set_cont_node_ptr.size()];
+    #pragma omp for
+    for (int i=0; i<num_nodes; ++i) {
+      graph_disc[i] = new int[set_disc_node_ptr.size()]();
+      graph_cont[i] = new int[set_cont_node_ptr.size()]();
+    }
+
+    // Generate the ordering for discrete nodes.
+    map<int, int> disc_order_index, disc_index_order;
+    int disc_ord = 0;
+    for (auto &n_p : set_disc_node_ptr) {
+      disc_order_index[disc_ord] = n_p->GetNodeIndex();
+      disc_index_order[n_p->GetNodeIndex()] = disc_ord;
+      ++disc_ord;
+    }
+    for (auto &n_p : set_disc_node_ptr) {
+      for (auto &c_p : n_p->set_children_ptrs) {
+        if (!c_p->is_discrete) { continue; }
+        graph_disc[ disc_index_order[n_p->GetNodeIndex()] ]
+                  [ disc_index_order[c_p->GetNodeIndex()] ] = 1;
+      }
+    }
+    auto topo_ord_disc = TopoSortOfDAGZeroInDegreeFirst(graph_disc, set_disc_node_ptr.size());
+
+    // Generate the ordering for continuous nodes.
+    map<int, int> cont_order_index, cont_index_order;
+    int cont_ord = 0;
+    for (auto &n_p : set_cont_node_ptr) {
+      cont_order_index[cont_ord] = n_p->GetNodeIndex();
+      cont_index_order[n_p->GetNodeIndex()] = cont_ord;
+      ++cont_ord;
+    }
+    for (auto &n_p : set_cont_node_ptr) {
+      for (auto &c_p : n_p->set_children_ptrs) {
+        graph_cont[ cont_index_order[n_p->GetNodeIndex()] ]
+                  [ cont_index_order[c_p->GetNodeIndex()] ] = 1;
+      }
+    }
+    auto topo_ord_cont = TopoSortOfDAGZeroInDegreeFirst(graph_cont, set_cont_node_ptr.size());
+
+    // Concatinate topo_ord_disc and topo_ord_cont.
+    for (const auto &elem : topo_ord_disc) {
+      topo_ord.push_back(disc_order_index[elem]);
+    }
+    for (const auto &elem : topo_ord_cont) {
+      topo_ord.push_back(cont_order_index[elem]);
+    }
+
+    #pragma omp for
+    for (int i=0; i<num_nodes; ++i) {
+      delete[] graph_disc[i];
+      delete[] graph_cont[i];
+    }
+    delete[] graph_disc;
+    delete[] graph_cont;
+
   }
 
-  topo_ord = TopoSortOfDAGZeroInDegreeFirst(graph, num_nodes);
   return topo_ord;
 }
 
@@ -95,7 +175,7 @@ void Network::RemoveParentChild(Node *p, Node *c) {
 
 
 void Network::LearnParmsKnowStructCompData(const Trainer *trainer){
-  cout << "=======================================================================" << '\n'
+  cout << "==================================================" << '\n'
        << "Begin learning parameters with known structure and complete data." << endl;
 
   struct timeval start, end;
@@ -130,7 +210,7 @@ void Network::LearnParmsKnowStructCompData(const Trainer *trainer){
       Node *this_node = FindNodePtrByIndex(i);
 
       map<int, map<Combination, double> > *CPT = &(this_node->map_cond_prob_table);
-      set<Combination> *ptr_set_par_combs = &(this_node->set_parents_combinations);
+      set<Combination> *ptr_set_par_combs = &(this_node->set_discrete_parents_combinations);
       for (auto &par_comb : *ptr_set_par_combs) {    // For each column in CPT. Because the sum over column of CPT must be 1.
         int denominator = 0;
         for (int s = 0; s < trainer->num_train_instance; ++s) {
@@ -158,13 +238,13 @@ void Network::LearnParmsKnowStructCompData(const Trainer *trainer){
       }
     }
   }   // end of: #pragma omp parallel
-  cout << "=======================================================================" << '\n'
+  cout << "==================================================" << '\n'
        << "Finish training with known structure and complete data." << endl;
 
 
 
   // The following code are just to print the result.
-  cout << "=======================================================================" << '\n'
+  cout << "==================================================" << '\n'
        << "Each node's conditional probability table: " << endl;
   for (const auto thisNode : set_node_ptr_container) {  // For each node
     cout << thisNode->GetNodeIndex() << ":\t";
@@ -182,7 +262,7 @@ void Network::LearnParmsKnowStructCompData(const Trainer *trainer){
 
     for(int i=0; i<thisNode->num_potential_vals; ++i) {    // For each row of CPT
       int query = thisNode->potential_vals[i];
-      for (auto itParCom = thisNode->set_parents_combinations.begin(); itParCom != thisNode->set_parents_combinations.end(); ++itParCom) {  // For each column of CPT
+      for (auto itParCom = thisNode->set_discrete_parents_combinations.begin(); itParCom != thisNode->set_discrete_parents_combinations.end(); ++itParCom) {  // For each column of CPT
         Combination comb = (*itParCom);
         string condition;
         for (auto &p : comb) {
@@ -198,7 +278,7 @@ void Network::LearnParmsKnowStructCompData(const Trainer *trainer){
   gettimeofday(&end,NULL);
   diff = (end.tv_sec-start.tv_sec) + ((double)(end.tv_usec-start.tv_usec))/1.0E6;
   setlocale(LC_NUMERIC, "");
-  cout << "=======================================================================" << '\n'
+  cout << "==================================================" << '\n'
        << "The time spent to learn the parameters is " << diff << " seconds" << endl;
 }
 
@@ -410,7 +490,7 @@ int Network::PredictUseVarElimInfer(Combination E, int Y_index) {
 
 double Network::TestNetReturnAccuracy(Trainer *tester) {
 
-  cout << "=======================================================================" << '\n'
+  cout << "==================================================" << '\n'
        << "Begin testing the trained network." << endl;
 
   struct timeval start, end;
@@ -458,7 +538,7 @@ double Network::TestNetReturnAccuracy(Trainer *tester) {
   gettimeofday(&end,NULL);
   diff = (end.tv_sec-start.tv_sec) + ((double)(end.tv_usec-start.tv_usec))/1.0E6;
   setlocale(LC_NUMERIC, "");
-  cout << "=======================================================================" << '\n'
+  cout << "==================================================" << '\n'
        << "The time spent to test the accuracy is " << diff << " seconds" << endl;
 
   double accuracy = num_of_correct / (double)(num_of_correct+num_of_wrong);
@@ -470,7 +550,7 @@ double Network::TestNetReturnAccuracy(Trainer *tester) {
 double Network::TestNetByApproxInferReturnAccuracy(Trainer *tester, int num_samp) {
 
   // implement by Gibbs sampling
-  cout << "=======================================================================" << '\n'
+  cout << "==================================================" << '\n'
        << "Begin testing the trained network." << endl;
 
   cout << "Progress indicator: ";
@@ -482,7 +562,7 @@ double Network::TestNetByApproxInferReturnAccuracy(Trainer *tester, int num_samp
 //  #pragma omp parallel for
   for (int i=0; i<m; ++i) {  // For each sample in test set
 
-    #pragma omp critical
+//    #pragma omp critical
     { ++progress; }
 
     if (progress % m20 == 0) {
@@ -511,7 +591,7 @@ double Network::TestNetByApproxInferReturnAccuracy(Trainer *tester, int num_samp
 }
 
 double Network::TestAccuracyByLikelihoodWeighting(Trainer *tester, int num_samp) {
-  cout << "=======================================================================" << '\n'
+  cout << "==================================================" << '\n'
        << "Begin testing the trained network." << endl;
 
   struct timeval start, end;
@@ -557,7 +637,7 @@ double Network::TestAccuracyByLikelihoodWeighting(Trainer *tester, int num_samp)
   gettimeofday(&end,NULL);
   diff = (end.tv_sec-start.tv_sec) + ((double)(end.tv_usec-start.tv_usec))/1.0E6;
   setlocale(LC_NUMERIC, "");
-  cout << "=======================================================================" << '\n'
+  cout << "==================================================" << '\n'
        << "The time spent to test the accuracy is " << diff << " seconds" << endl;
 
   double accuracy = num_of_correct / (double)(num_of_correct+num_of_wrong);
@@ -587,7 +667,7 @@ pair<Combination, double> Network::DrawOneLikelihoodWeightingSample(const Combin
   }
   Combination instance;
   double weight = 1;
-  // Cannot use OpenMP, because must draw samples in the topological ordering.
+  // SHOULD NOT use OpenMP, because must draw samples in the topological ordering.
   for (const auto &index : topo_ord) {
     Node *n_p = FindNodePtrByIndex(index);
     bool observed = false;

@@ -1,7 +1,7 @@
 # class Node
 
-## void GenParCombs()
-Generate parents combinations. <br/>
+## void GenDiscParCombs()
+Generate discrete parents combinations. <br/>
 
 Example (pseudocode) 
 ```
@@ -10,7 +10,7 @@ A.Domain = {0, 1}
 B.Domain = {8, 9}
 C.AddParent(A)
 C.AddParent(B)
-C.GenParCombs()
+C.GenDiscParCombs()
 print(C.parents_combinations)
 ```
 Output

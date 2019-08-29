@@ -9,7 +9,7 @@ ScoreFunction::ScoreFunction(Network *net, Trainer *trn) {
   this->trn = trn;
   num_network_params = 0;
   for (const auto &node_ptr : net->set_node_ptr_container) {
-    num_network_params += node_ptr->num_potential_vals * node_ptr->set_parents_combinations.size();
+    num_network_params += node_ptr->num_potential_vals * node_ptr->set_discrete_parents_combinations.size();
   }
 }
 
@@ -27,7 +27,7 @@ double ScoreFunction::LogLikelihoodForNode(Node *node_ptr, Network *net, Trainer
 
   const int &r_i = node_ptr->num_potential_vals;
   double log_likelihood = 0;
-  for (const auto &par_comb : node_ptr->set_parents_combinations) {
+  for (const auto &par_comb : node_ptr->set_discrete_parents_combinations) {
     int index = node_ptr->GetNodeIndex();
 
     set<int> set_instances_parent_compatible;
@@ -110,7 +110,7 @@ double ScoreFunction::K2(Network *net, Trainer *trn) {
 
     double multiply_over_j = 1;
 
-    for (const auto &par_comb : node_ptr->set_parents_combinations) {
+    for (const auto &par_comb : node_ptr->set_discrete_parents_combinations) {
 
       set<int> set_instances_parent_compatible;
       int n_ij = 0;
@@ -174,7 +174,7 @@ double ScoreFunction::LogK2(Network *net, Trainer *trn) {
 
     double sum_over_j = 0;
 
-    for (const auto &par_comb : node_ptr->set_parents_combinations) {
+    for (const auto &par_comb : node_ptr->set_discrete_parents_combinations) {
 
       set<int> set_instances_parent_compatible;
       int n_ij = 0;
@@ -248,10 +248,10 @@ double ScoreFunction::BDeu(Network *net, Trainer *trn, int equi_sample_size) {
   for (const auto &node_ptr : net->set_node_ptr_container) {
     const int &node_index = node_ptr->GetNodeIndex();
     const int &r_i = node_ptr->num_potential_vals;
-    const int &q_i = node_ptr->set_parents_combinations.size();
+    const int &q_i = node_ptr->set_discrete_parents_combinations.size();
     double multiply_over_j = 1;
 
-    for (const auto &par_comb : node_ptr->set_parents_combinations) {
+    for (const auto &par_comb : node_ptr->set_discrete_parents_combinations) {
 
       set<int> set_instances_parent_compatible;
       int n_ij = 0;
@@ -315,10 +315,10 @@ double ScoreFunction::LogBDeu(Network *net, Trainer *trn, int equi_sample_size) 
   for (const auto &node_ptr : net->set_node_ptr_container) {
     const int &node_index = node_ptr->GetNodeIndex();
     const int &r_i = node_ptr->num_potential_vals;
-    const int &q_i = node_ptr->set_parents_combinations.size();
+    const int &q_i = node_ptr->set_discrete_parents_combinations.size();
     double sum_over_j = 0;
 
-    for (const auto &par_comb : node_ptr->set_parents_combinations) {
+    for (const auto &par_comb : node_ptr->set_discrete_parents_combinations) {
 
       set<int> set_instances_parent_compatible;
       int n_ij = 0;

@@ -30,6 +30,7 @@ class Network {
  public:
   string network_name;
   int num_nodes;
+  bool pure_discrete;
   set<Node*> set_node_ptr_container;
 
   int *default_elim_ord;
@@ -41,9 +42,9 @@ class Network {
   void PrintEachNodeParents();
   void PrintEachNodeChildren();
 
-  Node* FindNodePtrByIndex(int index) const;
+  Node* FindNodePtrByIndex(const int &index) const;
 
-  Node* FindNodePtrByName(string name) const;
+  Node* FindNodePtrByName(const string &name) const;
 
   virtual void StructLearnCompData(Trainer *) = 0;
 

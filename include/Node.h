@@ -38,18 +38,18 @@ class Node {
 
   set<Node*> set_parents_ptrs;
   set<Node*> set_children_ptrs;
-  set<Combination> set_parents_combinations;
+  set<Combination> set_discrete_parents_combinations;
   map<int, map<Combination, double> >  map_cond_prob_table;
   map<int, double>  map_marg_prob_table;
 
   Node();
   int GetNodeIndex() const;
   void SetNodeIndex(int index);
-  void AddChild(Node *node_ptr);
-  void AddParent(Node *node_ptr);
+  virtual void AddChild(Node *node_ptr) = 0;
+  virtual void AddParent(Node *node_ptr) = 0;
   void RemoveChild(Node *node_ptr);
   void RemoveParent(Node *node_ptr);
-  void GenParCombs();
+  void GenDiscParCombs();
 
   int SampleNodeGivenParents(Combination evidence);
 };

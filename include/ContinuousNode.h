@@ -22,13 +22,23 @@ class ContinuousNode : public Node {
  public:
   bool is_discrete = false;
 
-                               // Linear Gaussian Bayesian network
-                               //   * All variables are continuous
-                               //   * All CPDs are linear Gaussian
-  double         mu;           // Unconditional mean.
-  vector<int>    par_indexes;  // Parents should have an order, because coefficients are corresponding.
-  vector<double> b;            // Linear coefficients for parents.
-  double         v;            // Unconditional variance.
+  // In conditional Gaussian Bayesian network,
+  // discrete nodes will not have continuous parents
+
+  // The ordering of continuous parents is important.
+  vector<int> contin_par_indexes;
+
+  // Conditional mean given discrete parents.
+  map<Combination, double> mu;
+
+  // Conditional linear coefficients for continuous parents given discrete parents.
+  map<Combination, vector<double>> b;
+
+  // Conditional variance given discrete parents.
+  map<Combination, double> v;
+
+  void AddChild(Node *node_ptr) override;
+  void AddParent(Node *node_ptr) override;
 };
 
 

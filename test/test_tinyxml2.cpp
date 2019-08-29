@@ -16,7 +16,7 @@
 using namespace std;
 using namespace tinyxml2;
 
-TEST(XMLBIFParser, DISABLED_usability) {
+TEST(XMLBIFParser, usability) {
   string file = "../../data/interchange-format-file/dog-problem.xml";
   XMLDocument doc;
   doc.LoadFile(file.c_str());
@@ -39,7 +39,7 @@ TEST(XMLBIFParser, DISABLED_usability) {
 
 }
 
-TEST(XMLBIFParser, DISABLED_dog_problem_xmlbif) {
+TEST(XMLBIFParser, dog_problem_xmlbif) {
   string file = "../../data/interchange-format-file/dog-problem.xml";
   CustomNetwork dog_net;
   dog_net.GetNetFromXMLBIFFile(file);

@@ -55,7 +55,7 @@ void Factor::ConstructFactor(Node *node) {
     related_variables.insert(p->GetNodeIndex());
   }
   for (auto &p : set_pair_temp) {
-    for (auto it_pc=node->set_parents_combinations.begin(); it_pc!=node->set_parents_combinations.end(); ++it_pc) {
+    for (auto it_pc=node->set_discrete_parents_combinations.begin(); it_pc!=node->set_discrete_parents_combinations.end(); ++it_pc) {
       Combination c = (*it_pc);
       c.insert(p);
       set_combinations.insert(c);

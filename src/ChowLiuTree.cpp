@@ -84,20 +84,20 @@ void ChowLiuTree::StructLearnCompData(Trainer *trainer) {
   gettimeofday(&end,NULL);
   diff = (end.tv_sec-start.tv_sec) + ((double)(end.tv_usec-start.tv_usec))/1.0E6;
   setlocale(LC_NUMERIC, "");
-  cout << "=======================================================================" << '\n'
+  cout << "==================================================" << '\n'
        << "The time spent to construct Chow-Liu tree is " << diff << " seconds" << endl;
 }
 
 
 void ChowLiuTree::StructLearnChowLiuTreeCompData(Trainer *trainer) {
-  cout << "=======================================================================" << '\n'
+  cout << "==================================================" << '\n'
        << "Begin structural learning. \nConstructing Chow-Liu tree with complete data......" << endl;
 
   num_nodes = trainer->num_vars;
   // Assign an index for each node.
   #pragma omp parallel for
   for (int i=0; i<num_nodes; ++i) {
-    Node *node_ptr = new Node();
+    Node *node_ptr = new DiscreteNode();
     node_ptr->SetNodeIndex(i);
     node_ptr->is_discrete = true;  // trainer->is_features_discrete[i];
 
@@ -126,7 +126,7 @@ void ChowLiuTree::StructLearnChowLiuTreeCompData(Trainer *trainer) {
     }
   }
 
-  cout << "=======================================================================" << '\n'
+  cout << "==================================================" << '\n'
        << "Constructing mutual information table......" << endl;
 
   int n = num_nodes;
@@ -161,7 +161,7 @@ void ChowLiuTree::StructLearnChowLiuTreeCompData(Trainer *trainer) {
     }
   }
 
-  cout << "=======================================================================" << '\n'
+  cout << "==================================================" << '\n'
        << "Constructing maximum spanning tree using mutual information table and Prim's algorithm......" << endl;
 
   // Use Prim's algorithm to generate a spanning tree.
@@ -204,7 +204,7 @@ void ChowLiuTree::StructLearnChowLiuTreeCompData(Trainer *trainer) {
   }
 
 
-  cout << "=======================================================================" << '\n'
+  cout << "==================================================" << '\n'
        << "Setting children and parents......" << endl;
   #pragma omp parallel for
   for (int i=0; i<n; ++i) {
@@ -232,7 +232,7 @@ void ChowLiuTree::StructLearnChowLiuTreeCompData(Trainer *trainer) {
     }
   }
 
-  cout << "=======================================================================" << '\n'
+  cout << "==================================================" << '\n'
        << "Generating parents combinations for each node......" << endl;
 
   // Store the pointers in an array to make use of OpenMP.
@@ -243,18 +243,18 @@ void ChowLiuTree::StructLearnChowLiuTreeCompData(Trainer *trainer) {
   }
   #pragma omp parallel for
   for (int i=0; i<num_nodes; ++i) {
-    arr_node_ptr_container[i]->GenParCombs();
+    arr_node_ptr_container[i]->GenDiscParCombs();
   }
   delete[] arr_node_ptr_container;
 
 
-  cout << "=======================================================================" << '\n'
+  cout << "==================================================" << '\n'
        << "Finish structural learning." << endl;
 
 
   // The following code are just to print the result.
 
-//  cout << "=======================================================================" << '\n'
+//  cout << "==================================================" << '\n'
 //       << "The Chow-Liu Tree has the following edges (adjacency matrix): " << endl;
 //  for (int l = 0; l < n; ++l) {
 //    for (int j = 0; j < n; ++j) {
@@ -265,18 +265,18 @@ void ChowLiuTree::StructLearnChowLiuTreeCompData(Trainer *trainer) {
 //    cout << endl;
 //  }
 
-  cout << "=======================================================================" << '\n'
+  cout << "==================================================" << '\n'
        << "Topological sorted permutation generated using width-first-traversal: " << endl;
   for (int m = 0; m < n; ++m) {
     cout << topologicalSortedPermutation[m] << '\t';
   }
   cout << endl;
 
-  cout << "=======================================================================" << '\n'
+  cout << "==================================================" << '\n'
        << "Each node's parents: " << endl;
   this->PrintEachNodeParents();
 
-//  cout << "=======================================================================" << '\n'
+//  cout << "==================================================" << '\n'
 //       << "Each node's children: " << endl;
 //  this->PrintEachNodeChildren();
 //

@@ -26,7 +26,9 @@ class DiscreteNode : public Node {
   map<int, map<Combination, double> >  map_cond_prob_table;
   map<int, double>  map_marg_prob_table;
 
-  void GenParCombs();
+  void AddChild(Node *node_ptr) override;
+  void AddParent(Node *node_ptr) override;
+
 };
 
 

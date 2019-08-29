@@ -30,7 +30,7 @@ JunctionTree::JunctionTree(Network *net) {
   gettimeofday(&end,NULL);
   diff = (end.tv_sec-start.tv_sec) + ((double)(end.tv_usec-start.tv_usec))/1.0E6;
   setlocale(LC_NUMERIC, "");
-  cout << "=======================================================================" << '\n'
+  cout << "==================================================" << '\n'
        << "The time spent to construct junction tree is " << diff << " seconds" << endl;
   delete[] direc_adjac_matrix;
 }
@@ -410,7 +410,7 @@ void JunctionTree::PrintAllCliquesPotentials() const {
   for (auto &c : set_clique_ptr_container) {
     c->PrintPotentials();
   }
-  cout << "=======================================================================" << endl;
+  cout << "==================================================" << endl;
 }
 
 void JunctionTree::PrintAllSeparatorsPotentials() const {
@@ -418,7 +418,7 @@ void JunctionTree::PrintAllSeparatorsPotentials() const {
   for (auto &s : set_separator_ptr_container) {
     s->PrintPotentials();
   }
-  cout << "=======================================================================" << endl;
+  cout << "==================================================" << endl;
 }
 
 Factor JunctionTree::BeliefPropagationReturnPossib(set<int> &indexes) {
@@ -477,7 +477,7 @@ int JunctionTree::InferenceUsingBeliefPropagation(set<int> &indexes) {
 double JunctionTree::TestNetReturnAccuracy(int class_var, Trainer *tst) {
   set<int> query;
   query.insert(class_var);
-  cout << "=======================================================================" << '\n'
+  cout << "==================================================" << '\n'
        << "Begin testing the trained network." << endl;
 
   struct timeval start, end;
@@ -533,7 +533,7 @@ double JunctionTree::TestNetReturnAccuracy(int class_var, Trainer *tst) {
   gettimeofday(&end,NULL);
   diff = (end.tv_sec-start.tv_sec) + ((double)(end.tv_usec-start.tv_usec))/1.0E6;
   setlocale(LC_NUMERIC, "");
-  cout << "=======================================================================" << '\n'
+  cout << "==================================================" << '\n'
        << "The time spent to test the accuracy is " << diff << " seconds" << endl;
 
   double accuracy = num_of_correct / (double)(num_of_correct+num_of_wrong);
