@@ -40,7 +40,7 @@ A virtual function to do structure learning with complete data.
 Learn parameters of the network, provided with known structure and complete data.
 
 ## void ClearParms()
-Clear the parameters in the conditional (or marginal) probability tables.
+Clear (i.e. set to zero) the parameters in the conditional (or marginal) probability tables.
 
 ## void SetParentChild(Node \*par, Node \*chi);
 Input: two node pointer

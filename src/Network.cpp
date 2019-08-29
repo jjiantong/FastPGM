@@ -419,7 +419,7 @@ double Network::TestNetReturnAccuracy(Trainer *tester) {
 
   cout << "Progress indicator: ";
 
-  int num_of_correct=0, num_of_wrong=0, m=tester->num_train_instance, m20=m/20, progress=0;
+  int num_of_correct=0, num_of_wrong=0, m=tester->num_instance, m20=m/20, progress=0;
 
 //  int num_cores = omp_get_num_procs();
 //  omp_set_num_threads(num_cores);
@@ -475,7 +475,7 @@ double Network::TestNetByApproxInferReturnAccuracy(Trainer *tester, int num_samp
 
   cout << "Progress indicator: ";
 
-  int num_of_correct=0, num_of_wrong=0, m=tester->num_train_instance, m20=m/20, progress=0;
+  int num_of_correct=0, num_of_wrong=0, m=tester->num_instance, m20=m/20, progress=0;
 
   vector<Combination> samples = this->DrawSamplesByProbLogiSamp(10000);
 
@@ -520,7 +520,7 @@ double Network::TestAccuracyByLikelihoodWeighting(Trainer *tester, int num_samp)
 
   cout << "Progress indicator: ";
 
-  int num_of_correct=0, num_of_wrong=0, m=tester->num_train_instance, m20=m/20, progress=0;
+  int num_of_correct=0, num_of_wrong=0, m=tester->num_instance, m20=m/20, progress=0;
 
   #pragma omp parallel for
   for (int i=0; i<m; ++i) {  // For each sample in test set

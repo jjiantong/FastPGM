@@ -486,7 +486,7 @@ double JunctionTree::TestNetReturnAccuracy(int class_var, Trainer *tst) {
 
   cout << "Progress indicator: ";
 
-  int num_of_correct=0, num_of_wrong=0, m=tst->num_train_instance, m20=m/20, progress=0;
+  int num_of_correct=0, num_of_wrong=0, m=tst->num_instance, m20=m/20, progress=0;
 
   // If I use OpenMP to parallelize,
   // process may exit with code 137,

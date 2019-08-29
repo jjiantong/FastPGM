@@ -33,7 +33,7 @@ double ScoreFunction::LogLikelihoodForNode(Node *node_ptr, Network *net, Trainer
     set<int> set_instances_parent_compatible;
     int n_ij = 0;
 
-    for (int s=0; s<trn->num_train_instance; ++s) {
+    for (int s=0; s<trn->num_instance; ++s) {
 
       // Check parents.
       bool parents_compatible = true;
@@ -115,7 +115,7 @@ double ScoreFunction::K2(Network *net, Trainer *trn) {
       set<int> set_instances_parent_compatible;
       int n_ij = 0;
 
-      for (int s=0; s<trn->num_train_instance; ++s) {
+      for (int s=0; s<trn->num_instance; ++s) {
 
         // Check parents.
         bool parents_compatible = true;
@@ -179,7 +179,7 @@ double ScoreFunction::LogK2(Network *net, Trainer *trn) {
       set<int> set_instances_parent_compatible;
       int n_ij = 0;
 
-      for (int s=0; s<trn->num_train_instance; ++s) {
+      for (int s=0; s<trn->num_instance; ++s) {
 
         // Check parents.
         bool parents_compatible = true;
@@ -256,7 +256,7 @@ double ScoreFunction::BDeu(Network *net, Trainer *trn, int equi_sample_size) {
       set<int> set_instances_parent_compatible;
       int n_ij = 0;
 
-      for (int s=0; s<trn->num_train_instance; ++s) {
+      for (int s=0; s<trn->num_instance; ++s) {
 
         // Check parents.
         bool parents_compatible = true;
@@ -323,7 +323,7 @@ double ScoreFunction::LogBDeu(Network *net, Trainer *trn, int equi_sample_size) 
       set<int> set_instances_parent_compatible;
       int n_ij = 0;
 
-      for (int s=0; s<trn->num_train_instance; ++s) {
+      for (int s=0; s<trn->num_instance; ++s) {
 
         // Check parents.
         bool parents_compatible = true;

@@ -9,9 +9,12 @@ Input: path to the LIBSVM data file (like a1a)
 Output: none (but the information about data has been written to the data structure of the class instance)
 
 
-## void ConvertVectorDatasetIntoArrayDataset()
+## void ConvertLIBSVMVectorDatasetIntoArrayDataset()
 First, initialize the array to be all zero. Second, change the value
 to be 1 if it is 1 in the `vector` representation.
+
+## void LoadCSVDataAutoDetectConfig(string data_file_path)
+As the name suggests.
 
 ## void SamplesToLIBSVMFile(vector<Combination> &samples, string file)
 Store the drawn samples as LIBSVM file (like a1a).

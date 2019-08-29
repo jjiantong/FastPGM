@@ -9,7 +9,7 @@ double ChowLiuTree::ComputeMutualInformation(Node *Xi, Node *Xj, const Trainer *
   int xi=Xi->GetNodeIndex(), xj=Xj->GetNodeIndex();
 
   // Initialize the table.
-  int m = trainer->num_train_instance, ri = Xi->num_potential_vals, rj = Xj->num_potential_vals;
+  int m = trainer->num_instance, ri = Xi->num_potential_vals, rj = Xj->num_potential_vals;
   double **Pij = new double* [ri];
   for (int i=0; i<ri; ++i) {
     Pij[i] = new double[rj]();    // The parentheses at end will initialize the array to be all zeros.
@@ -304,7 +304,7 @@ void ChowLiuTree::LearnParmsKnowStructCompData(const Trainer *trainer){
   Node *label_node = FindNodePtrByIndex(0);
   map<int, double> *MPT = &(label_node->map_marg_prob_table);
   int denominator = 0;
-  for (int s = 0; s < trainer->num_train_instance; ++s) {
+  for (int s = 0; s < trainer->num_instance; ++s) {
     denominator += 1;
     int query = trainer->train_set_y[s];
     (*MPT)[query] += 1;
@@ -331,7 +331,7 @@ void ChowLiuTree::LearnParmsKnowStructCompData(const Trainer *trainer){
       set<Combination> *ptr_set_par_combs = &(this_node->set_discrete_parents_combinations);
       for (auto &par_comb : *ptr_set_par_combs) {    // For each column in CPT. Because the sum over column of CPT must be 1.
         int denominator = 0;
-        for (int s = 0; s < trainer->num_train_instance; ++s) {
+        for (int s = 0; s < trainer->num_instance; ++s) {
           int compatibility = 1;  // We assume compatibility is 1,
           // and set it to 0 if we find that (*it_par_comb) is not compatible with (trainer->train_set[s]).
           // If we support learning with incomplete data,
