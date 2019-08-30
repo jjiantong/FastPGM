@@ -39,12 +39,13 @@ class ChowLiuTree : public Network {
   int *default_elim_ord;
 
   ChowLiuTree() = default;
+  explicit ChowLiuTree(bool pure_disc);
 
   double ComputeMutualInformation(Node *Xi, Node *Xj, const Trainer *trainer);
-  void StructLearnCompData(Trainer *trainer) override;
-  void StructLearnChowLiuTreeCompData(Trainer *trainer);
+  void StructLearnCompData(Trainer *trainer, bool print_struct=true) override;
+  void StructLearnChowLiuTreeCompData(Trainer *trainer, bool print_struct=true);
 
-  void LearnParmsKnowStructCompData(const Trainer *trainer) override;
+  void LearnParmsKnowStructCompData(const Trainer *trainer, bool print_params=true) override;
 
 
   pair<int*, int> SimplifyDefaultElimOrd(Combination evidence) override;

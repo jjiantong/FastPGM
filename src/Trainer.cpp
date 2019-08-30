@@ -101,7 +101,6 @@ void Trainer::ConvertLIBSVMVectorDatasetIntoArrayDataset() {
 
 
 void Trainer::ConvertCSVVectorDatasetIntoArrayDataset() {
-  // todo: test correctness
   dataset_all_vars = new int *[num_instance];
   #pragma omp parallel for
   for (int s=0; s<num_instance; ++s) {
@@ -114,7 +113,6 @@ void Trainer::ConvertCSVVectorDatasetIntoArrayDataset() {
 
 
 void Trainer::LoadCSVDataAutoDetectConfig(string data_file_path) {
-  // todo: test correctness
   ifstream in_file;
   in_file.open(data_file_path);
   if (!in_file.is_open()) {
@@ -202,7 +200,7 @@ void Trainer::SamplesToCSVFile(vector<Combination> &samples, string &file) const
   f = fopen(file.c_str(), "w");
 
   string first_line = "";   // The first line is like the table head.
-  for (int i=0; i<max_index; ++i) {
+  for (int i=0; i<=max_index; ++i) {
     first_line += to_string(i) + ',';
   }
   first_line = first_line.substr(0, first_line.size()-1);   // No comma at the last character.

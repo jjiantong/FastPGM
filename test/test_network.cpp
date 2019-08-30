@@ -26,7 +26,7 @@ class NetworkTest : public ::testing::Test {
   void SetUp() override {
     trainer = new Trainer();
     tester = new Trainer();
-    network = new ChowLiuTree();
+    network = new ChowLiuTree(true);
 
     string train_set_file_path, test_set_file_path;
 
@@ -49,14 +49,8 @@ class NetworkTest : public ::testing::Test {
 
     trainer->LoadLIBSVMDataAutoDetectConfig(train_set_file_path);
     tester->LoadLIBSVMDataAutoDetectConfig(test_set_file_path);
-    network->pure_discrete = true;
-    network->StructLearnCompData(trainer);
-    network->LearnParmsKnowStructCompData(trainer);
-
-    string custom_file = "../../data/interchange-format-file/dog-problem.xml";
-    custom_net = new CustomNetwork();
-    custom_net->pure_discrete = true;
-    custom_net->GetNetFromXMLBIFFile(custom_file);
+    network->StructLearnCompData(trainer, false);
+    network->LearnParmsKnowStructCompData(trainer, false);
   }
 
   void TearDown() override {
@@ -68,7 +62,6 @@ class NetworkTest : public ::testing::Test {
   Trainer *trainer;
   Trainer *tester;
   Network *network;
-  CustomNetwork *custom_net;
 };
 
 
@@ -97,8 +90,8 @@ TEST_F(NetworkTest, DISABLED_gibbs_samples_to_libsvm_file) {
   Trainer *trn_samp = new Trainer();
   Network *net_samp = new ChowLiuTree();
   trn_samp->LoadLIBSVMDataAutoDetectConfig("./gibbs_samples_to_LIBSVM_file.txt");
-  net_samp->StructLearnCompData(trn_samp);
-  net_samp->LearnParmsKnowStructCompData(trn_samp);
+  net_samp->StructLearnCompData(trn_samp, false);
+  net_samp->LearnParmsKnowStructCompData(trn_samp, false);
 
   for(int i=0; i<net_samp->num_nodes; ++i) {
     fprintf(stdout, "\n====================================\n");
@@ -222,21 +215,25 @@ TEST_F(NetworkTest, sampling_network) {
   Combination samp = network->ProbLogicSampleNetwork();
 }
 
-TEST_F(NetworkTest, DISABLED_sampling_dog_net_to_libsvm_file_and_relearn) {
-  // todo: implement the test
-  vector<Combination> samples = custom_net->DrawSamplesByGibbsSamp(1e4,1e5);
-  string sample_file = "./gibbs_samples_to_LIBSVM_file.txt";
-  trainer->SamplesToCSVFile(samples, sample_file);
-
-  Trainer *trn_samp = new Trainer();
-  CustomNetwork *net_samp = new CustomNetwork();
+TEST(CustomNetworkTest, sampling_dog_net_to_csv_file_and_relearn) {
 
   string custom_file = "../../data/interchange-format-file/dog-problem.xml";
+  auto custom_net = new CustomNetwork(true);
+  custom_net->GetNetFromXMLBIFFile(custom_file);
+
+  vector<Combination> samples = custom_net->DrawSamplesByGibbsSamp(2e4,2e5);
+  string sample_file = "./gibbs_samples_to_CSV_file.txt";
+  auto trainer = new Trainer();
+  trainer->SamplesToCSVFile(samples, sample_file);
+
+  CustomNetwork *net_samp = new CustomNetwork(true);
   net_samp->GetNetFromXMLBIFFile(custom_file);
+  net_samp->ClearParms();
 
-  // todo: clear the parameters in net_samp and re-learn from file
+  Trainer *trn_samp = new Trainer();
+  trn_samp->LoadCSVDataAutoDetectConfig(sample_file);
 
-  net_samp->LearnParmsKnowStructCompData(trn_samp);
+  net_samp->LearnParmsKnowStructCompData(trn_samp, false);
 
   for(int i=0; i<net_samp->num_nodes; ++i) {
     fprintf(stdout, "\n====================================\n");

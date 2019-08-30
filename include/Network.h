@@ -27,16 +27,18 @@ typedef set< pair<int, int> > Combination;
 
 
 class Network {
+
  public:
   string network_name;
   int num_nodes;
-  bool pure_discrete;
+  bool pure_discrete = true;
   set<Node*> set_node_ptr_container;
 
   int *default_elim_ord;
   vector<int> topo_ord;
 
   Network() = default;
+  explicit Network(bool pure_disc);
   virtual ~Network() = default;
 
   void PrintEachNodeParents();
@@ -46,9 +48,9 @@ class Network {
 
   Node* FindNodePtrByName(const string &name) const;
 
-  virtual void StructLearnCompData(Trainer *);
+  virtual void StructLearnCompData(Trainer *, bool print_struct=true);
 
-  virtual void LearnParmsKnowStructCompData(const Trainer *);
+  virtual void LearnParmsKnowStructCompData(const Trainer *, bool print_params=true);
 
   void ClearParms();
 

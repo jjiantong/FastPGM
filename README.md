@@ -15,20 +15,12 @@ Developed by Linjian Li, using Clion 2018.3.1
       * Belief propagation (a.k.a. message passing, sum-product)
   * Approximate inference
       * Probabilistic logic sampling
-        * To verify the correctness of my implementation of probabilistic logic sampling, I did the following things
-          1. Learn a Chow-Liu tree from LIBSVM a3a dataset
-          2. Draw 10000 samples from the Chow-Liu tree by probabilistic logic sampling
-          3. Convert these samples to a file of the LIBSVM data file format
-          4. Learn a new Chow-Liu tree from the file from step 4
-          5. Compare the CPD of each node in the new and old Chow-Liu trees
-          6. Observe that the CPD of two tree are VERY similar
       * Rejection sampling
       * MCMC sampling
-        * Gibbs sampling **(todo: verify the correctness of the implementation)**
+        * Gibbs sampling
       * Likelihood weighting sampling
   * Construct custom network from files
     * XMLBIF (which is also supported by Weka)
-
 
 
 ### supported problems

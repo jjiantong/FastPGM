@@ -26,8 +26,9 @@ class CustomNetwork : public Network {
  public:
 
   CustomNetwork() = default;
+  explicit CustomNetwork(bool pure_disc);
 
-  void LearnParmsKnowStructCompData(const Trainer *) override;
+  void LearnParmsKnowStructCompData(const Trainer *, bool print_params=true) override;
   pair<int*, int> SimplifyDefaultElimOrd(Combination evidence) override;
 
   void GetNetFromXMLBIFFile(string file_path);

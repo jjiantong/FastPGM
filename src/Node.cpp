@@ -96,3 +96,31 @@ int Node::SampleNodeGivenParents(Combination evidence) {
   discrete_distribution<int> this_distribution(weights.begin(),weights.end());
   return potential_vals[this_distribution(rand_gen)];
 }
+
+
+void Node::PrintProbabilityTable() {
+  cout << GetNodeIndex() << ":\t";
+
+  if (set_parents_ptrs.empty()) {    // If this node has no parents
+    for(int i=0; i<num_potential_vals; ++i) {    // For each row of MPT
+      int query = potential_vals[i];
+      cout << "P(" << query << ")=" << map_marg_prob_table[query] << '\t';
+    }
+    cout << endl;
+
+  } else {  // If this node has parents
+
+    for(int i=0; i<num_potential_vals; ++i) {    // For each row of CPT
+      int query = potential_vals[i];
+      for (auto itParCom = set_discrete_parents_combinations.begin(); itParCom != set_discrete_parents_combinations.end(); ++itParCom) {  // For each column of CPT
+        Combination comb = (*itParCom);
+        string condition;
+        for (auto &p : comb) {
+          condition += ("\"" + to_string(p.first) + "\"=" + to_string(p.second));
+        }
+        cout << "P(" << query << '|' << condition << ")=" << map_cond_prob_table[query][comb] << '\t';
+      }
+    }
+    cout << endl;
+  }
+}

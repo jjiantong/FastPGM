@@ -5,6 +5,11 @@
 #include "Network.h"
 
 
+Network::Network(bool pure_disc) {
+  this->pure_discrete = pure_disc;
+}
+
+
 void Network::PrintEachNodeParents() {
   for (const auto &node_ptr : set_node_ptr_container) {
     cout << node_ptr->GetNodeIndex() << ":\t";
@@ -53,7 +58,7 @@ Node* Network::FindNodePtrByName(const string &name) const {
 }
 
 
-void Network::StructLearnCompData(Trainer *trn) {
+void Network::StructLearnCompData(Trainer *trn, bool print_struct) {
   fprintf(stderr, "Not be implemented yet!");
   exit(1);
 }
@@ -160,9 +165,12 @@ vector<int> Network::GenTopoOrd() {
       topo_ord.push_back(cont_order_index[elem]);
     }
 
-    #pragma omp for
-    for (int i=0; i<num_nodes; ++i) {
+    #pragma omp parallel for
+    for (int i=0; i<set_disc_node_ptr.size(); ++i) {
       delete[] graph_disc[i];
+    }
+    #pragma omp parallel for
+    for (int i=0; i<set_cont_node_ptr.size(); ++i) {
       delete[] graph_cont[i];
     }
     delete[] graph_disc;
@@ -180,7 +188,7 @@ void Network::RemoveParentChild(Node *p, Node *c) {
 }
 
 
-void Network::LearnParmsKnowStructCompData(const Trainer *trainer){
+void Network::LearnParmsKnowStructCompData(const Trainer *trainer, bool print_params){
   fprintf(stderr, "Need to be implemented in sub-class!");
   exit(1);
 }
@@ -713,7 +721,6 @@ vector<Combination> Network::DrawSamplesByProbLogiSamp(int num_samp) {
 
 
 set<int> Network::GetMarkovBlanketIndexesOfNode(Node *node_ptr) {
-  //todo : check correctness
   set<int> markov_blanket_node_index;
 
   // Add parents.
@@ -737,7 +744,6 @@ set<int> Network::GetMarkovBlanketIndexesOfNode(Node *node_ptr) {
 
 
 vector<Combination> Network::DrawSamplesByGibbsSamp(int num_samp, int num_burn_in) {
-  // todo: check correctness
 
   vector<Combination> samples;
   samples.reserve(num_samp);
@@ -789,7 +795,6 @@ vector<Combination> Network::DrawSamplesByGibbsSamp(int num_samp, int num_burn_i
 
 
 int Network::SampleNodeGivenMarkovBlanketReturnValIndex(Node *node_ptr, Combination markov_blanket) {
-  // todo: check correctness
   int num_elim_ord = markov_blanket.size();
   int *var_elim_ord = new int[num_elim_ord];
   int temp = 0;

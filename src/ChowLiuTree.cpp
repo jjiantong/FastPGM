@@ -4,6 +4,10 @@
 
 #include "ChowLiuTree.h"
 
+ChowLiuTree::ChowLiuTree(bool pure_disc) {
+  this->pure_discrete = pure_disc;
+}
+
 double ChowLiuTree::ComputeMutualInformation(Node *Xi, Node *Xj, const Trainer *trainer) {
   // Find the indexes of these two features in training set.
   int xi=Xi->GetNodeIndex(), xj=Xj->GetNodeIndex();
@@ -73,12 +77,12 @@ double ChowLiuTree::ComputeMutualInformation(Node *Xi, Node *Xj, const Trainer *
 }
 
 
-void ChowLiuTree::StructLearnCompData(Trainer *trainer) {
+void ChowLiuTree::StructLearnCompData(Trainer *trainer, bool print_struct) {
   struct timeval start, end;
   double diff;
   gettimeofday(&start,NULL);
 
-  StructLearnChowLiuTreeCompData(trainer);
+  StructLearnChowLiuTreeCompData(trainer, print_struct);
 
   gettimeofday(&end,NULL);
   diff = (end.tv_sec-start.tv_sec) + ((double)(end.tv_usec-start.tv_usec))/1.0E6;
@@ -88,7 +92,7 @@ void ChowLiuTree::StructLearnCompData(Trainer *trainer) {
 }
 
 
-void ChowLiuTree::StructLearnChowLiuTreeCompData(Trainer *trainer) {
+void ChowLiuTree::StructLearnChowLiuTreeCompData(Trainer *trainer, bool print_struct) {
   cout << "==================================================" << '\n'
        << "Begin structural learning. \nConstructing Chow-Liu tree with complete data......" << endl;
 
@@ -253,32 +257,24 @@ void ChowLiuTree::StructLearnChowLiuTreeCompData(Trainer *trainer) {
 
   // The following code are just to print the result.
 
-//  cout << "==================================================" << '\n'
-//       << "The Chow-Liu Tree has the following edges (adjacency matrix): " << endl;
-//  for (int l = 0; l < n; ++l) {
-//    for (int j = 0; j < n; ++j) {
-//      if (graphAdjacencyMatrix[l][j]==1) {
-//        cout << '<' << l << ',' << j << '>' << '\t';
-//      }
-//    }
-//    cout << endl;
-//  }
+  if (print_struct) {
 
-  cout << "==================================================" << '\n'
-       << "Topological sorted permutation generated using width-first-traversal: " << endl;
-  for (int m = 0; m < n; ++m) {
-    cout << topologicalSortedPermutation[m] << '\t';
-  }
-  cout << endl;
+    cout << "==================================================" << '\n'
+         << "Topological sorted permutation generated using width-first-traversal: " << endl;
+    for (int m = 0; m < n; ++m) {
+      cout << topologicalSortedPermutation[m] << '\t';
+    }
+    cout << endl;
 
-  cout << "==================================================" << '\n'
-       << "Each node's parents: " << endl;
-  this->PrintEachNodeParents();
+    cout << "==================================================" << '\n'
+         << "Each node's parents: " << endl;
+    this->PrintEachNodeParents();
 
 //  cout << "==================================================" << '\n'
 //       << "Each node's children: " << endl;
 //  this->PrintEachNodeChildren();
 //
+  }
 
   for (int i=0; i<n; ++i) {
     delete[] mutualInfoTab[i];
@@ -292,7 +288,7 @@ void ChowLiuTree::StructLearnChowLiuTreeCompData(Trainer *trainer) {
 }
 
 
-void ChowLiuTree::LearnParmsKnowStructCompData(const Trainer *trainer){
+void ChowLiuTree::LearnParmsKnowStructCompData(const Trainer *trainer, bool print_params){
   cout << "==================================================" << '\n'
        << "Begin learning parameters with known structure and complete data." << endl;
 
@@ -360,37 +356,12 @@ void ChowLiuTree::LearnParmsKnowStructCompData(const Trainer *trainer){
        << "Finish training with known structure and complete data." << endl;
 
 
-
-  // The following code are just to print the result.
-  cout << "==================================================" << '\n'
-       << "Each node's conditional probability table: " << endl;
-  for (const auto thisNode : set_node_ptr_container) {  // For each node
-    cout << thisNode->GetNodeIndex() << ":\t";
-
-
-    if (thisNode->set_parents_ptrs.empty()) {    // If this node has no parents
-      for(int i=0; i<thisNode->num_potential_vals; ++i) {    // For each row of MPT
-        int query = thisNode->potential_vals[i];
-        cout << "P(" << query << ")=" << thisNode->map_marg_prob_table[query] << '\t';
-      }
-      cout << endl;
-      continue;
+  if (print_params) {
+    cout << "==================================================" << '\n'
+         << "Each node's conditional probability table: " << endl;
+    for (const auto &node_ptr : set_node_ptr_container) {  // For each node
+      node_ptr->PrintProbabilityTable();
     }
-
-
-    for(int i=0; i<thisNode->num_potential_vals; ++i) {    // For each row of CPT
-      int query = thisNode->potential_vals[i];
-      for (auto itParCom = thisNode->set_discrete_parents_combinations.begin(); itParCom != thisNode->set_discrete_parents_combinations.end(); ++itParCom) {  // For each column of CPT
-        Combination comb = (*itParCom);
-        string condition;
-        for (auto &p : comb) {
-          condition += ("\"" + to_string(p.first) + "\"=" + to_string(p.second));
-        }
-        cout << "P(" << query << '|' << condition << ")=" << thisNode->map_cond_prob_table[query][comb] << '\t';
-      }
-    }
-    cout << endl;
-
   }
 
   gettimeofday(&end,NULL);

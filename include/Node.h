@@ -52,6 +52,9 @@ class Node {
   void GenDiscParCombs();
 
   int SampleNodeGivenParents(Combination evidence);
+
+  void PrintProbabilityTable();
+
 };
 
 
