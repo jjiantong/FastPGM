@@ -4,9 +4,9 @@
 
 #include "Node.h"
 
-
-Node::Node() {}
-
+Node::Node(int index) {
+  SetNodeIndex(index);
+}
 
 int Node::GetNodeIndex() const {
   return node_index;
@@ -19,6 +19,16 @@ void Node::SetNodeIndex(int i) {
     exit(1);
   }
   node_index = i;
+}
+
+
+void Node::AddChild(Node *c) {
+  set_children_ptrs.insert(c);
+}
+
+
+void Node::AddParent(Node *p) {
+  set_parents_ptrs.insert(p);
 }
 
 

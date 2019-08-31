@@ -4,6 +4,8 @@
 
 #include "CustomNetwork.h"
 
+CustomNetwork::CustomNetwork(): CustomNetwork(true) {}
+
 CustomNetwork::CustomNetwork(bool pure_disc) {
   this->pure_discrete = pure_disc;
 }

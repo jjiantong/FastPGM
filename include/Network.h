@@ -31,13 +31,13 @@ class Network {
  public:
   string network_name;
   int num_nodes;
-  bool pure_discrete = true;
+  bool pure_discrete;
   set<Node*> set_node_ptr_container;
 
   int *default_elim_ord;
   vector<int> topo_ord;
 
-  Network() = default;
+  Network();
   explicit Network(bool pure_disc);
   virtual ~Network() = default;
 

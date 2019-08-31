@@ -4,6 +4,7 @@
 
 #include "Network.h"
 
+Network::Network(): Network(true) {}
 
 Network::Network(bool pure_disc) {
   this->pure_discrete = pure_disc;

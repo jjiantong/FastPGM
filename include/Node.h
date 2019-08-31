@@ -21,7 +21,7 @@ class Node {
 
  protected:
 
-  // Indexes for all nodes should start at 0.
+  // Indexes for all nodes in a network should start at 0.
   int node_index;
 
  public:
@@ -42,11 +42,12 @@ class Node {
   map<int, map<Combination, double> >  map_cond_prob_table;
   map<int, double>  map_marg_prob_table;
 
-  Node();
+  Node() = default;
+  explicit Node(int index);
   int GetNodeIndex() const;
   void SetNodeIndex(int index);
-  virtual void AddChild(Node *node_ptr) = 0;
-  virtual void AddParent(Node *node_ptr) = 0;
+  virtual void AddChild(Node *node_ptr);
+  virtual void AddParent(Node *node_ptr);
   void RemoveChild(Node *node_ptr);
   void RemoveParent(Node *node_ptr);
   void GenDiscParCombs();

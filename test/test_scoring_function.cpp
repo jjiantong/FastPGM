@@ -1,21 +1,12 @@
-//
-// Created by llj on 4/4/19.
-//
-
 #include <iostream>
 #include <string>
 #include <vector>
-#include <iostream>
-#include <fstream>
 #include "gtest/gtest.h"
 
 #include "Trainer.h"
 #include "Network.h"
-#include "ChowLiuTree.h"
-#include "JunctionTree.h"
 #include "CustomNetwork.h"
 #include "ScoreFunction.h"
-#include "gadget.h"
 
 
 class ScoreTest : public ::testing::Test {
@@ -51,7 +42,7 @@ class ScoreTest : public ::testing::Test {
 };
 
 
-TEST_F(ScoreTest, score_for_diff_nets) {
+TEST_F(ScoreTest, DISABLED_score_for_diff_nets) {
   ScoreFunction sf(origin_dog_net,trainer);
   ScoreFunction incomp_sf(incomplete_dog_net,trainer);
   ScoreFunction redun_sf(redundant_dog_net,trainer);

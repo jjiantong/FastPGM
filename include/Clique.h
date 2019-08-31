@@ -21,7 +21,7 @@ class Clique {
 
  public:
 
-  bool is_separator = false;
+  bool is_separator;
   int clique_id;
   int clique_size;
   set<int> related_variables;
@@ -35,7 +35,7 @@ class Clique {
   // So, we need a member to record the upstream of this clique (node).
   Clique *ptr_upstream_clique;
 
-  Clique() = default;
+  Clique();
   Clique(set<Node*> set_node_ptrs);
   virtual ~Clique() = default;
 

@@ -4,7 +4,12 @@
 
 #include "Clique.h"
 
+Clique::Clique() {
+  is_separator = false;
+}
+
 Clique::Clique(set<Node*> set_node_ptr) {
+  is_separator = false;
   InitializeClique(set_node_ptr);
 }
 

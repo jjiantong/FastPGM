@@ -1,12 +1,6 @@
-//
-// Created by llj on 3/11/19.
-//
-
 #include <iostream>
 #include <string>
 #include <vector>
-#include <iostream>
-#include <fstream>
 #include "gtest/gtest.h"
 #include "tinyxml2.h"
 
@@ -17,8 +11,6 @@
 #include "CustomNetwork.h"
 #include "ScoreFunction.h"
 #include "gadget.h"
-#include "XMLBIFParser.h"
-#include "CustomNetwork.h"
 
 class NetworkTest : public ::testing::Test {
  protected:
@@ -65,7 +57,7 @@ class NetworkTest : public ::testing::Test {
 };
 
 
-TEST_F(NetworkTest, chow_liu_tree_var_elim_accuracy) { // The prefix "DISABLED" disable this test.
+TEST_F(NetworkTest, DISABLED_chow_liu_tree_var_elim_accuracy) { // The prefix "DISABLED" disable this test.
   double accuracy = network->TestNetReturnAccuracy(tester);
   ScoreFunction sf(network, trainer);
   cout << "Scores\n"
@@ -77,7 +69,7 @@ TEST_F(NetworkTest, chow_liu_tree_var_elim_accuracy) { // The prefix "DISABLED" 
   EXPECT_GT(accuracy,0.6);
 }
 
-TEST_F(NetworkTest, approx_inference_accuracy) {
+TEST_F(NetworkTest, DISABLED_approx_inference_accuracy) {
   double acc = network->TestNetByApproxInferReturnAccuracy(tester,100);
   //EXPECT_GT(acc, 0.6);
 }
@@ -103,7 +95,7 @@ TEST_F(NetworkTest, DISABLED_gibbs_samples_to_libsvm_file) {
   }
 }
 
-TEST_F(NetworkTest,var_elim_and_jun_tree) { // The prefix "DISABLED" disable this test.
+TEST_F(NetworkTest, DISABLED_var_elim_and_jun_tree) { // The prefix "DISABLED" disable this test.
   Combination E;
   E.insert(pair<int,int>(50,1));
   E.insert(pair<int,int>(51,1));
@@ -138,7 +130,7 @@ TEST_F(NetworkTest,var_elim_and_jun_tree) { // The prefix "DISABLED" disable thi
 }
 
 
-TEST_F(NetworkTest, jun_tree_accuracy) {
+TEST_F(NetworkTest, DISABLED_jun_tree_accuracy) {
   auto *jt = new JunctionTree(network);
   ScoreFunction sf(network, trainer);
   cout << "Scores\n"
@@ -153,7 +145,7 @@ TEST_F(NetworkTest, jun_tree_accuracy) {
 }
 
 
-TEST_F(NetworkTest, likelihood_weighting_accuracy) {
+TEST_F(NetworkTest, DISABLED_likelihood_weighting_accuracy) {
   ScoreFunction sf(network, trainer);
   cout << "Scores\n"
        << "LogLikelihood: " << sf.LogLikelihood()  << '\n'
@@ -166,7 +158,7 @@ TEST_F(NetworkTest, likelihood_weighting_accuracy) {
 }
 
 
-TEST_F(NetworkTest, score_usability) {
+TEST_F(NetworkTest, DISABLED_score_usability) {
   auto *sf = new ScoreFunction(network,trainer);
   EXPECT_GT(sf->AIC(),-INT32_MAX);
   EXPECT_GT(sf->BIC(),-INT32_MAX);
@@ -174,7 +166,7 @@ TEST_F(NetworkTest, score_usability) {
   EXPECT_GT(sf->K2(),-INT32_MAX);
 }
 
-TEST_F(NetworkTest, score_comparison) {
+TEST_F(NetworkTest, DISABLED_score_comparison) {
   auto *sf1 = new ScoreFunction(network,trainer);
   double score1 = sf1->BDeu();
 
@@ -211,7 +203,7 @@ TEST_F(NetworkTest, DISABLED_sampling_node) {
   EXPECT_LT(rate_0,0.86);
 }
 
-TEST_F(NetworkTest, sampling_network) {
+TEST_F(NetworkTest, DISABLED_sampling_network) {
   Combination samp = network->ProbLogicSampleNetwork();
 }
 

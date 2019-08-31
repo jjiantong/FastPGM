@@ -19,14 +19,8 @@ typedef set< pair<int, int> > Combination;
 
 class DiscreteNode : public Node {
  public:
-  bool is_discrete = true;
-  int num_potential_vals;
-  int* potential_vals;
-  set<Combination> set_parents_combinations;
-  map<int, map<Combination, double> >  map_cond_prob_table;
-  map<int, double>  map_marg_prob_table;
-
-  void AddChild(Node *node_ptr) override;
+  DiscreteNode();
+  explicit DiscreteNode(int index);
   void AddParent(Node *node_ptr) override;
 
 };

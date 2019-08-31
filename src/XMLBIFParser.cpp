@@ -43,9 +43,9 @@ vector<Node*> XMLBIFParser::GetUnconnectedNodes() const {
   vector<Node*> vec_node_ptrs;
   for (auto &xvp : vec_xml_vars_ptr) {
     if (((string)xvp->FirstChildElement("TYPE")->GetText())=="discrete") {
-      Node *n_p = new DiscreteNode();
+
+      Node *n_p = new DiscreteNode(vec_node_ptrs.size());
       n_p->node_name = xvp->FirstChildElement("NAME")->GetText();
-      n_p->is_discrete = true;
 
       XMLElement *xml_val_ptr = xvp->FirstChildElement("VALUE");
       while (xml_val_ptr!=nullptr) {
@@ -58,13 +58,13 @@ vector<Node*> XMLBIFParser::GetUnconnectedNodes() const {
         n_p->potential_vals[i] = i;
         n_p->vec_potential_vals.push_back(i);
       }
-      n_p->SetNodeIndex(vec_node_ptrs.size());
       vec_node_ptrs.push_back(n_p);
-    } else {
+
+    } else {  // If the "TYPE" is "continuous".
+
       // todo: implement continuous node
       Node *n_p = new ContinuousNode();
       n_p->node_name = xvp->FirstChildElement("NAME")->GetText();
-      n_p->is_discrete = false;
       fprintf(stderr, "Has not implemented function for continuous node!");
       exit(1);
     }
@@ -76,10 +76,7 @@ vector<Node*> XMLBIFParser::GetUnconnectedNodes() const {
 void XMLBIFParser::AssignProbsToNodes(vector<XMLElement*> vec_xml_elems_ptr, vector<Node*> vec_nodes_ptr) {
   for (auto &xpp : vec_xml_elems_ptr) { // Parse each "PROBABILITY" element.
 
-
-
-    // Parse "FOR"
-
+    // Parse "FOR" ==================================================
     string str_for = (xpp->FirstChildElement("FOR")->GetText());
     Node* for_np = nullptr;
     // Find the variable corresponding to this probability.
@@ -94,10 +91,7 @@ void XMLBIFParser::AssignProbsToNodes(vector<XMLElement*> vec_xml_elems_ptr, vec
       exit(1);
     }
 
-
-
-    // Parse "GIVEN"
-
+    // Parse "GIVEN" ==================================================
     // Store variables of all "GIVEN" in a vector.
     // Because, if the parameters are given in the form of "TABLE",
     // we need to do something like binary counting (change from right)
@@ -129,10 +123,7 @@ void XMLBIFParser::AssignProbsToNodes(vector<XMLElement*> vec_xml_elems_ptr, vec
 
     for_np->GenDiscParCombs();
 
-
-
-    // Parse "TABLE"
-
+    // Parse "TABLE" ==================================================
     string str_table = xpp->FirstChildElement("TABLE")->GetText();
     str_table = Trim(str_table);
     vector<string> vec_str_table_entry = Split(str_table," ");

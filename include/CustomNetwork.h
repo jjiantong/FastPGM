@@ -25,7 +25,7 @@ typedef set< pair<int, int> > Combination;
 class CustomNetwork : public Network {
  public:
 
-  CustomNetwork() = default;
+  CustomNetwork();
   explicit CustomNetwork(bool pure_disc);
 
   void LearnParmsKnowStructCompData(const Trainer *, bool print_params=true) override;

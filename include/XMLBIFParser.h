@@ -26,8 +26,8 @@ class XMLBIFParser {
   vector<XMLElement*> vec_xml_probs_ptr;
 
   XMLBIFParser() = default;
-  XMLBIFParser(string& file);
-  void LoadFile(string& file);
+  XMLBIFParser(string &file);
+  void LoadFile(string &file);
 
   vector<Node*> GetUnconnectedNodes() const;
   void AssignProbsToNodes(vector<XMLElement*> vec_xml_elems_ptr, vector<Node*> vec_nodes_ptr);

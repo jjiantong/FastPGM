@@ -38,7 +38,7 @@ class ChowLiuTree : public Network {
    */
   int *default_elim_ord;
 
-  ChowLiuTree() = default;
+  ChowLiuTree();
   explicit ChowLiuTree(bool pure_disc);
 
   double ComputeMutualInformation(Node *Xi, Node *Xj, const Trainer *trainer);

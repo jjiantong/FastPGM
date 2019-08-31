@@ -1,22 +1,14 @@
-//
-// Created by llj on 3/17/19.
-//
-
-#include <iostream>
 #include <string>
 #include <vector>
-#include <iostream>
-#include <fstream>
 #include "gtest/gtest.h"
 #include "tinyxml2.h"
 
-#include "XMLBIFParser.h"
 #include "CustomNetwork.h"
 
 using namespace std;
 using namespace tinyxml2;
 
-TEST(XMLBIFParser, usability) {
+TEST(XMLBIFParser, DISABLED_usability) {
   string file = "../../data/interchange-format-file/dog-problem.xml";
   XMLDocument doc;
   doc.LoadFile(file.c_str());

@@ -4,6 +4,8 @@
 
 #include "ChowLiuTree.h"
 
+ChowLiuTree::ChowLiuTree(): ChowLiuTree(true) {}
+
 ChowLiuTree::ChowLiuTree(bool pure_disc) {
   this->pure_discrete = pure_disc;
 }
@@ -100,9 +102,7 @@ void ChowLiuTree::StructLearnChowLiuTreeCompData(Trainer *trainer, bool print_st
   // Assign an index for each node.
   #pragma omp parallel for
   for (int i=0; i<num_nodes; ++i) {
-    Node *node_ptr = new DiscreteNode();
-    node_ptr->SetNodeIndex(i);
-    node_ptr->is_discrete = true;  // trainer->is_features_discrete[i];
+    Node *node_ptr = new DiscreteNode(i);  // For now, only support discrete node.
 
     if (i == 0) {   // The 0-th node_ptr denotes the label node.
       node_ptr->num_potential_vals = trainer->num_of_possible_values_of_label;
@@ -124,9 +124,7 @@ void ChowLiuTree::StructLearnChowLiuTreeCompData(Trainer *trainer, bool print_st
       }
     }
     #pragma omp critical
-    {
-      set_node_ptr_container.insert(node_ptr);
-    }
+    { set_node_ptr_container.insert(node_ptr); }
   }
 
   cout << "==================================================" << '\n'
