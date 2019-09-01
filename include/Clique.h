@@ -35,6 +35,7 @@ class Clique {
   // So, we need a member to record the upstream of this clique (node).
   Clique *ptr_upstream_clique;
 
+
   Clique();
   Clique(set<Node*> set_node_ptrs);
   virtual ~Clique() = default;
@@ -50,6 +51,17 @@ class Clique {
   virtual void UpdateUseMessage(Factor);
   virtual Factor ConstructMessage();
   void PrintPotentials() const;
+
+  // ==================================================
+  // Data structures needed for elimination tree
+  // (like junction tree) of gaussian Bayesian network.
+  // Proposed in [Local Propagation in Conditional Gaussian Bayesian Networks (Cowell, 2005)]
+  int elimination_variable_index;   // Each clique is associated to a main variable according to the paper.
+  bool activeflag;
+  bool pure_discrete;
+  vector<int> lp_potential;
+  vector<int> post_bag;
+  // ==================================================
 
 };
 

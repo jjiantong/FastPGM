@@ -4,17 +4,32 @@
 
 #include "JunctionTree.h"
 
-JunctionTree::JunctionTree(Network *net) {
+JunctionTree::JunctionTree(Network *net): JunctionTree(net, "min-nei") {}
+
+JunctionTree::JunctionTree(Network *net, string elim_ord_strategy) {
 
   struct timeval start, end;
   double diff;
   gettimeofday(&start,NULL);
 
   network = net;
+
   int **direc_adjac_matrix = ConvertDAGNetworkToAdjacencyMatrix(network);
   Moralize(direc_adjac_matrix, network->num_nodes);
   int **undirec_adjac_matrix = direc_adjac_matrix;  // Change a name because it has been moralized.
-  vector<int> elim_ord = MinNeighbourElimOrd(undirec_adjac_matrix, network->num_nodes);
+
+  // There are different ways of determining elimination ordering.
+  vector<int> elim_ord;
+  if (elim_ord_strategy == "min-nei") {
+    elim_ord = MinNeighbourElimOrd(undirec_adjac_matrix, network->num_nodes);
+  } else if (elim_ord_strategy == "topo") {
+    elim_ord = network->GenTopoOrd();
+  } else {
+    fprintf(stderr, "The elimination ordering strategy should be one of the following:\n"
+                    "{ min-nei, topo }.");
+    exit(1);
+  }
+
   Triangulate(network, undirec_adjac_matrix, network->num_nodes, elim_ord, set_clique_ptr_container);
 
   // Theoretically, this step is not necessary.
@@ -140,6 +155,8 @@ void JunctionTree::Moralize(int **direc_adjac_matrix, int &num_nodes) {
   }
 }
 
+
+
 vector<int> JunctionTree::MinNeighbourElimOrd(int **adjac_matrix, int &num_nodes) {
   vector<int> result;
   vector< pair<int,int> > to_be_sorted;
@@ -159,6 +176,7 @@ vector<int> JunctionTree::MinNeighbourElimOrd(int **adjac_matrix, int &num_nodes
   }
   return result;
 }
+
 
 
 void JunctionTree::Triangulate(Network *net,
@@ -276,6 +294,8 @@ void JunctionTree::FormJunctionTree(set<Clique*> &cliques) {
   }
 
   // Second, use Prim's algorithm to form a maximum spanning tree.
+  // If we construct a maximum spanning tree by the weights of the separators,
+  // then the tree will satisfy running intersection property.
   set<Clique*> tree_so_far;
   tree_so_far.insert(*cliques.begin()); // randomly insert a clique in tree
   while (tree_so_far.size()<cliques.size()) {

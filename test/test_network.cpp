@@ -95,7 +95,7 @@ TEST_F(NetworkTest, DISABLED_gibbs_samples_to_libsvm_file) {
   }
 }
 
-TEST_F(NetworkTest, DISABLED_var_elim_and_jun_tree) { // The prefix "DISABLED" disable this test.
+TEST_F(NetworkTest, DISABLED_var_elim_and_jun_tree) {
   Combination E;
   E.insert(pair<int,int>(50,1));
   E.insert(pair<int,int>(51,1));
@@ -111,10 +111,8 @@ TEST_F(NetworkTest, DISABLED_var_elim_and_jun_tree) { // The prefix "DISABLED" d
   Factor f1 = network->VarElimInferReturnPossib(E,node_ptr);
   f1.PrintPotentials();
 
-
   auto *jt = new JunctionTree(network);
   jt->LoadEvidence(E);
-
   jt->MessagePassingUpdateJT();
 
   set<int> indexes;

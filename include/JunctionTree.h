@@ -22,8 +22,9 @@ class JunctionTree {
   map<Separator*,Separator> map_separators_backup;
 
   JunctionTree() = default;
-  JunctionTree(Network*);
-  JunctionTree(JunctionTree*);
+  explicit JunctionTree(Network *net);
+  JunctionTree(Network *net, string elim_ord_strategy);
+  explicit JunctionTree(JunctionTree*);
 
   int** ConvertDAGNetworkToAdjacencyMatrix(Network*);
   void Moralize(int**, int&);

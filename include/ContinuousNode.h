@@ -31,10 +31,10 @@ class ContinuousNode : public Node {
   map<Combination, double> mu;
 
   // Conditional linear coefficients for continuous parents given discrete parents.
-  map<Combination, vector<double>> b;
+  map<Combination, vector<double>> coefficients;
 
   // Conditional variance given discrete parents.
-  map<Combination, double> v;
+  map<Combination, double> variance;
 
   ContinuousNode();
   explicit ContinuousNode(int index);
