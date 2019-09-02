@@ -12,6 +12,7 @@
 #include "gadget.h"
 #include "Node.h"
 #include "Factor.h"
+#include "CGRegression.h"
 
 typedef set< pair<int, int> > Combination;
 
@@ -24,6 +25,7 @@ class Clique {
   bool is_separator;
   int clique_id;
   int clique_size;
+  bool pure_discrete;
   set<int> related_variables;
   set<Combination> set_combinations;
   map<Combination, double> map_potentials;
@@ -37,12 +39,11 @@ class Clique {
 
 
   Clique();
-  Clique(set<Node*> set_node_ptrs);
+  Clique(set<Node*> set_node_ptrs, int elim_var_index);
   virtual ~Clique() = default;
 
   Clique* CopyWithoutPtr();
 
-  void InitializeClique(set<Node*> set_node_ptrs);
   Factor Collect();
   void Distribute();
   void Distribute(Factor);
@@ -58,9 +59,8 @@ class Clique {
   // Proposed in [Local Propagation in Conditional Gaussian Bayesian Networks (Cowell, 2005)]
   int elimination_variable_index;   // Each clique is associated to a main variable according to the paper.
   bool activeflag;
-  bool pure_discrete;
-  vector<int> lp_potential;
-  vector<int> post_bag;
+  vector<CGRegression> lp_potential;
+  vector<CGRegression> post_bag;
   // ==================================================
 
 };

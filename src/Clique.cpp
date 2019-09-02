@@ -8,22 +8,17 @@ Clique::Clique() {
   is_separator = false;
 }
 
-Clique::Clique(set<Node*> set_node_ptr) {
+Clique::Clique(set<Node*> set_node_ptr, int elim_var_index) {
   is_separator = false;
-  InitializeClique(set_node_ptr);
-}
-
-
-Clique* Clique::CopyWithoutPtr() {
-  auto c = new Clique(*this);
-  c->set_neighbours_ptr.clear();
-  c->ptr_upstream_clique = nullptr;
-  return c;
-}
-
-
-void Clique::InitializeClique(set<Node*> set_node_ptr) {
+  elimination_variable_index = elim_var_index;
   clique_size = set_node_ptr.size();
+  pure_discrete = true;
+  for (const auto &n_p : set_node_ptr) {
+    if (!n_p->is_discrete) {
+      pure_discrete = false;
+      break;
+    }
+  }
 
   set<Combination> set_of_sets;
 
@@ -44,6 +39,14 @@ void Clique::InitializeClique(set<Node*> set_node_ptr) {
 
   ptr_upstream_clique = nullptr;
 }
+
+Clique* Clique::CopyWithoutPtr() {
+  auto c = new Clique(*this);
+  c->set_neighbours_ptr.clear();
+  c->ptr_upstream_clique = nullptr;
+  return c;
+}
+
 
 Factor Clique::Collect() {
   // First collect from its downstream, then update itself.

@@ -8,10 +8,9 @@ Separator::Separator() {
   is_separator = true;
 }
 
-Separator::Separator(set<Node*> set_node_ptr) {
+Separator::Separator(set<Node*> set_node_ptr): Clique(set_node_ptr, -1) {
   is_separator = true;
-  weight = clique_size = set_node_ptr.size();
-  if (weight!=0) {InitializeClique(set_node_ptr);}
+  weight = clique_size;
 }
 
 Separator* Separator::CopyWithoutPtr() {
