@@ -4,9 +4,12 @@
 
 #include "JunctionTree.h"
 
-JunctionTree::JunctionTree(Network *net): JunctionTree(net, "min-nei") {}
+JunctionTree::JunctionTree(Network *net): JunctionTree(net, "min-nei", true) {}
 
-JunctionTree::JunctionTree(Network *net, string elim_ord_strategy) {
+JunctionTree::JunctionTree(Network *net, bool elim_redundant_cliques): JunctionTree(net, "min-nei", elim_redundant_cliques) {}
+
+
+JunctionTree::JunctionTree(Network *net, string elim_ord_strategy, bool elim_redundant_cliques) {
 
   struct timeval start, end;
   double diff;
@@ -22,18 +25,20 @@ JunctionTree::JunctionTree(Network *net, string elim_ord_strategy) {
   vector<int> elim_ord;
   if (elim_ord_strategy == "min-nei") {
     elim_ord = MinNeighbourElimOrd(undirec_adjac_matrix, network->num_nodes);
-  } else if (elim_ord_strategy == "topo") {
-    elim_ord = network->GenTopoOrd();
+  } else if (elim_ord_strategy == "rev-topo") {
+    elim_ord = network->GetReverseTopoOrd();
   } else {
     fprintf(stderr, "The elimination ordering strategy should be one of the following:\n"
-                    "{ min-nei, topo }.");
+                    "{ min-nei, rev-topo }.");
     exit(1);
   }
 
   Triangulate(network, undirec_adjac_matrix, network->num_nodes, elim_ord, set_clique_ptr_container);
 
-  // Theoretically, this step is not necessary.
-  ElimRedundantCliques();
+  if (elim_redundant_cliques) {
+    // Theoretically, this step is not necessary.
+    ElimRedundantCliques();
+  }
 
   FormJunctionTree(set_clique_ptr_container);
 
@@ -199,6 +204,7 @@ void JunctionTree::Triangulate(Network *net,
   for (auto &nei : set_neighbours) {
     for (auto &index2 : set_neighbours) {
       if (nei!=index2) {
+        // Connect its neighbours to each other.
         adjac_matrix[nei][index2] = 1;
         adjac_matrix[index2][nei] = 1;
       }
@@ -206,7 +212,8 @@ void JunctionTree::Triangulate(Network *net,
     set_node_ptrs_to_form_a_clique.insert(net->FindNodePtrByIndex(nei));
   }
 
-  cliques.insert(new Clique(set_node_ptrs_to_form_a_clique));
+  cliques.insert(new Clique(set_node_ptrs_to_form_a_clique, first_node_in_elim_ord));
+
   
   // Remove the first node in elimination ordering, which has already form a clique.
   elim_ord.erase(elim_ord.begin());
@@ -306,13 +313,13 @@ void JunctionTree::FormJunctionTree(set<Clique*> &cliques) {
 
       // If one of the cliques connected
       // by this separator is in the tree_so_far.
-      if (tree_so_far.find(clq1)!=tree_so_far.end()
+      if ((tree_so_far.find(clq1)!=tree_so_far.end()
           &&
-          tree_so_far.find(clq2)==tree_so_far.end()
+          tree_so_far.find(clq2)==tree_so_far.end())
           ||
-          tree_so_far.find(clq1)==tree_so_far.end()
+          (tree_so_far.find(clq1)==tree_so_far.end()
           &&
-          tree_so_far.find(clq2)!=tree_so_far.end()) {
+          tree_so_far.find(clq2)!=tree_so_far.end())) {
         // And if the weight of this separator is the largest.
         if (max_weight_sep==nullptr || max_weight_sep->weight < sep_ptr->weight) {
           max_weight_sep = sep_ptr;

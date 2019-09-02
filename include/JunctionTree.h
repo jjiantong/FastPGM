@@ -23,8 +23,10 @@ class JunctionTree {
 
   JunctionTree() = default;
   explicit JunctionTree(Network *net);
-  JunctionTree(Network *net, string elim_ord_strategy);
+  JunctionTree(Network *net, bool elim_redundant_cliques);
+  JunctionTree(Network *net, string elim_ord_strategy, bool elim_redundant_cliques);
   explicit JunctionTree(JunctionTree*);
+  virtual ~JunctionTree() = default;
 
   int** ConvertDAGNetworkToAdjacencyMatrix(Network*);
   void Moralize(int**, int&);

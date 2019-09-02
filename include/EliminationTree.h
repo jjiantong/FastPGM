@@ -17,7 +17,7 @@ class EliminationTree : public JunctionTree {
   set<Clique*> boundary;
 
   EliminationTree() = default;
-  EliminationTree(Network*);
+  EliminationTree(Network *net);
 
 };
 

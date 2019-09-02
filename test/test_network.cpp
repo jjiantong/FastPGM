@@ -95,7 +95,7 @@ TEST_F(NetworkTest, DISABLED_gibbs_samples_to_libsvm_file) {
   }
 }
 
-TEST_F(NetworkTest, DISABLED_var_elim_and_jun_tree) {
+TEST_F(NetworkTest, var_elim_and_jun_tree) {
   Combination E;
   E.insert(pair<int,int>(50,1));
   E.insert(pair<int,int>(51,1));
@@ -111,7 +111,7 @@ TEST_F(NetworkTest, DISABLED_var_elim_and_jun_tree) {
   Factor f1 = network->VarElimInferReturnPossib(E,node_ptr);
   f1.PrintPotentials();
 
-  auto *jt = new JunctionTree(network);
+  auto *jt = new JunctionTree(network, false);
   jt->LoadEvidence(E);
   jt->MessagePassingUpdateJT();
 
@@ -128,8 +128,10 @@ TEST_F(NetworkTest, DISABLED_var_elim_and_jun_tree) {
 }
 
 
-TEST_F(NetworkTest, DISABLED_jun_tree_accuracy) {
-  auto *jt = new JunctionTree(network);
+TEST_F(NetworkTest, jun_tree_accuracy) {
+
+  auto *jt = new JunctionTree(network, false);
+
   ScoreFunction sf(network, trainer);
   cout << "Scores\n"
        << "LogLikelihood: " << sf.LogLikelihood()  << '\n'
@@ -205,7 +207,7 @@ TEST_F(NetworkTest, DISABLED_sampling_network) {
   Combination samp = network->ProbLogicSampleNetwork();
 }
 
-TEST(CustomNetworkTest, sampling_dog_net_to_csv_file_and_relearn) {
+TEST(CustomNetworkTest, DISABLED_sampling_dog_net_to_csv_file_and_relearn) {
 
   string custom_file = "../../data/interchange-format-file/dog-problem.xml";
   auto custom_net = new CustomNetwork(true);
