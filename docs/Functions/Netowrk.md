@@ -59,6 +59,13 @@ Output: remove `chi` from `par` as a child, and remove `par` from `chi` as a par
 ## void RemoveParentChild(int, int);
 Reloaded version.
 
+## vector<int> GetTopoOrd()
+Get the topological ordering of the network. If it has not been generated, call
+`GenTopoOrd()` to generated and return it.
+
+## vector<int> GetTopoOrd()
+Get the reversed topological ordering of the network.
+
 ## vector<int> GenTopoOrd()
 Generate the topological order of the network. If the network is a conditional
 Gaussian network, then in the generated topological ordering,

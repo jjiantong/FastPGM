@@ -18,6 +18,7 @@
 #include <chrono>
 #include <sys/time.h>
 #include <locale.h>
+#include <algorithm>
 #include "omp.h"
 
 
@@ -60,6 +61,8 @@ class Network {
   void RemoveParentChild(int, int);
   void RemoveParentChild(Node *par, Node *chi);
 
+  vector<int> GetTopoOrd();
+  vector<int> GetReverseTopoOrd();
   vector<int> GenTopoOrd();
 
   virtual pair<int*, int> SimplifyDefaultElimOrd(Combination) = 0;

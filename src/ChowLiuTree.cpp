@@ -200,9 +200,7 @@ void ChowLiuTree::StructLearnChowLiuTreeCompData(Trainer *trainer, bool print_st
   for (int i=1; i<n; ++i) {
     default_elim_ord[i-1] = topologicalSortedPermutation[n-i];
   }
-  for (int i=0; i<n; ++i) {
-    topo_ord.push_back(topologicalSortedPermutation[i]);
-  }
+  topo_ord = vector<int> (topologicalSortedPermutation, topologicalSortedPermutation+n);
 
 
   cout << "==================================================" << '\n'

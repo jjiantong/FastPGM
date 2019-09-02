@@ -82,6 +82,18 @@ void Network::RemoveParentChild(int p_index, int c_index) {
   RemoveParentChild(p,c);
 }
 
+vector<int> Network::GetTopoOrd() {
+  if (topo_ord.empty()) {
+    this->GenTopoOrd();
+  }
+  return topo_ord;
+}
+
+vector<int> Network::GetReverseTopoOrd() {
+  auto ord = this->GetTopoOrd();
+  reverse(ord.begin(), ord.end());
+  return ord;
+}
 
 vector<int> Network::GenTopoOrd() {
 
@@ -577,12 +589,9 @@ double Network::TestAccuracyByLikelihoodWeighting(Trainer *tester, int num_samp)
 
 
 Combination Network::ProbLogicSampleNetwork() {
-  if (topo_ord.empty()) {
-    this->GenTopoOrd();
-  }
   Combination instance;
   // Cannot use OpenMP, because must draw samples in the topological ordering.
-  for (const auto &index : topo_ord) {
+  for (const auto &index : this->GetTopoOrd()) {
     Node *n_p = FindNodePtrByIndex(index);
     int drawn_value = n_p->SampleNodeGivenParents(instance);
     instance.insert(pair<int,int>(index, drawn_value));
@@ -591,13 +600,10 @@ Combination Network::ProbLogicSampleNetwork() {
 }
 
 pair<Combination, double> Network::DrawOneLikelihoodWeightingSample(const Combination &evidence) {
-  if (topo_ord.empty()) {
-    this->GenTopoOrd();
-  }
   Combination instance;
   double weight = 1;
   // SHOULD NOT use OpenMP, because must draw samples in the topological ordering.
-  for (const auto &index : topo_ord) {
+  for (const auto &index : this->GetTopoOrd()) {
     Node *n_p = FindNodePtrByIndex(index);
     bool observed = false;
     for (const auto &p : evidence) {
