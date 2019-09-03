@@ -6,6 +6,7 @@
 
 Separator::Separator() {
   is_separator = true;
+  weight = -1;
 }
 
 Separator::Separator(set<Node*> set_node_ptr): Clique(set_node_ptr, -1) {
@@ -29,8 +30,8 @@ void Separator::UpdateUseMessage(Factor f) {
 
 Factor Separator::ConstructMessage() {
   Factor f;
-  f.SetMembers(related_variables,set_combinations,map_potentials);
-  for (auto &comb : set_combinations) {
+  f.SetMembers(related_variables, set_disc_combinations, map_potentials);
+  for (auto &comb : set_disc_combinations) {
     if (map_old_potentials[comb]==0) {
       f.map_potentials[comb] = 1;
     } else {

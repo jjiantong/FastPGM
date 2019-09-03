@@ -27,7 +27,7 @@ class Clique {
   int clique_size;
   bool pure_discrete;
   set<int> related_variables;
-  set<Combination> set_combinations;
+  set<Combination> set_disc_combinations;
   map<Combination, double> map_potentials;
   set<Clique*> set_neighbours_ptr;
 
@@ -43,7 +43,7 @@ class Clique {
   virtual ~Clique() = default;
 
   Clique* CopyWithoutPtr();
-
+  void PreInitializePotentials();
   Factor Collect();
   void Distribute();
   void Distribute(Factor);
@@ -57,6 +57,8 @@ class Clique {
   // Data structures needed for elimination tree
   // (like junction tree) of gaussian Bayesian network.
   // Proposed in [Local Propagation in Conditional Gaussian Bayesian Networks (Cowell, 2005)]
+  // Note that, separators between continuous cliques only retain post_bag but not lp_potential.
+
   int elimination_variable_index;   // Each clique is associated to a main variable according to the paper.
   bool activeflag;
   vector<CGRegression> lp_potential;

@@ -413,7 +413,7 @@ void JunctionTree::LoadEvidence(Combination E) {
   for (auto &clique_ptr : set_clique_ptr_container) {  // For each clique
     for (auto &e : E) {  // For each node's observation in E
       if (clique_ptr->related_variables.find(e.first)!=clique_ptr->related_variables.end()) {  // If this clique is related to this node
-        for (auto &comb : clique_ptr->set_combinations) {  // Update each row of map_potentials
+        for (auto &comb : clique_ptr->set_disc_combinations) {  // Update each row of map_potentials
           if (comb.find(e)==comb.end()) {
             clique_ptr->map_potentials[comb] = 0;
           }
@@ -476,7 +476,7 @@ Factor JunctionTree::BeliefPropagationReturnPossib(set<int> &indexes) {
                  indexes.begin(), indexes.end(),
                  inserter(diff, diff.begin()));
   Factor f;
-  f.SetMembers(selected_clique->related_variables, selected_clique->set_combinations, selected_clique->map_potentials);
+  f.SetMembers(selected_clique->related_variables, selected_clique->set_disc_combinations, selected_clique->map_potentials);
   for (auto &index : diff) {
     f = f.SumOverVar(index);
   }

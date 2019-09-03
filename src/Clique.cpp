@@ -6,12 +6,19 @@
 
 Clique::Clique() {
   is_separator = false;
+  clique_id = -1;
+  elimination_variable_index = -1;
+  clique_size = -1;
+  pure_discrete = true;
+  ptr_upstream_clique = nullptr;
+  activeflag = false;
 }
 
 Clique::Clique(set<Node*> set_node_ptr, int elim_var_index) {
   is_separator = false;
   elimination_variable_index = elim_var_index;
   clique_size = set_node_ptr.size();
+
   pure_discrete = true;
   for (const auto &n_p : set_node_ptr) {
     if (!n_p->is_discrete) {
@@ -20,25 +27,40 @@ Clique::Clique(set<Node*> set_node_ptr, int elim_var_index) {
     }
   }
 
+  // In the paper, all continuous cliques' activeflags are initially set to true.
+  activeflag = !pure_discrete;
+
   set<Combination> set_of_sets;
 
   for (auto &n : set_node_ptr) {
     related_variables.insert(n->GetNodeIndex());
-    Combination c;
-    for (int i=0; i<n->num_potential_vals; ++i) {
-      c.insert(pair<int,int>(n->GetNodeIndex(),n->potential_vals[i]));
+    if (n->is_discrete) {
+      Combination c;
+      for (int i = 0; i < n->num_potential_vals; ++i) {
+        c.insert(pair<int, int>(n->GetNodeIndex(), n->potential_vals[i]));
+      }
+      set_of_sets.insert(c);
     }
-    set_of_sets.insert(c);
   }
 
-  set_combinations = GenAllCombFromSets(&set_of_sets);
+  set_disc_combinations = GenAllCombFromSets(&set_of_sets);
 
-  for (auto &c : set_combinations) {
-    map_potentials[c] = 1;  // Initialize clique potential to be 1.
-  }
+  PreInitializePotentials();
 
   ptr_upstream_clique = nullptr;
 }
+
+
+void Clique::PreInitializePotentials() {
+  if (pure_discrete) {
+    for (auto &c : set_disc_combinations) {
+      map_potentials[c] = 1;  // Initialize clique potential to be 1.
+    }
+  } else {
+    // Initialize lp_potential and post_bag to be empty. That is, do NOTHING.
+  }
+}
+
 
 Clique* Clique::CopyWithoutPtr() {
   auto c = new Clique(*this);
@@ -114,7 +136,7 @@ void Clique::Distribute(Factor f) {
 Factor Clique::SumOutExternalVars(Factor f) {
   Factor factor_of_this_clique;
   factor_of_this_clique.SetMembers(this->related_variables,
-                                   this->set_combinations,
+                                   this->set_disc_combinations,
                                    this->map_potentials);
 
   set<int> set_external_vars;
@@ -132,7 +154,7 @@ Factor Clique::SumOutExternalVars(Factor f) {
 
 void Clique::MultiplyWithFactorSumOverExternalVars(Factor f) {
   Factor factor_of_this_clique;
-  factor_of_this_clique.SetMembers(related_variables,set_combinations,map_potentials);
+  factor_of_this_clique.SetMembers(related_variables, set_disc_combinations, map_potentials);
 
   f = SumOutExternalVars(f);
 
@@ -148,7 +170,7 @@ void Clique::UpdateUseMessage(Factor f) {
 
 Factor Clique::ConstructMessage() {
   Factor message_factor;
-  message_factor.SetMembers(related_variables,set_combinations,map_potentials);
+  message_factor.SetMembers(related_variables, set_disc_combinations, map_potentials);
   return message_factor;
 }
 

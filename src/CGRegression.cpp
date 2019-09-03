@@ -13,6 +13,12 @@ void CGRegression::Exchange(CGRegression Z, CGRegression Y) {
   // For example, Z=L(z|y,a,b,c,d,e,blahblah) and Y=L(y|a,b,c,d,e,blahblah).
   // Also, for implementation, the ordering of other tail variables should be the same between Z and Y.
 
+  // Here, tails of Z and Y contain the same W_1 to W_l. Sometimes, this may not
+  // be true. In implementation, we can just complete the W to be the same for
+  // Z and Y, and set certain coefficients to zero as needed.
+  // For example, if Y does not depend on W_2, then we can set c_2 to zero.
+  // todo: deal with this situation
+
   if (Z.set_all_tail_index.find(Y.head_index) == Z.set_all_tail_index.end()) {
     fprintf(stderr, "Error in function: %s\nThe tail of the first CG regression"
                     "does not contain the head of the second CG regression!", __FUNCTION__);

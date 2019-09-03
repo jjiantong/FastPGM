@@ -14,6 +14,9 @@ class EliminationTree : public JunctionTree {
 
  public:
   Clique *strong_root;
+
+  // The set of discrete clusters that are neighbours to the
+  // continuous part will be called the boundary.
   set<Clique*> boundary;
 
   EliminationTree() = default;
