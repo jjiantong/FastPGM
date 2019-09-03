@@ -28,9 +28,9 @@ class JunctionTree {
   explicit JunctionTree(JunctionTree*);
   virtual ~JunctionTree() = default;
 
-  int** ConvertDAGNetworkToAdjacencyMatrix(Network*);
-  void Moralize(int**, int&);
-  vector<int> MinNeighbourElimOrd(int**, int&);
+  static int** ConvertDAGNetworkToAdjacencyMatrix(Network*);
+  static void Moralize(int**, int&);
+  static vector<int> MinNeighbourElimOrd(int**, int&);
   void Triangulate(Network*, int**, int&, vector<int>, set<Clique*>&);
   void ElimRedundantCliques();
   void FormJunctionTree(set<Clique*>&);
@@ -38,7 +38,7 @@ class JunctionTree {
   void AssignPotentials();
   void BackUpJunctionTree();
   void ResetJunctionTree();
-  void LoadEvidence(Combination);
+  void LoadEvidence(const Combination&);
   void MessagePassingUpdateJT();
 
   void PrintAllCliquesPotentials() const;

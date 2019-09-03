@@ -9,6 +9,10 @@
 #include <map>
 #include <vector>
 #include <utility>
+#include <algorithm>
+#include "Node.h"
+#include "ContinuousNode.h"
+#include "gadget.h"
 
 using namespace std;
 
@@ -26,7 +30,7 @@ class CGRegression {
 
  public:
 
-  int head_index;
+  int head_var_index;
   set<int> set_all_tail_index;
   set<Combination> set_discrete_tails_combinations;
 
@@ -42,6 +46,7 @@ class CGRegression {
   // Conditional variance given discrete tails.
   map<Combination, double> variance;
 
+  CGRegression(Node *node_ptr);
   void Exchange(CGRegression Z, CGRegression Y);
 };
 

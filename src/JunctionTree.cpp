@@ -163,7 +163,6 @@ void JunctionTree::Moralize(int **direc_adjac_matrix, int &num_nodes) {
 
 
 vector<int> JunctionTree::MinNeighbourElimOrd(int **adjac_matrix, int &num_nodes) {
-  vector<int> result;
   vector< pair<int,int> > to_be_sorted;
   for (int i=0; i<num_nodes; ++i) {
     pair<int,int> p;
@@ -176,6 +175,8 @@ vector<int> JunctionTree::MinNeighbourElimOrd(int **adjac_matrix, int &num_nodes
   }
   sort(to_be_sorted.begin(), to_be_sorted.end(), [](pair<int,int> a, pair<int,int> b){return a.second < b.second;});  // Using lambda expression.
   vector< pair<int,int> > &sorted = to_be_sorted;
+  vector<int> result;
+  result.reserve(sorted.size());
   for (auto &p : sorted) {
     result.push_back(p.first);
   }
@@ -360,21 +361,37 @@ void JunctionTree::NumberTheCliquesAndSeparators() {
 
 void JunctionTree::AssignPotentials() {
 
-  // When creating the cliques, the potentials have been initialized to 1.
-  // Now we need to assign the original joint probabilities to these cliques.
+  // todo: test the correctness of the continuous part (discrete part works correctly)
 
-  // First, convert the probabilities of nodes to factors, which make the "multiply" operation easier.
+  // For purely discrete cliques, the potentials have been initialized to 1 on creation,
+  // so we need to assign the probabilities of the network nodes to these cliques.
+  // For continuous cliques, the lp_potentials and post_bags are set to empty list,
+  // so we need to assign the CG regressions to these cliques. The method is described in
+  // [Local Propagation in Conditional Gaussian Bayesian Networks (Cowell, 2005)], section 5.2.
+
+  // First, extract the information of nodes.
+  // Convert the probabilities of discrete nodes to factors, which make the "multiply" operation easier.
+  // Extract the CG regressions of continuous nodes.
   vector<Factor> factors; // Can not use std::set, because Factor does not have definition on operator "<".
+  vector<CGRegression> cgrs;
   for (auto &node_ptr : network->set_node_ptr_container) {
-    factors.push_back(Factor(node_ptr));
+    if (node_ptr->is_discrete) {
+      factors.push_back(Factor(node_ptr));
+    } else {  // If the node is continuous.
+      cgrs.push_back(CGRegression(node_ptr));
+    }
   }
 
-  // Second, assign these factors to some appropriate cliques.
-  // Each factor should be use only once.
+  // Second, assign these factors and CG regressions to some appropriate cliques.
+  // Each factor and CG regression should be use only once.
+
+  // For potentials from discrete nodes, they should be assigned to purely discrete cliques.
   for (auto &f : factors) {
     for (auto &clique_ptr : set_clique_ptr_container) {
 
-      if (f.related_variables.empty() || clique_ptr->related_variables.empty()) {break;}
+      if (f.related_variables.empty() || clique_ptr->related_variables.empty()) { break; }
+
+      if (!clique_ptr->pure_discrete) { continue; }
 
       set<int> diff;
       set_difference(f.related_variables.begin(), f.related_variables.end(),
@@ -383,7 +400,29 @@ void JunctionTree::AssignPotentials() {
       // If diff.empty(), that means that the set of related variables of the clique is a superset of the factor's.
       if (diff.empty()) {
         clique_ptr->MultiplyWithFactorSumOverExternalVars(f);
-        break;  // Ensure that each factor of the original joint probability is used only once.
+        break;  // Ensure that each factor is used only once.
+      }
+    }
+  }
+  for (auto &cgr : cgrs) {
+    for (auto &clique_ptr : set_clique_ptr_container) {
+
+      if (clique_ptr->pure_discrete) { continue; }
+
+      set<int> cgr_related_vars = cgr.set_all_tail_index;
+      cgr_related_vars.insert(cgr.head_var_index);
+      set<int> diff;
+      set_difference(cgr_related_vars.begin(), cgr_related_vars.end(),
+                     clique_ptr->related_variables.begin(), clique_ptr->related_variables.end(),
+                     inserter(diff, diff.begin()));
+      // If diff.empty(), that means that the set of related variables of the clique is a superset of the CG regression's.
+      if (diff.empty()) {
+        if (clique_ptr->elimination_variable_index == cgr.head_var_index) {
+          clique_ptr->lp_potential.push_back(cgr);
+        } else {
+          clique_ptr->post_bag.push_back(cgr);
+        }
+        break;  // Ensure that each CG regression is used only once.
       }
     }
   }
@@ -408,7 +447,7 @@ void JunctionTree::ResetJunctionTree() {
 }
 
 
-void JunctionTree::LoadEvidence(Combination E) {
+void JunctionTree::LoadEvidence(const Combination &E) {
   if (E.empty()) {return;}
   for (auto &clique_ptr : set_clique_ptr_container) {  // For each clique
     for (auto &e : E) {  // For each node's observation in E

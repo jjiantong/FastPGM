@@ -2,8 +2,26 @@
 // Created by LinjianLi on 2019/8/31.
 //
 
-#include <algorithm>
 #include "CGRegression.h"
+
+CGRegression::CGRegression(Node *node_ptr) {
+  if (node_ptr->is_discrete) {
+    fprintf(stderr, "The node is not continuous!");
+    exit(1);
+  }
+  ContinuousNode *c_n_p = dynamic_cast<ContinuousNode*>(node_ptr);
+  head_var_index = node_ptr->GetNodeIndex();
+  for (const auto &par : node_ptr->set_parents_ptrs) {
+    set_all_tail_index.insert(par->GetNodeIndex());
+    if (!par->is_discrete) {
+      contin_tail_indexes.push_back(par->GetNodeIndex());
+    }
+  }
+  set_discrete_tails_combinations = node_ptr->set_discrete_parents_combinations;
+  mu = c_n_p->mu;
+  coefficients = c_n_p->coefficients;
+  variance = c_n_p->variance;
+}
 
 void CGRegression::Exchange(CGRegression Z, CGRegression Y) {
   // Described in [Local Propagation in Conditional Gaussian Bayesian Networks (Cowell, 2005)].
@@ -19,7 +37,7 @@ void CGRegression::Exchange(CGRegression Z, CGRegression Y) {
   // For example, if Y does not depend on W_2, then we can set c_2 to zero.
   // todo: deal with this situation
 
-  if (Z.set_all_tail_index.find(Y.head_index) == Z.set_all_tail_index.end()) {
+  if (Z.set_all_tail_index.find(Y.head_var_index) == Z.set_all_tail_index.end()) {
     fprintf(stderr, "Error in function: %s\nThe tail of the first CG regression"
                     "does not contain the head of the second CG regression!", __FUNCTION__);
     exit(1);
@@ -29,7 +47,7 @@ void CGRegression::Exchange(CGRegression Z, CGRegression Y) {
   set_difference(Z.set_all_tail_index.begin(), Z.set_all_tail_index.end(),
                  Y.set_all_tail_index.begin(), Y.set_all_tail_index.end(),
                  inserter(diff, diff.begin()));
-  diff.erase(Y.head_index);
+  diff.erase(Y.head_var_index);
   if (!diff.empty()
       &&
       Z.set_all_tail_index.size()-Y.set_all_tail_index.size()-1 != 0) {
@@ -43,17 +61,17 @@ void CGRegression::Exchange(CGRegression Z, CGRegression Y) {
     // ==================================================
     // First, convert the CG regression of Z to the form the same as the paper described,
     // which is that, variable y is at the last position.
-    if (Z.contin_tail_indexes.back()!=Y.head_index) {
+    if (Z.contin_tail_indexes.back()!=Y.head_var_index) {
       int pos_of_y = 0;
       for (const auto &idx : Z.contin_tail_indexes) {
-        if (idx == Y.head_index) {
+        if (idx == Y.head_var_index) {
           break;
         }
         ++pos_of_y;
       }
       Z.contin_tail_indexes.erase(Z.contin_tail_indexes.begin() + pos_of_y,
                                   Z.contin_tail_indexes.begin() + pos_of_y + 1);
-      Z.contin_tail_indexes.push_back(Y.head_index);
+      Z.contin_tail_indexes.push_back(Y.head_var_index);
       double coeff = Z.coefficients[comb].at(pos_of_y);
       Z.coefficients[comb].erase(Z.coefficients[comb].begin() + pos_of_y, Z.coefficients[comb].begin() + pos_of_y + 1);
       Z.coefficients[comb].push_back(coeff);
@@ -103,8 +121,8 @@ void CGRegression::Exchange(CGRegression Z, CGRegression Y) {
                                      -
                                      origin_coefficients_Z.at(i)*b*Y.variance[comb];
       }
-      Y.set_all_tail_index.insert(Z.head_index);
-      Y.contin_tail_indexes.push_back(Z.head_index);
+      Y.set_all_tail_index.insert(Z.head_var_index);
+      Y.contin_tail_indexes.push_back(Z.head_var_index);
       Y.coefficients[comb].push_back(b*Y.variance[comb]);
       Y.mu[comb] /= (origin_variance_Z + b*b*Y.variance[comb]);
       for (int i=0; i<Y.coefficients[comb].size(); ++i) {
@@ -121,8 +139,8 @@ void CGRegression::Exchange(CGRegression Z, CGRegression Y) {
       for (int i=0; i<Y.coefficients[comb].size(); ++i) {
         Y.coefficients[comb].at(i) = -origin_coefficients_Z.at(i);
       }
-      Y.set_all_tail_index.insert(Z.head_index);
-      Y.contin_tail_indexes.push_back(Z.head_index);
+      Y.set_all_tail_index.insert(Z.head_var_index);
+      Y.contin_tail_indexes.push_back(Z.head_var_index);
       Y.coefficients[comb].push_back(1);
       Y.mu[comb] /= b;
       for (int i=0; i<Y.coefficients[comb].size(); ++i) {
@@ -137,8 +155,8 @@ void CGRegression::Exchange(CGRegression Z, CGRegression Y) {
       // Update mean.
       // In the paper, in this case, there is no coefficient for variable z.
       // But, since z is in the tail, there should have a coefficient, which is set to zero.
-      Y.set_all_tail_index.insert(Z.head_index);
-      Y.contin_tail_indexes.push_back(Z.head_index);
+      Y.set_all_tail_index.insert(Z.head_var_index);
+      Y.contin_tail_indexes.push_back(Z.head_var_index);
       Y.coefficients[comb].push_back(0);
 
       // Update variance.

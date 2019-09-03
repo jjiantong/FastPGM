@@ -4,6 +4,7 @@
 
 #include "EliminationTree.h"
 
-EliminationTree::EliminationTree(Network *net): JunctionTree(net, "rev-topo", false) {
+EliminationTree::EliminationTree(Network *net)
+  : JunctionTree(net, "rev-topo", false) {
 
 }
