@@ -284,7 +284,7 @@ void ChowLiuTree::StructLearnChowLiuTreeCompData(Trainer *trainer, bool print_st
 }
 
 
-void ChowLiuTree::LearnParmsKnowStructCompData(const Trainer *trainer, bool print_params){
+void ChowLiuTree::LearnParamsKnowStructCompData(const Trainer *trainer, bool print_params){
   cout << "==================================================" << '\n'
        << "Begin learning parameters with known structure and complete data." << endl;
 

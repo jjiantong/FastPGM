@@ -16,7 +16,7 @@ First, construct the mutual information matrix.
 Second, use Prim's algorithm to generate a maximum-spanning tree.
 Third, add arrows in the spanning tree, which is to set the parents and children of each node.
 
-## void LearnParmsKnowStructCompData(const Trainer \*trn)
+## void LearnParamsKnowStructCompData(const Trainer \*trn)
 Learn parameters of the network, provided with known structure and complete data.
 
 ## pair<int\*, int> SimplifyDefaultElimOrd(Combination evidence) override

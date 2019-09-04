@@ -45,7 +45,7 @@ class ChowLiuTree : public Network {
   void StructLearnCompData(Trainer *trainer, bool print_struct=true) override;
   void StructLearnChowLiuTreeCompData(Trainer *trainer, bool print_struct=true);
 
-  void LearnParmsKnowStructCompData(const Trainer *trainer, bool print_params=true) override;
+  void LearnParamsKnowStructCompData(const Trainer *trainer, bool print_params=true) override;
 
 
   pair<int*, int> SimplifyDefaultElimOrd(Combination evidence) override;

@@ -522,7 +522,6 @@ Factor JunctionTree::BeliefPropagationReturnPossib(set<int> &indexes) {
   f.Normalize();
   return f;
 
-
   // todo: implement the case where the query variables appear in different cliques.
 }
 

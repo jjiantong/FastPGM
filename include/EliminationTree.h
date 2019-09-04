@@ -19,8 +19,11 @@ class EliminationTree : public JunctionTree {
   // continuous part will be called the boundary.
   set<Clique*> boundary;
 
+  map<int, int> map_to_root;
+
   EliminationTree() = default;
   EliminationTree(Network *net);
+  void CalcuEachToRoot();
 
 };
 

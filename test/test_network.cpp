@@ -42,7 +42,7 @@ class NetworkTest : public ::testing::Test {
     trainer->LoadLIBSVMDataAutoDetectConfig(train_set_file_path);
     tester->LoadLIBSVMDataAutoDetectConfig(test_set_file_path);
     network->StructLearnCompData(trainer, false);
-    network->LearnParmsKnowStructCompData(trainer, false);
+    network->LearnParamsKnowStructCompData(trainer, false);
   }
 
   void TearDown() override {
@@ -83,7 +83,7 @@ TEST_F(NetworkTest, DISABLED_gibbs_samples_to_libsvm_file) {
   Network *net_samp = new ChowLiuTree();
   trn_samp->LoadLIBSVMDataAutoDetectConfig("./gibbs_samples_to_LIBSVM_file.txt");
   net_samp->StructLearnCompData(trn_samp, false);
-  net_samp->LearnParmsKnowStructCompData(trn_samp, false);
+  net_samp->LearnParamsKnowStructCompData(trn_samp, false);
 
   for(int i=0; i<net_samp->num_nodes; ++i) {
     fprintf(stdout, "\n====================================\n");
@@ -220,12 +220,12 @@ TEST(CustomNetworkTest, DISABLED_sampling_dog_net_to_csv_file_and_relearn) {
 
   CustomNetwork *net_samp = new CustomNetwork(true);
   net_samp->GetNetFromXMLBIFFile(custom_file);
-  net_samp->ClearParms();
+  net_samp->ClearParams();
 
   Trainer *trn_samp = new Trainer();
   trn_samp->LoadCSVDataAutoDetectConfig(sample_file);
 
-  net_samp->LearnParmsKnowStructCompData(trn_samp, false);
+  net_samp->LearnParamsKnowStructCompData(trn_samp, false);
 
   for(int i=0; i<net_samp->num_nodes; ++i) {
     fprintf(stdout, "\n====================================\n");

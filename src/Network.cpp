@@ -131,7 +131,6 @@ vector<int> Network::GenTopoOrd() {
     }
     int **graph_disc = new int*[set_disc_node_ptr.size()];
     int **graph_cont = new int*[set_cont_node_ptr.size()];
-    #pragma omp for
     for (int i=0; i<num_nodes; ++i) {
       graph_disc[i] = new int[set_disc_node_ptr.size()]();
       graph_cont[i] = new int[set_cont_node_ptr.size()]();
@@ -171,18 +170,12 @@ vector<int> Network::GenTopoOrd() {
     auto topo_ord_cont = TopoSortOfDAGZeroInDegreeFirst(graph_cont, set_cont_node_ptr.size());
 
     // Concatinate topo_ord_disc and topo_ord_cont.
-    for (const auto &elem : topo_ord_disc) {
-      topo_ord.push_back(disc_order_index[elem]);
-    }
-    for (const auto &elem : topo_ord_cont) {
-      topo_ord.push_back(cont_order_index[elem]);
-    }
+    topo_ord_disc.insert(topo_ord_disc.end(), topo_ord_cont.begin(), topo_ord_cont.end());
+    this->topo_ord = topo_ord_disc;
 
-    #pragma omp parallel for
     for (int i=0; i<set_disc_node_ptr.size(); ++i) {
       delete[] graph_disc[i];
     }
-    #pragma omp parallel for
     for (int i=0; i<set_cont_node_ptr.size(); ++i) {
       delete[] graph_cont[i];
     }
@@ -201,13 +194,13 @@ void Network::RemoveParentChild(Node *p, Node *c) {
 }
 
 
-void Network::LearnParmsKnowStructCompData(const Trainer *trainer, bool print_params){
+void Network::LearnParamsKnowStructCompData(const Trainer *trainer, bool print_params){
   fprintf(stderr, "Need to be implemented in sub-class!");
   exit(1);
 }
 
 
-void Network::ClearParms() {
+void Network::ClearParams() {
   for (auto &n_p : this->set_node_ptr_container) {
     if (n_p->set_parents_ptrs.empty()) {
       for (auto &kv : n_p->map_marg_prob_table) {

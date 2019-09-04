@@ -51,9 +51,9 @@ class Network {
 
   virtual void StructLearnCompData(Trainer *, bool print_struct=true);
 
-  virtual void LearnParmsKnowStructCompData(const Trainer *, bool print_params=true);
+  virtual void LearnParamsKnowStructCompData(const Trainer *trainer, bool print_params=true);
 
-  void ClearParms();
+  void ClearParams();
 
   void SetParentChild(int, int);
   void SetParentChild(Node *par, Node *chi);
