@@ -448,7 +448,7 @@ void JunctionTree::ResetJunctionTree() {
 
 
 void JunctionTree::LoadEvidence(const Combination &E) {
-  if (E.empty()) {return;}
+  if (E.empty()) { return; }
   for (auto &clique_ptr : set_clique_ptr_container) {  // For each clique
     for (auto &e : E) {  // For each node's observation in E
       if (clique_ptr->related_variables.find(e.first)!=clique_ptr->related_variables.end()) {  // If this clique is related to this node

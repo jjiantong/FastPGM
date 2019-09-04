@@ -47,7 +47,10 @@ class CGRegression {
   map<Combination, double> variance;
 
   CGRegression(Node *node_ptr);
-  void Exchange(CGRegression Z, CGRegression Y);
+
+  static void Exchange(CGRegression &Z, CGRegression &Y);
+  static void PrepareForExchange(CGRegression &Z, CGRegression &Y);
+  static void ActurallyExchange(CGRegression &Z, CGRegression &Y);
 };
 
 

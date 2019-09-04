@@ -23,19 +23,119 @@ CGRegression::CGRegression(Node *node_ptr) {
   variance = c_n_p->variance;
 }
 
-void CGRegression::Exchange(CGRegression Z, CGRegression Y) {
+void CGRegression::Exchange(CGRegression &Z, CGRegression &Y) {
+  PrepareForExchange(Z, Y);
+  ActurallyExchange(Z, Y);
+}
+
+void CGRegression::PrepareForExchange(CGRegression &Z, CGRegression &Y) {
+  // todo: test correctness
+  // The Exchange operation described by Cowell requires that
+  // apart from variable y, Z and Y should contain the same tail variables W_1 to W_l.
+  // Sometimes, this may not be true.
+  // In implementation, we can just complete the W to be the same for
+  // Z and Y, and set certain coefficients to zero as needed.
+  // For example, if Y does not depend on W_2, then we can set c_2 to zero.
+  // Also, if Z's tail does not contain y, we can set coefficient, b, for y to zero.
+
+  if (Z.set_discrete_tails_combinations != Y.set_discrete_tails_combinations) {
+    fprintf(stderr, "Error in function: %s\nThe discrete tails of "
+                    "two CG regressions are not the same!", __FUNCTION__);
+    exit(1);
+  }
+
+  // If y is not in Z's tail.
+  if (Z.set_all_tail_index.find(Y.head_var_index) == Z.set_all_tail_index.end()) {
+    Z.set_all_tail_index.insert(Y.head_var_index);
+    Z.contin_tail_indexes.push_back(Y.head_var_index);
+    for (const auto &comb : Z.set_discrete_tails_combinations) {
+      Z.coefficients[comb].push_back(0);
+    }
+  }
+
+  // If Z and Y's tails are different apart from y.
+  // Then complete them to be the same.
+  set<int> in_Z_but_not_Y, in_Y_but_not_Z;
+  set_difference(Z.set_all_tail_index.begin(), Z.set_all_tail_index.end(),
+                 Y.set_all_tail_index.begin(), Y.set_all_tail_index.end(),
+                 inserter(in_Z_but_not_Y, in_Z_but_not_Y.begin()));
+  set_difference(Y.set_all_tail_index.begin(), Y.set_all_tail_index.end(),
+                 Z.set_all_tail_index.begin(), Z.set_all_tail_index.end(),
+                 inserter(in_Y_but_not_Z, in_Y_but_not_Z.begin()));
+  for (const auto &zny : in_Z_but_not_Y) {
+    if (zny==Y.head_var_index) { continue; }  // Y should not depend on y itself.
+    Y.set_all_tail_index.insert(zny);
+    Y.contin_tail_indexes.push_back(zny);
+    for (const auto &comb : Y.set_discrete_tails_combinations) {
+      Y.coefficients[comb].push_back(0);
+    }
+  }
+  for (const auto &ynz : in_Y_but_not_Z) {
+    Z.set_all_tail_index.insert(ynz);
+    Z.contin_tail_indexes.push_back(ynz);
+    for (const auto &comb : Z.set_discrete_tails_combinations) {
+      Z.coefficients[comb].push_back(0);
+    }
+  }
+  if (0 != Z.contin_tail_indexes.size()-Y.contin_tail_indexes.size()-1) {
+    fprintf(stderr, "Error in function: %s\nSomething is wrong"
+                    "but I do not know how to fix it yet", __FUNCTION__);
+    exit(1);
+  }
+
+  // ==================================================
+  // Convert the CG regression of Z to the form the same as the paper described,
+  // which is that, variable y is at the last position.
+  if (Z.contin_tail_indexes.back()!=Y.head_var_index) {
+    int pos_of_y = 0;
+    for (const auto &idx : Z.contin_tail_indexes) {
+      if (idx == Y.head_var_index) {
+        break;
+      }
+      ++pos_of_y;
+    }
+    Z.contin_tail_indexes.erase(Z.contin_tail_indexes.begin() + pos_of_y,
+                                Z.contin_tail_indexes.begin() + pos_of_y + 1);
+    Z.contin_tail_indexes.push_back(Y.head_var_index);
+    for (const auto &comb : Z.set_discrete_tails_combinations) {
+      double coeff = Z.coefficients[comb].at(pos_of_y);
+      Z.coefficients[comb].erase(Z.coefficients[comb].begin() + pos_of_y, Z.coefficients[comb].begin() + pos_of_y + 1);
+      Z.coefficients[comb].push_back(coeff);
+    }
+  }
+
+  // ==================================================
+  // For implementation, the ordering of other tail variables should be the same between Z and Y.
+  // Here, I adjust Z to be the same ordering as Y.
+  // The loop condition is set to be continuous tail size of Y,
+  // because the continuous tail size of Z is one large than Y's
+  // and the last element of Z's is y.
+  for (int i=0; i<Y.contin_tail_indexes.size(); ++i) {
+    if (Y.contin_tail_indexes.at(i)!=Z.contin_tail_indexes.at(i)) {
+      int j = i+1;
+      while (j<Y.contin_tail_indexes.size() && Z.contin_tail_indexes.at(j)!=Y.contin_tail_indexes.at(i)) { ++j; }
+      if (j>=Y.contin_tail_indexes.size()) { exit(1); }
+      // Swap.
+      int temp_var = Z.contin_tail_indexes.at(i);
+      Z.contin_tail_indexes.at(i) = Z.contin_tail_indexes.at(j);
+      Z.contin_tail_indexes.at(j) = temp_var;
+      for (const auto &comb : Z.set_discrete_tails_combinations) {
+        int temp_coeff = Z.coefficients[comb].at(i);
+        Z.coefficients[comb].at(i) = Z.coefficients[comb].at(j);
+        Z.coefficients[comb].at(j) = temp_coeff;
+      }
+    }
+  }
+}
+
+void CGRegression::ActurallyExchange(CGRegression &Z, CGRegression &Y) {
+  // todo: test correctness
   // Described in [Local Propagation in Conditional Gaussian Bayesian Networks (Cowell, 2005)].
   // Section 5.3. Page 16.
   // CGRegression Z should contains variable y in tail.
   // And apart from variable y, Z and Y should contain the same tail variables.
   // For example, Z=L(z|y,a,b,c,d,e,blahblah) and Y=L(y|a,b,c,d,e,blahblah).
   // Also, for implementation, the ordering of other tail variables should be the same between Z and Y.
-
-  // Here, tails of Z and Y contain the same W_1 to W_l. Sometimes, this may not
-  // be true. In implementation, we can just complete the W to be the same for
-  // Z and Y, and set certain coefficients to zero as needed.
-  // For example, if Y does not depend on W_2, then we can set c_2 to zero.
-  // todo: deal with this situation
 
   if (Z.set_all_tail_index.find(Y.head_var_index) == Z.set_all_tail_index.end()) {
     fprintf(stderr, "Error in function: %s\nThe tail of the first CG regression"
@@ -56,46 +156,7 @@ void CGRegression::Exchange(CGRegression Z, CGRegression Y) {
     exit(1);
   }
 
-  for (const auto &comb : set_discrete_tails_combinations) {
-
-    // ==================================================
-    // First, convert the CG regression of Z to the form the same as the paper described,
-    // which is that, variable y is at the last position.
-    if (Z.contin_tail_indexes.back()!=Y.head_var_index) {
-      int pos_of_y = 0;
-      for (const auto &idx : Z.contin_tail_indexes) {
-        if (idx == Y.head_var_index) {
-          break;
-        }
-        ++pos_of_y;
-      }
-      Z.contin_tail_indexes.erase(Z.contin_tail_indexes.begin() + pos_of_y,
-                                  Z.contin_tail_indexes.begin() + pos_of_y + 1);
-      Z.contin_tail_indexes.push_back(Y.head_var_index);
-      double coeff = Z.coefficients[comb].at(pos_of_y);
-      Z.coefficients[comb].erase(Z.coefficients[comb].begin() + pos_of_y, Z.coefficients[comb].begin() + pos_of_y + 1);
-      Z.coefficients[comb].push_back(coeff);
-    }
-
-    // ==================================================
-    // For implementation, the ordering of other tail variables should be the same between Z and Y.
-    // Here, I adjust Z to be the same ordering as Y.
-    for (int i=0; i<Y.contin_tail_indexes.size(); ++i) {
-      if (Y.contin_tail_indexes.at(i)!=Z.contin_tail_indexes.at(i)) {
-        for (int j=i+1; j<Y.contin_tail_indexes.size(); ++j) {
-          if (Z.contin_tail_indexes.at(j)==Y.contin_tail_indexes.at(i)) {
-            // Swap.
-            int temp_var = Z.contin_tail_indexes.at(i);
-            Z.contin_tail_indexes.at(i) = Z.contin_tail_indexes.at(j);
-            Z.contin_tail_indexes.at(j) = temp_var;
-            int temp_coeff = Z.coefficients[comb].at(i);
-            Z.coefficients[comb].at(i) = Z.coefficients[comb].at(j);
-            Z.coefficients[comb].at(j) = temp_coeff;
-            break;
-          }
-        }
-      }
-    }
+  for (const auto &comb : Z.set_discrete_tails_combinations) {
 
     // ==================================================
     // Update Z
