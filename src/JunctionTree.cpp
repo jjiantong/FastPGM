@@ -36,6 +36,7 @@ JunctionTree::JunctionTree(Network *net, string elim_ord_strategy, bool elim_red
   elimination_ordering = elim_ord;
   Triangulate(network, undirec_adjac_matrix, network->num_nodes, elim_ord, set_clique_ptr_container);
 
+
   if (elim_redundant_cliques) {
     // Theoretically, this step is not necessary.
     ElimRedundantCliques();
@@ -195,7 +196,7 @@ void JunctionTree::Triangulate(Network *net,
                                int &num_nodes,
                                vector<int> elim_ord,
                                set<Clique*> &cliques) {
-  if (elim_ord.size()==1) {return;}
+  if (elim_ord.size()==0) {return;}
   set<int> set_neighbours;
   set<Node*> set_node_ptrs_to_form_a_clique;
   int first_node_in_elim_ord = elim_ord.front();
@@ -454,22 +455,37 @@ void JunctionTree::ResetJunctionTree() {
   }
 }
 
-
+//void JunctionTree::LoadEvidence(const Combination &E) {
+//  if (E.empty()) { return; }
+//  for (auto &e : E) {  // For each node's observation in E
+//    for (auto &clique_ptr : set_clique_ptr_container) {  // For each cliqueauto tmp = map_elim_var_to_clique[83];
+//      if (clique_ptr->related_variables.find(e.first)!=clique_ptr->related_variables.end()) {  // If this clique is related to this node
+//        for (auto &comb : clique_ptr->set_disc_combinations) {  // Update each row of map_potentials
+//          if (comb.find(e)==comb.end()) {
+//            clique_ptr->map_potentials[comb] = 0;
+//          }
+//        }
+//        // I do not know if the "break" is optional.
+//        // Entering the evidence to one clique that contains it,
+//        // or to all cliques that contain it.
+//        // Are the results after message passing process both correct???
+//        // todo: figure it out
+//        break;
+//      }
+//    }
+//  }
+//}
 void JunctionTree::LoadEvidence(const Combination &E) {
   if (E.empty()) { return; }
-  for (auto &clique_ptr : set_clique_ptr_container) {  // For each clique
-    for (auto &e : E) {  // For each node's observation in E
-      if (clique_ptr->related_variables.find(e.first)!=clique_ptr->related_variables.end()) {  // If this clique is related to this node
-        for (auto &comb : clique_ptr->set_disc_combinations) {  // Update each row of map_potentials
-          if (comb.find(e)==comb.end()) {
-            clique_ptr->map_potentials[comb] = 0;
-          }
-        }
+  for (auto &e : E) {  // For each node's observation in E
+    Clique* clique_ptr = map_elim_var_to_clique[e.first];
+    for (auto &comb : clique_ptr->set_disc_combinations) {  // Update each row of map_potentials
+      if (comb.find(e)==comb.end()) {
+        clique_ptr->map_potentials[comb] = 0;
       }
     }
   }
 }
-
 
 void JunctionTree::MessagePassingUpdateJT() {
   // Arbitrarily select a clique as the root.
@@ -587,11 +603,15 @@ double JunctionTree::TestNetReturnAccuracy(int class_var, Trainer *tst) {
     delete[] e_index;
     delete[] e_value;
 
-    auto jt = new JunctionTree(this);
-    jt->LoadEvidence(E);
-    jt->MessagePassingUpdateJT();
-    int label_predict = jt->InferenceUsingBeliefPropagation(query); // The root node (label) has index of 0.
-    delete jt;
+//    auto jt = new JunctionTree(this);
+//    jt->LoadEvidence(E);
+//    jt->MessagePassingUpdateJT();
+//    int label_predict = jt->InferenceUsingBeliefPropagation(query); // The root node (label) has index of 0.
+//    delete jt;
+    LoadEvidence(E);
+    MessagePassingUpdateJT();
+    int label_predict = InferenceUsingBeliefPropagation(query); // The root node (label) has index of 0.
+    ResetJunctionTree();
 
     if (label_predict == tst->train_set_y[i]) {
 //      #pragma omp critical
@@ -600,7 +620,7 @@ double JunctionTree::TestNetReturnAccuracy(int class_var, Trainer *tst) {
 //      #pragma omp critical
       { ++num_of_wrong; }
     }
-//    ResetJunctionTree();
+
   }
 
   gettimeofday(&end,NULL);

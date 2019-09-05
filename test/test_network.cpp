@@ -26,7 +26,7 @@ class NetworkTest : public ::testing::Test {
     train_set_file_path =
             //  "../../data/a1a.txt"
             //  "../../data/a2a.txt"
-              "../../data/dataset/a3a-small.txt"
+              "../../data/dataset/a3a-medium.txt"
       //  "../../data/w1a.txt"
       //  "../../data/w7a.txt"
             ;
@@ -34,7 +34,7 @@ class NetworkTest : public ::testing::Test {
     test_set_file_path =
             //  "../../data/a1a.test.txt"
             //  "../../data/a2a.test.txt"
-              "../../data/dataset/a3a-small.test.txt"
+              "../../data/dataset/a3a-medium.test.txt"
       //  "../../data/w1a.test.txt"
       //  "../../data/w7a.test.txt"
             ;
@@ -57,7 +57,7 @@ class NetworkTest : public ::testing::Test {
 };
 
 
-TEST_F(NetworkTest, DISABLED_chow_liu_tree_var_elim_accuracy) { // The prefix "DISABLED" disable this test.
+TEST_F(NetworkTest, chow_liu_tree_var_elim_accuracy) { // The prefix "DISABLED" disable this test.
   double accuracy = network->TestNetReturnAccuracy(tester);
   ScoreFunction sf(network, trainer);
   cout << "Scores\n"
