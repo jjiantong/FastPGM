@@ -20,6 +20,7 @@ set<Combination> GenAllCombFromSets(set<Combination> *);
 bool EachFirstIsInSecond(const Combination *, const Combination *);
 bool FirstCompatibleSecond(const Combination *, const Combination *);
 bool Conflict(const Combination *, const Combination *);
+bool OccurInCorrectOrder(int a, int b, vector<int> vec);
 int* WidthFirstTraversalWithAdjacencyMatrix(int **graph, int num_nodes, int start);
 vector<int> TopoSortOfDAGZeroInDegreeFirst(int **graph, int num_nodes);
 

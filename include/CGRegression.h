@@ -30,6 +30,8 @@ class CGRegression {
 
  public:
 
+  // todo: deal with the case that there are no discrete tail
+
   int head_var_index;
   set<int> set_all_tail_index;
   set<Combination> set_discrete_tails_combinations;

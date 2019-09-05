@@ -33,6 +33,7 @@ JunctionTree::JunctionTree(Network *net, string elim_ord_strategy, bool elim_red
     exit(1);
   }
 
+  elimination_ordering = elim_ord;
   Triangulate(network, undirec_adjac_matrix, network->num_nodes, elim_ord, set_clique_ptr_container);
 
   if (elim_redundant_cliques) {
@@ -43,6 +44,10 @@ JunctionTree::JunctionTree(Network *net, string elim_ord_strategy, bool elim_red
   FormJunctionTree(set_clique_ptr_container);
 
   NumberTheCliquesAndSeparators();
+
+  for (const auto &c : set_clique_ptr_container) {
+    map_elim_var_to_clique[c->elimination_variable_index] = c;
+  }
 
   AssignPotentials();
   BackUpJunctionTree();
@@ -106,7 +111,7 @@ JunctionTree::JunctionTree(JunctionTree *jt) {
       }
     }
   }
-//  #pragma omp parallel for collapse(2)
+
   for (int i=0; i<jt->set_separator_ptr_container.size(); ++i) {
     for (int j=0; j<jt->set_clique_ptr_container.size(); ++j) {
       if (cliques_that_seps_connect_to[i][j]==1) {
@@ -424,6 +429,9 @@ void JunctionTree::AssignPotentials() {
         }
         break;  // Ensure that each CG regression is used only once.
       }
+      // todo: fix it
+      //   There is a problem when the discrete variables of cgr and clique_ptr is not the same.
+      //   I don't know what will happen.
     }
   }
 }

@@ -69,6 +69,20 @@ bool Conflict(const Combination *first, const Combination *second) {
   return false;
 }
 
+bool OccurInCorrectOrder(int a, int b, vector<int> vec) {
+  bool have_met_a = false, have_met_b = false;
+  for (const auto &elem : vec) {
+    have_met_a = (have_met_a || (elem==a));
+    have_met_b = (have_met_b || (elem==b));
+    if (have_met_b && !have_met_a) {
+      return false;
+    } else if (have_met_b && have_met_a) {
+      return true;
+    }
+  }
+  return false;
+}
+
 
 int* WidthFirstTraversalWithAdjacencyMatrix(int **graph, int num_nodes, int start) {
   int *result = new int[num_nodes];

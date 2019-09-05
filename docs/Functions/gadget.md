@@ -93,6 +93,10 @@ Output: false (if they have different values on the same variable)
         true (else)
 
 
+## bool OccurInCorrectOrder(int a, int b, vector<int> vec)
+If `a` occurs before `b` in `vec`, return true. Otherwise, return false.
+
+
 ## int\* WidthFirstTraversalWithAdjacencyMatrix(int \*\*graph, int num_nodes, int start)
 Input: graph:2-d array representation of the adjacency matrix of the graph
        num_nodes: number of nodes in the graph

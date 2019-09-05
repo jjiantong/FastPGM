@@ -6,6 +6,8 @@
 #define BAYESIANNETWORK_ELIMINATIONTREE_H
 
 #include "JunctionTree.h"
+#include "gadget.h"
+//#include <bits/stdc++.h>
 
 class EliminationTree : public JunctionTree {
   // Data structures needed for elimination tree
@@ -24,6 +26,7 @@ class EliminationTree : public JunctionTree {
   EliminationTree() = default;
   EliminationTree(Network *net);
   void CalcuEachToRoot();
+  void InitCGRegressions();
 
 };
 

@@ -18,6 +18,9 @@ class JunctionTree {
   set<Clique*> set_clique_ptr_container;
   set<Separator*> set_separator_ptr_container;
 
+  vector<int> elimination_ordering;
+  map<int, Clique*> map_elim_var_to_clique;
+
   map<Clique*,Clique> map_cliques_backup;
   map<Separator*,Separator> map_separators_backup;
 
