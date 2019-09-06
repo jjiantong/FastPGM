@@ -176,3 +176,8 @@ void EliminationTree::EnterSingleContEvidence(pair<int,double> e) {
     c_i->post_bag.begin()
   );
 }
+
+void EliminationTree::MessagePassingUpdateJT() {
+  strong_root->Collect();
+  strong_root->Distribute();
+}

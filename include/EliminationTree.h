@@ -30,6 +30,7 @@ class EliminationTree : public JunctionTree {
   void InitCGRegressions();
   virtual void LoadEvidence(const Combination&) override;
   void EnterSingleContEvidence(pair<int,double> e);
+  void MessagePassingUpdateJT();
 
 };
 

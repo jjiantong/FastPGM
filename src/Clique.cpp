@@ -81,6 +81,16 @@ Factor Clique::Collect() {
     if (ptr_separator==ptr_upstream_clique) {continue;}
 
     ptr_separator->ptr_upstream_clique = this;  // Let the callee know the caller.
+
+    // If the next clique connected by this separator is a continuous clique,
+    // then the program should not collect from it. All information needed from
+    // the continuous clique has been pushed to the boundary when entering the evidence.
+    bool reach_boundary = false;
+    for (const auto &next_clq_ptr : ptr_separator->set_neighbours_ptr) {
+        reach_boundary = (next_clq_ptr->ptr_upstream_clique!=ptr_separator && !next_clq_ptr->pure_discrete);
+    }
+    if (reach_boundary) { continue; }
+
     Factor f = ptr_separator->Collect();  // Collect from downstream.
     UpdateUseMessage(f);  // Update itself.
   }
@@ -113,6 +123,14 @@ void Clique::Distribute() {
 
 
 void Clique::Distribute(Factor f) {
+  // If the next clique connected by this separator is a continuous clique,
+  // then the program should not distribute information to it.
+  bool reach_boundary = false;
+  for (const auto &next_clq_ptr : set_neighbours_ptr) {
+    reach_boundary = !next_clq_ptr->pure_discrete;
+  }
+  if (reach_boundary) { return; }
+
   // First update itself, then distribute to its downstream.
 
   UpdateUseMessage(f);  // Update itself.
