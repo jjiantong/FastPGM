@@ -66,4 +66,101 @@ void EliminationTree::InitCGRegressions() {
       }
     }
   }
+  // Check
+  for (const auto &c : set_clique_ptr_container) {
+    if (!c->pure_discrete) {
+      if (!c->post_bag.empty()) {
+        fprintf(stderr, "At the end of [%s], the postbags are not empty.", __FUNCTION__);
+        exit(1);
+      }
+    }
+  }
+}
+
+void EliminationTree::LoadEvidence(const Combination &E) {
+  // todo: implement
+}
+
+void EliminationTree::EnterSingleContEvidence(pair<int,double> e) {
+  // todo: test correctness
+  // Described in
+  // [Local Propagation in Conditional Gaussian Bayesian Networks (Cowell, 2005)]
+  // section 5.6, algorithm 5.3.
+
+  // Step 1: Enter evidence in all regressions which the corresponding variable is in tail.
+  for (const auto &v : elimination_ordering) {
+    if (v==e.first || map_elim_var_to_clique[v]->pure_discrete) { break; }
+    if (!map_elim_var_to_clique[v]->activeflag
+        ||
+        map_elim_var_to_clique[v]->related_variables.find(e.first)==map_elim_var_to_clique[v]->related_variables.end()) {
+      map_elim_var_to_clique[v]->lp_potential.front().Substitute(e);
+    }
+  }
+
+  // Step 2: Initialize the loop for pushing evidence towards a boundary cluster.
+  int i = e.first;
+  Clique *c_i = map_elim_var_to_clique[i];
+  c_i->post_bag.push_back(
+    c_i->lp_potential.front()
+  );
+  c_i->lp_potential.erase(
+    c_i->lp_potential.begin()
+  );
+  c_i->activeflag = false;
+
+  // Step 3: Push evidence towards a boundary cluster.
+  // In the paper, the algorithm is described as
+  // "while toroot(i) is not a boundary cluster".
+  // We enter the evidence starting at the continuous cluster.
+  // And we move to the strong root.
+  // So, the boundary cluster is the first cluster that is purely discrete.
+  while (!map_elim_var_to_clique[map_to_root[i]]->pure_discrete) {
+    Clique *c_ri = map_elim_var_to_clique[map_to_root[i]];
+    c_ri->post_bag.push_back(c_i->post_bag.front());
+    if (c_ri->activeflag) {
+      CGRegression::Exchange(c_ri->post_bag.front(), c_ri->lp_potential.front());
+      c_ri->lp_potential.front().Substitute(e);
+    }
+    c_i->post_bag.erase(c_i->post_bag.begin());
+    i = c_ri->elimination_variable_index;
+    c_i = map_elim_var_to_clique[i];
+  }
+
+  // Step 4: Update the discrete part of the tree.
+  if (map_elim_var_to_clique[i]->pure_discrete
+      ||
+      !map_elim_var_to_clique[map_to_root[i]]->pure_discrete) {
+    fprintf(stderr, "Something is wrong in [%s] and I do not know why yet!", __FUNCTION__);
+    exit(1);
+  }
+  c_i = map_elim_var_to_clique[i];
+  c_i->post_bag.front().Substitute(e);
+
+  Separator *sep_to_root = nullptr;
+  for (const auto &sep : c_i->set_neighbours_ptr) {
+    for (const auto &clq : sep->set_neighbours_ptr) {
+      if (clq->elimination_variable_index == map_to_root[c_i->elimination_variable_index]) {
+        sep_to_root = (Separator*)sep;
+        break;
+      }
+    }
+    if (sep_to_root!=nullptr) { break; }
+  }
+  if (sep_to_root==nullptr) {
+    fprintf(stderr, "Could not find the separator to the boundary cluster in [%s]!", __FUNCTION__);
+    exit(1);
+  }
+  for (const auto &comb : c_i->set_disc_combinations) {
+    double weight = - pow((e.second-c_i->post_bag.front().mu[comb]),2) / (2*c_i->post_bag.front().variance[comb]);
+    weight = exp(weight);
+    weight /= pow((2*M_PI*c_i->post_bag.front().variance[comb]), 0.5);
+    sep_to_root->map_potentials[comb] = weight;
+  }
+
+  Factor f = sep_to_root->Clique::ConstructMessage();  // todo: check the actually called function
+  map_elim_var_to_clique[map_to_root[c_i->elimination_variable_index]]->MultiplyWithFactorSumOverExternalVars(f);
+
+  c_i->post_bag.erase(
+    c_i->post_bag.begin()
+  );
 }

@@ -41,7 +41,7 @@ class JunctionTree {
   void AssignPotentials();
   void BackUpJunctionTree();
   void ResetJunctionTree();
-  void LoadEvidence(const Combination&);
+  virtual void LoadEvidence(const Combination&);
   void MessagePassingUpdateJT();
 
   void PrintAllCliquesPotentials() const;

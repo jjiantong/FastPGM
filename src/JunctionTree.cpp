@@ -235,6 +235,9 @@ void JunctionTree::Triangulate(Network *net,
 
 
 void JunctionTree::ElimRedundantCliques() {
+  fprintf(stderr, "This operation, [%s], will cause lots of trouble and I can not solve them yet!\n"
+                  "So, I just forbid the program to conduct this operation.", __FUNCTION__);
+  return;
   set<Clique*> to_be_eliminated;
 
   for (auto &ptr_clq1 : set_clique_ptr_container) {

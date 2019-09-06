@@ -19,6 +19,9 @@ typedef set< pair<int, int> > Combination;
 class Clique {
  protected:
   Clique(const Clique&) = default;
+  Factor SumOutExternalVars(Factor);
+  void Distribute(Factor);
+  void PreInitializePotentials();
 
  public:
 
@@ -43,12 +46,10 @@ class Clique {
   virtual ~Clique() = default;
 
   Clique* CopyWithoutPtr();
-  void PreInitializePotentials();
+  void MultiplyWithFactorSumOverExternalVars(Factor);
   Factor Collect();
   void Distribute();
-  void Distribute(Factor);
-  Factor SumOutExternalVars(Factor);
-  void MultiplyWithFactorSumOverExternalVars(Factor);
+
   virtual void UpdateUseMessage(Factor);
   virtual Factor ConstructMessage();
   void PrintPotentials() const;

@@ -7,6 +7,7 @@
 
 #include "JunctionTree.h"
 #include "gadget.h"
+#include <cmath>
 //#include <bits/stdc++.h>
 
 class EliminationTree : public JunctionTree {
@@ -27,6 +28,8 @@ class EliminationTree : public JunctionTree {
   EliminationTree(Network *net);
   void CalcuEachToRoot();
   void InitCGRegressions();
+  virtual void LoadEvidence(const Combination&) override;
+  void EnterSingleContEvidence(pair<int,double> e);
 
 };
 

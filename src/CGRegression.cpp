@@ -23,9 +23,28 @@ CGRegression::CGRegression(Node *node_ptr) {
   variance = c_n_p->variance;
 }
 
+void CGRegression::Substitute(pair<int, double> var_value) {
+  bool state = false;
+  int coeff_index_for_var = 0;
+  for (const auto &var : contin_tail_indexes) {
+    if (var==var_value.first) {
+      state = true;
+      contin_tail_indexes.erase(contin_tail_indexes.begin()+coeff_index_for_var);
+      break;
+    }
+    ++coeff_index_for_var;
+  }
+  if (!state) { exit(1); }
+
+  for (const auto &comb : set_discrete_tails_combinations) {
+    mu[comb] += var_value.second * coefficients[comb].at(coeff_index_for_var);
+    coefficients[comb].erase(coefficients[comb].begin()+coeff_index_for_var);
+  }
+}
+
 void CGRegression::Exchange(CGRegression &Z, CGRegression &Y) {
   PrepareForExchange(Z, Y);
-  ActurallyExchange(Z, Y);
+  ActuallyExchange(Z, Y);
 }
 
 void CGRegression::PrepareForExchange(CGRegression &Z, CGRegression &Y) {
@@ -128,13 +147,13 @@ void CGRegression::PrepareForExchange(CGRegression &Z, CGRegression &Y) {
   }
 }
 
-void CGRegression::ActurallyExchange(CGRegression &Z, CGRegression &Y) {
+void CGRegression::ActuallyExchange(CGRegression &Z, CGRegression &Y) {
   // todo: test correctness
   // Described in [Local Propagation in Conditional Gaussian Bayesian Networks (Cowell, 2005)].
   // Section 5.3. Page 16.
   // CGRegression Z should contains variable y in tail.
   // And apart from variable y, Z and Y should contain the same tail variables.
-  // For example, Z=L(z|y,a,b,c,d,e,blahblah) and Y=L(y|a,b,c,d,e,blahblah).
+  // For example, Z=L(z|y,a,b,c,d,blah) and Y=L(y|a,b,c,d,blah).
   // Also, for implementation, the ordering of other tail variables should be the same between Z and Y.
 
   if (Z.set_all_tail_index.find(Y.head_var_index) == Z.set_all_tail_index.end()) {
