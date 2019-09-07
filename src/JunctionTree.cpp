@@ -17,7 +17,7 @@ JunctionTree::JunctionTree(Network *net, string elim_ord_strategy, bool elim_red
 
   network = net;
 
-  int **direc_adjac_matrix = ConvertDAGNetworkToAdjacencyMatrix(network);
+  int **direc_adjac_matrix = network->ConvertDAGNetworkToAdjacencyMatrix();
   Moralize(direc_adjac_matrix, network->num_nodes);
   int **undirec_adjac_matrix = direc_adjac_matrix;  // Change a name because it has been moralized.
 
@@ -136,33 +136,42 @@ JunctionTree::JunctionTree(JunctionTree *jt) {
 }
 
 
-int** JunctionTree::ConvertDAGNetworkToAdjacencyMatrix(Network *net) {
-  int num_nodes = net->num_nodes;
-  int **adjac_matrix = new int* [num_nodes];
-  for (int i=0; i<num_nodes; ++i) {
-    adjac_matrix[i] = new int[num_nodes]();
-  }
-  for (auto &node_ptr : net->set_node_ptr_container) {
-    int from, from2, to;
-    from = node_ptr->GetNodeIndex();
-    for (auto &child_ptr : node_ptr->set_children_ptrs) {
-      to = child_ptr->GetNodeIndex();
-      adjac_matrix[from][to] = 1;
-    }
-  }
-  return adjac_matrix;
-}
-
 
 void JunctionTree::Moralize(int **direc_adjac_matrix, int &num_nodes) {
-//  #pragma omp parallel for collapse(2)
+
+  // Find the parents that have common child(ren).
+  set<pair<int,int>> to_marry;
+  #pragma omp parallel for collapse(2)
   for (int i=0; i<num_nodes; ++i) {
     for (int j=0; j<num_nodes; ++j) {
+      if (i==j) { continue; }
+      if (direc_adjac_matrix[i][j]==1) {
+        // "i" is a parent of "j"
+        // The next step is to find other parents, "k", of "j"
+        for (int k=0; k<num_nodes; ++k) {
+          if (direc_adjac_matrix[k][j]==1) {
+            to_marry.insert(pair<int,int>(i,k));
+          }
+        }
+      }
+    }
+  }
+
+  // Making the adjacency matrix undirected.
+  #pragma omp parallel for collapse(2)
+  for (int i=0; i<num_nodes; ++i) {
+    for (int j=0; j<num_nodes; ++j) {
+      if (i==j) { continue; }
       if (direc_adjac_matrix[i][j]==1 || direc_adjac_matrix[j][i]==1) {
         direc_adjac_matrix[i][j] = 1;
         direc_adjac_matrix[j][i] = 1;
       }
     }
+  }
+
+  // Marrying parents.
+  for (const auto &p : to_marry) {
+    direc_adjac_matrix[p.first][p.second] = 1;
   }
 }
 
@@ -456,6 +465,11 @@ void JunctionTree::ResetJunctionTree() {
   for (auto &s : set_separator_ptr_container) {
     *s = map_separators_backup[s];
   }
+}
+
+void JunctionTree::LoadEvidenceAndMessagePassingUpdateJT(const Combination &E) {
+  LoadEvidence(E);
+  MessagePassingUpdateJT();
 }
 
 //void JunctionTree::LoadEvidence(const Combination &E) {

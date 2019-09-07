@@ -205,6 +205,22 @@ vector<int> Network::GenTopoOrd() {
 }
 
 
+int** Network::ConvertDAGNetworkToAdjacencyMatrix() {
+  int **adjac_matrix = new int* [num_nodes];
+  for (int i=0; i<num_nodes; ++i) {
+    adjac_matrix[i] = new int[num_nodes]();
+  }
+  for (auto &node_ptr : set_node_ptr_container) {
+    int from, from2, to;
+    from = node_ptr->GetNodeIndex();
+    for (auto &child_ptr : node_ptr->set_children_ptrs) {
+      to = child_ptr->GetNodeIndex();
+      adjac_matrix[from][to] = 1;
+    }
+  }
+  return adjac_matrix;
+}
+
 
 void Network::LearnParamsKnowStructCompData(const Trainer *trainer, bool print_params){
   fprintf(stderr, "Need to be implemented in sub-class!");

@@ -112,8 +112,7 @@ TEST_F(NetworkTest, var_elim_and_jun_tree) {
   f1.PrintPotentials();
 
   auto *jt = new JunctionTree(network, false);
-  jt->LoadEvidence(E);
-  jt->MessagePassingUpdateJT();
+  jt->LoadEvidenceAndMessagePassingUpdateJT(E);
 
   set<int> indexes;
   indexes.insert(0);

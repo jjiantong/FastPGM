@@ -64,6 +64,8 @@ class Network {
   vector<int> GetTopoOrd();
   vector<int> GetReverseTopoOrd();
 
+  int** ConvertDAGNetworkToAdjacencyMatrix();
+
 
   virtual pair<int*, int> SimplifyDefaultElimOrd(Combination) = 0;
 

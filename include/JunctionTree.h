@@ -21,8 +21,6 @@ class JunctionTree {
   vector<int> elimination_ordering;
   map<int, Clique*> map_elim_var_to_clique;
 
-  map<Clique*,Clique> map_cliques_backup;
-  map<Separator*,Separator> map_separators_backup;
 
   JunctionTree() = default;
   explicit JunctionTree(Network *net);
@@ -31,13 +29,8 @@ class JunctionTree {
   explicit JunctionTree(JunctionTree*);
   virtual ~JunctionTree() = default;
 
-  static int** ConvertDAGNetworkToAdjacencyMatrix(Network*);
-  static void Moralize(int **direc_adjac_matrix, int &num_nodes);
-  static vector<int> MinNeighbourElimOrd(int **adjac_matrix, int &num_nodes);
-
   void ResetJunctionTree();
-  virtual void LoadEvidence(const Combination &E);
-  void MessagePassingUpdateJT();
+  void LoadEvidenceAndMessagePassingUpdateJT(const Combination &E);
 
   void PrintAllCliquesPotentials() const;
   void PrintAllSeparatorsPotentials() const;
@@ -48,6 +41,9 @@ class JunctionTree {
   double TestNetReturnAccuracy(int class_var, Trainer *tst);
 
  protected:
+  map<Clique*,Clique> map_cliques_backup;
+  map<Separator*,Separator> map_separators_backup;
+
   void Triangulate(Network *net,
                    int **adjac_matrix,
                    int &num_nodes,
@@ -58,6 +54,10 @@ class JunctionTree {
   void NumberTheCliquesAndSeparators();
   void AssignPotentials();
   void BackUpJunctionTree();
+  virtual void LoadEvidence(const Combination &E);
+  void MessagePassingUpdateJT();
+  static vector<int> MinNeighbourElimOrd(int **adjac_matrix, int &num_nodes);
+  static void Moralize(int **direc_adjac_matrix, int &num_nodes);
 
 };
 
