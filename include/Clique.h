@@ -17,11 +17,6 @@
 typedef set< pair<int, int> > Combination;
 
 class Clique {
- protected:
-  Clique(const Clique&) = default;
-  Factor SumOutExternalVars(Factor);
-  void Distribute(Factor);
-  void PreInitializePotentials();
 
  public:
 
@@ -65,6 +60,13 @@ class Clique {
   vector<CGRegression> lp_potential;
   vector<CGRegression> post_bag;
   // ==================================================
+
+ protected:
+  Clique(const Clique&) = default;
+  Factor SumOutExternalVars(Factor);
+  void Distribute(Factor);
+  void PreInitializePotentials();
+
 
 };
 

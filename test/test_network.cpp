@@ -26,7 +26,7 @@ class NetworkTest : public ::testing::Test {
     train_set_file_path =
             //  "../../data/a1a.txt"
             //  "../../data/a2a.txt"
-              "../../data/dataset/a3a-medium.txt"
+              "../../data/dataset/a3a-small.txt"
       //  "../../data/w1a.txt"
       //  "../../data/w7a.txt"
             ;
@@ -34,7 +34,7 @@ class NetworkTest : public ::testing::Test {
     test_set_file_path =
             //  "../../data/a1a.test.txt"
             //  "../../data/a2a.test.txt"
-              "../../data/dataset/a3a-medium.test.txt"
+              "../../data/dataset/a3a-small.test.txt"
       //  "../../data/w1a.test.txt"
       //  "../../data/w7a.test.txt"
             ;

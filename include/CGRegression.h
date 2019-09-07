@@ -52,6 +52,8 @@ class CGRegression {
 
   void Substitute(pair<int, double> var_value);
   static void Exchange(CGRegression &Z, CGRegression &Y);
+
+ protected:
   static void PrepareForExchange(CGRegression &Z, CGRegression &Y);
   static void ActuallyExchange(CGRegression &Z, CGRegression &Y);
 };

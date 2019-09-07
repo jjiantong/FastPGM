@@ -32,25 +32,32 @@ class JunctionTree {
   virtual ~JunctionTree() = default;
 
   static int** ConvertDAGNetworkToAdjacencyMatrix(Network*);
-  static void Moralize(int**, int&);
-  static vector<int> MinNeighbourElimOrd(int**, int&);
-  void Triangulate(Network*, int**, int&, vector<int>, set<Clique*>&);
-  void ElimRedundantCliques();
-  void FormJunctionTree(set<Clique*>&);
-  void NumberTheCliquesAndSeparators();
-  void AssignPotentials();
-  void BackUpJunctionTree();
+  static void Moralize(int **direc_adjac_matrix, int &num_nodes);
+  static vector<int> MinNeighbourElimOrd(int **adjac_matrix, int &num_nodes);
+
   void ResetJunctionTree();
-  virtual void LoadEvidence(const Combination&);
+  virtual void LoadEvidence(const Combination &E);
   void MessagePassingUpdateJT();
 
   void PrintAllCliquesPotentials() const;
   void PrintAllSeparatorsPotentials() const;
 
-  Factor BeliefPropagationReturnPossib(set<int>&);
-  int InferenceUsingBeliefPropagation(set<int>&);
+  Factor BeliefPropagationReturnPossib(set<int> &indexes);
+  int InferenceUsingBeliefPropagation(set<int> &indexes);
 
-  double TestNetReturnAccuracy(int,Trainer*);
+  double TestNetReturnAccuracy(int class_var, Trainer *tst);
+
+ protected:
+  void Triangulate(Network *net,
+                   int **adjac_matrix,
+                   int &num_nodes,
+                   vector<int> elim_ord,
+                   set<Clique*> &cliques);
+  void ElimRedundantCliques();
+  void FormJunctionTree(set<Clique*> &cliques);
+  void NumberTheCliquesAndSeparators();
+  void AssignPotentials();
+  void BackUpJunctionTree();
 
 };
 

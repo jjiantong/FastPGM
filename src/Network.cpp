@@ -72,6 +72,12 @@ void Network::SetParentChild(int p_index, int c_index) {
 
 
 void Network::SetParentChild(Node *p, Node *c) {
+  if (set_node_ptr_container.find(p)==set_node_ptr_container.end()
+      ||
+      set_node_ptr_container.find(c)==set_node_ptr_container.end()) {
+    fprintf(stderr, "The nodes do not belong to this network!");
+    exit(1);
+  }
   p->AddChild(c);
   c->AddParent(p);
 }
@@ -80,6 +86,17 @@ void Network::SetParentChild(Node *p, Node *c) {
 void Network::RemoveParentChild(int p_index, int c_index) {
   Node *p = FindNodePtrByIndex(p_index), *c = FindNodePtrByIndex(c_index);
   RemoveParentChild(p,c);
+}
+
+void Network::RemoveParentChild(Node *p, Node *c) {
+  if (set_node_ptr_container.find(p)==set_node_ptr_container.end()
+      ||
+      set_node_ptr_container.find(c)==set_node_ptr_container.end()) {
+    fprintf(stderr, "The nodes do not belong to this network!");
+    exit(1);
+  }
+  p->RemoveChild(c);
+  c->RemoveParent(p);
 }
 
 vector<int> Network::GetTopoOrd() {
@@ -187,11 +204,6 @@ vector<int> Network::GenTopoOrd() {
   return topo_ord;
 }
 
-
-void Network::RemoveParentChild(Node *p, Node *c) {
-  p->RemoveChild(c);
-  c->RemoveParent(p);
-}
 
 
 void Network::LearnParamsKnowStructCompData(const Trainer *trainer, bool print_params){

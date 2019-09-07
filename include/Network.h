@@ -63,7 +63,7 @@ class Network {
 
   vector<int> GetTopoOrd();
   vector<int> GetReverseTopoOrd();
-  vector<int> GenTopoOrd();
+
 
   virtual pair<int*, int> SimplifyDefaultElimOrd(Combination) = 0;
 
@@ -88,12 +88,12 @@ class Network {
   // proposed by Max Henrion at 1988.
   Combination ProbLogicSampleNetwork();
 
-  pair<Combination, double> DrawOneLikelihoodWeightingSample(const Combination &evidence);
+
   vector<pair<Combination, double>> DrawSamplesByLikelihoodWeighting(const Combination &evidence, int num_samp);
   Factor CalcuMargWithLikelihoodWeightingSamples(const vector<pair<Combination, double>> &samples, const int &node_index);
   int ApproxinferByLikelihoodWeighting(Combination e, const int &node_index, const int &num_samp);
 
-  set<int> GetMarkovBlanketIndexesOfNode(Node *node_ptr);
+
   int SampleNodeGivenMarkovBlanketReturnValIndex(Node *node_ptr, Combination markov_blanket);
 
   vector<Combination> DrawSamplesByProbLogiSamp(int num_samp);
@@ -101,6 +101,11 @@ class Network {
 
   int ApproxInferByProbLogiRejectSamp(Combination e, Node *node, vector<Combination> &samples);
   int ApproxInferByProbLogiRejectSamp(Combination e, int node_index, vector<Combination> &samples);
+
+ protected:
+  vector<int> GenTopoOrd();
+  pair<Combination, double> DrawOneLikelihoodWeightingSample(const Combination &evidence);
+  set<int> GetMarkovBlanketIndexesOfNode(Node *node_ptr);
 };
 
 

@@ -13,6 +13,8 @@ EliminationTree::EliminationTree(Network *net)
       break;
     }
   }
+  CalcuEachToRoot();
+  InitCGRegressions();
 }
 
 

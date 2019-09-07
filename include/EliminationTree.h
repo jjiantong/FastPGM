@@ -20,17 +20,19 @@ class EliminationTree : public JunctionTree {
 
   // The set of discrete clusters that are neighbours to the
   // continuous part will be called the boundary.
-  set<Clique*> boundary;
+  // set<Clique*> boundary;
 
   map<int, int> map_to_root;
 
   EliminationTree() = default;
   EliminationTree(Network *net);
+  virtual void LoadEvidence(const Combination&) override;
+  void MessagePassingUpdateJT();
+
+ protected:
   void CalcuEachToRoot();
   void InitCGRegressions();
-  virtual void LoadEvidence(const Combination&) override;
   void EnterSingleContEvidence(pair<int,double> e);
-  void MessagePassingUpdateJT();
 
 };
 

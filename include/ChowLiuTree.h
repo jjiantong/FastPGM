@@ -50,6 +50,8 @@ class ChowLiuTree : public Network {
 
   pair<int*, int> SimplifyDefaultElimOrd(Combination evidence) override;
   pair<int*, int> SimplifyTreeDefaultElimOrd(Combination evidence);
+
+ protected:
   void DepthFirstTraversalUntillMeetObserved(Combination evidence, int start, set<int>& visited, set<int>& to_be_removed);
   void DepthFirstTraversalToRemoveMSeparatedNodes(int start, set<int>& visited, set<int>& to_be_removed);
 
