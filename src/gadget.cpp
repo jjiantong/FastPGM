@@ -131,7 +131,7 @@ vector<int> TopoSortOfDAGZeroInDegreeFirst(int **graph, int num_nodes) {
     result.push_back(que.front());
     que.pop();
   }
-
+  delete[] in_degrees;
   return result;
 }
 
