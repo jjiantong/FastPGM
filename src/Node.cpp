@@ -8,6 +8,10 @@ Node::Node(int index) {
   SetNodeIndex(index);
 }
 
+Node::Node(int index, string name): Node(index) {
+  node_name = name;
+}
+
 int Node::GetNodeIndex() const {
   return node_index;
 }
@@ -58,6 +62,7 @@ void Node::GenDiscParCombs() {
   set<Combination> set_of_sets;
   if (set_parents_ptrs.empty()) return;
   for (const auto par_ptr : set_parents_ptrs) {
+    if (!par_ptr->is_discrete) { continue; }
     Combination cb;
     pair<int, int> ele;
     for (int i=0; i<par_ptr->num_potential_vals; i++) {

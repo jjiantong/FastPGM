@@ -8,10 +8,12 @@
 set<Combination> GenAllCombFromSets(set<Combination> *set_of_sets) {
 
   // Error Case
-  if (set_of_sets->empty()) {
-    fprintf(stderr, "Error in function %s! \nThe size of set_of_sets is less than 1", __FUNCTION__);
-    exit(1);
-  }
+//  if (set_of_sets->empty()) {
+//    fprintf(stderr, "Error in function %s! \nThe size of set_of_sets is less than 1", __FUNCTION__);
+//    exit(1);
+//  }
+
+  if (set_of_sets->empty()) { return set<Combination>(); }
 
   auto its=set_of_sets->begin();
   Combination to_be_inserted = *its;

@@ -55,6 +55,8 @@ class Network {
 
   void ClearParams();
 
+  void AddNode(Node *node_ptr);
+
   void SetParentChild(int, int);
   void SetParentChild(Node *par, Node *chi);
 

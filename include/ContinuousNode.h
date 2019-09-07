@@ -21,6 +21,8 @@ typedef set< pair<int, int> > Combination;
 class ContinuousNode : public Node {
  public:
 
+  // todo: deal with the case where there no discrete parents
+
   // In conditional Gaussian Bayesian network,
   // discrete nodes will not have continuous parents
 
@@ -38,7 +40,9 @@ class ContinuousNode : public Node {
 
   ContinuousNode();
   explicit ContinuousNode(int index);
+  ContinuousNode(int index, string name);
   void AddChild(Node *node_ptr) override;
+  void IdentifyContPar();
 };
 
 

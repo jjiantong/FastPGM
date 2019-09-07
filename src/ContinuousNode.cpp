@@ -13,11 +13,23 @@ ContinuousNode::ContinuousNode(int index) {
   is_discrete = false;
 }
 
+ContinuousNode::ContinuousNode(int index, string name): ContinuousNode(index) {
+  node_name = name;
+}
+
 void ContinuousNode::AddChild(Node *c) {
   if (c->is_discrete) {
     fprintf(stderr, "Error in function %s! \n"
                     "Continuous node must not have discrete child!", __FUNCTION__);
     exit(1);
   }
-  set_parents_ptrs.insert(c);
+  set_children_ptrs.insert(c);
+}
+
+void ContinuousNode::IdentifyContPar() {
+  for (const auto &p : set_parents_ptrs) {
+    if (!p->is_discrete) {
+      contin_par_indexes.push_back(p->GetNodeIndex());
+    }
+  }
 }

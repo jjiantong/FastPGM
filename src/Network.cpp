@@ -65,6 +65,12 @@ void Network::StructLearnCompData(Trainer *trn, bool print_struct) {
 }
 
 
+void Network::AddNode(Node *node_ptr) {
+  set_node_ptr_container.insert(node_ptr);
+  num_nodes = set_node_ptr_container.size();
+}
+
+
 void Network::SetParentChild(int p_index, int c_index) {
   Node *p = FindNodePtrByIndex(p_index), *c = FindNodePtrByIndex(c_index);
   SetParentChild(p,c);

@@ -21,6 +21,9 @@ class DiscreteNode : public Node {
  public:
   DiscreteNode();
   explicit DiscreteNode(int index);
+  DiscreteNode(int index, string name);
+  void SetDomain(vector<string> str_domain);
+  void SetDomain(vector<int> int_domain);
   void AddParent(Node *node_ptr) override;
 
 };
