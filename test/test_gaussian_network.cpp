@@ -69,7 +69,7 @@ class CGNetworkTest : public ::testing::Test {
 };
 
 
-TEST_F(CGNetworkTest, DISABLED_structure_correctness) {
+TEST_F(CGNetworkTest, structure_correctness) {
   auto x = (ContinuousNode*)net->FindNodePtrByName("X");
   auto y = (ContinuousNode*)net->FindNodePtrByName("Y");
   auto z = (ContinuousNode*)net->FindNodePtrByName("Z");
@@ -87,13 +87,20 @@ TEST_F(CGNetworkTest, DISABLED_structure_correctness) {
   EXPECT_EQ(1,z->coefficients[*z->set_discrete_parents_combinations.begin()].size());
 
   auto top = net->GetTopoOrd();
-  set<int> top3, assumed_top3;
+  set<int> top3, assumed_top3, back3, assumed_back3;
   for (int i=0; i<3; ++i) {
     top3.insert(top.at(i));
+    back3.insert(top.at(5-i));
     assumed_top3.insert(i);
+    assumed_back3.insert(5-i);
   }
   EXPECT_EQ(6, top.size());
   EXPECT_TRUE(top3==assumed_top3);
+  EXPECT_TRUE(back3==assumed_back3);
+  for (const auto &t : top) {
+    cout << t << '\t';
+  }
+  cout << endl;
 }
 
 TEST_F(CGNetworkTest, elim_tree) {

@@ -154,7 +154,10 @@ vector<int> Network::GenTopoOrd() {
     }
     int **graph_disc = new int*[set_disc_node_ptr.size()];
     int **graph_cont = new int*[set_cont_node_ptr.size()];
-    for (int i=0; i<num_nodes; ++i) {
+    for (int i=0; i<set_disc_node_ptr.size(); ++i) {
+      graph_disc[i] = new int[set_disc_node_ptr.size()]();
+    }
+    for (int i=0; i<set_cont_node_ptr.size(); ++i) {
       graph_disc[i] = new int[set_disc_node_ptr.size()]();
       graph_cont[i] = new int[set_cont_node_ptr.size()]();
     }
@@ -162,35 +165,39 @@ vector<int> Network::GenTopoOrd() {
     // Generate the ordering for discrete nodes.
     map<int, int> disc_order_index, disc_index_order;
     int disc_ord = 0;
-    for (auto &n_p : set_disc_node_ptr) {
+    for (const auto &n_p : set_disc_node_ptr) {
       disc_order_index[disc_ord] = n_p->GetNodeIndex();
       disc_index_order[n_p->GetNodeIndex()] = disc_ord;
       ++disc_ord;
     }
-    for (auto &n_p : set_disc_node_ptr) {
-      for (auto &c_p : n_p->set_children_ptrs) {
+    for (const auto &n_p : set_disc_node_ptr) {
+      for (const auto &c_p : n_p->set_children_ptrs) {
         if (!c_p->is_discrete) { continue; }
         graph_disc[ disc_index_order[n_p->GetNodeIndex()] ]
                   [ disc_index_order[c_p->GetNodeIndex()] ] = 1;
       }
     }
-    auto topo_ord_disc = TopoSortOfDAGZeroInDegreeFirst(graph_disc, set_disc_node_ptr.size());
+    vector<int> topo_ord_disc = TopoSortOfDAGZeroInDegreeFirst(graph_disc, set_disc_node_ptr.size());
 
     // Generate the ordering for continuous nodes.
     map<int, int> cont_order_index, cont_index_order;
     int cont_ord = 0;
-    for (auto &n_p : set_cont_node_ptr) {
+    for (const auto &n_p : set_cont_node_ptr) {
       cont_order_index[cont_ord] = n_p->GetNodeIndex();
       cont_index_order[n_p->GetNodeIndex()] = cont_ord;
       ++cont_ord;
     }
-    for (auto &n_p : set_cont_node_ptr) {
-      for (auto &c_p : n_p->set_children_ptrs) {
+    for (const auto &n_p : set_cont_node_ptr) {
+      for (const auto &c_p : n_p->set_children_ptrs) {
         graph_cont[ cont_index_order[n_p->GetNodeIndex()] ]
                   [ cont_index_order[c_p->GetNodeIndex()] ] = 1;
       }
     }
-    auto topo_ord_cont = TopoSortOfDAGZeroInDegreeFirst(graph_cont, set_cont_node_ptr.size());
+    vector<int> topo_ord_cont = TopoSortOfDAGZeroInDegreeFirst(graph_cont, set_cont_node_ptr.size());
+    // Restore the index from the ordering.
+    for (auto &o : topo_ord_cont) {
+      o = cont_order_index[o];
+    }
 
     // Concatinate topo_ord_disc and topo_ord_cont.
     topo_ord_disc.insert(topo_ord_disc.end(), topo_ord_cont.begin(), topo_ord_cont.end());
