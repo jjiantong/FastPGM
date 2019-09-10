@@ -10,6 +10,7 @@
 #include <string>
 #include <queue>
 #include <vector>
+#include <map>
 #include <iostream>
 #include <cmath>
 
@@ -17,6 +18,7 @@ using namespace std;
 typedef set< pair<int, int> > Combination;
 
 set<Combination> GenAllCombFromSets(set<Combination> *);
+set<Combination> ExpandCombFromTwoCombs(set<Combination> *one, set<Combination> *two);
 bool EachFirstIsInSecond(const Combination *, const Combination *);
 bool FirstCompatibleSecond(const Combination *, const Combination *);
 bool Conflict(const Combination *, const Combination *);

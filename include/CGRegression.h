@@ -37,21 +37,22 @@ class CGRegression {
   set<Combination> set_discrete_tails_combinations;
 
   // The ordering of continuous tails is important.
-  vector<int> contin_tail_indexes;
+  vector<int> vec_contin_tail_indexes;
 
   // Conditional mean given discrete tails.
-  map<Combination, double> mu;
+  map<Combination, double> map_mu;
 
   // Conditional linear coefficients for continuous tails given discrete tails.
-  map<Combination, vector<double>> coefficients;
+  map<Combination, vector<double>> map_coefficients;
 
   // Conditional variance given discrete tails.
-  map<Combination, double> variance;
+  map<Combination, double> map_variance;
 
   CGRegression(Node *node_ptr);
 
   void Substitute(pair<int, double> var_value);
   static void Exchange(CGRegression &Z, CGRegression &Y);
+  string GetExpression();
 
  protected:
   static void PrepareForExchange(CGRegression &Z, CGRegression &Y);

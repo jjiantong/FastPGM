@@ -26,6 +26,7 @@ class JunctionTree {
   explicit JunctionTree(Network *net);
   JunctionTree(Network *net, bool elim_redundant_cliques);
   JunctionTree(Network *net, string elim_ord_strategy, bool elim_redundant_cliques);
+  JunctionTree(Network *net, string elim_ord_strategy, bool elim_redundant_cliques, vector<int> custom_elim_ord);
   explicit JunctionTree(JunctionTree*);
   virtual ~JunctionTree() = default;
 
@@ -50,6 +51,7 @@ class JunctionTree {
                    vector<int> elim_ord,
                    set<Clique*> &cliques);
   void ElimRedundantCliques();
+  void FormListShapeJunctionTree(set<Clique*> &cliques);
   void FormJunctionTree(set<Clique*> &cliques);
   void NumberTheCliquesAndSeparators();
   void AssignPotentials();
@@ -58,6 +60,7 @@ class JunctionTree {
   void MessagePassingUpdateJT();
   static vector<int> MinNeighbourElimOrd(int **adjac_matrix, int &num_nodes);
   static void Moralize(int **direc_adjac_matrix, int &num_nodes);
+  void GenMapElimVarToClique();
 
 };
 

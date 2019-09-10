@@ -5,7 +5,23 @@
 #include "EliminationTree.h"
 
 EliminationTree::EliminationTree(Network *net)
-  : JunctionTree(net, "rev-topo", false) {
+  : EliminationTree(net, "rev-topo") {}
+
+EliminationTree::EliminationTree(Network *net, string elim_ord_strategy)
+  : JunctionTree(net, elim_ord_strategy, false) {
+  int last_elem_in_rev_topo_ord = elimination_ordering.back();
+  for (const auto &c : this->set_clique_ptr_container) {
+    if (c->elimination_variable_index==last_elem_in_rev_topo_ord) {
+      this->strong_root = c;
+      break;
+    }
+  }
+  CalcuEachToRoot();
+  InitCGRegressions();
+}
+
+EliminationTree::EliminationTree(Network *net, vector<int> custom_elim_ord)
+  : JunctionTree(net, "custom", false, custom_elim_ord) {
   int last_elem_in_rev_topo_ord = elimination_ordering.back();
   for (const auto &c : this->set_clique_ptr_container) {
     if (c->elimination_variable_index==last_elem_in_rev_topo_ord) {
@@ -46,6 +62,8 @@ void EliminationTree::InitCGRegressions() {
   for (const auto &v : elimination_ordering) {
     if (map_elim_var_to_clique[v]->pure_discrete) { break; }
     Clique *clq = map_elim_var_to_clique[v];
+    cout << "Processing clique: ";
+    clq->PrintRelatedVars();
     // Sort the CG regressions so that the head variables are compatible with topological ordering.
     sort(
       clq->post_bag.begin(),
@@ -71,12 +89,22 @@ void EliminationTree::InitCGRegressions() {
   // Check
   for (const auto &c : set_clique_ptr_container) {
     if (!c->pure_discrete) {
+      if (c->lp_potential.size()!=1) {
+        fprintf(stderr, "At the end of [%s], each lp-potential "
+                        "contains more than 1 CG regressions.", __FUNCTION__);
+        exit(1);
+      }
       if (!c->post_bag.empty()) {
-        fprintf(stderr, "At the end of [%s], the postbags are not empty.", __FUNCTION__);
+        fprintf(stderr, "At the end of [%s], "
+                        "the postbags are not empty.", __FUNCTION__);
         exit(1);
       }
     }
   }
+}
+
+void EliminationTree::LoadDiscreteEvidence(const Combination &E) {
+  LoadEvidence(E);
 }
 
 void EliminationTree::LoadEvidence(const Combination &E) {
@@ -144,12 +172,12 @@ void EliminationTree::EnterSingleContEvidence(pair<int,double> e) {
   if (map_elim_var_to_clique[i]->pure_discrete
       ||
       !map_elim_var_to_clique[map_to_root[i]]->pure_discrete) {
-    fprintf(stderr, "Something is wrong in [%s] and I do not know why yet!", __FUNCTION__);
+    fprintf(stderr, "Have not reached boundary cluster.\n"
+                    "Something is wrong in [%s] and I do not know why yet!", __FUNCTION__);
     exit(1);
   }
-  c_i = map_elim_var_to_clique[i];
-  c_i->post_bag.front().Substitute(e);
 
+  c_i = map_elim_var_to_clique[i];
   Separator *sep_to_root = nullptr;
   for (const auto &sep : c_i->set_neighbours_ptr) {
     for (const auto &clq : sep->set_neighbours_ptr) {
@@ -165,9 +193,9 @@ void EliminationTree::EnterSingleContEvidence(pair<int,double> e) {
     exit(1);
   }
   for (const auto &comb : c_i->set_disc_combinations) {
-    double weight = - pow((e.second-c_i->post_bag.front().mu[comb]),2) / (2*c_i->post_bag.front().variance[comb]);
+    double weight = - pow((e.second-c_i->post_bag.front().map_mu[comb]), 2) / (2 * c_i->post_bag.front().map_variance[comb]);
     weight = exp(weight);
-    weight /= pow((2*M_PI*c_i->post_bag.front().variance[comb]), 0.5);
+    weight /= pow((2*M_PI*c_i->post_bag.front().map_variance[comb]), 0.5);
     sep_to_root->map_potentials[comb] = weight;
   }
 

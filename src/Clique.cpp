@@ -194,11 +194,25 @@ Factor Clique::ConstructMessage() {
 
 
 void Clique::PrintPotentials() const {
-  for (auto &potentials_key_value : map_potentials) {
-    for (auto &vars_index_value : potentials_key_value.first) {
+  for (const auto &potentials_key_value : map_potentials) {
+    for (const auto &vars_index_value : potentials_key_value.first) {
       cout << '(' << vars_index_value.first << ',' << vars_index_value.second << ") ";
     }
     cout << "\t: " << potentials_key_value.second << endl;
   }
   cout << "----------" << endl;
+}
+
+void Clique::PrintRelatedVars() const {
+  string out = "{  ";
+  for (const auto &v : related_variables) {
+    if (v==elimination_variable_index) {
+      out += "[" + to_string(v) + "]";
+    } else {
+      out += to_string(v);
+    }
+    out += "  ";
+  }
+  out += "}";
+  cout << out << endl;
 }

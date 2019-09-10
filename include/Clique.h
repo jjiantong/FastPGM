@@ -48,6 +48,7 @@ class Clique {
   virtual void UpdateUseMessage(Factor);
   virtual Factor ConstructMessage();
   void PrintPotentials() const;
+  void PrintRelatedVars() const;
 
   // ==================================================
   // Data structures needed for elimination tree

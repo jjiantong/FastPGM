@@ -26,13 +26,16 @@ class EliminationTree : public JunctionTree {
 
   EliminationTree() = default;
   EliminationTree(Network *net);
-  virtual void LoadEvidence(const Combination&) override;
+  EliminationTree(Network *net, string elim_ord_strategy);
+  EliminationTree(Network *net, vector<int> custom_elim_ord);
+  void LoadDiscreteEvidence(const Combination&);
+  void EnterSingleContEvidence(pair<int,double> e);
   void MessagePassingUpdateJT();
 
  protected:
   void CalcuEachToRoot();
   void InitCGRegressions();
-  void EnterSingleContEvidence(pair<int,double> e);
+  virtual void LoadEvidence(const Combination&) override;
 
 };
 

@@ -6,10 +6,13 @@
 
 JunctionTree::JunctionTree(Network *net): JunctionTree(net, "min-nei", true) {}
 
-JunctionTree::JunctionTree(Network *net, bool elim_redundant_cliques): JunctionTree(net, "min-nei", elim_redundant_cliques) {}
+JunctionTree::JunctionTree(Network *net, bool elim_redundant_cliques)
+  : JunctionTree(net, "min-nei", elim_redundant_cliques) {}
 
+JunctionTree::JunctionTree(Network *net, string elim_ord_strategy, bool elim_redundant_cliques)
+  : JunctionTree(net, elim_ord_strategy, elim_redundant_cliques, vector<int>()) {}
 
-JunctionTree::JunctionTree(Network *net, string elim_ord_strategy, bool elim_redundant_cliques) {
+JunctionTree::JunctionTree(Network *net, string elim_ord_strategy, bool elim_redundant_cliques, vector<int> custom_elim_ord) {
 
   struct timeval start, end;
   double diff;
@@ -22,33 +25,36 @@ JunctionTree::JunctionTree(Network *net, string elim_ord_strategy, bool elim_red
   int **undirec_adjac_matrix = direc_adjac_matrix;  // Change a name because it has been moralized.
 
   // There are different ways of determining elimination ordering.
-  vector<int> elim_ord;
   if (elim_ord_strategy == "min-nei") {
-    elim_ord = MinNeighbourElimOrd(undirec_adjac_matrix, network->num_nodes);
+    elimination_ordering = MinNeighbourElimOrd(undirec_adjac_matrix, network->num_nodes);
   } else if (elim_ord_strategy == "rev-topo") {
-    elim_ord = network->GetReverseTopoOrd();
+    elimination_ordering = network->GetReverseTopoOrd();
+  } else if (elim_ord_strategy == "custom") {
+    if (custom_elim_ord.size()!=net->num_nodes) {
+      fprintf(stderr, "Error in function [%s]\nSize of custom elimination"
+                      "ordering and size of the network is not the same!", __FUNCTION__);
+      exit(1);
+    }
+    elimination_ordering = custom_elim_ord;
   } else {
     fprintf(stderr, "The elimination ordering strategy should be one of the following:\n"
-                    "{ min-nei, rev-topo }.");
+                    "{ min-nei, rev-topo, custom }.");
     exit(1);
   }
 
-  elimination_ordering = elim_ord;
-  Triangulate(network, undirec_adjac_matrix, network->num_nodes, elim_ord, set_clique_ptr_container);
+  Triangulate(network, undirec_adjac_matrix, network->num_nodes, elimination_ordering, set_clique_ptr_container);
 
+  GenMapElimVarToClique();
 
   if (elim_redundant_cliques) {
     // Theoretically, this step is not necessary.
     ElimRedundantCliques();
   }
 
-  FormJunctionTree(set_clique_ptr_container);
+//  FormJunctionTree(set_clique_ptr_container);
+  FormListShapeJunctionTree(set_clique_ptr_container);
 
   NumberTheCliquesAndSeparators();
-
-  for (const auto &c : set_clique_ptr_container) {
-    map_elim_var_to_clique[c->elimination_variable_index] = c;
-  }
 
   AssignPotentials();
   BackUpJunctionTree();
@@ -175,7 +181,11 @@ void JunctionTree::Moralize(int **direc_adjac_matrix, int &num_nodes) {
   }
 }
 
-
+void JunctionTree::GenMapElimVarToClique() {
+  for (const auto &c : set_clique_ptr_container) {
+    map_elim_var_to_clique[c->elimination_variable_index] = c;
+  }
+}
 
 vector<int> JunctionTree::MinNeighbourElimOrd(int **adjac_matrix, int &num_nodes) {
   vector< pair<int,int> > to_be_sorted;
@@ -276,6 +286,52 @@ void JunctionTree::ElimRedundantCliques() {
   }
 }
 
+void JunctionTree::FormListShapeJunctionTree(set<Clique*> &cliques) {
+  // This method is described in
+  // [Local Propagation in Conditional Gaussian Bayesian Networks (Cowell, 2005)]
+  // section 3.2.
+  // The last sentence.
+
+  // todo: test correctness
+  for (int i=0; i<elimination_ordering.size()-1; ++i) {
+    Clique *this_clq = map_elim_var_to_clique[elimination_ordering.at(i)];
+    Clique *next_clq = nullptr;
+    for (int j=i+1; j<elimination_ordering.size(); ++j) {
+      if (this_clq->related_variables.find(elimination_ordering.at(j))!=this_clq->related_variables.end()) {
+        next_clq = map_elim_var_to_clique[elimination_ordering.at(j)];
+        break;
+      }
+    }
+    set<int> common_related_variables;
+    set_intersection(this_clq->related_variables.begin(),this_clq->related_variables.end(),
+                     next_clq->related_variables.begin(),next_clq->related_variables.end(),
+                     std::inserter(common_related_variables,common_related_variables.begin()));
+
+    // If they have no common variables, then they will not be connected by separator.
+    if (common_related_variables.empty()) {continue;}
+
+    set<Node*> common_related_node_ptrs;
+    for (auto &v : common_related_variables) {
+      common_related_node_ptrs.insert(network->FindNodePtrByIndex(v));
+    }
+
+    Separator *sep = new Separator(common_related_node_ptrs);
+
+    // Let separator know the two cliques that it connects to.
+    sep->set_neighbours_ptr.insert(this_clq);
+    sep->set_neighbours_ptr.insert(next_clq);
+
+    set_separator_ptr_container.insert(sep);
+  }
+
+  // Now let the cliques to know the separators that they connect to.
+  for (auto &sep_ptr : set_separator_ptr_container) {
+    auto iter = sep_ptr->set_neighbours_ptr.begin();
+    Clique *clq1 = *iter, *clq2 = *(++iter);
+    clq1->set_neighbours_ptr.insert(sep_ptr);
+    clq2->set_neighbours_ptr.insert(sep_ptr);
+  }
+}
 
 void JunctionTree::FormJunctionTree(set<Clique*> &cliques) {
 

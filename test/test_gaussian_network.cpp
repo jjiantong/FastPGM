@@ -97,12 +97,17 @@ TEST_F(CGNetworkTest, structure_correctness) {
   EXPECT_EQ(6, top.size());
   EXPECT_TRUE(top3==assumed_top3);
   EXPECT_TRUE(back3==assumed_back3);
-  for (const auto &t : top) {
-    cout << t << '\t';
-  }
-  cout << endl;
+
+//  net->PrintEachNodeParents();
 }
 
 TEST_F(CGNetworkTest, elim_tree) {
-  auto elim_tree = new EliminationTree(net);
+  EliminationTree *elim_tree = new EliminationTree(net, vector<int> {4,3,5,2,0,1});
+  EXPECT_EQ(6,elim_tree->set_clique_ptr_container.size());
+
+  elim_tree->EnterSingleContEvidence(pair<int,double> (3, 1.0));
+  Combination E;
+  E.insert(pair<int,int>(2,0));
+  elim_tree->LoadDiscreteEvidence(E);
+  elim_tree->MessagePassingUpdateJT();
 }

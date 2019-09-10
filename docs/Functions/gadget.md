@@ -8,15 +8,44 @@ Output: all possible combinations of elements of each set, by picking one elemen
 
 Example (pseudocode)
 ```
-A = {1, 3, 5}
-B = {a, b, c}
+A = {<a,1>, <a,3>, <a,5>}
+B = {<b,100>, <b,101>, <b,102>}
 set_of_sets = {A, B}
 result = GenAllCombFromSets(set_of_sets)
 print(result)
 ```
 Output:
 ```
-{1a, 1b, 1c, 3a, 3b, 3c, 5a, 5b, 5c}
+{ {<a,1>, <b,100>},
+  {<a,1>, <b,101>},
+  {<a,1>, <b,102>},
+  {<a,2>, <b,100>},
+  {<a,2>, <b,101>},
+  {<a,2>, <b,102>},
+  {<a,3>, <b,100>},
+  {<a,3>, <b,101>},
+  {<a,3>, <b,102>} }
+```
+
+## set<Combination> ExpandCombFromTwoCombs(set<Combination> \*one, set<Combination> \*two)
+Input: two combinations with different set of value of the elements' first member.
+Output: one combination
+
+Example
+```
+X = { {<a,1>, <b,1>},
+      {<a,1>, <b,2>} }
+Y = { {<c,1>, <d,1>},
+      {<c,2>, <d,1>} }
+result = ExpandCombFromTwoCombs(X,Y)
+pritn(result)
+```
+Output
+```
+{ {<a,1>, <b,1>, <c,1>, <d,1>},
+  {<a,1>, <b,1>, <c,2>, <d,1>},
+  {<a,1>, <b,2>, <c,1>, <d,1>},
+  {<a,1>, <b,2>, <c,2>, <d,1>} }
 ```
 
 ## bool EachFirstIsInSecond(Combination \*first, Combination \*second)

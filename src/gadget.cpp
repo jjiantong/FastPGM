@@ -42,6 +42,36 @@ set<Combination> GenAllCombFromSets(set<Combination> *set_of_sets) {
 }
 
 
+set<Combination> ExpandCombFromTwoCombs(set<Combination> *one, set<Combination> *two) {
+  set<int> set_all_vars;
+  for (const auto &p : *one->begin()) {
+    set_all_vars.insert(p.first);
+  }
+  for (const auto &p : *two->begin()) {
+    set_all_vars.insert(p.first);
+  }
+  map<int, Combination> map_var_to_combs_domain;
+  for (const auto &v : set_all_vars) {
+    map_var_to_combs_domain[v] = Combination();
+  }
+  for (const auto &c : *one) {
+    for (const auto &p : c) {
+      map_var_to_combs_domain[p.first].insert(p);
+    }
+  }
+  for (const auto &c : *two) {
+    for (const auto &p : c) {
+      map_var_to_combs_domain[p.first].insert(p);
+    }
+  }
+  set<Combination> set_of_sets;
+  for (const auto &kv : map_var_to_combs_domain) {
+    set_of_sets.insert(kv.second);
+  }
+  return GenAllCombFromSets(&set_of_sets);
+}
+
+
 bool EachFirstIsInSecond(const Combination *first, const Combination *second) {
   for (const auto &f : *first) {
     if (second->find(f)==second->end()) return false;

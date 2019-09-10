@@ -14,6 +14,7 @@ Separator::Separator(set<Node*> set_node_ptr): Clique(set_node_ptr, -1) {
   weight = clique_size;
 }
 
+
 Separator* Separator::CopyWithoutPtr() {
   auto s = new Separator(*this);
   s->set_neighbours_ptr.clear();
