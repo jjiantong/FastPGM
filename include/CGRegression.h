@@ -41,12 +41,15 @@ class CGRegression {
 
   // Conditional mean given discrete tails.
   map<Combination, double> map_mu;
+  double marginal_mu;
 
   // Conditional linear coefficients for continuous tails given discrete tails.
   map<Combination, vector<double>> map_coefficients;
+  vector<double> marginal_coefficients;
 
   // Conditional variance given discrete tails.
   map<Combination, double> map_variance;
+  double marginal_variance;
 
   CGRegression(Node *node_ptr);
 

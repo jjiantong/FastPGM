@@ -44,23 +44,23 @@ class CGNetworkTest : public ::testing::Test {
 
 
 
-    x->IdentifyContPar();
+//    x->IdentifyContPar();
     x->GenDiscParCombs();
-    y->IdentifyContPar();
+//    y->IdentifyContPar();
     y->GenDiscParCombs();
-    z->IdentifyContPar();
+//    z->IdentifyContPar();
     z->GenDiscParCombs();
 
-    x->mu[*(x->set_discrete_parents_combinations.begin())] = 0;
-    x->variance[*(x->set_discrete_parents_combinations.begin())] = 1;
+    x->map_mu[*(x->set_discrete_parents_combinations.begin())] = 0;
+    x->map_variance[*(x->set_discrete_parents_combinations.begin())] = 1;
 
-    y->mu[*(y->set_discrete_parents_combinations.begin())] = 0;
-    y->variance[*(y->set_discrete_parents_combinations.begin())] = 1;
-    y->coefficients[*(y->set_discrete_parents_combinations.begin())] = vector<double> {1};
+    y->map_mu[*(y->set_discrete_parents_combinations.begin())] = 0;
+    y->map_variance[*(y->set_discrete_parents_combinations.begin())] = 1;
+    y->map_coefficients[*(y->set_discrete_parents_combinations.begin())] = vector<double> {1};
 
-    z->mu[*(z->set_discrete_parents_combinations.begin())] = 0;
-    z->variance[*(z->set_discrete_parents_combinations.begin())] = 1;
-    z->coefficients[*(z->set_discrete_parents_combinations.begin())] = vector<double> {1};
+    z->map_mu[*(z->set_discrete_parents_combinations.begin())] = 0;
+    z->map_variance[*(z->set_discrete_parents_combinations.begin())] = 1;
+    z->map_coefficients[*(z->set_discrete_parents_combinations.begin())] = vector<double> {1};
 
 
   }
@@ -76,15 +76,15 @@ TEST_F(CGNetworkTest, structure_correctness) {
 
   EXPECT_EQ(1,x->set_discrete_parents_combinations.size());
   EXPECT_EQ(0,x->contin_par_indexes.size());
-  EXPECT_EQ(0,x->coefficients[*x->set_discrete_parents_combinations.begin()].size());
+  EXPECT_EQ(0,x->map_coefficients[*x->set_discrete_parents_combinations.begin()].size());
 
   EXPECT_EQ(1,y->set_discrete_parents_combinations.size());
   EXPECT_EQ(1,y->contin_par_indexes.size());
-  EXPECT_EQ(1,y->coefficients[*y->set_discrete_parents_combinations.begin()].size());
+  EXPECT_EQ(1,y->map_coefficients[*y->set_discrete_parents_combinations.begin()].size());
 
   EXPECT_EQ(1,z->set_discrete_parents_combinations.size());
   EXPECT_EQ(1,z->contin_par_indexes.size());
-  EXPECT_EQ(1,z->coefficients[*z->set_discrete_parents_combinations.begin()].size());
+  EXPECT_EQ(1,z->map_coefficients[*z->set_discrete_parents_combinations.begin()].size());
 
   auto top = net->GetTopoOrd();
   set<int> top3, assumed_top3, back3, assumed_back3;
@@ -109,5 +109,5 @@ TEST_F(CGNetworkTest, elim_tree) {
   Combination E;
   E.insert(pair<int,int>(2,0));
   elim_tree->LoadDiscreteEvidence(E);
-  elim_tree->MessagePassingUpdateJT();
+  elim_tree->MessagePassingUpdateDiscretePartJT();
 }

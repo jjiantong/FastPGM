@@ -30,13 +30,15 @@ class EliminationTree : public JunctionTree {
   EliminationTree(Network *net, vector<int> custom_elim_ord);
   void LoadDiscreteEvidence(const Combination&);
   void EnterSingleContEvidence(pair<int,double> e);
-  void MessagePassingUpdateJT();
+  void MessagePassingUpdateDiscretePartJT();
+  Factor CalMarginalOfDiscreteVar(int var_index);
+  CGRegression CalMarginalOfContinuousVar(int var_index);
 
  protected:
   void CalcuEachToRoot();
   void InitCGRegressions();
-  virtual void LoadEvidence(const Combination&) override;
-
+  void LoadEvidence(const Combination&) override;
+  void MessagePassingUpdateJT() override;
 };
 
 

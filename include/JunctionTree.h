@@ -13,6 +13,7 @@
 
 
 class JunctionTree {
+  //==================================================
  public:
   Network *network;
   set<Clique*> set_clique_ptr_container;
@@ -36,11 +37,12 @@ class JunctionTree {
   void PrintAllCliquesPotentials() const;
   void PrintAllSeparatorsPotentials() const;
 
-  Factor BeliefPropagationReturnPossib(set<int> &indexes);
-  int InferenceUsingBeliefPropagation(set<int> &indexes);
+  Factor BeliefPropagationReturnPossib(set<int> &query_indexes);
+  int InferenceUsingBeliefPropagation(set<int> &query_indexes);
 
   double TestNetReturnAccuracy(int class_var, Trainer *tst);
 
+  //==================================================
  protected:
   map<Clique*,Clique> map_cliques_backup;
   map<Separator*,Separator> map_separators_backup;
@@ -57,7 +59,7 @@ class JunctionTree {
   void AssignPotentials();
   void BackUpJunctionTree();
   virtual void LoadEvidence(const Combination &E);
-  void MessagePassingUpdateJT();
+  virtual void MessagePassingUpdateJT();
   static vector<int> MinNeighbourElimOrd(int **adjac_matrix, int &num_nodes);
   static void Moralize(int **direc_adjac_matrix, int &num_nodes);
   void GenMapElimVarToClique();

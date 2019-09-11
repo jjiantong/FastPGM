@@ -584,9 +584,9 @@ void JunctionTree::PrintAllSeparatorsPotentials() const {
   cout << "==================================================" << endl;
 }
 
-Factor JunctionTree::BeliefPropagationReturnPossib(set<int> &indexes) {
+Factor JunctionTree::BeliefPropagationReturnPossib(set<int> &query_indexes) {
 
-  // The input is a set of indexes of variables.
+  // The input is a set of query_indexes of variables.
   // The output is a factor representing the joint marginal of these variables.
 
   int min_potential_size = INT32_MAX;
@@ -597,19 +597,28 @@ Factor JunctionTree::BeliefPropagationReturnPossib(set<int> &indexes) {
   // whose size of potentials table is the smallest,
   // which can reduce the number of sum operation.
   for (auto &c : set_clique_ptr_container) {
+
+    if (!c->pure_discrete) { continue; }
+
     set<int> diff;
-    set_difference(indexes.begin(), indexes.end(),
+    set_difference(query_indexes.begin(), query_indexes.end(),
                    c->related_variables.begin(), c->related_variables.end(),
                    inserter(diff, diff.begin()));
-    if (!diff.empty()) {continue;}  // If diff is not empty, then this clique does not cover all indexes.
+    if (!diff.empty()) {continue;}  // If diff is not empty, then this clique does not cover all query_indexes.
     if (c->map_potentials.size()>=min_potential_size) {continue;}
     min_potential_size = c->map_potentials.size();
     selected_clique = c;
   }
 
+  if (selected_clique==nullptr) {
+    fprintf(stderr, "Error in function [%s]\n"
+                    "Have not solved the case where variables appear in different cliques!", __FUNCTION__);
+    exit(1);
+  }
+
   set<int> diff;
   set_difference(selected_clique->related_variables.begin(), selected_clique->related_variables.end(),
-                 indexes.begin(), indexes.end(),
+                 query_indexes.begin(), query_indexes.end(),
                  inserter(diff, diff.begin()));
   Factor f;
   f.SetMembers(selected_clique->related_variables, selected_clique->set_disc_combinations, selected_clique->map_potentials);
@@ -622,8 +631,8 @@ Factor JunctionTree::BeliefPropagationReturnPossib(set<int> &indexes) {
   // todo: implement the case where the query variables appear in different cliques.
 }
 
-int JunctionTree::InferenceUsingBeliefPropagation(set<int> &indexes) {
-  Factor f = BeliefPropagationReturnPossib(indexes);
+int JunctionTree::InferenceUsingBeliefPropagation(set<int> &query_indexes) {
+  Factor f = BeliefPropagationReturnPossib(query_indexes);
   double max_prob = 0;
   Combination comb_predict;
   for (auto &comb : f.set_combinations) {

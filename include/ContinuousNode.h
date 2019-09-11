@@ -30,18 +30,24 @@ class ContinuousNode : public Node {
   vector<int> contin_par_indexes;
 
   // Conditional mean given discrete parents.
-  map<Combination, double> mu;
+  map<Combination, double> map_mu;
+  double marginal_mu;
 
   // Conditional linear coefficients for continuous parents given discrete parents.
-  map<Combination, vector<double>> coefficients;
+  map<Combination, vector<double>> map_coefficients;
+  vector<double> marginal_coefficients;
 
   // Conditional variance given discrete parents.
-  map<Combination, double> variance;
+  map<Combination, double> map_variance;
+  double marginal_variance;
 
   ContinuousNode();
   explicit ContinuousNode(int index);
   ContinuousNode(int index, string name);
   void AddChild(Node *node_ptr) override;
+  void AddParent(Node *node_ptr) override;
+
+ private:
   void IdentifyContPar();
 };
 

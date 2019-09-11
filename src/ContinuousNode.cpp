@@ -26,7 +26,15 @@ void ContinuousNode::AddChild(Node *c) {
   set_children_ptrs.insert(c);
 }
 
+void ContinuousNode::AddParent(Node *p) {
+  set_parents_ptrs.insert(p);
+  if (!p->is_discrete) {
+    contin_par_indexes.push_back(p->GetNodeIndex());
+  }
+}
+
 void ContinuousNode::IdentifyContPar() {
+  contin_par_indexes.clear();
   for (const auto &p : set_parents_ptrs) {
     if (!p->is_discrete) {
       contin_par_indexes.push_back(p->GetNodeIndex());
