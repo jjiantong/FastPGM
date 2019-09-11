@@ -110,4 +110,5 @@ TEST_F(CGNetworkTest, elim_tree) {
   E.insert(pair<int,int>(2,0));
   elim_tree->LoadDiscreteEvidence(E);
   elim_tree->MessagePassingUpdateDiscretePartJT();
+  auto cgr = elim_tree->CalMarginalOfContinuousVar(4);
 }

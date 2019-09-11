@@ -132,9 +132,9 @@ void EliminationTree::EnterSingleContEvidence(pair<int,double> e) {
   // Step 1: Enter evidence in all regressions which the corresponding variable is in tail.
   for (const auto &v : elimination_ordering) {
     if (v==e.first || map_elim_var_to_clique[v]->pure_discrete) { break; }
-    if (!map_elim_var_to_clique[v]->activeflag
-        ||
-        map_elim_var_to_clique[v]->related_variables.find(e.first)==map_elim_var_to_clique[v]->related_variables.end()) {
+    if (map_elim_var_to_clique[v]->activeflag
+        &&
+        map_elim_var_to_clique[v]->related_variables.find(e.first)!=map_elim_var_to_clique[v]->related_variables.end()) {
       map_elim_var_to_clique[v]->lp_potential.front().Substitute(e);
     }
   }
