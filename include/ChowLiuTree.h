@@ -41,11 +41,9 @@ class ChowLiuTree : public Network {
   ChowLiuTree();
   explicit ChowLiuTree(bool pure_disc);
 
-  double ComputeMutualInformation(Node *Xi, Node *Xj, const Dataset *trainer);
-  void StructLearnCompData(Dataset *trainer, bool print_struct=true) override;
-  void StructLearnChowLiuTreeCompData(Dataset *trainer, bool print_struct=true);
-
-  void LearnParamsKnowStructCompData(const Dataset *trainer, bool print_params=true) override;
+  double ComputeMutualInformation(Node *Xi, Node *Xj, const Dataset *dts);
+  void StructLearnCompData(Dataset *dts, bool print_struct=true) override;
+  void StructLearnChowLiuTreeCompData(Dataset *dts, bool print_struct=true);
 
 
   pair<int*, int> SimplifyDefaultElimOrd(Combination evidence) override;

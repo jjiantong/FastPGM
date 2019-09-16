@@ -12,12 +12,12 @@ ChowLiuTree::ChowLiuTree(bool pure_disc) {
   this->pure_discrete = pure_disc;
 }
 
-double ChowLiuTree::ComputeMutualInformation(Node *Xi, Node *Xj, const Dataset *trainer) {
+double ChowLiuTree::ComputeMutualInformation(Node *Xi, Node *Xj, const Dataset *dts) {
   // Find the indexes of these two features in training set.
   int xi=Xi->GetNodeIndex(), xj=Xj->GetNodeIndex();
 
   // Initialize the table.
-  int m = trainer->num_instance, ri = Xi->num_potential_vals, rj = Xj->num_potential_vals;
+  int m = dts->num_instance, ri = Xi->num_potential_vals, rj = Xj->num_potential_vals;
   double **Pij = new double* [ri];
   for (int i=0; i<ri; ++i) {
     Pij[i] = new double[rj]();    // The parentheses at end will initialize the array to be all zeros.
@@ -30,7 +30,7 @@ double ChowLiuTree::ComputeMutualInformation(Node *Xi, Node *Xj, const Dataset *
   for (a=0; a<ri; a++) {
     for (b=0; b<rj; b++) {
       for (s=0; s<m; s++) {
-        if (trainer->dataset_all_vars[s][xi]==Xi->potential_vals[a] && trainer->dataset_all_vars[s][xj]==Xj->potential_vals[b]) {
+        if (dts->dataset_all_vars[s][xi] == Xi->potential_vals[a] && dts->dataset_all_vars[s][xj] == Xj->potential_vals[b]) {
           Pij[a][b] += 1;
         }
       }
@@ -41,7 +41,7 @@ double ChowLiuTree::ComputeMutualInformation(Node *Xi, Node *Xj, const Dataset *
   // Update Pi.
   for (a=0; a<ri; a++) {
     for (s=0; s<m; s++) {
-      if (trainer->dataset_all_vars[s][xi]==Xi->potential_vals[a]) {
+      if (dts->dataset_all_vars[s][xi] == Xi->potential_vals[a]) {
         Pi[a] += 1;
       }
     }
@@ -51,7 +51,7 @@ double ChowLiuTree::ComputeMutualInformation(Node *Xi, Node *Xj, const Dataset *
   // Update Pj.
   for (b=0; b<rj; b++) {
     for (s=0; s<m; s++) {
-      if (trainer->dataset_all_vars[s][xj]==Xj->potential_vals[b]) {
+      if (dts->dataset_all_vars[s][xj] == Xj->potential_vals[b]) {
         Pj[b] += 1;
       }
     }
@@ -76,17 +76,16 @@ double ChowLiuTree::ComputeMutualInformation(Node *Xi, Node *Xj, const Dataset *
   }
   delete[] Pij;
 
-  // Return
   return mutualInformation;
 }
 
 
-void ChowLiuTree::StructLearnCompData(Dataset *trainer, bool print_struct) {
+void ChowLiuTree::StructLearnCompData(Dataset *dts, bool print_struct) {
   struct timeval start, end;
   double diff;
   gettimeofday(&start,NULL);
 
-  StructLearnChowLiuTreeCompData(trainer, print_struct);
+  StructLearnChowLiuTreeCompData(dts, print_struct);
 
   gettimeofday(&end,NULL);
   diff = (end.tv_sec-start.tv_sec) + ((double)(end.tv_usec-start.tv_usec))/1.0E6;
@@ -96,11 +95,11 @@ void ChowLiuTree::StructLearnCompData(Dataset *trainer, bool print_struct) {
 }
 
 
-void ChowLiuTree::StructLearnChowLiuTreeCompData(Dataset *trainer, bool print_struct) {
+void ChowLiuTree::StructLearnChowLiuTreeCompData(Dataset *dts, bool print_struct) {
   cout << "==================================================" << '\n'
        << "Begin structural learning. \nConstructing Chow-Liu tree with complete data......" << endl;
 
-  num_nodes = trainer->num_vars;
+  num_nodes = dts->num_vars;
   // Assign an index for each node.
   #pragma omp parallel for
   for (int i=0; i<num_nodes; ++i) {
@@ -108,12 +107,12 @@ void ChowLiuTree::StructLearnChowLiuTreeCompData(Dataset *trainer, bool print_st
 
     Node *node_ptr = new DiscreteNode(i);  // For now, only support discrete node.
 
-    node_ptr->num_potential_vals = trainer->num_of_possible_values_of_vars[i];
+    node_ptr->num_potential_vals = dts->num_of_possible_values_of_vars[i];
 
     node_ptr->potential_vals = new int[node_ptr->num_potential_vals];
 
     int j = 0;
-    for (auto v : trainer->map_vars_possible_values[i]) {
+    for (auto v : dts->map_vars_possible_values[i]) {
       node_ptr->potential_vals[j++] = v;
     }
 
@@ -150,8 +149,8 @@ void ChowLiuTree::StructLearnChowLiuTreeCompData(Dataset *trainer, bool print_st
           if (Xi!=nullptr && Xj!=nullptr) { break; }
         }
         // Mutual information table is symmetric.
-        mutualInfoTab[i][j] = ComputeMutualInformation(Xi, Xj, trainer);
-        mutualInfoTab[j][i] = ComputeMutualInformation(Xi, Xj, trainer);
+        mutualInfoTab[i][j] = ComputeMutualInformation(Xi, Xj, dts);
+        mutualInfoTab[j][i] = ComputeMutualInformation(Xi, Xj, dts);
       }
     }
   }
@@ -260,10 +259,6 @@ void ChowLiuTree::StructLearnChowLiuTreeCompData(Dataset *trainer, bool print_st
          << "Each node's parents: " << endl;
     this->PrintEachNodeParents();
 
-//  cout << "==================================================" << '\n'
-//       << "Each node's children: " << endl;
-//  this->PrintEachNodeChildren();
-//
   }
 
   for (int i=0; i<n; ++i) {
@@ -275,99 +270,6 @@ void ChowLiuTree::StructLearnChowLiuTreeCompData(Dataset *trainer, bool print_st
   }
   delete[] graphAdjacencyMatrix;
   delete[] topologicalSortedPermutation;
-}
-
-
-void ChowLiuTree::LearnParamsKnowStructCompData(const Dataset *trainer, bool print_params){
-  cout << "==================================================" << '\n'
-       << "Begin learning parameters with known structure and complete data." << endl;
-
-  struct timeval start, end;
-  double diff;
-  gettimeofday(&start,NULL);
-
-  int num_cores = omp_get_num_procs();
-  omp_set_num_threads(num_cores);
-  int max_work_per_thread = (trainer->num_vars+num_cores-1)/num_cores;
-  #pragma omp parallel
-  {
-    // For every node.
-    for (int i =  max_work_per_thread*omp_get_thread_num();  // Because feature index start at 1 using "dataset_all_vars".
-         i < max_work_per_thread*(omp_get_thread_num()+1) && i < trainer->num_vars;
-         ++i) {
-//    for (int i=0; i<trainer->num_vars; ++i) {
-
-      Node *this_node = FindNodePtrByIndex(i);
-
-      if (i==0) {
-
-
-        // The 0-th node is the root which is the label node.
-        map<int, double> *MPT = &(dynamic_cast<DiscreteNode*>(this_node)->map_marg_prob_table);
-        int denominator = 0;
-        for (int s = 0; s < trainer->num_instance; ++s) {
-          denominator += 1;
-          int query = trainer->dataset_all_vars[s][0];
-          (*MPT)[query] += 1;
-        }
-        for (int i = 0; i < this_node->num_potential_vals; ++i) {
-          int query = this_node->potential_vals[i];
-          (*MPT)[query] /= denominator;
-        }
-
-
-      } else {
-
-
-        map<int, map<Combination, double> > *CPT = &(dynamic_cast<DiscreteNode*>(this_node)->map_cond_prob_table);
-        set<Combination> *ptr_set_par_combs = &(this_node->set_discrete_parents_combinations);
-        for (auto &par_comb : *ptr_set_par_combs) {    // For each column in CPT. Because the sum over column of CPT must be 1.
-          int denominator = 0;
-          for (int s = 0; s < trainer->num_instance; ++s) {
-            int compatibility = 1;  // We assume compatibility is 1,
-            // and set it to 0 if we find that (*it_par_comb) is not compatible with (trainer->train_set[s]).
-            // If we support learning with incomplete data,
-            // the compatibility can be between 0 and 1.
-
-            for (const auto &pair_this_node : par_comb) {
-              // pair.first is the index and pair.second is the value
-              if (trainer->dataset_all_vars[s][pair_this_node.first] != pair_this_node.second) {
-                compatibility = 0;
-                break;
-              }
-            }
-            denominator += compatibility;
-            int query = trainer->dataset_all_vars[s][i];
-            (*CPT)[query][par_comb] += compatibility;
-          }
-          // Normalize so that the sum is 1.
-          for (int j = 0; j < this_node->num_potential_vals; ++j) {
-            int query = this_node->potential_vals[j];
-            (*CPT)[query][par_comb] /= denominator;
-          }
-        }
-
-
-      }
-    }
-  }   // end of: #pragma omp parallel
-  cout << "==================================================" << '\n'
-       << "Finish training with known structure and complete data." << endl;
-
-
-  if (print_params) {
-    cout << "==================================================" << '\n'
-         << "Each node's conditional probability table: " << endl;
-    for (const auto &node_ptr : set_node_ptr_container) {  // For each node
-      dynamic_cast<DiscreteNode*>(node_ptr)->PrintProbabilityTable();
-    }
-  }
-
-  gettimeofday(&end,NULL);
-  diff = (end.tv_sec-start.tv_sec) + ((double)(end.tv_usec-start.tv_usec))/1.0E6;
-  setlocale(LC_NUMERIC, "");
-  cout << "==================================================" << '\n'
-       << "The time spent to learn the parameters is " << diff << " seconds" << endl;
 }
 
 

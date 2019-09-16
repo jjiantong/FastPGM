@@ -51,7 +51,7 @@ class Network {
 
   virtual void StructLearnCompData(Dataset *, bool print_struct=true);
 
-  virtual void LearnParamsKnowStructCompData(const Dataset *trainer, bool print_params=true);
+  virtual void LearnParamsKnowStructCompData(const Dataset *dts, bool print_params=true);
 
   void ClearParams();
 
@@ -83,9 +83,9 @@ class Network {
   int PredictUseVarElimInfer(int *Z, int nz, Combination E, int Y_index);
   int PredictUseVarElimInfer(Combination E, int Y_index);
 
-  double TestNetReturnAccuracy(Dataset *tester);
-  double TestNetByApproxInferReturnAccuracy(Dataset *tester, int num_samp);
-  double TestAccuracyByLikelihoodWeighting(Dataset *tester, int num_samp);
+  double TestNetReturnAccuracy(Dataset *dts);
+  double TestNetByApproxInferReturnAccuracy(Dataset *dts, int num_samp);
+  double TestAccuracyByLikelihoodWeighting(Dataset *dts, int num_samp);
 
 
   // Probabilistic logic sampling is a method

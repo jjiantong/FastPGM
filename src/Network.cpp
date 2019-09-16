@@ -61,7 +61,7 @@ Node* Network::FindNodePtrByName(const string &name) const {
 }
 
 
-void Network::StructLearnCompData(Dataset *trn, bool print_struct) {
+void Network::StructLearnCompData(Dataset *dts, bool print_struct) {
   fprintf(stderr, "Not be implemented yet!");
   exit(1);
 }
@@ -237,9 +237,88 @@ int** Network::ConvertDAGNetworkToAdjacencyMatrix() {
 }
 
 
-void Network::LearnParamsKnowStructCompData(const Dataset *trainer, bool print_params){
-  fprintf(stderr, "Need to be implemented in sub-class!");
-  exit(1);
+void Network::LearnParamsKnowStructCompData(const Dataset *dts, bool print_params){
+  cout << "==================================================" << '\n'
+       << "Begin learning parameters with known structure and complete data." << endl;
+
+  struct timeval start, end;
+  double diff;
+  gettimeofday(&start,NULL);
+
+  int num_cores = omp_get_num_procs();
+  omp_set_num_threads(num_cores);
+  int max_work_per_thread = (dts->num_vars + num_cores - 1) / num_cores;
+  #pragma omp parallel
+  {
+    // For every node.
+    for (int i = max_work_per_thread*omp_get_thread_num();
+         i < max_work_per_thread*(omp_get_thread_num()+1) && i < dts->num_vars;
+         ++i) {
+//    for (int i=0; i<dts->num_vars; ++i) {
+      Node *this_node = FindNodePtrByIndex(i);
+      if (this_node->set_parents_ptrs.empty()) {
+
+        map<int, double> *MPT = &(dynamic_cast<DiscreteNode*>(this_node)->map_marg_prob_table);
+        int denominator = 0;
+        for (int s = 0; s < dts->num_instance; ++s) {
+          denominator += 1;
+          int query = dts->dataset_all_vars[s][i];
+          (*MPT)[query] += 1;
+        }
+        for (int ii = 0; ii < this_node->num_potential_vals; ++ii) {
+          int query = this_node->potential_vals[ii];
+          (*MPT)[query] /= denominator;
+        }
+
+      } else {  // If the node has parents.
+
+        map<int, map<Combination, double> > *CPT = &(dynamic_cast<DiscreteNode*>(this_node)->map_cond_prob_table);
+        set<Combination> *ptr_set_par_combs = &(this_node->set_discrete_parents_combinations);
+        for (auto &par_comb : *ptr_set_par_combs) {    // For each column in CPT. Because the sum over column of CPT must be 1.
+          int denominator = 0;
+          for (int s = 0; s < dts->num_instance; ++s) {
+            int compatibility = 1;  // We assume compatibility is 1,
+            // and set it to 0 if we find that (*it_par_comb) is not compatible.
+            // If we support learning with incomplete data,
+            // the compatibility can be between 0 and 1.
+
+            for (const auto &index_value : par_comb) {
+              if (dts->dataset_all_vars[s][index_value.first] != index_value.second) {
+                compatibility = 0;
+                break;
+              }
+            }
+            denominator += compatibility;
+            int query = dts->dataset_all_vars[s][i];
+            (*CPT)[query][par_comb] += compatibility;
+          }
+          // Normalize so that the sum is 1.
+          for (int j = 0; j < this_node->num_potential_vals; ++j) {
+            int query = this_node->potential_vals[j];
+            (*CPT)[query][par_comb] /= denominator;
+          }
+        }
+
+      }
+    }
+  }   // end of: #pragma omp parallel
+  cout << "==================================================" << '\n'
+       << "Finish training with known structure and complete data." << endl;
+
+  if (print_params) {
+    cout << "==================================================" << '\n'
+         << "Each node's conditional probability table: " << endl;
+    for (const auto &node_ptr : set_node_ptr_container) {  // For each node
+      dynamic_cast<DiscreteNode*>(node_ptr)->PrintProbabilityTable();
+    }
+  }
+
+  gettimeofday(&end,NULL);
+  diff = (end.tv_sec-start.tv_sec) + ((double)(end.tv_usec-start.tv_usec))/1.0E6;
+  setlocale(LC_NUMERIC, "");
+  cout << "==================================================" << '\n'
+       << "The time spent to learn the parameters is " << diff << " seconds" << endl;
+
 }
 
 
@@ -455,7 +534,7 @@ int Network::PredictUseVarElimInfer(Combination E, int Y_index) {
 }
 
 
-double Network::TestNetReturnAccuracy(Dataset *tester) {
+double Network::TestNetReturnAccuracy(Dataset *dts) {
 
   cout << "==================================================" << '\n'
        << "Begin testing the trained network." << endl;
@@ -466,7 +545,7 @@ double Network::TestNetReturnAccuracy(Dataset *tester) {
 
   cout << "Progress indicator: ";
 
-  int num_of_correct=0, num_of_wrong=0, m=tester->num_instance, m20=m/20, progress=0;
+  int num_of_correct=0, num_of_wrong=0, m=dts->num_instance, m20= m / 20, progress=0;
 
 //  int num_cores = omp_get_num_procs();
 //  omp_set_num_threads(num_cores);
@@ -485,13 +564,13 @@ double Network::TestNetReturnAccuracy(Dataset *tester) {
     // For now, only support complete data.
     int e_num = num_nodes - 1, *e_index = new int[e_num], *e_value = new int[e_num];
     for (int j = 0; j < num_nodes; ++j) {
-      if (j==tester->class_var_index) {continue;}
-      e_index[j<tester->class_var_index ? j : j-1] = j;
-      e_value[j<tester->class_var_index ? j : j-1] = tester->dataset_all_vars[i][j];
+      if (j == dts->class_var_index) {continue;}
+      e_index[j < dts->class_var_index ? j : j - 1] = j;
+      e_value[j < dts->class_var_index ? j : j - 1] = dts->dataset_all_vars[i][j];
     }
     Combination E = ConstructEvidence(e_index, e_value, e_num);
     int label_predict = PredictUseVarElimInfer(E, 0); // The root node (label) has index of 0.
-    if (label_predict == tester->dataset_all_vars[i][tester->class_var_index]) {
+    if (label_predict == dts->dataset_all_vars[i][dts->class_var_index]) {
       #pragma omp critical
       { ++num_of_correct; }
     } else {
@@ -515,7 +594,7 @@ double Network::TestNetReturnAccuracy(Dataset *tester) {
 }
 
 
-double Network::TestNetByApproxInferReturnAccuracy(Dataset *tester, int num_samp) {
+double Network::TestNetByApproxInferReturnAccuracy(Dataset *dts, int num_samp) {
 
   // implement by Gibbs sampling
   cout << "==================================================" << '\n'
@@ -523,7 +602,7 @@ double Network::TestNetByApproxInferReturnAccuracy(Dataset *tester, int num_samp
 
   cout << "Progress indicator: ";
 
-  int num_of_correct=0, num_of_wrong=0, m=tester->num_instance, m20=m/20, progress=0;
+  int num_of_correct=0, num_of_wrong=0, m=dts->num_instance, m20= m / 20, progress=0;
 
   vector<Combination> samples = this->DrawSamplesByProbLogiSamp(10000);
 
@@ -541,13 +620,13 @@ double Network::TestNetByApproxInferReturnAccuracy(Dataset *tester, int num_samp
     // For now, only support complete data.
     int e_num=num_nodes-1, *e_index=new int[e_num], *e_value=new int[e_num];
     for (int j=0; j<num_nodes; ++j) {
-      if (j==tester->class_var_index) { continue; }
-      e_index[j<tester->class_var_index ? j : j-1] = j+1;
-      e_value[j<tester->class_var_index ? j : j-1] = tester->dataset_all_vars[i][j];
+      if (j == dts->class_var_index) { continue; }
+      e_index[j < dts->class_var_index ? j : j - 1] = j + 1;
+      e_value[j < dts->class_var_index ? j : j - 1] = dts->dataset_all_vars[i][j];
     }
     Combination E = ConstructEvidence(e_index, e_value, e_num);
     int label_predict = ApproxInferByProbLogiRejectSamp(E, 0, samples); // The root node (label) has index of 0.
-    if (label_predict == tester->dataset_all_vars[i][tester->class_var_index]) {
+    if (label_predict == dts->dataset_all_vars[i][dts->class_var_index]) {
       ++num_of_correct;
     } else {
       ++num_of_wrong;
@@ -559,7 +638,7 @@ double Network::TestNetByApproxInferReturnAccuracy(Dataset *tester, int num_samp
   return accuracy;
 }
 
-double Network::TestAccuracyByLikelihoodWeighting(Dataset *tester, int num_samp) {
+double Network::TestAccuracyByLikelihoodWeighting(Dataset *dts, int num_samp) {
   cout << "==================================================" << '\n'
        << "Begin testing the trained network." << endl;
 
@@ -569,7 +648,7 @@ double Network::TestAccuracyByLikelihoodWeighting(Dataset *tester, int num_samp)
 
   cout << "Progress indicator: ";
 
-  int num_of_correct=0, num_of_wrong=0, m=tester->num_instance, m20=m/20, progress=0;
+  int num_of_correct=0, num_of_wrong=0, m=dts->num_instance, m20= m / 20, progress=0;
 
   #pragma omp parallel for
   for (int i=0; i<m; ++i) {  // For each sample in test set
@@ -585,13 +664,13 @@ double Network::TestAccuracyByLikelihoodWeighting(Dataset *tester, int num_samp)
     // For now, only support complete data.
     int e_num=num_nodes-1, *e_index=new int[e_num], *e_value=new int[e_num];
     for (int j=0; j<num_nodes; ++j) {
-      if (j==tester->class_var_index) { continue; }
-      e_index[j<tester->class_var_index ? j : j-1] = j;
-      e_value[j<tester->class_var_index ? j : j-1] = tester->dataset_all_vars[i][j];
+      if (j == dts->class_var_index) { continue; }
+      e_index[j < dts->class_var_index ? j : j - 1] = j;
+      e_value[j < dts->class_var_index ? j : j - 1] = dts->dataset_all_vars[i][j];
     }
     Combination E = ConstructEvidence(e_index, e_value, e_num);
     int label_predict = ApproxinferByLikelihoodWeighting(E, 0, num_samp); // The root node (label) has index of 0.
-    if (label_predict == tester->dataset_all_vars[i][tester->class_var_index]) {
+    if (label_predict == dts->dataset_all_vars[i][dts->class_var_index]) {
       #pragma omp critical
       { ++num_of_correct; }
     } else {

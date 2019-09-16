@@ -28,7 +28,6 @@ class CustomNetwork : public Network {
   CustomNetwork();
   explicit CustomNetwork(bool pure_disc);
 
-  void LearnParamsKnowStructCompData(const Dataset *, bool print_params=true) override;
   pair<int*, int> SimplifyDefaultElimOrd(Combination evidence) override;
 
   void GetNetFromXMLBIFFile(string file_path);
