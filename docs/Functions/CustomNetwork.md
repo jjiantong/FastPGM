@@ -1,6 +1,6 @@
 # class CustomNetwork
 
-## void StructLearnCompData(Trainer \*)
+## void StructLearnCompData(Dataset \*)
 Empty function. Because a custom network's structure should be specified by user with a file. There is no need to learn the structure.
 
 ## pair<int\*, int> SimplifyDefaultElimOrd(Combination evidence)

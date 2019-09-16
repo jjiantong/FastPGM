@@ -33,10 +33,10 @@ Input: node name
 
 Output: node pointer
 
-## virtual void StructLearnCompData(Trainer \*trn) = 0;
+## virtual void StructLearnCompData(Dataset \*trn) = 0;
 A virtual function to do structure learning with complete data.
 
-## void LearnParamsKnowStructCompData(const Trainer \*trn)
+## void LearnParamsKnowStructCompData(const Dataset \*trn)
 Learn parameters of the network, provided with known structure and complete data.
 
 ## void ClearParams()
@@ -141,17 +141,17 @@ Output: the index of predicted value of node Y
 
 
 
-## double TestNetReturnAccuracy(Trainer \*tester)
+## double TestNetReturnAccuracy(Dataset \*tester)
 Using exact inference.
 
-Input: tester: an instance of `Trainer` containing the test dataset
+Input: tester: an instance of `Dataset` containing the test dataset
 
 Output: Accuracy on test set
 
-## double TestNetByApproxInferReturnAccuracy(Trainer \*tester, int num_samp)
+## double TestNetByApproxInferReturnAccuracy(Dataset \*tester, int num_samp)
 Using approximate inference.
 
-Input: tester: an instance of `Trainer` containing the test dataset
+Input: tester: an instance of `Dataset` containing the test dataset
        num_samp: number of samples generated to do approximate inference
 
 Output: Accuracy on test set

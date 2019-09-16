@@ -10,7 +10,7 @@ CustomNetwork::CustomNetwork(bool pure_disc) {
   this->pure_discrete = pure_disc;
 }
 
-void CustomNetwork::LearnParamsKnowStructCompData(const Trainer *trn, bool print_params) {
+void CustomNetwork::LearnParamsKnowStructCompData(const Dataset *trn, bool print_params) {
   cout << "==================================================" << '\n'
        << "Begin learning parameters with known structure and complete data." << endl;
 

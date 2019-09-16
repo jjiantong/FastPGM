@@ -4,7 +4,7 @@
 
 #include "ScoreFunction.h"
 
-ScoreFunction::ScoreFunction(Network *net, Trainer *trn) {
+ScoreFunction::ScoreFunction(Network *net, Dataset *trn) {
   this->net = net;
   this->trn = trn;
   num_network_params = 0;
@@ -20,7 +20,7 @@ double ScoreFunction::LogLikelihoodForNode(Node *node_ptr) {
 
 
 
-double ScoreFunction::LogLikelihoodForNode(Node *node_ptr, Network *net, Trainer *trn) {
+double ScoreFunction::LogLikelihoodForNode(Node *node_ptr, Network *net, Dataset *trn) {
   // todo: check the correctness
 
   // Use the notation like the papers (e.g. r_i, q_i, N_ij, N_ijk).
@@ -73,7 +73,7 @@ double ScoreFunction::LogLikelihood() {
 }
 
 
-double ScoreFunction::LogLikelihood(Network *net, Trainer *trn) {
+double ScoreFunction::LogLikelihood(Network *net, Dataset *trn) {
   // todo: check the correctness
   double log_likelihood = 0;
   for (auto &node_ptr : net->set_node_ptr_container) {
@@ -86,7 +86,7 @@ double ScoreFunction::K2() {
   return LogK2(net,trn);
 }
 
-double ScoreFunction::K2(Network *net, Trainer *trn) {
+double ScoreFunction::K2(Network *net, Dataset *trn) {
   // IMPORTANT:
   //   This implementation is according to the original equation in the paper.
   //   But, it may need to calculate the factorial of a large number (e.g. 2000!)
@@ -157,7 +157,7 @@ double ScoreFunction::K2(Network *net, Trainer *trn) {
   return multiply_over_i;
 }
 
-double ScoreFunction::LogK2(Network *net, Trainer *trn) {
+double ScoreFunction::LogK2(Network *net, Dataset *trn) {
   // todo: check the correctness
 
   // Use the notation like the paper (Cooper, 1992) (e.g. r_i, q_i, N_ij, N_ijk).
@@ -226,7 +226,7 @@ double ScoreFunction::BDeu(int equi_sample_size) {
   return LogBDeu(net,trn,equi_sample_size);
 }
 
-double ScoreFunction::BDeu(Network *net, Trainer *trn, int equi_sample_size) {
+double ScoreFunction::BDeu(Network *net, Dataset *trn, int equi_sample_size) {
   // IMPORTANT:
   //   This implementation is according to the original equation in the paper.
   //   But, it may need to calculate the factorial of a large number (e.g. 2000!)
@@ -300,7 +300,7 @@ double ScoreFunction::BDeu(Network *net, Trainer *trn, int equi_sample_size) {
   return multiply_over_i;
 }
 
-double ScoreFunction::LogBDeu(Network *net, Trainer *trn, int equi_sample_size) {
+double ScoreFunction::LogBDeu(Network *net, Dataset *trn, int equi_sample_size) {
   // todo: check the correctness
 
   // Use the notation like the paper (e.g. r_i, q_i, N_ij, N_ijk).
@@ -369,7 +369,7 @@ double ScoreFunction::LogBDeu(Network *net, Trainer *trn, int equi_sample_size) 
   return sum_over_i;
 }
 
-double ScoreFunction::BDe(Network *net, Trainer *trn,  int equi_sample_size=10) {
+double ScoreFunction::BDe(Network *net, Dataset *trn, int equi_sample_size=10) {
   // todo: implement
   fprintf(stderr, "Function %s! is not implemented!", __FUNCTION__);
   exit(1);
@@ -379,7 +379,7 @@ double ScoreFunction::AIC() {
   return AIC(net,trn);
 }
 
-double ScoreFunction::AIC(Network *net, Trainer *trn) {
+double ScoreFunction::AIC(Network *net, Dataset *trn) {
   // todo: check the correctness
   double penalty = -num_network_params;
 
@@ -392,7 +392,7 @@ double ScoreFunction::BIC() {
   return BIC(net,trn);
 }
 
-double ScoreFunction::BIC(Network *net, Trainer *trn) {
+double ScoreFunction::BIC(Network *net, Dataset *trn) {
   return MDL(net,trn);
 }
 
@@ -400,7 +400,7 @@ double ScoreFunction::MDL() {
   return MDL(net,trn);
 }
 
-double ScoreFunction::MDL(Network *net, Trainer *trn) {
+double ScoreFunction::MDL(Network *net, Dataset *trn) {
   // todo: check the correctness
   double penalty = -(0.5 * log(net->num_nodes) * num_network_params);
 

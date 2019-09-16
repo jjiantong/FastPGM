@@ -3,7 +3,7 @@
 #include <vector>
 #include "gtest/gtest.h"
 
-#include "Trainer.h"
+#include "Dataset.h"
 #include "Network.h"
 #include "CustomNetwork.h"
 #include "ScoreFunction.h"
@@ -26,7 +26,7 @@ class ScoreTest : public ::testing::Test {
     redundant_dog_net->GetNetFromXMLBIFFile("../../data/interchange-format-file/redundant-dog-problem.xml");
 
     vector<Combination> samples = origin_dog_net->DrawSamplesByProbLogiSamp(5000);
-    trainer = new Trainer();
+    trainer = new Dataset();
     string samp_to_file = "origin-dog-net-samples-to-libsvm.txt";
     trainer->SamplesToLIBSVMFile(samples, samp_to_file);
     trainer->LoadLIBSVMDataAutoDetectConfig(samp_to_file);
@@ -34,7 +34,7 @@ class ScoreTest : public ::testing::Test {
 
   }
 
-  Trainer *trainer;
+  Dataset *trainer;
   CustomNetwork *origin_dog_net;
   CustomNetwork *incomplete_dog_net;
   CustomNetwork *redundant_dog_net;

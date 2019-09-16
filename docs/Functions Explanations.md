@@ -13,5 +13,5 @@
 <a href="./Functions/Factor.md"> class Factor </a> <br/>
 <a href="./Functions/JunctionTree.md"> class JunctionTree </a> <br/>
 <a href="./Functions/ScoreFunction.md"> class ScoreFunction </a> <br/>
-<a href="./Functions/Trainer.md"> class Trainer </a> <br/>
+<a href="./Functions/Dataset.md"> class Dataset </a> <br/>
 <a href="./Functions/gadget.md"> gadget.h </a> <br/>

@@ -5,7 +5,7 @@
 #ifndef BAYESIANNETWORK_CHOWLIUTREE_H
 #define BAYESIANNETWORK_CHOWLIUTREE_H
 
-#include "Trainer.h"
+#include "Dataset.h"
 #include "Network.h"
 #include "Node.h"
 #include "DiscreteNode.h"
@@ -41,11 +41,11 @@ class ChowLiuTree : public Network {
   ChowLiuTree();
   explicit ChowLiuTree(bool pure_disc);
 
-  double ComputeMutualInformation(Node *Xi, Node *Xj, const Trainer *trainer);
-  void StructLearnCompData(Trainer *trainer, bool print_struct=true) override;
-  void StructLearnChowLiuTreeCompData(Trainer *trainer, bool print_struct=true);
+  double ComputeMutualInformation(Node *Xi, Node *Xj, const Dataset *trainer);
+  void StructLearnCompData(Dataset *trainer, bool print_struct=true) override;
+  void StructLearnChowLiuTreeCompData(Dataset *trainer, bool print_struct=true);
 
-  void LearnParamsKnowStructCompData(const Trainer *trainer, bool print_params=true) override;
+  void LearnParamsKnowStructCompData(const Dataset *trainer, bool print_params=true) override;
 
 
   pair<int*, int> SimplifyDefaultElimOrd(Combination evidence) override;

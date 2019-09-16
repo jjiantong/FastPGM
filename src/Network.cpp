@@ -61,7 +61,7 @@ Node* Network::FindNodePtrByName(const string &name) const {
 }
 
 
-void Network::StructLearnCompData(Trainer *trn, bool print_struct) {
+void Network::StructLearnCompData(Dataset *trn, bool print_struct) {
   fprintf(stderr, "Not be implemented yet!");
   exit(1);
 }
@@ -237,7 +237,7 @@ int** Network::ConvertDAGNetworkToAdjacencyMatrix() {
 }
 
 
-void Network::LearnParamsKnowStructCompData(const Trainer *trainer, bool print_params){
+void Network::LearnParamsKnowStructCompData(const Dataset *trainer, bool print_params){
   fprintf(stderr, "Need to be implemented in sub-class!");
   exit(1);
 }
@@ -465,7 +465,7 @@ int Network::PredictUseVarElimInfer(Combination E, int Y_index) {
 }
 
 
-double Network::TestNetReturnAccuracy(Trainer *tester) {
+double Network::TestNetReturnAccuracy(Dataset *tester) {
 
   cout << "==================================================" << '\n'
        << "Begin testing the trained network." << endl;
@@ -525,7 +525,7 @@ double Network::TestNetReturnAccuracy(Trainer *tester) {
 }
 
 
-double Network::TestNetByApproxInferReturnAccuracy(Trainer *tester, int num_samp) {
+double Network::TestNetByApproxInferReturnAccuracy(Dataset *tester, int num_samp) {
 
   // implement by Gibbs sampling
   cout << "==================================================" << '\n'
@@ -569,7 +569,7 @@ double Network::TestNetByApproxInferReturnAccuracy(Trainer *tester, int num_samp
   return accuracy;
 }
 
-double Network::TestAccuracyByLikelihoodWeighting(Trainer *tester, int num_samp) {
+double Network::TestAccuracyByLikelihoodWeighting(Dataset *tester, int num_samp) {
   cout << "==================================================" << '\n'
        << "Begin testing the trained network." << endl;
 

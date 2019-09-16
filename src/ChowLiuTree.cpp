@@ -12,7 +12,7 @@ ChowLiuTree::ChowLiuTree(bool pure_disc) {
   this->pure_discrete = pure_disc;
 }
 
-double ChowLiuTree::ComputeMutualInformation(Node *Xi, Node *Xj, const Trainer *trainer) {
+double ChowLiuTree::ComputeMutualInformation(Node *Xi, Node *Xj, const Dataset *trainer) {
   // Find the indexes of these two features in training set.
   int xi=Xi->GetNodeIndex(), xj=Xj->GetNodeIndex();
 
@@ -81,7 +81,7 @@ double ChowLiuTree::ComputeMutualInformation(Node *Xi, Node *Xj, const Trainer *
 }
 
 
-void ChowLiuTree::StructLearnCompData(Trainer *trainer, bool print_struct) {
+void ChowLiuTree::StructLearnCompData(Dataset *trainer, bool print_struct) {
   struct timeval start, end;
   double diff;
   gettimeofday(&start,NULL);
@@ -96,7 +96,7 @@ void ChowLiuTree::StructLearnCompData(Trainer *trainer, bool print_struct) {
 }
 
 
-void ChowLiuTree::StructLearnChowLiuTreeCompData(Trainer *trainer, bool print_struct) {
+void ChowLiuTree::StructLearnChowLiuTreeCompData(Dataset *trainer, bool print_struct) {
   cout << "==================================================" << '\n'
        << "Begin structural learning. \nConstructing Chow-Liu tree with complete data......" << endl;
 
@@ -278,7 +278,7 @@ void ChowLiuTree::StructLearnChowLiuTreeCompData(Trainer *trainer, bool print_st
 }
 
 
-void ChowLiuTree::LearnParamsKnowStructCompData(const Trainer *trainer, bool print_params){
+void ChowLiuTree::LearnParamsKnowStructCompData(const Dataset *trainer, bool print_params){
   cout << "==================================================" << '\n'
        << "Begin learning parameters with known structure and complete data." << endl;
 

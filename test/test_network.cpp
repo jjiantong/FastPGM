@@ -4,7 +4,7 @@
 #include "gtest/gtest.h"
 #include "tinyxml2.h"
 
-#include "Trainer.h"
+#include "Dataset.h"
 #include "Network.h"
 #include "ChowLiuTree.h"
 #include "JunctionTree.h"
@@ -16,8 +16,8 @@ class NetworkTest : public ::testing::Test {
  protected:
 
   void SetUp() override {
-    trainer = new Trainer();
-    tester = new Trainer();
+    trainer = new Dataset();
+    tester = new Dataset();
     network = new ChowLiuTree(true);
 
     string train_set_file_path, test_set_file_path;
@@ -51,8 +51,8 @@ class NetworkTest : public ::testing::Test {
 //    delete network;
   }
 
-  Trainer *trainer;
-  Trainer *tester;
+  Dataset *trainer;
+  Dataset *tester;
   Network *network;
 };
 
@@ -79,7 +79,7 @@ TEST_F(NetworkTest, DISABLED_gibbs_samples_to_libsvm_file) {
   string sample_file = "./gibbs_samples_to_LIBSVM_file.txt";
   trainer->SamplesToLIBSVMFile(samples, sample_file);
 
-  Trainer *trn_samp = new Trainer();
+  Dataset *trn_samp = new Dataset();
   Network *net_samp = new ChowLiuTree();
   trn_samp->LoadLIBSVMDataAutoDetectConfig("./gibbs_samples_to_LIBSVM_file.txt");
   net_samp->StructLearnCompData(trn_samp, false);
@@ -214,14 +214,14 @@ TEST(CustomNetworkTest, DISABLED_sampling_dog_net_to_csv_file_and_relearn) {
 
   vector<Combination> samples = custom_net->DrawSamplesByGibbsSamp(2e4,2e5);
   string sample_file = "./gibbs_samples_to_CSV_file.txt";
-  auto trainer = new Trainer();
+  auto trainer = new Dataset();
   trainer->SamplesToCSVFile(samples, sample_file);
 
   CustomNetwork *net_samp = new CustomNetwork(true);
   net_samp->GetNetFromXMLBIFFile(custom_file);
   net_samp->ClearParams();
 
-  Trainer *trn_samp = new Trainer();
+  Dataset *trn_samp = new Dataset();
   trn_samp->LoadCSVDataAutoDetectConfig(sample_file);
 
   net_samp->LearnParamsKnowStructCompData(trn_samp, false);

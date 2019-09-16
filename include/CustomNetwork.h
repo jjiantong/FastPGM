@@ -5,7 +5,7 @@
 #ifndef BAYESIANNETWORK_CUSTOMNETWORK_H
 #define BAYESIANNETWORK_CUSTOMNETWORK_H
 
-#include "Trainer.h"
+#include "Dataset.h"
 #include "Network.h"
 #include "Node.h"
 #include "Factor.h"
@@ -28,7 +28,7 @@ class CustomNetwork : public Network {
   CustomNetwork();
   explicit CustomNetwork(bool pure_disc);
 
-  void LearnParamsKnowStructCompData(const Trainer *, bool print_params=true) override;
+  void LearnParamsKnowStructCompData(const Dataset *, bool print_params=true) override;
   pair<int*, int> SimplifyDefaultElimOrd(Combination evidence) override;
 
   void GetNetFromXMLBIFFile(string file_path);

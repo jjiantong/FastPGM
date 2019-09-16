@@ -5,7 +5,7 @@
 #ifndef BAYESIANNETWORK_NETWORK_H
 #define BAYESIANNETWORK_NETWORK_H
 
-#include "Trainer.h"
+#include "Dataset.h"
 #include "Node.h"
 #include "Factor.h"
 #include "gadget.h"
@@ -49,9 +49,9 @@ class Network {
 
   Node* FindNodePtrByName(const string &name) const;
 
-  virtual void StructLearnCompData(Trainer *, bool print_struct=true);
+  virtual void StructLearnCompData(Dataset *, bool print_struct=true);
 
-  virtual void LearnParamsKnowStructCompData(const Trainer *trainer, bool print_params=true);
+  virtual void LearnParamsKnowStructCompData(const Dataset *trainer, bool print_params=true);
 
   void ClearParams();
 
@@ -83,9 +83,9 @@ class Network {
   int PredictUseVarElimInfer(int *Z, int nz, Combination E, int Y_index);
   int PredictUseVarElimInfer(Combination E, int Y_index);
 
-  double TestNetReturnAccuracy(Trainer *tester);
-  double TestNetByApproxInferReturnAccuracy(Trainer *tester, int num_samp);
-  double TestAccuracyByLikelihoodWeighting(Trainer *tester, int num_samp);
+  double TestNetReturnAccuracy(Dataset *tester);
+  double TestNetByApproxInferReturnAccuracy(Dataset *tester, int num_samp);
+  double TestAccuracyByLikelihoodWeighting(Dataset *tester, int num_samp);
 
 
   // Probabilistic logic sampling is a method

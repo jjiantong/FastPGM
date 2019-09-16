@@ -1,22 +1,22 @@
 # class ChowLiuTree
 
-## double ComputeMutualInformation(Node \*Xi, Node \*Xj, const Trainer \*trainer)
+## double ComputeMutualInformation(Node \*Xi, Node \*Xj, const Dataset \*trainer)
 Compute the mutual information between two nodes on a training set. The formula is
 ```
 LaTeX:
 $$ I(X,Y) = \sum_{x \in X, y \in Y} p(x,y) log \frac{p(x,y)}{p(x)p(y)} $$
 ```
 
-## void StructLearnCompData(Trainer \*trainer)
+## void StructLearnCompData(Dataset \*trainer)
 Call function `StructLearnChowLiuTreeCompData`.
 
-## void StructLearnChowLiuTreeCompData(Trainer \*trainer)
+## void StructLearnChowLiuTreeCompData(Dataset \*trainer)
 Structure learning with complete data by constructing a Chow-Liu tree.
 First, construct the mutual information matrix.
 Second, use Prim's algorithm to generate a maximum-spanning tree.
 Third, add arrows in the spanning tree, which is to set the parents and children of each node.
 
-## void LearnParamsKnowStructCompData(const Trainer \*trn)
+## void LearnParamsKnowStructCompData(const Dataset \*trn)
 Learn parameters of the network, provided with known structure and complete data.
 
 ## pair<int\*, int> SimplifyDefaultElimOrd(Combination evidence) override

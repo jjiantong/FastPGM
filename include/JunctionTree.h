@@ -40,7 +40,7 @@ class JunctionTree {
   Factor BeliefPropagationReturnPossib(set<int> &query_indexes);
   int InferenceUsingBeliefPropagation(set<int> &query_indexes);
 
-  double TestNetReturnAccuracy(int class_var, Trainer *tst);
+  double TestNetReturnAccuracy(int class_var, Dataset *tst);
 
   //==================================================
  protected:

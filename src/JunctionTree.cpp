@@ -645,7 +645,7 @@ int JunctionTree::InferenceUsingBeliefPropagation(set<int> &query_indexes) {
   return label_predict;
 }
 
-double JunctionTree::TestNetReturnAccuracy(int class_var, Trainer *tst) {
+double JunctionTree::TestNetReturnAccuracy(int class_var, Dataset *tst) {
   set<int> query;
   query.insert(class_var);
   cout << "==================================================" << '\n'
