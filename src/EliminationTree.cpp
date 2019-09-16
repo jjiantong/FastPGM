@@ -224,6 +224,7 @@ Factor EliminationTree::CalMarginalOfDiscreteVar(int var_index) {
   set<int> query;
   query.insert(var_index);
   Factor f = BeliefPropagationReturnPossib(query);
+  return f;
 }
 
 CGRegression EliminationTree::CalMarginalOfContinuousVar(int var_index) {

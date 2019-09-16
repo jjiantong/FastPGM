@@ -1,3 +1,5 @@
+#pragma clang diagnostic push
+#pragma ide diagnostic ignored "openmp-use-default-none"
 //
 // Created by Linjian Li on 2018/11/29.
 //
@@ -492,13 +494,14 @@ double Network::TestNetReturnAccuracy(Trainer *tester) {
 
     // For now, only support complete data.
     int e_num = num_nodes - 1, *e_index = new int[e_num], *e_value = new int[e_num];
-    for (int j = 0; j < e_num; ++j) {
-      e_index[j] = j + 1;
-      e_value[j] = tester->train_set_X[i][j];
+    for (int j = 0; j < num_nodes; ++j) {
+      if (j==tester->class_var_index) {continue;}
+      e_index[j<tester->class_var_index ? j : j-1] = j;
+      e_value[j<tester->class_var_index ? j : j-1] = tester->dataset_all_vars[i][j];
     }
     Combination E = ConstructEvidence(e_index, e_value, e_num);
     int label_predict = PredictUseVarElimInfer(E, 0); // The root node (label) has index of 0.
-    if (label_predict == tester->train_set_y[i]) {
+    if (label_predict == tester->dataset_all_vars[i][tester->class_var_index]) {
       #pragma omp critical
       { ++num_of_correct; }
     } else {
@@ -547,13 +550,14 @@ double Network::TestNetByApproxInferReturnAccuracy(Trainer *tester, int num_samp
 
     // For now, only support complete data.
     int e_num=num_nodes-1, *e_index=new int[e_num], *e_value=new int[e_num];
-    for (int j=0; j<e_num; ++j) {
-      e_index[j] = j+1;
-      e_value[j] = tester->train_set_X[i][j];
+    for (int j=0; j<num_nodes; ++j) {
+      if (j==tester->class_var_index) { continue; }
+      e_index[j<tester->class_var_index ? j : j-1] = j+1;
+      e_value[j<tester->class_var_index ? j : j-1] = tester->dataset_all_vars[i][j];
     }
     Combination E = ConstructEvidence(e_index, e_value, e_num);
     int label_predict = ApproxInferByProbLogiRejectSamp(E, 0, samples); // The root node (label) has index of 0.
-    if (label_predict == tester->train_set_y[i]) {
+    if (label_predict == tester->dataset_all_vars[i][tester->class_var_index]) {
       ++num_of_correct;
     } else {
       ++num_of_wrong;
@@ -590,13 +594,14 @@ double Network::TestAccuracyByLikelihoodWeighting(Trainer *tester, int num_samp)
 
     // For now, only support complete data.
     int e_num=num_nodes-1, *e_index=new int[e_num], *e_value=new int[e_num];
-    for (int j=0; j<e_num; ++j) {
-      e_index[j] = j+1;
-      e_value[j] = tester->train_set_X[i][j];
+    for (int j=0; j<num_nodes; ++j) {
+      if (j==tester->class_var_index) { continue; }
+      e_index[j<tester->class_var_index ? j : j-1] = j;
+      e_value[j<tester->class_var_index ? j : j-1] = tester->dataset_all_vars[i][j];
     }
     Combination E = ConstructEvidence(e_index, e_value, e_num);
     int label_predict = ApproxinferByLikelihoodWeighting(E, 0, num_samp); // The root node (label) has index of 0.
-    if (label_predict == tester->train_set_y[i]) {
+    if (label_predict == tester->dataset_all_vars[i][tester->class_var_index]) {
       #pragma omp critical
       { ++num_of_correct; }
     } else {
@@ -905,3 +910,4 @@ int Network::ApproxInferByProbLogiRejectSamp(Combination e, Node *node, vector<C
 int Network::ApproxInferByProbLogiRejectSamp(Combination e, int node_index, vector<Combination> &samples) {
   return ApproxInferByProbLogiRejectSamp(e, FindNodePtrByIndex(node_index), samples);
 }
+#pragma clang diagnostic pop

@@ -24,39 +24,22 @@ class Trainer {
  public:
   int num_instance;
   int num_vars;
+  int class_var_index = -1;  // "-1" for no specified class variable.
 
-  int num_feature; // For classification, num_feature should be equal to num_vars-1.
-  bool* is_features_discrete;
-  int* num_of_possible_values_of_features;
-  map<int,set<int>> map_feature_possible_values;
-  int num_of_possible_values_of_label;
-  set<int> set_label_possible_values;
-  int *train_set_y;
-  int **train_set_X;
-  int **train_set_y_X;  // This is for the convenience of calculating mutual information.
-  vector<vector<pair<int,int>>> train_set_X_vector;
-  vector<int> train_set_y_vector;
-
-
-  map<int,set<int>> map_vars_possible_values; // For network that does not specify a class node.
-  int* num_of_possible_values_of_vars;  // For network that does not specify a class node.
-  bool* is_vars_discrete;   // For network that does not specify a class node.
-  int **dataset_all_vars;  // For network that does not specify a class node.
-  vector<vector<pair<int,int>>> vector_train_set_all_vars;  // For network that does not specify a class node.
-
-
-  // incomp_data;
-  // incomp_data_expectation;
+  map<int,set<int>> map_vars_possible_values;
+  int* num_of_possible_values_of_vars;
+  bool* is_vars_discrete;
+  int **dataset_all_vars;
+  vector<vector<pair<int,int>>> vector_dataset_all_vars;
 
 
   Trainer();
   void LoadLIBSVMDataAutoDetectConfig(string data_file_path);
   void ConvertLIBSVMVectorDatasetIntoArrayDataset();
+  void SamplesToLIBSVMFile(vector<Combination> &samples, string &file) const;
 
   void LoadCSVDataAutoDetectConfig(string data_file_path);
   void ConvertCSVVectorDatasetIntoArrayDataset();
-
-  void SamplesToLIBSVMFile(vector<Combination> &samples, string &file) const;
   void SamplesToCSVFile(vector<Combination> &samples, string &file) const;
 };
 

@@ -1,3 +1,5 @@
+#pragma clang diagnostic push
+#pragma ide diagnostic ignored "openmp-use-default-none"
 //
 // Created by Linjian Li on 2018/11/29.
 //
@@ -9,6 +11,8 @@ Trainer::Trainer() {}
 
 
 void Trainer::LoadLIBSVMDataAutoDetectConfig(string data_file_path) {
+
+  class_var_index = 0;
 
   ifstream in_file;
   in_file.open(data_file_path);
@@ -23,6 +27,8 @@ void Trainer::LoadLIBSVMDataAutoDetectConfig(string data_file_path) {
   string sample;
   int max_index_occurred = -1;
   // Load data.
+  vector<int> dataset_y_vector;
+  vector<vector<pair<int,int>>> dataset_X_vector;
   getline(in_file, sample);
   while (!in_file.eof()) {
     // There is a whitespace at the end of each line of
@@ -30,8 +36,8 @@ void Trainer::LoadLIBSVMDataAutoDetectConfig(string data_file_path) {
     sample = TrimRight(sample);
     vector<string> parsed_sample = Split(sample, " ");
     auto it = parsed_sample.begin();   // The label is the first element.
-    set_label_possible_values.insert(stoi(*it));
-    train_set_y_vector.push_back(stoi(*it));
+    map_vars_possible_values[class_var_index].insert(stoi(*it));
+    dataset_y_vector.push_back(stoi(*it));
 
     vector<pair<int,int>> single_sample_vector;
     for (++it; it!=parsed_sample.end(); ++it) {
@@ -40,36 +46,45 @@ void Trainer::LoadLIBSVMDataAutoDetectConfig(string data_file_path) {
       int index = stoi(parsed_feature[0]);
       int value = stoi(parsed_feature[1]);
       max_index_occurred = index>max_index_occurred ? index : max_index_occurred;
-      map_feature_possible_values[index].insert(value);
+      map_vars_possible_values[index].insert(value);
       pair<int,int> pair_feature_value;
       pair_feature_value.first = index;
       pair_feature_value.second = value;
       single_sample_vector.push_back(pair_feature_value);
     }
-    train_set_X_vector.push_back(single_sample_vector);
+    dataset_X_vector.push_back(single_sample_vector);
     getline(in_file, sample);
   }
 
-  num_instance = train_set_y_vector.size();
-  num_feature = max_index_occurred;
-  num_vars = num_feature + 1;
-  is_features_discrete = new bool[num_feature];
-  num_of_possible_values_of_features = new int[num_feature];
-  num_of_possible_values_of_label = set_label_possible_values.size();
+  vector_dataset_all_vars = dataset_X_vector;
 
-  for (int i=0; i<num_feature; ++i) {   // Note that the feature indexes start at 1 in LIBSVM.
+  for (int i=0; i<vector_dataset_all_vars.size(); ++i) {
+    vector_dataset_all_vars.at(i).insert(
+            vector_dataset_all_vars.at(i).begin(),
+            pair<int,int>(class_var_index,dataset_y_vector.at(i))
+    );
+  }
 
-    // Because features of LIBSVM format do not record the value of 0, we need to add it in.
-    map_feature_possible_values[i+1].insert(0);
-    num_of_possible_values_of_features[i] = map_feature_possible_values[i+1].size();
-    is_features_discrete[i] = true; // For now, we can only process discrete features.
+
+  num_instance = vector_dataset_all_vars.size();
+  num_vars = max_index_occurred + 1;
+  is_vars_discrete = new bool[num_vars];
+  num_of_possible_values_of_vars = new int[num_vars];
+
+  for (int i=0; i<num_vars; ++i) {
+    if (i!=class_var_index) {
+      // Because features of LIBSVM format do not record the value of 0, we need to add it in.
+      map_vars_possible_values[i].insert(0);
+    }
+    num_of_possible_values_of_vars[i] = map_vars_possible_values[i].size();
+    is_vars_discrete[i] = true; // For now, we can only process discrete variables.
   }
 
   ConvertLIBSVMVectorDatasetIntoArrayDataset();
 
   cout << "Finish loading data. " << '\n'
        << "Number of instances: " << num_instance << ". \n"
-       << "Number of features (maximum feature index occurred): " << num_feature << ". " << endl;
+       << "Number of features (maximum feature index occurred): " << max_index_occurred << ". " << endl;
 
   in_file.close();
 
@@ -77,24 +92,14 @@ void Trainer::LoadLIBSVMDataAutoDetectConfig(string data_file_path) {
 
 
 void Trainer::ConvertLIBSVMVectorDatasetIntoArrayDataset() {
-  // Initialize train_set to be all zero.
-  train_set_y = new int [num_instance];
-  train_set_X = new int *[num_instance];
-  train_set_y_X = new int *[num_instance];
+  // Initialize to be all zero.
+  dataset_all_vars = new int *[num_instance];
   #pragma omp parallel for
   for (int s=0; s<num_instance; ++s) {
-    train_set_y[s] = train_set_y_vector[s];
-
-    train_set_X[s] = new int[num_feature]();  // The parentheses at end will initialize the array to be all zeros.
-    vector<pair<int,int>> x_vector = train_set_X_vector[s];
-    for (pair<int,int> p : x_vector) {  // For each non-zero-value feature of this sample.
-      train_set_X[s][p.first-1] = p.second;
-    }
-
-    train_set_y_X[s] = new int[num_vars]();
-    train_set_y_X[s][0] = train_set_y[s];
-    for (int i=1; i<num_vars; ++i) {
-      train_set_y_X[s][i] = train_set_X[s][i-1];
+    dataset_all_vars[s] = new int[num_vars]();
+    vector<pair<int,int>> vec_instance = vector_dataset_all_vars.at(s);
+    for (pair<int,int> p : vec_instance) {  // For each non-zero-value feature of this sample.
+      dataset_all_vars[s][p.first] = p.second;
     }
   }
 }
@@ -105,7 +110,7 @@ void Trainer::ConvertCSVVectorDatasetIntoArrayDataset() {
   #pragma omp parallel for
   for (int s=0; s<num_instance; ++s) {
     dataset_all_vars[s] = new int[num_vars]();  // The parentheses at end will initialize the array to be all zeros.
-    for (pair<int,int> p : vector_train_set_all_vars.at(s)) {
+    for (pair<int,int> p : vector_dataset_all_vars.at(s)) {
       dataset_all_vars[s][p.first] = p.second;
     }
   }
@@ -143,11 +148,11 @@ void Trainer::LoadCSVDataAutoDetectConfig(string data_file_path) {
       pair<int,int> pair_feature_value(i, value);
       single_sample_vector.push_back(pair_feature_value);
     }
-    vector_train_set_all_vars.push_back(single_sample_vector);
+    vector_dataset_all_vars.push_back(single_sample_vector);
     getline(in_file, sample);
   }
 
-  num_instance = vector_train_set_all_vars.size();
+  num_instance = vector_dataset_all_vars.size();
   is_vars_discrete = new bool[num_vars];
   num_of_possible_values_of_vars = new int[num_vars];
 
@@ -160,7 +165,7 @@ void Trainer::LoadCSVDataAutoDetectConfig(string data_file_path) {
 
   cout << "Finish loading data. " << '\n'
        << "Number of instances: " << num_instance << ".\n"
-       << "Number of variables: " << num_feature << "." << endl;
+       << "Number of variables: " << num_vars << "." << endl;
 
   in_file.close();
 }
@@ -217,3 +222,4 @@ void Trainer::SamplesToCSVFile(vector<Combination> &samples, string &file) const
 
   fclose(f);
 }
+#pragma clang diagnostic pop

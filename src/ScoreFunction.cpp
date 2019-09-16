@@ -39,7 +39,7 @@ double ScoreFunction::LogLikelihoodForNode(Node *node_ptr, Network *net, Trainer
       bool parents_compatible = true;
       for (const auto &p : par_comb) {
         if (!parents_compatible) {break;}
-        parents_compatible = (trn->train_set_y_X[s][p.first]==p.second);
+        parents_compatible = (trn->dataset_all_vars[s][p.first]==p.second);
       }
 
       if (parents_compatible) {
@@ -56,7 +56,7 @@ double ScoreFunction::LogLikelihoodForNode(Node *node_ptr, Network *net, Trainer
 
       for (const auto &s : set_instances_parent_compatible) {
         // Check this node.
-        n_ijk += (trn->train_set_y_X[s][index] == val) ? 1 : 0;
+        n_ijk += (trn->dataset_all_vars[s][index] == val) ? 1 : 0;
       }
 
       double tmp = n_ijk==0 ? 0 : log((double)n_ijk/n_ij);
@@ -121,7 +121,7 @@ double ScoreFunction::K2(Network *net, Trainer *trn) {
         bool parents_compatible = true;
         for (const auto &p : par_comb) {
           if (!parents_compatible) {break;}
-          parents_compatible = (trn->train_set_y_X[s][p.first]==p.second);
+          parents_compatible = (trn->dataset_all_vars[s][p.first]==p.second);
         }
 
         if (parents_compatible) {
@@ -137,7 +137,7 @@ double ScoreFunction::K2(Network *net, Trainer *trn) {
         for (const auto &s : set_instances_parent_compatible) {
           int val = node_ptr->potential_vals[k];
           // Check this node.
-          n_ijk += (trn->train_set_y_X[s][node_index] == val) ? 1 : 0;
+          n_ijk += (trn->dataset_all_vars[s][node_index] == val) ? 1 : 0;
         }
         int tmp = FactorialForSmallInteger(n_ijk); // todo: Delete this line.
         multiply_over_k *= FactorialForSmallInteger(n_ijk);
@@ -185,7 +185,7 @@ double ScoreFunction::LogK2(Network *net, Trainer *trn) {
         bool parents_compatible = true;
         for (const auto &p : par_comb) {
           if (!parents_compatible) {break;}
-          parents_compatible = (trn->train_set_y_X[s][p.first]==p.second);
+          parents_compatible = (trn->dataset_all_vars[s][p.first]==p.second);
         }
 
         if (parents_compatible) {
@@ -201,7 +201,7 @@ double ScoreFunction::LogK2(Network *net, Trainer *trn) {
         for (const auto &s : set_instances_parent_compatible) {
           int val = node_ptr->potential_vals[k];
           // Check this node.
-          n_ijk += (trn->train_set_y_X[s][node_index] == val) ? 1 : 0;
+          n_ijk += (trn->dataset_all_vars[s][node_index] == val) ? 1 : 0;
         }
         double tmp = LogOfFactorial(n_ijk); // todo: Delete this line.
         sum_over_k *= LogOfFactorial(n_ijk);
@@ -262,7 +262,7 @@ double ScoreFunction::BDeu(Network *net, Trainer *trn, int equi_sample_size) {
         bool parents_compatible = true;
         for (const auto &p : par_comb) {
           if (!parents_compatible) {break;}
-          parents_compatible = (trn->train_set_y_X[s][p.first]==p.second);
+          parents_compatible = (trn->dataset_all_vars[s][p.first]==p.second);
         }
 
         if (parents_compatible) {
@@ -278,7 +278,7 @@ double ScoreFunction::BDeu(Network *net, Trainer *trn, int equi_sample_size) {
         for (const auto &s : set_instances_parent_compatible) {
           int val = node_ptr->potential_vals[k];
           // Check this node.
-          n_ijk += (trn->train_set_y_X[s][node_index] == val) ? 1 : 0;
+          n_ijk += (trn->dataset_all_vars[s][node_index] == val) ? 1 : 0;
         }
 
         double n_ijk_prime = (double)equi_sample_size/(r_i*q_i);
@@ -329,7 +329,7 @@ double ScoreFunction::LogBDeu(Network *net, Trainer *trn, int equi_sample_size) 
         bool parents_compatible = true;
         for (const auto &p : par_comb) {
           if (!parents_compatible) {break;}
-          parents_compatible = (trn->train_set_y_X[s][p.first]==p.second);
+          parents_compatible = (trn->dataset_all_vars[s][p.first]==p.second);
         }
 
         if (parents_compatible) {
@@ -345,7 +345,7 @@ double ScoreFunction::LogBDeu(Network *net, Trainer *trn, int equi_sample_size) 
         for (const auto &s : set_instances_parent_compatible) {
           int val = node_ptr->potential_vals[k];
           // Check this node.
-          n_ijk += (trn->train_set_y_X[s][node_index] == val) ? 1 : 0;
+          n_ijk += (trn->dataset_all_vars[s][node_index] == val) ? 1 : 0;
         }
 
         double n_ijk_prime = (double)equi_sample_size/(r_i*q_i);

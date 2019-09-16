@@ -676,9 +676,10 @@ double JunctionTree::TestNetReturnAccuracy(int class_var, Trainer *tst) {
 
     // For now, only support complete data.
     int e_num=network->num_nodes-1, *e_index=new int[e_num], *e_value=new int[e_num];
-    for (int j=0; j<e_num; ++j) {
-      e_index[j] = j+1;
-      e_value[j] = tst->train_set_X[i][j];
+    for (int j=0; j<network->num_nodes; ++j) {
+      if (j==tst->class_var_index) {continue;}
+      e_index[j<tst->class_var_index ? j : j-1] = j;
+      e_value[j<tst->class_var_index ? j : j-1] = tst->dataset_all_vars[i][j];
     }
     Combination E = network->ConstructEvidence(e_index, e_value, e_num);
 
@@ -695,7 +696,7 @@ double JunctionTree::TestNetReturnAccuracy(int class_var, Trainer *tst) {
     int label_predict = InferenceUsingBeliefPropagation(query); // The root node (label) has index of 0.
     ResetJunctionTree();
 
-    if (label_predict == tst->train_set_y[i]) {
+    if (label_predict == tst->dataset_all_vars[i][tst->class_var_index]) {
 //      #pragma omp critical
       { ++num_of_correct; }
     } else {
