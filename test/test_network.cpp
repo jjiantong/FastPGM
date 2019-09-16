@@ -88,9 +88,9 @@ TEST_F(NetworkTest, DISABLED_gibbs_samples_to_libsvm_file) {
   for(int i=0; i<net_samp->num_nodes; ++i) {
     fprintf(stdout, "\n====================================\n");
     Factor f1, f2;
-    f1.ConstructFactor(network->FindNodePtrByIndex(i));
+    f1.ConstructFactor(dynamic_cast<DiscreteNode*>(network->FindNodePtrByIndex(i)));
     f1.PrintPotentials();
-    f2.ConstructFactor(net_samp->FindNodePtrByIndex(i));
+    f2.ConstructFactor(dynamic_cast<DiscreteNode*>(net_samp->FindNodePtrByIndex(i)));
     f2.PrintPotentials();
   }
 }
@@ -229,9 +229,9 @@ TEST(CustomNetworkTest, DISABLED_sampling_dog_net_to_csv_file_and_relearn) {
   for(int i=0; i<net_samp->num_nodes; ++i) {
     fprintf(stdout, "\n====================================\n");
     Factor f1, f2;
-    f1.ConstructFactor(custom_net->FindNodePtrByIndex(i));
+    f1.ConstructFactor(dynamic_cast<DiscreteNode*>(custom_net->FindNodePtrByIndex(i)));
     f1.PrintPotentials();
-    f2.ConstructFactor(net_samp->FindNodePtrByIndex(i));
+    f2.ConstructFactor(dynamic_cast<DiscreteNode*>(net_samp->FindNodePtrByIndex(i)));
     f2.PrintPotentials();
   }
 }

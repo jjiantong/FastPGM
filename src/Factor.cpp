@@ -19,12 +19,12 @@ void Factor::CopyFactor(Factor F) {
 }
 
 
-Factor::Factor(Node *node) {
+Factor::Factor(DiscreteNode *node) {
   ConstructFactor(node);
 }
 
 
-void Factor::ConstructFactor(Node *node) {
+void Factor::ConstructFactor(DiscreteNode *node) {
 
   int node_index = node->GetNodeIndex();
 
@@ -119,7 +119,7 @@ Factor Factor::SumOverVar(int index) {
   return newFactor;
 }
 
-Factor Factor::SumOverVar(Node *node) {
+Factor Factor::SumOverVar(DiscreteNode *node) {
   return SumOverVar(node->GetNodeIndex());
 }
 

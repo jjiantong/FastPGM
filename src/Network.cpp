@@ -264,10 +264,10 @@ Combination Network::ConstructEvidence(int *nodes_indexes, int *observations, in
 
 vector<Factor> Network::ConstructFactors(int *Z, int nz, Node *Y) {
   vector<Factor> factors_list;
-  factors_list.push_back(Factor(Y));
+  factors_list.push_back(Factor(dynamic_cast<DiscreteNode*>(Y)));
   for (int i=0; i<nz; ++i) {
     Node* n = FindNodePtrByIndex(Z[i]);
-    factors_list.push_back(Factor(n));
+    factors_list.push_back(Factor(dynamic_cast<DiscreteNode*>(n)));
   }
   return factors_list;
 }
@@ -359,7 +359,7 @@ Factor Network::SumProductVarElim(vector<Factor> factors_list, int *Z, int nz) {
       product = temp1.MultiplyWithFactor(temp2);
       tempFactorsList.push_back(product);
     }
-    Factor newFactor = tempFactorsList.back().SumOverVar(nodePtr);
+    Factor newFactor = tempFactorsList.back().SumOverVar(dynamic_cast<DiscreteNode*>(nodePtr));
     factors_list.push_back(newFactor);
   }
 

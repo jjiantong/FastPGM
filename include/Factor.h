@@ -26,12 +26,12 @@ class Factor {
   map<Combination, double> map_potentials;
 
   Factor() = default;
-  Factor(Node*);
+  explicit Factor(DiscreteNode*);
   void CopyFactor(Factor F);
   void SetMembers(set<int> , set<Combination> , map<Combination, double> );
-  void ConstructFactor(Node*);
+  void ConstructFactor(DiscreteNode*);
   Factor MultiplyWithFactor(Factor);
-  Factor SumOverVar(Node *);
+  Factor SumOverVar(DiscreteNode *);
   Factor SumOverVar(int);
   void Normalize();
 
