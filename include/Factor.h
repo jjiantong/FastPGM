@@ -13,6 +13,7 @@
 
 #include "gadget.h"
 #include "Node.h"
+#include "DiscreteNode.h"
 
 using namespace std;
 

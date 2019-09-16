@@ -46,7 +46,7 @@ void Node::RemoveChild(Node *c) {
 
 
 void Node::RemoveParent(Node *p) {
-  if (set_children_ptrs.find(p)==set_parents_ptrs.end()) {
+  if (set_parents_ptrs.find(p)==set_parents_ptrs.end()) {
     fprintf(stderr, "Node #%d does not have parent node #%d!", this->GetNodeIndex(), p->GetNodeIndex());
     return;
   }
@@ -78,64 +78,3 @@ void Node::GenDiscParCombs() {
 
 }
 
-
-int Node::SampleNodeGivenParents(Combination evidence) {
-  // The evidence should contain all parents of this node.
-  // The evidence about other nodes (including children) are IGNORED!!!
-  set<int> set_par_indexes;
-  for (auto &par : set_parents_ptrs) {
-    set_par_indexes.insert(par->GetNodeIndex());
-  }
-  Combination par_evi;
-  for (auto &e : evidence) {
-    if (set_par_indexes.find(e.first)!=set_par_indexes.end()) {
-      par_evi.insert(e);
-    }
-  }
-
-  vector<int> weights;
-  if (par_evi.empty()) {
-    for (int i=0; i<num_potential_vals; ++i) {
-      int w = (int)(map_marg_prob_table[potential_vals[i]]*10000);
-      weights.push_back(w);
-    }
-  } else {
-    for (int i=0; i<num_potential_vals; ++i) {
-      int w = (int)(map_cond_prob_table[potential_vals[i]][par_evi]*10000);
-      weights.push_back(w);
-    }
-  }
-
-  unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
-  default_random_engine rand_gen(seed);
-  discrete_distribution<int> this_distribution(weights.begin(),weights.end());
-  return potential_vals[this_distribution(rand_gen)];
-}
-
-
-void Node::PrintProbabilityTable() {
-  cout << GetNodeIndex() << ":\t";
-
-  if (set_parents_ptrs.empty()) {    // If this node has no parents
-    for(int i=0; i<num_potential_vals; ++i) {    // For each row of MPT
-      int query = potential_vals[i];
-      cout << "P(" << query << ")=" << map_marg_prob_table[query] << '\t';
-    }
-    cout << endl;
-
-  } else {  // If this node has parents
-
-    for(int i=0; i<num_potential_vals; ++i) {    // For each row of CPT
-      int query = potential_vals[i];
-      for (auto itParCom = set_discrete_parents_combinations.begin(); itParCom != set_discrete_parents_combinations.end(); ++itParCom) {  // For each column of CPT
-        Combination comb = (*itParCom);
-        string condition;
-        for (auto &p : comb) {
-          condition += ("\"" + to_string(p.first) + "\"=" + to_string(p.second));
-        }
-        cout << "P(" << query << '|' << condition << ")=" << map_cond_prob_table[query][comb] << '\t';
-      }
-    }
-    cout << endl;
-  }
-}

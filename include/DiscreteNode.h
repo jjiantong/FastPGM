@@ -19,13 +19,18 @@ typedef set< pair<int, int> > Combination;
 
 class DiscreteNode : public Node {
  public:
+  map<int, map<Combination, double> >  map_cond_prob_table;
+  map<int, double>  map_marg_prob_table;
+
   DiscreteNode();
   explicit DiscreteNode(int index);
   DiscreteNode(int index, string name);
   void SetDomain(vector<string> str_domain);
   void SetDomain(vector<int> int_domain);
   void AddParent(Node *node_ptr) override;
-
+  void ClearParams() override;
+  void PrintProbabilityTable();
+  int SampleNodeGivenParents(Combination evidence);
 };
 
 

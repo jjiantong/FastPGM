@@ -31,7 +31,7 @@ void CustomNetwork::LearnParamsKnowStructCompData(const Dataset *trn, bool print
       Node *this_node = FindNodePtrByIndex(i);
       if (this_node->set_parents_ptrs.empty()) {
 
-        map<int, double> *MPT = &(this_node->map_marg_prob_table);
+        map<int, double> *MPT = &(dynamic_cast<DiscreteNode*>(this_node)->map_marg_prob_table);
         int denominator = 0;
         for (int s = 0; s < trn->num_instance; ++s) {
           denominator += 1;
@@ -45,7 +45,7 @@ void CustomNetwork::LearnParamsKnowStructCompData(const Dataset *trn, bool print
 
       } else {  // If the node has parents.
 
-        map<int, map<Combination, double> > *CPT = &(this_node->map_cond_prob_table);
+        map<int, map<Combination, double> > *CPT = &(dynamic_cast<DiscreteNode*>(this_node)->map_cond_prob_table);
         set<Combination> *ptr_set_par_combs = &(this_node->set_discrete_parents_combinations);
         for (auto &par_comb : *ptr_set_par_combs) {    // For each column in CPT. Because the sum over column of CPT must be 1.
           int denominator = 0;
@@ -82,7 +82,7 @@ void CustomNetwork::LearnParamsKnowStructCompData(const Dataset *trn, bool print
     cout << "==================================================" << '\n'
          << "Each node's conditional probability table: " << endl;
     for (const auto &node_ptr : set_node_ptr_container) {  // For each node
-      node_ptr->PrintProbabilityTable();
+      dynamic_cast<DiscreteNode*>(node_ptr)->PrintProbabilityTable();
     }
   }
 

@@ -245,17 +245,7 @@ void Network::LearnParamsKnowStructCompData(const Dataset *trainer, bool print_p
 
 void Network::ClearParams() {
   for (auto &n_p : this->set_node_ptr_container) {
-    if (n_p->set_parents_ptrs.empty()) {
-      for (auto &kv : n_p->map_marg_prob_table) {
-        kv.second = 0;
-      }
-    } else {
-      for (auto &kv : n_p->map_cond_prob_table) {
-        for (auto &kv2 : kv.second) {
-          kv2.second = 0;
-        }
-      }
-    }
+    n_p->ClearParams();
   }
 }
 
@@ -632,7 +622,7 @@ Combination Network::ProbLogicSampleNetwork() {
   // Cannot use OpenMP, because must draw samples in the topological ordering.
   for (const auto &index : this->GetTopoOrd()) {
     Node *n_p = FindNodePtrByIndex(index);
-    int drawn_value = n_p->SampleNodeGivenParents(instance);
+    int drawn_value = dynamic_cast<DiscreteNode*>(n_p)->SampleNodeGivenParents(instance); // todo: support continuous nodes
     instance.insert(pair<int,int>(index, drawn_value));
   }
   return instance;
@@ -662,15 +652,15 @@ pair<Combination, double> Network::DrawOneLikelihoodWeightingSample(const Combin
               parents_index_value.insert(i);
             }
           }
-          weight *= n_p->map_cond_prob_table[p.second][parents_index_value];
+          weight *= dynamic_cast<DiscreteNode*>(n_p)->map_cond_prob_table[p.second][parents_index_value];
         } else {
-          weight *= n_p->map_marg_prob_table[p.second];
+          weight *= dynamic_cast<DiscreteNode*>(n_p)->map_marg_prob_table[p.second];
         }
         break;
       }
     }
     if (!observed) {
-      int drawn_value = n_p->SampleNodeGivenParents(instance);
+      int drawn_value = dynamic_cast<DiscreteNode*>(n_p)->SampleNodeGivenParents(instance);   // todo: Consider continuous nodes
       instance.insert(pair<int,int>(index, drawn_value));
     }
   }

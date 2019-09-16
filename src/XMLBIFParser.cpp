@@ -177,9 +177,9 @@ void XMLBIFParser::AssignProbsToNodes(vector<XMLElement*> vec_xml_elems_ptr, vec
 
       if (digits.size()==1) {
         // If true, then this node does not have parent.
-        for_np->map_marg_prob_table[query] = vec_db_table_entry[i];
+        dynamic_cast<DiscreteNode*>(for_np)->map_marg_prob_table[query] = vec_db_table_entry[i];
       } else {
-        for_np->map_cond_prob_table[query][comb] = vec_db_table_entry[i];
+        dynamic_cast<DiscreteNode*>(for_np)->map_cond_prob_table[query][comb] = vec_db_table_entry[i];
       }
 
     }

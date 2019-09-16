@@ -45,7 +45,7 @@ void Factor::ConstructFactor(Node *node) {
       Combination c;
       c.insert(p);
       set_combinations.insert(c);
-      map_potentials[c] = node->map_marg_prob_table[p.second];
+      map_potentials[c] = dynamic_cast<DiscreteNode*>(node)->map_marg_prob_table[p.second];
     }
     return;
   }
@@ -59,7 +59,7 @@ void Factor::ConstructFactor(Node *node) {
       Combination c = (*it_pc);
       c.insert(p);
       set_combinations.insert(c);
-      map_potentials[c] = node->map_cond_prob_table[p.second][*it_pc];
+      map_potentials[c] = dynamic_cast<DiscreteNode*>(node)->map_cond_prob_table[p.second][*it_pc];
     }
   }
 }

@@ -39,8 +39,6 @@ class Node {
   set<Node*> set_parents_ptrs;
   set<Node*> set_children_ptrs;
   set<Combination> set_discrete_parents_combinations;
-  map<int, map<Combination, double> >  map_cond_prob_table;
-  map<int, double>  map_marg_prob_table;
 
   Node() = default;
   explicit Node(int index);
@@ -50,13 +48,9 @@ class Node {
   virtual void AddChild(Node *node_ptr);
   virtual void AddParent(Node *node_ptr);
   void RemoveChild(Node *node_ptr);
-  void RemoveParent(Node *node_ptr);
+  virtual void RemoveParent(Node *node_ptr);
   void GenDiscParCombs();
-
-  int SampleNodeGivenParents(Combination evidence);
-
-  void PrintProbabilityTable();
-
+  virtual void ClearParams() = 0;
 };
 
 

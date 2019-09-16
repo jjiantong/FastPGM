@@ -33,6 +33,24 @@ void ContinuousNode::AddParent(Node *p) {
   }
 }
 
+void ContinuousNode::RemoveParent(Node *p) {
+  if (set_parents_ptrs.find(p)==set_parents_ptrs.end()) {
+    fprintf(stderr, "Node #%d does not have parent node #%d!", this->GetNodeIndex(), p->GetNodeIndex());
+    return;
+  }
+  set_parents_ptrs.erase(p);
+  if (!p->is_discrete) {
+    auto it = contin_par_indexes.begin();
+    while (*it!=p->GetNodeIndex()) { ++it; }
+    contin_par_indexes.erase(it);
+  }
+}
+
+void ContinuousNode::ClearParams() {
+  fprintf(stderr, "Function [%s] not implemented yet!", __FUNCTION__);
+  exit(1);
+}
+
 void ContinuousNode::IdentifyContPar() {
   contin_par_indexes.clear();
   for (const auto &p : set_parents_ptrs) {
