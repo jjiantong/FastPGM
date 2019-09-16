@@ -35,6 +35,18 @@ class Clique {
   // So, we need a member to record the upstream of this clique (node).
   Clique *ptr_upstream_clique;
 
+  // ==================================================
+  // Data structures needed for elimination tree
+  // (like junction tree) of gaussian Bayesian network.
+  // Proposed in [Local Propagation in Conditional Gaussian Bayesian Networks (Cowell, 2005)]
+  // Note that, separators between continuous cliques only retain post_bag but not lp_potential.
+
+  int elimination_variable_index;   // Each clique is associated to a main variable according to the paper.
+  bool activeflag;
+  vector<CGRegression> lp_potential;
+  vector<CGRegression> post_bag;
+  // ==================================================
+
 
   Clique();
   Clique(set<Node*> set_node_ptrs, int elim_var_index);
@@ -49,18 +61,6 @@ class Clique {
   virtual Factor ConstructMessage();
   void PrintPotentials() const;
   void PrintRelatedVars() const;
-
-  // ==================================================
-  // Data structures needed for elimination tree
-  // (like junction tree) of gaussian Bayesian network.
-  // Proposed in [Local Propagation in Conditional Gaussian Bayesian Networks (Cowell, 2005)]
-  // Note that, separators between continuous cliques only retain post_bag but not lp_potential.
-
-  int elimination_variable_index;   // Each clique is associated to a main variable according to the paper.
-  bool activeflag;
-  vector<CGRegression> lp_potential;
-  vector<CGRegression> post_bag;
-  // ==================================================
 
  protected:
   Clique(const Clique&) = default;

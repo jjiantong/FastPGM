@@ -273,7 +273,7 @@ vector<Factor> Network::ConstructFactors(int *Z, int nz, Node *Y) {
 }
 
 
-void Network::LoadEvidence(vector<Factor> *factors_list, Combination E, set<int> all_related_vars) {
+void Network::LoadEvidenceIntoFactors(vector<Factor> *factors_list, Combination E, set<int> all_related_vars) {
 
   // I do not know why this function cannot use omp to parallel.
   // If I set number of threads more than 1, the accuracy will decrease!
@@ -404,7 +404,7 @@ Factor Network::VarElimInferReturnPossib(int *Z, int nz, Combination E, Node *Y)
   //--------------------------------------------------------------------------------
 
 
-  LoadEvidence(&factorsList, E, all_related_vars);
+  LoadEvidenceIntoFactors(&factorsList, E, all_related_vars);
   Factor F = SumProductVarElim(factorsList, Z, nz);
   F.Normalize();
   return F;

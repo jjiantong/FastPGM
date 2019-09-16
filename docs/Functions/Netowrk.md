@@ -99,7 +99,7 @@ Input: Z: array of node indexes <br/>
 Output: a vector<Factor>, each element is constructed from a node in Z or Y
 
 
-## void LoadEvidence(vector<Factor> \*factors_list, Combination E, set<int> all_related_vars)
+## void LoadEvidenceIntoFactors(vector<Factor> \*factors_list, Combination E, set<int> all_related_vars)
 Load the evidence into the factors. The factors are constructed from the nodes and are not compatible with the evidence (observation).
 
 ## Factor SumProductVarElim(vector<Factor> factors_list, int \*Z, int nz)

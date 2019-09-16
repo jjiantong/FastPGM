@@ -524,11 +524,11 @@ void JunctionTree::ResetJunctionTree() {
 }
 
 void JunctionTree::LoadEvidenceAndMessagePassingUpdateJT(const Combination &E) {
-  LoadEvidence(E);
+  LoadDiscreteEvidence(E);
   MessagePassingUpdateJT();
 }
 
-//void JunctionTree::LoadEvidence(const Combination &E) {
+//void JunctionTree::LoadDiscreteEvidence(const Combination &E) {
 //  if (E.empty()) { return; }
 //  for (auto &e : E) {  // For each node's observation in E
 //    for (auto &clique_ptr : set_clique_ptr_container) {  // For each cliqueauto tmp = map_elim_var_to_clique[83];
@@ -548,14 +548,19 @@ void JunctionTree::LoadEvidenceAndMessagePassingUpdateJT(const Combination &E) {
 //    }
 //  }
 //}
-void JunctionTree::LoadEvidence(const Combination &E) {
+void JunctionTree::LoadDiscreteEvidence(const Combination &E) {
   if (E.empty()) { return; }
   for (auto &e : E) {  // For each node's observation in E
-    Clique* clique_ptr = map_elim_var_to_clique[e.first];
-    for (auto &comb : clique_ptr->set_disc_combinations) {  // Update each row of map_potentials
-      if (comb.find(e)==comb.end()) {
-        clique_ptr->map_potentials[comb] = 0;
+    if (network->FindNodePtrByIndex(e.first)->is_discrete) {
+      Clique *clique_ptr = map_elim_var_to_clique[e.first];
+      for (auto &comb : clique_ptr->set_disc_combinations) {  // Update each row of map_potentials
+        if (comb.find(e) == comb.end()) {
+          clique_ptr->map_potentials[comb] = 0;
+        }
       }
+    } else {
+      fprintf(stderr, "Error in Function [%s]", __FUNCTION__);
+      exit(1);
     }
   }
 }
@@ -584,7 +589,7 @@ void JunctionTree::PrintAllSeparatorsPotentials() const {
   cout << "==================================================" << endl;
 }
 
-Factor JunctionTree::BeliefPropagationReturnPossib(set<int> &query_indexes) {
+Factor JunctionTree::BeliefPropagationCalcuDiscreteVarMarginal(int query_index) {
 
   // The input is a set of query_indexes of variables.
   // The output is a factor representing the joint marginal of these variables.
@@ -597,14 +602,8 @@ Factor JunctionTree::BeliefPropagationReturnPossib(set<int> &query_indexes) {
   // whose size of potentials table is the smallest,
   // which can reduce the number of sum operation.
   for (auto &c : set_clique_ptr_container) {
-
     if (!c->pure_discrete) { continue; }
-
-    set<int> diff;
-    set_difference(query_indexes.begin(), query_indexes.end(),
-                   c->related_variables.begin(), c->related_variables.end(),
-                   inserter(diff, diff.begin()));
-    if (!diff.empty()) {continue;}  // If diff is not empty, then this clique does not cover all query_indexes.
+    if (c->related_variables.find(query_index)==c->related_variables.end()) {continue;}
     if (c->map_potentials.size()>=min_potential_size) {continue;}
     min_potential_size = c->map_potentials.size();
     selected_clique = c;
@@ -612,27 +611,26 @@ Factor JunctionTree::BeliefPropagationReturnPossib(set<int> &query_indexes) {
 
   if (selected_clique==nullptr) {
     fprintf(stderr, "Error in function [%s]\n"
-                    "Have not solved the case where variables appear in different cliques!", __FUNCTION__);
+                    "Variable does not appear in any clique!", __FUNCTION__);
     exit(1);
   }
 
-  set<int> diff;
-  set_difference(selected_clique->related_variables.begin(), selected_clique->related_variables.end(),
-                 query_indexes.begin(), query_indexes.end(),
-                 inserter(diff, diff.begin()));
+  set<int> other_vars = selected_clique->related_variables;
+  other_vars.erase(query_index);
+
   Factor f;
   f.SetMembers(selected_clique->related_variables, selected_clique->set_disc_combinations, selected_clique->map_potentials);
-  for (auto &index : diff) {
+  for (auto &index : other_vars) {
     f = f.SumOverVar(index);
   }
   f.Normalize();
   return f;
 
-  // todo: implement the case where the query variables appear in different cliques.
 }
 
-int JunctionTree::InferenceUsingBeliefPropagation(set<int> &query_indexes) {
-  Factor f = BeliefPropagationReturnPossib(query_indexes);
+
+int JunctionTree::InferenceUsingBeliefPropagation(int &query_index) {
+  Factor f = BeliefPropagationCalcuDiscreteVarMarginal(query_index);
   double max_prob = 0;
   Combination comb_predict;
   for (auto &comb : f.set_combinations) {
@@ -646,8 +644,7 @@ int JunctionTree::InferenceUsingBeliefPropagation(set<int> &query_indexes) {
 }
 
 double JunctionTree::TestNetReturnAccuracy(int class_var, Dataset *tst) {
-  set<int> query;
-  query.insert(class_var);
+
   cout << "==================================================" << '\n'
        << "Begin testing the trained network." << endl;
 
@@ -687,13 +684,13 @@ double JunctionTree::TestNetReturnAccuracy(int class_var, Dataset *tst) {
     delete[] e_value;
 
 //    auto jt = new JunctionTree(this);
-//    jt->LoadEvidence(E);
+//    jt->LoadDiscreteEvidence(E);
 //    jt->MessagePassingUpdateJT();
 //    int label_predict = jt->InferenceUsingBeliefPropagation(query); // The root node (label) has index of 0.
 //    delete jt;
-    LoadEvidence(E);
+    LoadDiscreteEvidence(E);
     MessagePassingUpdateJT();
-    int label_predict = InferenceUsingBeliefPropagation(query); // The root node (label) has index of 0.
+    int label_predict = InferenceUsingBeliefPropagation(class_var); // The root node (label) has index of 0.
     ResetJunctionTree();
 
     if (label_predict == tst->dataset_all_vars[i][tst->class_var_index]) {

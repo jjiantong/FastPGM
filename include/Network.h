@@ -74,7 +74,7 @@ class Network {
   Combination ConstructEvidence(int *nodes_indexes, int *observations, int num_of_observations);
 
   vector<Factor> ConstructFactors(int *Z, int nz, Node *Y);
-  void LoadEvidence(vector<Factor> *factors_list, Combination E,  set<int> all_related_vars);
+  void LoadEvidenceIntoFactors(vector<Factor> *factors_list, Combination E, set<int> all_related_vars);
 
   Factor SumProductVarElim(vector<Factor> factors_list, int *Z, int nz);
   Factor VarElimInferReturnPossib(int *elim_ord, int num_elim_ord, Combination evidence, Node *target);

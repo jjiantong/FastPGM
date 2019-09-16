@@ -32,13 +32,14 @@ class JunctionTree {
   virtual ~JunctionTree() = default;
 
   void ResetJunctionTree();
+  virtual void LoadDiscreteEvidence(const Combination &E);
   void LoadEvidenceAndMessagePassingUpdateJT(const Combination &E);
 
   void PrintAllCliquesPotentials() const;
   void PrintAllSeparatorsPotentials() const;
 
-  Factor BeliefPropagationReturnPossib(set<int> &query_indexes);
-  int InferenceUsingBeliefPropagation(set<int> &query_indexes);
+  Factor BeliefPropagationCalcuDiscreteVarMarginal(int query_index);
+  int InferenceUsingBeliefPropagation(int &query_index);
 
   double TestNetReturnAccuracy(int class_var, Dataset *tst);
 
@@ -58,7 +59,6 @@ class JunctionTree {
   void NumberTheCliquesAndSeparators();
   void AssignPotentials();
   void BackUpJunctionTree();
-  virtual void LoadEvidence(const Combination &E);
   virtual void MessagePassingUpdateJT();
   static vector<int> MinNeighbourElimOrd(int **adjac_matrix, int &num_nodes);
   static void Moralize(int **direc_adjac_matrix, int &num_nodes);

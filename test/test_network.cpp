@@ -114,9 +114,7 @@ TEST_F(NetworkTest, var_elim_and_jun_tree) {
   auto *jt = new JunctionTree(network, false);
   jt->LoadEvidenceAndMessagePassingUpdateJT(E);
 
-  set<int> indexes;
-  indexes.insert(0);
-  Factor f2 = jt->BeliefPropagationReturnPossib(indexes);
+  Factor f2 = jt->BeliefPropagationCalcuDiscreteVarMarginal(0);
   f2.PrintPotentials();
 
   for (auto &c : f1.set_combinations) {

@@ -194,11 +194,17 @@ Factor Clique::ConstructMessage() {
 
 
 void Clique::PrintPotentials() const {
-  for (const auto &potentials_key_value : map_potentials) {
-    for (const auto &vars_index_value : potentials_key_value.first) {
-      cout << '(' << vars_index_value.first << ',' << vars_index_value.second << ") ";
+  if (pure_discrete) {
+    for (const auto &potentials_key_value : map_potentials) {
+      for (const auto &vars_index_value : potentials_key_value.first) {
+        cout << '(' << vars_index_value.first << ',' << vars_index_value.second << ") ";
+      }
+      cout << "\t: " << potentials_key_value.second << endl;
     }
-    cout << "\t: " << potentials_key_value.second << endl;
+  } else {
+    fprintf(stderr, "%s not implemented for continuous clique yet!", __FUNCTION__);
+    exit(1);
+    // todo: implement
   }
   cout << "----------" << endl;
 }

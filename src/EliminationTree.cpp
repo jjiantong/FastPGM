@@ -103,25 +103,6 @@ void EliminationTree::InitCGRegressions() {
   }
 }
 
-void EliminationTree::LoadDiscreteEvidence(const Combination &E) {
-  LoadEvidence(E);
-}
-
-void EliminationTree::LoadEvidence(const Combination &E) {
-  if (E.empty()) { return; }
-  for (auto &e : E) {  // For each node's observation in E
-    if (network->FindNodePtrByIndex(e.first)->is_discrete) {
-      Clique *clique_ptr = map_elim_var_to_clique[e.first];
-      for (auto &comb : clique_ptr->set_disc_combinations) {  // Update each row of map_potentials
-        if (comb.find(e) == comb.end()) {
-          clique_ptr->map_potentials[comb] = 0;
-        }
-      }
-    } else {
-      EnterSingleContEvidence(e);
-    }
-  }
-}
 
 void EliminationTree::EnterSingleContEvidence(pair<int,double> e) {
   // todo: test correctness
@@ -220,12 +201,6 @@ void EliminationTree::MessagePassingUpdateJT() {
   strong_root->Distribute();
 }
 
-Factor EliminationTree::CalMarginalOfDiscreteVar(int var_index) {
-  set<int> query;
-  query.insert(var_index);
-  Factor f = BeliefPropagationReturnPossib(query);
-  return f;
-}
 
 CGRegression EliminationTree::CalMarginalOfContinuousVar(int var_index) {
   // Described in
