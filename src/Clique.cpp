@@ -30,12 +30,12 @@ Clique::Clique(set<Node*> set_node_ptr, int elim_var_index) {
   // In the paper, all continuous cliques' activeflags are initially set to true.
   activeflag = !pure_discrete;
 
-  set<Combination> set_of_sets;
+  set<DiscreteConfig> set_of_sets;
 
   for (auto &n : set_node_ptr) {
     related_variables.insert(n->GetNodeIndex());
     if (n->is_discrete) {
-      Combination c;
+      DiscreteConfig c;
       for (int i = 0; i < n->num_potential_vals; ++i) {
         c.insert(pair<int, int>(n->GetNodeIndex(), n->potential_vals[i]));
       }
@@ -43,7 +43,7 @@ Clique::Clique(set<Node*> set_node_ptr, int elim_var_index) {
     }
   }
 
-  set_disc_combinations = GenAllCombFromSets(&set_of_sets);
+  set_disc_configs = GenAllCombFromSets(&set_of_sets);
 
   PreInitializePotentials();
 
@@ -53,7 +53,7 @@ Clique::Clique(set<Node*> set_node_ptr, int elim_var_index) {
 
 void Clique::PreInitializePotentials() {
   if (pure_discrete) {
-    for (auto &c : set_disc_combinations) {
+    for (auto &c : set_disc_configs) {
       map_potentials[c] = 1;  // Initialize clique potential to be 1.
     }
   } else {
@@ -154,7 +154,7 @@ void Clique::Distribute(Factor f) {
 Factor Clique::SumOutExternalVars(Factor f) {
   Factor factor_of_this_clique;
   factor_of_this_clique.SetMembers(this->related_variables,
-                                   this->set_disc_combinations,
+                                   this->set_disc_configs,
                                    this->map_potentials);
 
   set<int> set_external_vars;
@@ -172,7 +172,7 @@ Factor Clique::SumOutExternalVars(Factor f) {
 
 void Clique::MultiplyWithFactorSumOverExternalVars(Factor f) {
   Factor factor_of_this_clique;
-  factor_of_this_clique.SetMembers(related_variables, set_disc_combinations, map_potentials);
+  factor_of_this_clique.SetMembers(related_variables, set_disc_configs, map_potentials);
 
   f = SumOutExternalVars(f);
 
@@ -188,7 +188,7 @@ void Clique::UpdateUseMessage(Factor f) {
 
 Factor Clique::ConstructMessage() {
   Factor message_factor;
-  message_factor.SetMembers(related_variables, set_disc_combinations, map_potentials);
+  message_factor.SetMembers(related_variables, set_disc_configs, map_potentials);
   return message_factor;
 }
 

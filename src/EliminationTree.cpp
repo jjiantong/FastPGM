@@ -177,7 +177,7 @@ void EliminationTree::EnterSingleContEvidence(pair<int,double> e) {
   }
   // I am not sure that if I should consider the case of the CG regression with no discrete tails.
   // When reach boundary, it should be conditioned on some discrete variables, in my view.
-  for (const auto &comb : c_i->set_disc_combinations) {
+  for (const auto &comb : c_i->set_disc_configs) {
     double weight = - pow((e.second-c_i->post_bag.front().map_mu[comb]), 2) / (2 * c_i->post_bag.front().map_variance[comb]);
     weight = exp(weight);
     weight /= pow((2*M_PI*c_i->post_bag.front().map_variance[comb]), 0.5);
@@ -268,7 +268,7 @@ CGRegression EliminationTree::CalMarginalOfContinuousVar(int var_index) {
   c_i->post_bag.erase(
     c_i->post_bag.begin()
   );
-  if (result.set_discrete_tails_combinations!=c_i->set_disc_combinations) {
+  if (result.set_discrete_tails_combinations!=c_i->set_disc_configs) {
     fprintf(stderr, "Error in function [%s]\n"
                     "Two set of combinations is not the same!", __FUNCTION__);
     exit(1);
@@ -281,7 +281,7 @@ CGRegression EliminationTree::CalMarginalOfContinuousVar(int var_index) {
 
   // I am not sure that if I should consider the case of the CG regression with no discrete tails.
   // When reach boundary, it should be conditioned on some discrete variables, in my view.
-  for (const auto &comb : c_i->set_disc_combinations) {
+  for (const auto &comb : c_i->set_disc_configs) {
     result.map_mu[comb] *= sep_to_root->map_potentials[comb];
     result.map_variance[comb] *= sep_to_root->map_potentials[comb];
     for (auto &coef : result.map_coefficients[comb]) {
@@ -289,7 +289,7 @@ CGRegression EliminationTree::CalMarginalOfContinuousVar(int var_index) {
     }
   }
 
-  for (const auto &comb : c_i->set_disc_combinations) {
+  for (const auto &comb : c_i->set_disc_configs) {
     result.marginal_mu += result.map_mu[comb];
     result.marginal_variance += result.map_variance[comb];
     for (int i=0; i<result.map_coefficients[comb].size(); ++i) {

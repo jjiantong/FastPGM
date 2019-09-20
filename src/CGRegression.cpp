@@ -118,7 +118,7 @@ void CGRegression::PrepareForExchange(CGRegression &Z, CGRegression &Y) {
     cout << Z.GetExpression() << '\t'
          << Y.GetExpression() << endl;
 
-    set<Combination> union_two_cgr_disc_combs
+    set<DiscreteConfig> union_two_cgr_disc_combs
             = ExpandCombFromTwoCombs(&Z.set_discrete_tails_combinations, &Y.set_discrete_tails_combinations);
 
     Z.set_discrete_tails_combinations = union_two_cgr_disc_combs;
@@ -145,9 +145,9 @@ void CGRegression::PrepareForExchange(CGRegression &Z, CGRegression &Y) {
     Y.set_all_tail_index.insert(temp_disc_tails.begin(), temp_disc_tails.end());
 
     // Expand Z
-    map<Combination, double> Z_mu_expand;
-    map<Combination, vector<double>> Z_coefficients_expand;
-    map<Combination, double> Z_variance_expand;
+    map<DiscreteConfig, double> Z_mu_expand;
+    map<DiscreteConfig, vector<double>> Z_coefficients_expand;
+    map<DiscreteConfig, double> Z_variance_expand;
     if (!z_not_have_disc_parents) {
       for (const auto &kv : Z.map_mu) {
         for (const auto &comb : union_two_cgr_disc_combs) {
@@ -170,9 +170,9 @@ void CGRegression::PrepareForExchange(CGRegression &Z, CGRegression &Y) {
     Z.map_variance = Z_variance_expand;
 
     // Expand Y
-    map<Combination, double> Y_mu_expand;
-    map<Combination, vector<double>> Y_coefficients_expand;
-    map<Combination, double> Y_variance_expand;
+    map<DiscreteConfig, double> Y_mu_expand;
+    map<DiscreteConfig, vector<double>> Y_coefficients_expand;
+    map<DiscreteConfig, double> Y_variance_expand;
     if (!y_not_have_disc_parents) {
       for (const auto &kv : Y.map_mu) {
         for (const auto &comb : union_two_cgr_disc_combs) {

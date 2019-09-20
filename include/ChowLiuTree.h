@@ -22,7 +22,7 @@
 
 using namespace std;
 
-typedef set< pair<int, int> > Combination;
+typedef set< pair<int, int> > DiscreteConfig;
 
 
 class ChowLiuTree : public Network {
@@ -46,11 +46,11 @@ class ChowLiuTree : public Network {
   void StructLearnChowLiuTreeCompData(Dataset *dts, bool print_struct=true);
 
 
-  pair<int*, int> SimplifyDefaultElimOrd(Combination evidence) override;
-  pair<int*, int> SimplifyTreeDefaultElimOrd(Combination evidence);
+  pair<int*, int> SimplifyDefaultElimOrd(DiscreteConfig evidence) override;
+  pair<int*, int> SimplifyTreeDefaultElimOrd(DiscreteConfig evidence);
 
  protected:
-  void DepthFirstTraversalUntillMeetObserved(Combination evidence, int start, set<int>& visited, set<int>& to_be_removed);
+  void DepthFirstTraversalUntillMeetObserved(DiscreteConfig evidence, int start, set<int>& visited, set<int>& to_be_removed);
   void DepthFirstTraversalToRemoveMSeparatedNodes(int start, set<int>& visited, set<int>& to_be_removed);
 
 };

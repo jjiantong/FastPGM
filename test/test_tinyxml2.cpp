@@ -53,7 +53,7 @@ TEST(XMLBIFParser, dog_problem_xmlbif) {
             node_family_out->set_children_ptrs.end());
 
 
-  Combination condition;
+  DiscreteConfig condition;
   condition.insert(pair<int,int>(node_bowel_problem->GetNodeIndex(),node_bowel_problem->vec_potential_vals[0]));
   condition.insert(pair<int,int>(node_family_out->GetNodeIndex(),node_family_out->vec_potential_vals[1]));
   EXPECT_EQ(dynamic_cast<DiscreteNode*>(node_dog_out)->map_cond_prob_table[node_dog_out->vec_potential_vals[0]][condition],0.97);

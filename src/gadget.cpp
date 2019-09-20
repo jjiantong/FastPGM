@@ -5,7 +5,7 @@
 #include "gadget.h"
 
 
-set<Combination> GenAllCombFromSets(set<Combination> *set_of_sets) {
+set<DiscreteConfig> GenAllCombFromSets(set<DiscreteConfig> *set_of_sets) {
 
   // Error Case
 //  if (set_of_sets->empty()) {
@@ -13,16 +13,16 @@ set<Combination> GenAllCombFromSets(set<Combination> *set_of_sets) {
 //    exit(1);
 //  }
 
-  if (set_of_sets->empty()) { return set<Combination>(); }
+  if (set_of_sets->empty()) { return set<DiscreteConfig>(); }
 
   auto its=set_of_sets->begin();
-  Combination to_be_inserted = *its;
-  set<Combination> result, temp_result;
+  DiscreteConfig to_be_inserted = *its;
+  set<DiscreteConfig> result, temp_result;
 
   // Base Case
   if (set_of_sets->size()==1) {
     for (auto &p : to_be_inserted){
-      Combination c;
+      DiscreteConfig c;
       c.insert(p);
       result.insert(c);
     }
@@ -33,7 +33,7 @@ set<Combination> GenAllCombFromSets(set<Combination> *set_of_sets) {
   set_of_sets->erase(its);
   temp_result = GenAllCombFromSets(set_of_sets);
   for (auto &p : to_be_inserted){
-    for (Combination c : temp_result) {
+    for (DiscreteConfig c : temp_result) {
       c.insert(p);
       result.insert(c);
     }
@@ -42,7 +42,7 @@ set<Combination> GenAllCombFromSets(set<Combination> *set_of_sets) {
 }
 
 
-set<Combination> ExpandCombFromTwoCombs(set<Combination> *one, set<Combination> *two) {
+set<DiscreteConfig> ExpandCombFromTwoCombs(set<DiscreteConfig> *one, set<DiscreteConfig> *two) {
   set<int> set_all_vars;
   for (const auto &p : *one->begin()) {
     set_all_vars.insert(p.first);
@@ -50,9 +50,9 @@ set<Combination> ExpandCombFromTwoCombs(set<Combination> *one, set<Combination> 
   for (const auto &p : *two->begin()) {
     set_all_vars.insert(p.first);
   }
-  map<int, Combination> map_var_to_combs_domain;
+  map<int, DiscreteConfig> map_var_to_combs_domain;
   for (const auto &v : set_all_vars) {
-    map_var_to_combs_domain[v] = Combination();
+    map_var_to_combs_domain[v] = DiscreteConfig();
   }
   for (const auto &c : *one) {
     for (const auto &p : c) {
@@ -64,7 +64,7 @@ set<Combination> ExpandCombFromTwoCombs(set<Combination> *one, set<Combination> 
       map_var_to_combs_domain[p.first].insert(p);
     }
   }
-  set<Combination> set_of_sets;
+  set<DiscreteConfig> set_of_sets;
   for (const auto &kv : map_var_to_combs_domain) {
     set_of_sets.insert(kv.second);
   }
@@ -72,7 +72,7 @@ set<Combination> ExpandCombFromTwoCombs(set<Combination> *one, set<Combination> 
 }
 
 
-bool EachFirstIsInSecond(const Combination *first, const Combination *second) {
+bool EachFirstIsInSecond(const DiscreteConfig *first, const DiscreteConfig *second) {
   for (const auto &f : *first) {
     if (second->find(f)==second->end()) return false;
   }
@@ -80,7 +80,7 @@ bool EachFirstIsInSecond(const Combination *first, const Combination *second) {
 }
 
 
-bool FirstCompatibleSecond(const Combination *first, const Combination *second) {
+bool FirstCompatibleSecond(const DiscreteConfig *first, const DiscreteConfig *second) {
   for (const auto &f : *first) {
     for (const auto &s : *second) {
       if (f.first==s.first && f.second!=s.second) return false;
@@ -90,7 +90,7 @@ bool FirstCompatibleSecond(const Combination *first, const Combination *second) 
 }
 
 
-bool Conflict(const Combination *first, const Combination *second) {
+bool Conflict(const DiscreteConfig *first, const DiscreteConfig *second) {
   for (const auto &f : *first) {
     for (const auto &s : *second) {
       if (f.first==s.first && f.second!=s.second) {

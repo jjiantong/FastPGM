@@ -19,10 +19,10 @@ Third, add arrows in the spanning tree, which is to set the parents and children
 ## void LearnParamsKnowStructCompData(const Dataset \*trn)
 Learn parameters of the network, provided with known structure and complete data.
 
-## pair<int\*, int> SimplifyDefaultElimOrd(Combination evidence) override
+## pair<int\*, int> SimplifyDefaultElimOrd(DiscreteConfig evidence) override
 Call function `SimplifyTreeDefaultElimOrd`.
 
-## pair<int\*, int> SimplifyTreeDefaultElimOrd(Combination evidence)
+## pair<int\*, int> SimplifyTreeDefaultElimOrd(DiscreteConfig evidence)
 The default elimination ordering of a Chow-Liu tree is the reversed topological
 ordering of the tree. Given some evidence (observation), some nodes in default
 elimination will be summed out while not contribute any useful information.
@@ -30,7 +30,7 @@ Thus, we can simply remove these nodes. The algorithm is implemented according t
 *[Zhang and Poole - 1994 - A simple approach to Bayesian network computations.pdf]*.
 First, remove all barren nodes. Second, remove all m-separated nodes.
 
-## void DepthFirstTraversalUntillMeetObserved(Combination evidence, int start, set<int>& visited, set<int>& to_be_removed)
+## void DepthFirstTraversalUntillMeetObserved(DiscreteConfig evidence, int start, set<int>& visited, set<int>& to_be_removed)
 Used by function `SimplifyTreeDefaultElimOrd` in the process of removing all m-separated nodes.
 
 ## void DepthFirstTraversalToRemoveMSeparatedNodes(int start, set<int>& visited, set<int>& to_be_removed)

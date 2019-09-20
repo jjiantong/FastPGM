@@ -14,7 +14,7 @@
 #include "Factor.h"
 #include "CGRegression.h"
 
-typedef set< pair<int, int> > Combination;
+typedef set< pair<int, int> > DiscreteConfig;
 
 class Clique {
 
@@ -25,8 +25,8 @@ class Clique {
   int clique_size;
   bool pure_discrete;
   set<int> related_variables;
-  set<Combination> set_disc_combinations;
-  map<Combination, double> map_potentials;
+  set<DiscreteConfig> set_disc_configs;
+  map<DiscreteConfig, double> map_potentials;
   set<Clique*> set_neighbours_ptr;
 
   // In junction tree algorithm,

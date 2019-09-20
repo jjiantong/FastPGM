@@ -6,8 +6,8 @@
 
 
 void Factor::SetMembers(set<int> rv,
-               set<Combination> sc,
-               map<Combination, double> mp) {
+               set<DiscreteConfig> sc,
+               map<DiscreteConfig, double> mp) {
   this->related_variables = rv;
   this->set_combinations = sc;
   this->map_potentials = mp;
@@ -32,7 +32,7 @@ void Factor::ConstructFactor(DiscreteNode *node) {
 
   set<pair<int,int>> set_pair_temp;
   for (int i=0; i<node->num_potential_vals; ++i) {
-    Combination comb_temp;
+    DiscreteConfig comb_temp;
     pair<int, int> pair_temp;
     pair_temp.first = node_index;
     pair_temp.second = node->potential_vals[i];
@@ -42,7 +42,7 @@ void Factor::ConstructFactor(DiscreteNode *node) {
   // If this node has no parents.
   if (node->set_parents_ptrs.empty()) {
     for (auto &p : set_pair_temp) {
-      Combination c;
+      DiscreteConfig c;
       c.insert(p);
       set_combinations.insert(c);
       map_potentials[c] = dynamic_cast<DiscreteNode*>(node)->map_marg_prob_table[p.second];
@@ -56,7 +56,7 @@ void Factor::ConstructFactor(DiscreteNode *node) {
   }
   for (auto &p : set_pair_temp) {
     for (auto it_pc=node->set_discrete_parents_combinations.begin(); it_pc!=node->set_discrete_parents_combinations.end(); ++it_pc) {
-      Combination c = (*it_pc);
+      DiscreteConfig c = (*it_pc);
       c.insert(p);
       set_combinations.insert(c);
       map_potentials[c] = dynamic_cast<DiscreteNode*>(node)->map_cond_prob_table[p.second][*it_pc];
@@ -85,7 +85,7 @@ Factor Factor::MultiplyWithFactor(Factor second_factor) {
       // then these two combinations can not form a legal entry.
       if (!FirstCompatibleSecond(&first, &second)) continue;
 
-      Combination new_comb;
+      DiscreteConfig new_comb;
       new_comb.insert(first.begin(),first.end());
       new_comb.insert(second.begin(),second.end());
       newFactor.set_combinations.insert(new_comb);

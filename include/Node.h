@@ -15,7 +15,6 @@
 
 using namespace std;
 
-typedef set< pair<int, int> > Combination;
 
 class Node {
 
@@ -38,7 +37,7 @@ class Node {
 
   set<Node*> set_parents_ptrs;
   set<Node*> set_children_ptrs;
-  set<Combination> set_discrete_parents_combinations;
+  set<DiscreteConfig> set_discrete_parents_combinations;
 
   Node() = default;
   explicit Node(int index);

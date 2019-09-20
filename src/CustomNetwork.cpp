@@ -12,7 +12,7 @@ CustomNetwork::CustomNetwork(bool pure_disc) {
   this->pure_discrete = pure_disc;
 }
 
-pair<int*, int> CustomNetwork::SimplifyDefaultElimOrd(Combination evidence) {
+pair<int*, int> CustomNetwork::SimplifyDefaultElimOrd(DiscreteConfig evidence) {
   return {default_elim_ord, num_nodes-1};
 }
 

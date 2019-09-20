@@ -15,11 +15,9 @@
 
 using namespace std;
 
-typedef set< pair<int, int> > Combination;
-
 class DiscreteNode : public Node {
  public:
-  map<int, map<Combination, double> >  map_cond_prob_table;
+  map<int, map<DiscreteConfig, double> >  map_cond_prob_table;
   map<int, double>  map_marg_prob_table;
 
   DiscreteNode();
@@ -30,7 +28,7 @@ class DiscreteNode : public Node {
   void AddParent(Node *node_ptr) override;
   void ClearParams() override;
   void PrintProbabilityTable();
-  int SampleNodeGivenParents(Combination evidence);
+  int SampleNodeGivenParents(DiscreteConfig evidence);
 };
 
 

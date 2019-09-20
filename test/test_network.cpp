@@ -74,8 +74,8 @@ TEST_F(NetworkTest, DISABLED_approx_inference_accuracy) {
   //EXPECT_GT(acc, 0.6);
 }
 
-TEST_F(NetworkTest, DISABLED_gibbs_samples_to_libsvm_file) {
-  vector<Combination> samples = network->DrawSamplesByGibbsSamp(1e4,1e5);
+TEST_F(NetworkTest, gibbs_samples_to_libsvm_file) {
+  vector<DiscreteConfig> samples = network->DrawSamplesByGibbsSamp(1e4, 1e5);
   string sample_file = "./gibbs_samples_to_LIBSVM_file.txt";
   trainer->SamplesToLIBSVMFile(samples, sample_file);
 
@@ -96,7 +96,7 @@ TEST_F(NetworkTest, DISABLED_gibbs_samples_to_libsvm_file) {
 }
 
 TEST_F(NetworkTest, var_elim_and_jun_tree) {
-  Combination E;
+  DiscreteConfig E;
   E.insert(pair<int,int>(50,1));
   E.insert(pair<int,int>(51,1));
   E.insert(pair<int,int>(99,1));
@@ -186,7 +186,7 @@ TEST_F(NetworkTest, DISABLED_sampling_node) {
   //Factor fac(n_39);
   //fac.PrintPotentials();
 
-  Combination e;
+  DiscreteConfig e;
   e.insert(pair<int,int>(0,-1));
   int count_0 = 0;
   for (int i=0; i<10000; ++i) {
@@ -201,16 +201,16 @@ TEST_F(NetworkTest, DISABLED_sampling_node) {
 }
 
 TEST_F(NetworkTest, DISABLED_sampling_network) {
-  Combination samp = network->ProbLogicSampleNetwork();
+  DiscreteConfig samp = network->ProbLogicSampleNetwork();
 }
 
-TEST(CustomNetworkTest, DISABLED_sampling_dog_net_to_csv_file_and_relearn) {
+TEST(CustomNetworkTest, sampling_dog_net_to_csv_file_and_relearn) {
 
   string custom_file = "../../data/interchange-format-file/dog-problem.xml";
   auto custom_net = new CustomNetwork(true);
   custom_net->GetNetFromXMLBIFFile(custom_file);
 
-  vector<Combination> samples = custom_net->DrawSamplesByGibbsSamp(2e4,2e5);
+  vector<DiscreteConfig> samples = custom_net->DrawSamplesByGibbsSamp(2e4, 1e5);
   string sample_file = "./gibbs_samples_to_CSV_file.txt";
   auto trainer = new Dataset();
   trainer->SamplesToCSVFile(samples, sample_file);

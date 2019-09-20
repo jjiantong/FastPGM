@@ -25,7 +25,7 @@ class ScoreTest : public ::testing::Test {
     incomplete_dog_net->GetNetFromXMLBIFFile("../../data/interchange-format-file/incomplete-dog-problem.xml");
     redundant_dog_net->GetNetFromXMLBIFFile("../../data/interchange-format-file/redundant-dog-problem.xml");
 
-    vector<Combination> samples = origin_dog_net->DrawSamplesByProbLogiSamp(5000);
+    vector<DiscreteConfig> samples = origin_dog_net->DrawSamplesByProbLogiSamp(5000);
     trainer = new Dataset();
     string samp_to_file = "origin-dog-net-samples-to-libsvm.txt";
     trainer->SamplesToLIBSVMFile(samples, samp_to_file);

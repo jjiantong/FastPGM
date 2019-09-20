@@ -59,11 +59,11 @@ void Node::RemoveParent(Node *p) {
  */
 void Node::GenDiscParCombs() {
   // Preprocess. Construct set of sets.
-  set<Combination> set_of_sets;
+  set<DiscreteConfig> set_of_sets;
   if (set_parents_ptrs.empty()) return;
   for (const auto par_ptr : set_parents_ptrs) {
     if (!par_ptr->is_discrete) { continue; }
-    Combination cb;
+    DiscreteConfig cb;
     pair<int, int> ele;
     for (int i=0; i<par_ptr->num_potential_vals; i++) {
       ele.first = par_ptr->node_index;

@@ -17,7 +17,6 @@
 
 using namespace std;
 
-typedef set< pair<int, int> > Combination;
 
 class Dataset {
 
@@ -36,11 +35,13 @@ class Dataset {
   Dataset();
   void LoadLIBSVMDataAutoDetectConfig(string data_file_path);
   void ConvertLIBSVMVectorDatasetIntoArrayDataset();
-  void SamplesToLIBSVMFile(vector<Combination> &samples, string &file) const;
+  void SamplesToLIBSVMFile(vector<DiscreteConfig> &samples, string &file) const;
+  void SamplesToLIBSVMFile(vector<Configuration> &samples, string &file) const;
 
   void LoadCSVDataAutoDetectConfig(string data_file_path);
   void ConvertCSVVectorDatasetIntoArrayDataset();
-  void SamplesToCSVFile(vector<Combination> &samples, string &file) const;
+  void SamplesToCSVFile(vector<DiscreteConfig> &samples, string &file) const;
+  void SamplesToCSVFile(vector<Configuration> &samples, string &file) const;
 };
 
 

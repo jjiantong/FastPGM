@@ -76,8 +76,7 @@ void DiscreteNode::PrintProbabilityTable() {
 
     for(int i=0; i<num_potential_vals; ++i) {    // For each row of CPT
       int query = potential_vals[i];
-      for (auto itParCom = set_discrete_parents_combinations.begin(); itParCom != set_discrete_parents_combinations.end(); ++itParCom) {  // For each column of CPT
-        Combination comb = (*itParCom);
+      for (const auto &comb : set_discrete_parents_combinations) {  // For each column of CPT
         string condition;
         for (auto &p : comb) {
           condition += ("\"" + to_string(p.first) + "\"=" + to_string(p.second));
@@ -89,14 +88,14 @@ void DiscreteNode::PrintProbabilityTable() {
   }
 }
 
-int DiscreteNode::SampleNodeGivenParents(Combination evidence) {
+int DiscreteNode::SampleNodeGivenParents(DiscreteConfig evidence) {
   // The evidence should contain all parents of this node.
   // The evidence about other nodes (including children) are IGNORED!!!
   set<int> set_par_indexes;
   for (auto &par : set_parents_ptrs) {
     set_par_indexes.insert(par->GetNodeIndex());
   }
-  Combination par_evi;
+  DiscreteConfig par_evi;
   for (auto &e : evidence) {
     if (set_par_indexes.find(e.first)!=set_par_indexes.end()) {
       par_evi.insert(e);

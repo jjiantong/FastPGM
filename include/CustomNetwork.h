@@ -20,7 +20,7 @@
 
 using namespace std;
 
-typedef set< pair<int, int> > Combination;
+typedef set< pair<int, int> > DiscreteConfig;
 
 class CustomNetwork : public Network {
  public:
@@ -28,7 +28,7 @@ class CustomNetwork : public Network {
   CustomNetwork();
   explicit CustomNetwork(bool pure_disc);
 
-  pair<int*, int> SimplifyDefaultElimOrd(Combination evidence) override;
+  pair<int*, int> SimplifyDefaultElimOrd(DiscreteConfig evidence) override;
 
   void GetNetFromXMLBIFFile(string file_path);
 

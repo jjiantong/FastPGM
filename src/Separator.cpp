@@ -31,8 +31,8 @@ void Separator::UpdateUseMessage(Factor f) {
 
 Factor Separator::ConstructMessage() {
   Factor f;
-  f.SetMembers(related_variables, set_disc_combinations, map_potentials);
-  for (auto &comb : set_disc_combinations) {
+  f.SetMembers(related_variables, set_disc_configs, map_potentials);
+  for (auto &comb : set_disc_configs) {
     if (map_old_potentials[comb]==0) {
       f.map_potentials[comb] = 1;
     } else {

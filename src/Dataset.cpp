@@ -171,23 +171,52 @@ void Dataset::LoadCSVDataAutoDetectConfig(string data_file_path) {
 }
 
 
-void Dataset::SamplesToLIBSVMFile(vector<Combination> &samples, string &file) const {
+void Dataset::SamplesToLIBSVMFile(vector<DiscreteConfig> &samples, string &file) const {
+  vector<Configuration> smps;
+  for (const auto &samp : samples) {
+    Configuration cfg;
+    for (const auto &p : samp) {
+      VarVal vv;
+      vv.first = p.first;
+      vv.second.SetInt(p.second);
+      cfg.insert(vv);
+    }
+    smps.push_back(cfg);
+  }
+  SamplesToLIBSVMFile(smps, file);
+}
+
+
+void Dataset::SamplesToLIBSVMFile(vector<Configuration> &samples, string &file) const {
   FILE *f;
   f = fopen(file.c_str(), "w");
   for (auto &smp : samples) {
     string string_to_write = "";
 
-    for (auto &var_and_val : smp) {
+    for (auto &var_val : smp) {
       // The following codes should not use "+=", because the order matters.
-      if(var_and_val.first==0) {
-        string label = var_and_val.second==1 ? "+1" : "-1";
+      int var = var_val.first;
+      Value val = var_val.second;
+      if(var == 0) {
+        string label;
+        if (val.UseInt()) {
+          label = to_string(val.GetInt());
+        } else {
+          label = to_string(val.GetFloat());
+        }
         string_to_write = label + " " + string_to_write;
       } else {
-        if (var_and_val.second!=0) {
-          string_to_write = string_to_write
-                            + to_string(var_and_val.first) + ":"
-                            + to_string(var_and_val.second) + " ";
+        string feature_value = "";
+        if (val.UseInt()) {
+          if (val.GetInt() != 0) {
+            feature_value = to_string(var) + ":" + to_string(val.GetInt()) + " ";
+          }
+        } else {
+          if (val.GetFloat() != 0) {
+            feature_value = to_string(var) + ":" + to_string(val.GetFloat()) + " ";
+          }
         }
+        string_to_write += feature_value;
       }
     }
     fprintf(f, "%s\n", string_to_write.c_str());
@@ -195,9 +224,26 @@ void Dataset::SamplesToLIBSVMFile(vector<Combination> &samples, string &file) co
   fclose(f);
 }
 
-void Dataset::SamplesToCSVFile(vector<Combination> &samples, string &file) const {
+
+void Dataset::SamplesToCSVFile(vector<DiscreteConfig> &samples, string &file) const {
+  vector<Configuration> smps;
+  for (const auto &samp : samples) {
+    Configuration cfg;
+    for (const auto &p : samp) {
+      VarVal vv;
+      vv.first = p.first;
+      vv.second.SetInt(p.second);
+      cfg.insert(vv);
+    }
+    smps.push_back(cfg);
+  }
+  SamplesToCSVFile(smps, file);
+}
+
+
+void Dataset::SamplesToCSVFile(vector<Configuration> &samples, string &file) const {
   // Detect configuration.
-  Combination &c = samples.front();
+  auto &c = samples.front();
   auto it = c.end();
   int max_index = (*(--it)).first;
 
@@ -214,7 +260,11 @@ void Dataset::SamplesToCSVFile(vector<Combination> &samples, string &file) const
   for (auto &smp : samples) {
     string string_to_write = "";
     for (auto &var_and_val : smp) {
-      string_to_write += to_string(var_and_val.second) + ',';
+      if (var_and_val.second.UseInt()) {
+        string_to_write += to_string(var_and_val.second.GetInt()) + ',';
+      } else {
+        string_to_write += to_string(var_and_val.second.GetFloat()) + ',';
+      }
     }
     string_to_write = string_to_write.substr(0, string_to_write.size()-1);   // No comma at the last character.
     fprintf(f, "%s\n", string_to_write.c_str());
@@ -222,4 +272,3 @@ void Dataset::SamplesToCSVFile(vector<Combination> &samples, string &file) const
 
   fclose(f);
 }
-#pragma clang diagnostic pop

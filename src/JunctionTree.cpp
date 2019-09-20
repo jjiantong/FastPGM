@@ -523,17 +523,17 @@ void JunctionTree::ResetJunctionTree() {
   }
 }
 
-void JunctionTree::LoadEvidenceAndMessagePassingUpdateJT(const Combination &E) {
+void JunctionTree::LoadEvidenceAndMessagePassingUpdateJT(const DiscreteConfig &E) {
   LoadDiscreteEvidence(E);
   MessagePassingUpdateJT();
 }
 
-//void JunctionTree::LoadDiscreteEvidence(const Combination &E) {
+//void JunctionTree::LoadDiscreteEvidence(const DiscreteConfig &E) {
 //  if (E.empty()) { return; }
 //  for (auto &e : E) {  // For each node's observation in E
 //    for (auto &clique_ptr : set_clique_ptr_container) {  // For each cliqueauto tmp = map_elim_var_to_clique[83];
 //      if (clique_ptr->related_variables.find(e.first)!=clique_ptr->related_variables.end()) {  // If this clique is related to this node
-//        for (auto &comb : clique_ptr->set_disc_combinations) {  // Update each row of map_potentials
+//        for (auto &comb : clique_ptr->set_disc_configs) {  // Update each row of map_potentials
 //          if (comb.find(e)==comb.end()) {
 //            clique_ptr->map_potentials[comb] = 0;
 //          }
@@ -548,12 +548,12 @@ void JunctionTree::LoadEvidenceAndMessagePassingUpdateJT(const Combination &E) {
 //    }
 //  }
 //}
-void JunctionTree::LoadDiscreteEvidence(const Combination &E) {
+void JunctionTree::LoadDiscreteEvidence(const DiscreteConfig &E) {
   if (E.empty()) { return; }
   for (auto &e : E) {  // For each node's observation in E
     if (network->FindNodePtrByIndex(e.first)->is_discrete) {
       Clique *clique_ptr = map_elim_var_to_clique[e.first];
-      for (auto &comb : clique_ptr->set_disc_combinations) {  // Update each row of map_potentials
+      for (auto &comb : clique_ptr->set_disc_configs) {  // Update each row of map_potentials
         if (comb.find(e) == comb.end()) {
           clique_ptr->map_potentials[comb] = 0;
         }
@@ -619,7 +619,7 @@ Factor JunctionTree::BeliefPropagationCalcuDiscreteVarMarginal(int query_index) 
   other_vars.erase(query_index);
 
   Factor f;
-  f.SetMembers(selected_clique->related_variables, selected_clique->set_disc_combinations, selected_clique->map_potentials);
+  f.SetMembers(selected_clique->related_variables, selected_clique->set_disc_configs, selected_clique->map_potentials);
   for (auto &index : other_vars) {
     f = f.SumOverVar(index);
   }
@@ -632,7 +632,7 @@ Factor JunctionTree::BeliefPropagationCalcuDiscreteVarMarginal(int query_index) 
 int JunctionTree::InferenceUsingBeliefPropagation(int &query_index) {
   Factor f = BeliefPropagationCalcuDiscreteVarMarginal(query_index);
   double max_prob = 0;
-  Combination comb_predict;
+  DiscreteConfig comb_predict;
   for (auto &comb : f.set_combinations) {
     if (f.map_potentials[comb] > max_prob) {
       max_prob = f.map_potentials[comb];
@@ -678,7 +678,7 @@ double JunctionTree::TestNetReturnAccuracy(int class_var, Dataset *tst) {
       e_index[j<tst->class_var_index ? j : j-1] = j;
       e_value[j<tst->class_var_index ? j : j-1] = tst->dataset_all_vars[i][j];
     }
-    Combination E = network->ConstructEvidence(e_index, e_value, e_num);
+    DiscreteConfig E = network->ConstructEvidence(e_index, e_value, e_num);
 
     delete[] e_index;
     delete[] e_value;

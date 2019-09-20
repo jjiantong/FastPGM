@@ -273,12 +273,12 @@ void ChowLiuTree::StructLearnChowLiuTreeCompData(Dataset *dts, bool print_struct
 }
 
 
-pair<int*, int> ChowLiuTree::SimplifyDefaultElimOrd(Combination evidence) {
+pair<int*, int> ChowLiuTree::SimplifyDefaultElimOrd(DiscreteConfig evidence) {
   return SimplifyTreeDefaultElimOrd(evidence);
 }
 
 
-pair<int*, int> ChowLiuTree::SimplifyTreeDefaultElimOrd(Combination evidence) {
+pair<int*, int> ChowLiuTree::SimplifyTreeDefaultElimOrd(DiscreteConfig evidence) {
 
   // Remove all the barren nodes
   set<int> to_be_removed;
@@ -325,7 +325,7 @@ pair<int*, int> ChowLiuTree::SimplifyTreeDefaultElimOrd(Combination evidence) {
 }
 
 
-void ChowLiuTree::DepthFirstTraversalUntillMeetObserved(Combination evidence, int start, set<int>& visited, set<int>& to_be_removed) {
+void ChowLiuTree::DepthFirstTraversalUntillMeetObserved(DiscreteConfig evidence, int start, set<int>& visited, set<int>& to_be_removed) {
 
   // Base case
   if (visited.find(start)!=visited.end()) return;
@@ -365,5 +365,3 @@ void ChowLiuTree::DepthFirstTraversalToRemoveMSeparatedNodes(int start, set<int>
   }
 
 }
-
-#pragma clang diagnostic pop

@@ -24,8 +24,6 @@
 
 using namespace std;
 
-typedef set< pair<int, int> > Combination;
-
 
 class Network {
 
@@ -69,19 +67,19 @@ class Network {
   int** ConvertDAGNetworkToAdjacencyMatrix();
 
 
-  virtual pair<int*, int> SimplifyDefaultElimOrd(Combination) = 0;
+  virtual pair<int*, int> SimplifyDefaultElimOrd(DiscreteConfig) = 0;
 
-  Combination ConstructEvidence(int *nodes_indexes, int *observations, int num_of_observations);
+  DiscreteConfig ConstructEvidence(int *nodes_indexes, int *observations, int num_of_observations);
 
   vector<Factor> ConstructFactors(int *Z, int nz, Node *Y);
-  void LoadEvidenceIntoFactors(vector<Factor> *factors_list, Combination E, set<int> all_related_vars);
+  void LoadEvidenceIntoFactors(vector<Factor> *factors_list, DiscreteConfig E, set<int> all_related_vars);
 
   Factor SumProductVarElim(vector<Factor> factors_list, int *Z, int nz);
-  Factor VarElimInferReturnPossib(int *elim_ord, int num_elim_ord, Combination evidence, Node *target);
-  Factor VarElimInferReturnPossib(Combination evidence, Node *target);
+  Factor VarElimInferReturnPossib(int *elim_ord, int num_elim_ord, DiscreteConfig evidence, Node *target);
+  Factor VarElimInferReturnPossib(DiscreteConfig evidence, Node *target);
 
-  int PredictUseVarElimInfer(int *Z, int nz, Combination E, int Y_index);
-  int PredictUseVarElimInfer(Combination E, int Y_index);
+  int PredictUseVarElimInfer(int *Z, int nz, DiscreteConfig E, int Y_index);
+  int PredictUseVarElimInfer(DiscreteConfig E, int Y_index);
 
   double TestNetReturnAccuracy(Dataset *dts);
   double TestNetByApproxInferReturnAccuracy(Dataset *dts, int num_samp);
@@ -90,25 +88,25 @@ class Network {
 
   // Probabilistic logic sampling is a method
   // proposed by Max Henrion at 1988.
-  Combination ProbLogicSampleNetwork();
+  DiscreteConfig ProbLogicSampleNetwork();
 
 
-  vector<pair<Combination, double>> DrawSamplesByLikelihoodWeighting(const Combination &evidence, int num_samp);
-  Factor CalcuMargWithLikelihoodWeightingSamples(const vector<pair<Combination, double>> &samples, const int &node_index);
-  int ApproxinferByLikelihoodWeighting(Combination e, const int &node_index, const int &num_samp);
+  vector<pair<DiscreteConfig, double>> DrawSamplesByLikelihoodWeighting(const DiscreteConfig &evidence, int num_samp);
+  Factor CalcuMargWithLikelihoodWeightingSamples(const vector<pair<DiscreteConfig, double>> &samples, const int &node_index);
+  int ApproxinferByLikelihoodWeighting(DiscreteConfig e, const int &node_index, const int &num_samp);
 
 
-  int SampleNodeGivenMarkovBlanketReturnValIndex(Node *node_ptr, Combination markov_blanket);
+  int SampleNodeGivenMarkovBlanketReturnValIndex(Node *node_ptr, DiscreteConfig markov_blanket);
 
-  vector<Combination> DrawSamplesByProbLogiSamp(int num_samp);
-  vector<Combination> DrawSamplesByGibbsSamp(int num_samp, int num_burn_in);
+  vector<DiscreteConfig> DrawSamplesByProbLogiSamp(int num_samp);
+  vector<DiscreteConfig> DrawSamplesByGibbsSamp(int num_samp, int num_burn_in);
 
-  int ApproxInferByProbLogiRejectSamp(Combination e, Node *node, vector<Combination> &samples);
-  int ApproxInferByProbLogiRejectSamp(Combination e, int node_index, vector<Combination> &samples);
+  int ApproxInferByProbLogiRejectSamp(DiscreteConfig e, Node *node, vector<DiscreteConfig> &samples);
+  int ApproxInferByProbLogiRejectSamp(DiscreteConfig e, int node_index, vector<DiscreteConfig> &samples);
 
  protected:
   vector<int> GenTopoOrd();
-  pair<Combination, double> DrawOneLikelihoodWeightingSample(const Combination &evidence);
+  pair<DiscreteConfig, double> DrawOneLikelihoodWeightingSample(const DiscreteConfig &evidence);
   set<int> GetMarkovBlanketIndexesOfNode(Node *node_ptr);
 };
 

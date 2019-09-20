@@ -16,7 +16,7 @@ to be 1 if it is 1 in the `vector` representation.
 ## void LoadCSVDataAutoDetectConfig(string data_file_path)
 As the name suggests.
 
-## void SamplesToLIBSVMFile(vector<Combination> &samples, string file)
+## void SamplesToLIBSVMFile(vector<DiscreteConfig> &samples, string file)
 Store the drawn samples as LIBSVM file (like a1a).
 
 Input: a `vector` of drawn samples

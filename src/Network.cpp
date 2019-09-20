@@ -272,8 +272,8 @@ void Network::LearnParamsKnowStructCompData(const Dataset *dts, bool print_param
 
       } else {  // If the node has parents.
 
-        map<int, map<Combination, double> > *CPT = &(dynamic_cast<DiscreteNode*>(this_node)->map_cond_prob_table);
-        set<Combination> *ptr_set_par_combs = &(this_node->set_discrete_parents_combinations);
+        map<int, map<DiscreteConfig, double> > *CPT = &(dynamic_cast<DiscreteNode*>(this_node)->map_cond_prob_table);
+        set<DiscreteConfig> *ptr_set_par_combs = &(this_node->set_discrete_parents_combinations);
         for (auto &par_comb : *ptr_set_par_combs) {    // For each column in CPT. Because the sum over column of CPT must be 1.
           int denominator = 0;
           for (int s = 0; s < dts->num_instance; ++s) {
@@ -329,8 +329,8 @@ void Network::ClearParams() {
 }
 
 
-Combination Network::ConstructEvidence(int *nodes_indexes, int *observations, int num_of_observations) {
-  Combination result;
+DiscreteConfig Network::ConstructEvidence(int *nodes_indexes, int *observations, int num_of_observations) {
+  DiscreteConfig result;
   pair<int, int> p;
   for (int i=0; i<num_of_observations; ++i) {
     p.first = nodes_indexes[i];
@@ -352,7 +352,7 @@ vector<Factor> Network::ConstructFactors(int *Z, int nz, Node *Y) {
 }
 
 
-void Network::LoadEvidenceIntoFactors(vector<Factor> *factors_list, Combination E, set<int> all_related_vars) {
+void Network::LoadEvidenceIntoFactors(vector<Factor> *factors_list, DiscreteConfig E, set<int> all_related_vars) {
 
   // I do not know why this function cannot use omp to parallel.
   // If I set number of threads more than 1, the accuracy will decrease!
@@ -463,7 +463,7 @@ Factor Network::SumProductVarElim(vector<Factor> factors_list, int *Z, int nz) {
 }
 
 
-Factor Network::VarElimInferReturnPossib(int *Z, int nz, Combination E, Node *Y) {
+Factor Network::VarElimInferReturnPossib(int *Z, int nz, DiscreteConfig E, Node *Y) {
   // Z is the array of variable elimination order.
   // E is the evidences.
   vector<Factor> factorsList = ConstructFactors(Z, nz, Y);
@@ -490,7 +490,7 @@ Factor Network::VarElimInferReturnPossib(int *Z, int nz, Combination E, Node *Y)
 }
 
 
-Factor Network::VarElimInferReturnPossib(Combination E, Node *Y) {
+Factor Network::VarElimInferReturnPossib(DiscreteConfig E, Node *Y) {
   pair<int*, int> simplified_elimination_order = SimplifyDefaultElimOrd(E);
   return this->VarElimInferReturnPossib(
                   simplified_elimination_order.first,
@@ -501,11 +501,11 @@ Factor Network::VarElimInferReturnPossib(Combination E, Node *Y) {
 }
 
 
-int Network::PredictUseVarElimInfer(int *Z, int nz, Combination E, int Y_index) {
+int Network::PredictUseVarElimInfer(int *Z, int nz, DiscreteConfig E, int Y_index) {
   Node *Y = FindNodePtrByIndex(Y_index);
   Factor F = VarElimInferReturnPossib(Z, nz, E, Y);
   double max_prob = 0;
-  Combination comb_predict;
+  DiscreteConfig comb_predict;
   for (auto &comb : F.set_combinations) {
     if (F.map_potentials[comb] > max_prob) {
       max_prob = F.map_potentials[comb];
@@ -517,12 +517,12 @@ int Network::PredictUseVarElimInfer(int *Z, int nz, Combination E, int Y_index) 
 }
 
 
-int Network::PredictUseVarElimInfer(Combination E, int Y_index) {
+int Network::PredictUseVarElimInfer(DiscreteConfig E, int Y_index) {
   Node *Y = FindNodePtrByIndex(Y_index);
   Factor F = VarElimInferReturnPossib(E, Y);
 
   double max_prob = 0;
-  Combination comb_predict;
+  DiscreteConfig comb_predict;
   for (auto &comb : F.set_combinations) {
     if (F.map_potentials[comb] > max_prob) {
       max_prob = F.map_potentials[comb];
@@ -568,7 +568,7 @@ double Network::TestNetReturnAccuracy(Dataset *dts) {
       e_index[j < dts->class_var_index ? j : j - 1] = j;
       e_value[j < dts->class_var_index ? j : j - 1] = dts->dataset_all_vars[i][j];
     }
-    Combination E = ConstructEvidence(e_index, e_value, e_num);
+    DiscreteConfig E = ConstructEvidence(e_index, e_value, e_num);
     int label_predict = PredictUseVarElimInfer(E, 0); // The root node (label) has index of 0.
     if (label_predict == dts->dataset_all_vars[i][dts->class_var_index]) {
       #pragma omp critical
@@ -604,7 +604,7 @@ double Network::TestNetByApproxInferReturnAccuracy(Dataset *dts, int num_samp) {
 
   int num_of_correct=0, num_of_wrong=0, m=dts->num_instance, m20= m / 20, progress=0;
 
-  vector<Combination> samples = this->DrawSamplesByProbLogiSamp(10000);
+  vector<DiscreteConfig> samples = this->DrawSamplesByProbLogiSamp(10000);
 
 //  #pragma omp parallel for
   for (int i=0; i<m; ++i) {  // For each sample in test set
@@ -624,7 +624,7 @@ double Network::TestNetByApproxInferReturnAccuracy(Dataset *dts, int num_samp) {
       e_index[j < dts->class_var_index ? j : j - 1] = j + 1;
       e_value[j < dts->class_var_index ? j : j - 1] = dts->dataset_all_vars[i][j];
     }
-    Combination E = ConstructEvidence(e_index, e_value, e_num);
+    DiscreteConfig E = ConstructEvidence(e_index, e_value, e_num);
     int label_predict = ApproxInferByProbLogiRejectSamp(E, 0, samples); // The root node (label) has index of 0.
     if (label_predict == dts->dataset_all_vars[i][dts->class_var_index]) {
       ++num_of_correct;
@@ -668,7 +668,7 @@ double Network::TestAccuracyByLikelihoodWeighting(Dataset *dts, int num_samp) {
       e_index[j < dts->class_var_index ? j : j - 1] = j;
       e_value[j < dts->class_var_index ? j : j - 1] = dts->dataset_all_vars[i][j];
     }
-    Combination E = ConstructEvidence(e_index, e_value, e_num);
+    DiscreteConfig E = ConstructEvidence(e_index, e_value, e_num);
     int label_predict = ApproxinferByLikelihoodWeighting(E, 0, num_samp); // The root node (label) has index of 0.
     if (label_predict == dts->dataset_all_vars[i][dts->class_var_index]) {
       #pragma omp critical
@@ -696,8 +696,8 @@ double Network::TestAccuracyByLikelihoodWeighting(Dataset *dts, int num_samp) {
 
 
 
-Combination Network::ProbLogicSampleNetwork() {
-  Combination instance;
+DiscreteConfig Network::ProbLogicSampleNetwork() {
+  DiscreteConfig instance;
   // Cannot use OpenMP, because must draw samples in the topological ordering.
   for (const auto &index : this->GetTopoOrd()) {
     Node *n_p = FindNodePtrByIndex(index);
@@ -707,8 +707,8 @@ Combination Network::ProbLogicSampleNetwork() {
   return instance;
 }
 
-pair<Combination, double> Network::DrawOneLikelihoodWeightingSample(const Combination &evidence) {
-  Combination instance;
+pair<DiscreteConfig, double> Network::DrawOneLikelihoodWeightingSample(const DiscreteConfig &evidence) {
+  DiscreteConfig instance;
   double weight = 1;
   // SHOULD NOT use OpenMP, because must draw samples in the topological ordering.
   for (const auto &index : this->GetTopoOrd()) {
@@ -725,7 +725,7 @@ pair<Combination, double> Network::DrawOneLikelihoodWeightingSample(const Combin
           for (const auto &par : n_p->set_parents_ptrs) {
             parents_indexes.insert(par->GetNodeIndex());
           }
-          Combination parents_index_value;
+          DiscreteConfig parents_index_value;
           for (const auto &i : instance) {
             if (parents_indexes.find(i.first) != parents_indexes.end()) {
               parents_index_value.insert(i);
@@ -743,12 +743,12 @@ pair<Combination, double> Network::DrawOneLikelihoodWeightingSample(const Combin
       instance.insert(pair<int,int>(index, drawn_value));
     }
   }
-  return pair<Combination, double>(instance, weight);
+  return pair<DiscreteConfig, double>(instance, weight);
 }
 
 
-vector<pair<Combination, double>> Network::DrawSamplesByLikelihoodWeighting(const Combination &evidence, int num_samp) {
-  vector<pair<Combination, double>> results;
+vector<pair<DiscreteConfig, double>> Network::DrawSamplesByLikelihoodWeighting(const DiscreteConfig &evidence, int num_samp) {
+  vector<pair<DiscreteConfig, double>> results;
   #pragma omp parallel for
   for (int i=0; i<num_samp; ++i) {
     auto samp = DrawOneLikelihoodWeightingSample(evidence);
@@ -758,7 +758,7 @@ vector<pair<Combination, double>> Network::DrawSamplesByLikelihoodWeighting(cons
   return results;
 }
 
-Factor Network::CalcuMargWithLikelihoodWeightingSamples(const vector<pair<Combination, double>> &samples, const int &node_index) {
+Factor Network::CalcuMargWithLikelihoodWeightingSamples(const vector<pair<DiscreteConfig, double>> &samples, const int &node_index) {
   map<int, double> value_weight;
   Node *n_p = this->FindNodePtrByIndex(node_index);
 
@@ -790,13 +790,13 @@ Factor Network::CalcuMargWithLikelihoodWeightingSamples(const vector<pair<Combin
   Factor f;
   set<int> rv;
   rv.insert(node_index);
-  set<Combination> sc;
+  set<DiscreteConfig> sc;
   for (int i=0; i<n_p->num_potential_vals; ++i) {
-    Combination c;
+    DiscreteConfig c;
     c.insert(pair<int, int>(node_index, n_p->potential_vals[i]));
     sc.insert(c);
   }
-  map<Combination, double> mp;
+  map<DiscreteConfig, double> mp;
   for (const auto &c : sc) {
     int value = (*c.begin()).second;
     mp[c] = value_weight[value];
@@ -806,11 +806,11 @@ Factor Network::CalcuMargWithLikelihoodWeightingSamples(const vector<pair<Combin
 }
 
 
-int Network::ApproxinferByLikelihoodWeighting(Combination e, const int &node_index, const int &num_samp) {
-  vector<pair<Combination, double>> samples_weight = this->DrawSamplesByLikelihoodWeighting(e, num_samp);
+int Network::ApproxinferByLikelihoodWeighting(DiscreteConfig e, const int &node_index, const int &num_samp) {
+  vector<pair<DiscreteConfig, double>> samples_weight = this->DrawSamplesByLikelihoodWeighting(e, num_samp);
   Factor f = CalcuMargWithLikelihoodWeightingSamples(samples_weight, node_index);
   // Find the argmax.
-  Combination c;
+  DiscreteConfig c;
   double max = -1;
   for (const auto &kv : f.map_potentials) {
     if (kv.second > max) {
@@ -822,12 +822,12 @@ int Network::ApproxinferByLikelihoodWeighting(Combination e, const int &node_ind
 }
 
 
-vector<Combination> Network::DrawSamplesByProbLogiSamp(int num_samp) {
-  vector<Combination> samples;
+vector<DiscreteConfig> Network::DrawSamplesByProbLogiSamp(int num_samp) {
+  vector<DiscreteConfig> samples;
   samples.reserve(num_samp);
   #pragma omp parallel for
   for (int i=0; i<num_samp; ++i) {
-    Combination samp = this->ProbLogicSampleNetwork();
+    DiscreteConfig samp = this->ProbLogicSampleNetwork();
     #pragma omp critical
     { samples.push_back(samp); }
   }
@@ -858,12 +858,12 @@ set<int> Network::GetMarkovBlanketIndexesOfNode(Node *node_ptr) {
 }
 
 
-vector<Combination> Network::DrawSamplesByGibbsSamp(int num_samp, int num_burn_in) {
+vector<DiscreteConfig> Network::DrawSamplesByGibbsSamp(int num_samp, int num_burn_in) {
 
-  vector<Combination> samples;
+  vector<DiscreteConfig> samples;
   samples.reserve(num_samp);
 
-  Combination single_sample = this->ProbLogicSampleNetwork();
+  DiscreteConfig single_sample = this->ProbLogicSampleNetwork();
 
   auto it_node = this->set_node_ptr_container.begin();
 
@@ -879,7 +879,7 @@ vector<Combination> Network::DrawSamplesByGibbsSamp(int num_samp, int num_burn_i
 
     set<int> markov_blanket_node_index = GetMarkovBlanketIndexesOfNode(node_ptr);
 
-    Combination markov_blanket;
+    DiscreteConfig markov_blanket;
     for (auto &p : single_sample) {
       if (markov_blanket_node_index.find(p.first)
           !=
@@ -909,7 +909,7 @@ vector<Combination> Network::DrawSamplesByGibbsSamp(int num_samp, int num_burn_i
 }
 
 
-int Network::SampleNodeGivenMarkovBlanketReturnValIndex(Node *node_ptr, Combination markov_blanket) {
+int Network::SampleNodeGivenMarkovBlanketReturnValIndex(Node *node_ptr, DiscreteConfig markov_blanket) {
   int num_elim_ord = markov_blanket.size();
   int *var_elim_ord = new int[num_elim_ord];
   int temp = 0;
@@ -921,7 +921,7 @@ int Network::SampleNodeGivenMarkovBlanketReturnValIndex(Node *node_ptr, Combinat
 
   vector<int> weights;
   for (int i=0; i<node_ptr->num_potential_vals; ++i) {
-    Combination temp;
+    DiscreteConfig temp;
     temp.insert(pair<int,int>(node_ptr->GetNodeIndex(),node_ptr->potential_vals[i]));
     weights.push_back(f.map_potentials[temp]*10000);
   }
@@ -933,8 +933,8 @@ int Network::SampleNodeGivenMarkovBlanketReturnValIndex(Node *node_ptr, Combinat
 }
 
 
-int Network::ApproxInferByProbLogiRejectSamp(Combination e, Node *node, vector<Combination> &samples) {
-  Combination possb_values;
+int Network::ApproxInferByProbLogiRejectSamp(DiscreteConfig e, Node *node, vector<DiscreteConfig> &samples) {
+  DiscreteConfig possb_values;
   for (int i=0; i<node->num_potential_vals; ++i) {
     possb_values.insert(pair<int,int>(node->GetNodeIndex(),node->potential_vals[i]));
   }
@@ -976,7 +976,7 @@ int Network::ApproxInferByProbLogiRejectSamp(Combination e, Node *node, vector<C
 }
 
 
-int Network::ApproxInferByProbLogiRejectSamp(Combination e, int node_index, vector<Combination> &samples) {
+int Network::ApproxInferByProbLogiRejectSamp(DiscreteConfig e, int node_index, vector<DiscreteConfig> &samples) {
   return ApproxInferByProbLogiRejectSamp(e, FindNodePtrByIndex(node_index), samples);
 }
 #pragma clang diagnostic pop

@@ -106,7 +106,7 @@ TEST_F(CGNetworkTest, elim_tree) {
   EXPECT_EQ(6,elim_tree->set_clique_ptr_container.size());
 
   elim_tree->EnterSingleContEvidence(pair<int,double> (3, 1.0));
-  Combination E;
+  DiscreteConfig E;
   E.insert(pair<int,int>(2,0));
   elim_tree->LoadDiscreteEvidence(E);
   elim_tree->MessagePassingUpdateDiscretePartJT();

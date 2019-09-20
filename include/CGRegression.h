@@ -16,7 +16,7 @@
 
 using namespace std;
 
-typedef set< pair<int, int> > Combination;
+typedef set< pair<int, int> > DiscreteConfig;
 
 class CGRegression {
   // todo: test the whole class
@@ -34,21 +34,21 @@ class CGRegression {
 
   int head_var_index;
   set<int> set_all_tail_index;
-  set<Combination> set_discrete_tails_combinations;
+  set<DiscreteConfig> set_discrete_tails_combinations;
 
   // The ordering of continuous tails is important.
   vector<int> vec_contin_tail_indexes;
 
   // Conditional mean given discrete tails.
-  map<Combination, double> map_mu;
+  map<DiscreteConfig, double> map_mu;
   double marginal_mu;
 
   // Conditional linear coefficients for continuous tails given discrete tails.
-  map<Combination, vector<double>> map_coefficients;
+  map<DiscreteConfig, vector<double>> map_coefficients;
   vector<double> marginal_coefficients;
 
   // Conditional variance given discrete tails.
-  map<Combination, double> map_variance;
+  map<DiscreteConfig, double> map_variance;
   double marginal_variance;
 
   CGRegression(Node *node_ptr);

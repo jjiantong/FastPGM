@@ -1,6 +1,6 @@
 # gadget.h
 
-## set<Combination> GenAllCombFromSets(set<Combination> \*)
+## set<DiscreteConfig> GenAllCombFromSets(set<DiscreteConfig> \*)
 A recursive function generate all possible combinations from several sets. <br/>
 
 Input: several sets (set of sets) <br/>
@@ -27,7 +27,7 @@ Output:
   {<a,3>, <b,102>} }
 ```
 
-## set<Combination> ExpandCombFromTwoCombs(set<Combination> \*one, set<Combination> \*two)
+## set<DiscreteConfig> ExpandCombFromTwoCombs(set<DiscreteConfig> \*one, set<DiscreteConfig> \*two)
 Input: two combinations with different set of value of the elements' first member.
 Output: one combination
 
@@ -48,11 +48,11 @@ Output
   {<a,1>, <b,2>, <c,2>, <d,1>} }
 ```
 
-## bool EachFirstIsInSecond(Combination \*first, Combination \*second)
+## bool EachFirstIsInSecond(DiscreteConfig \*first, DiscreteConfig \*second)
 A function that is used when multipling two factors. <br/>
-If each element in the first Combination is in the second Combination, return true. <br/>
+If each element in the first DiscreteConfig is in the second DiscreteConfig, return true. <br/>
 
-Input: two `Combination`s <br/>
+Input: two `DiscreteConfig`s <br/>
 Output: bool <br/>
 
 Example (pseudocode)
@@ -75,11 +75,11 @@ Output
 true false false
 ```
 
-## bool FirstCompatibleSecond(Combination \*first, Combination \*second)
+## bool FirstCompatibleSecond(DiscreteConfig \*first, DiscreteConfig \*second)
 A function that is used when multipling two factors. <br/>
-If elements in the first Combination is compatible with the second Combination, return true. <br/>
+If elements in the first DiscreteConfig is compatible with the second DiscreteConfig, return true. <br/>
 
-Input: two `Combination`s <br/>
+Input: two `DiscreteConfig`s <br/>
 Output: bool <br/>
 
 Example (pseudocode)
@@ -115,8 +115,8 @@ Output
 true false true true false true
 ```
 
-## bool Conflict(Combination \*, Combination \*)
-Input: two `Combination`s
+## bool Conflict(DiscreteConfig \*, DiscreteConfig \*)
+Input: two `DiscreteConfig`s
 
 Output: false (if they have different values on the same variable)
         true (else)

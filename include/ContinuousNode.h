@@ -16,7 +16,7 @@
 
 using namespace std;
 
-typedef set< pair<int, int> > Combination;
+typedef set< pair<int, int> > DiscreteConfig;
 
 class ContinuousNode : public Node {
  public:
@@ -28,15 +28,15 @@ class ContinuousNode : public Node {
   vector<int> contin_par_indexes;
 
   // Conditional mean given discrete parents.
-  map<Combination, double> map_mu;
+  map<DiscreteConfig, double> map_mu;
   double marginal_mu;
 
   // Conditional linear coefficients for continuous parents given discrete parents.
-  map<Combination, vector<double>> map_coefficients;
+  map<DiscreteConfig, vector<double>> map_coefficients;
   vector<double> marginal_coefficients;
 
   // Conditional variance given discrete parents.
-  map<Combination, double> map_variance;
+  map<DiscreteConfig, double> map_variance;
   double marginal_variance;
 
   ContinuousNode();

@@ -13,7 +13,7 @@ class Separator : public Clique {
 
  public:
   int weight;
-  map<Combination, double> map_old_potentials;
+  map<DiscreteConfig, double> map_old_potentials;
 
   Separator();
   explicit Separator(set<Node*>);

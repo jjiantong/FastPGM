@@ -32,8 +32,8 @@ class JunctionTree {
   virtual ~JunctionTree() = default;
 
   void ResetJunctionTree();
-  virtual void LoadDiscreteEvidence(const Combination &E);
-  void LoadEvidenceAndMessagePassingUpdateJT(const Combination &E);
+  virtual void LoadDiscreteEvidence(const DiscreteConfig &E);
+  void LoadEvidenceAndMessagePassingUpdateJT(const DiscreteConfig &E);
 
   void PrintAllCliquesPotentials() const;
   void PrintAllSeparatorsPotentials() const;

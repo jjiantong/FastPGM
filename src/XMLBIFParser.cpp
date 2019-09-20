@@ -162,7 +162,7 @@ void XMLBIFParser::AssignProbsToNodes(vector<XMLElement*> vec_xml_elems_ptr, vec
 
       // The first (left-most) digit is for this node.
       int query = for_np->vec_potential_vals[digits[0]];
-      Combination comb;
+      DiscreteConfig comb;
 
       // The first (left-most) digit is for this node not the parents.
       // So, j start at 1.

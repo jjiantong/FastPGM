@@ -5,15 +5,13 @@
 #ifndef BAYESIANNETWORK_XMLBIFPARSER_H
 #define BAYESIANNETWORK_XMLBIFPARSER_H
 
-#include <stdio.h>
+#include <cstdio>
 #include "tinyxml2.h"
 #include "Node.h"
 #include "DiscreteNode.h"
 #include "ContinuousNode.h"
 
 using namespace tinyxml2;
-
-typedef set< pair<int, int> > Combination;
 
 class XMLBIFParser {
 

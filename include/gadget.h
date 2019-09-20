@@ -13,15 +13,45 @@
 #include <map>
 #include <iostream>
 #include <cmath>
+#include <cfloat>
 
 using namespace std;
-typedef set< pair<int, int> > Combination;
+typedef set< pair<int, int> > DiscreteConfig;
 
-set<Combination> GenAllCombFromSets(set<Combination> *);
-set<Combination> ExpandCombFromTwoCombs(set<Combination> *one, set<Combination> *two);
-bool EachFirstIsInSecond(const Combination *, const Combination *);
-bool FirstCompatibleSecond(const Combination *, const Combination *);
-bool Conflict(const Combination *, const Combination *);
+struct Value {
+ private:
+  int int_ = INT32_MIN;
+  float float_ = -FLT_MAX;
+  bool use_int = true;
+ public:
+  bool UseInt() const { return use_int; }
+  void SetInt(int i) { int_ = i; float_ = -FLT_MAX; use_int = true; }
+  void SetFloat(float f) { float_ = f; int_ = INT32_MIN; use_int = false; }
+  int GetInt() const { if (!use_int) exit(1); return int_; }
+  float GetFloat() const { if (use_int) exit(1); return float_; }
+  bool operator <(const Value v) const {
+    if (this->UseInt() && v.UseInt()) {
+      return this->GetInt() < v.GetInt();
+    } else if (this->UseInt() && !v.UseInt()) {
+      return this->GetInt() < v.GetFloat();
+    } else if (!this->UseInt() && v.UseInt()) {
+      return this->GetFloat() < v.GetInt();
+    } else {
+      return this->GetFloat() < v.GetFloat();
+    }
+  }
+
+};
+
+typedef pair<int, Value> VarVal;
+
+typedef set<VarVal> Configuration;
+
+set<DiscreteConfig> GenAllCombFromSets(set<DiscreteConfig> *);
+set<DiscreteConfig> ExpandCombFromTwoCombs(set<DiscreteConfig> *one, set<DiscreteConfig> *two);
+bool EachFirstIsInSecond(const DiscreteConfig *, const DiscreteConfig *);
+bool FirstCompatibleSecond(const DiscreteConfig *, const DiscreteConfig *);
+bool Conflict(const DiscreteConfig *, const DiscreteConfig *);
 bool OccurInCorrectOrder(int a, int b, vector<int> vec);
 int* WidthFirstTraversalWithAdjacencyMatrix(int **graph, int num_nodes, int start);
 vector<int> TopoSortOfDAGZeroInDegreeFirst(int **graph, int num_nodes);
