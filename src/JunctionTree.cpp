@@ -643,7 +643,7 @@ int JunctionTree::InferenceUsingBeliefPropagation(int &query_index) {
   return label_predict;
 }
 
-double JunctionTree::TestNetReturnAccuracy(int class_var, Dataset *tst) {
+double JunctionTree::TestNetReturnAccuracy(int class_var, Dataset *dts) {
 
   cout << "==================================================" << '\n'
        << "Begin testing the trained network." << endl;
@@ -654,7 +654,7 @@ double JunctionTree::TestNetReturnAccuracy(int class_var, Dataset *tst) {
 
   cout << "Progress indicator: ";
 
-  int num_of_correct=0, num_of_wrong=0, m=tst->num_instance, m20=m/20, progress=0;
+  int num_of_correct=0, num_of_wrong=0, m=dts->num_instance, m20= m / 20, progress=0;
 
   // If I use OpenMP to parallelize,
   // process may exit with code 137,
@@ -674,9 +674,9 @@ double JunctionTree::TestNetReturnAccuracy(int class_var, Dataset *tst) {
     // For now, only support complete data.
     int e_num=network->num_nodes-1, *e_index=new int[e_num], *e_value=new int[e_num];
     for (int j=0; j<network->num_nodes; ++j) {
-      if (j==tst->class_var_index) {continue;}
-      e_index[j<tst->class_var_index ? j : j-1] = j;
-      e_value[j<tst->class_var_index ? j : j-1] = tst->dataset_all_vars[i][j];
+      if (j == dts->class_var_index) {continue;}
+      e_index[j < dts->class_var_index ? j : j - 1] = j;
+      e_value[j < dts->class_var_index ? j : j - 1] = dts->dataset_all_vars[i][j];
     }
     DiscreteConfig E = network->ConstructEvidence(e_index, e_value, e_num);
 
@@ -693,7 +693,7 @@ double JunctionTree::TestNetReturnAccuracy(int class_var, Dataset *tst) {
     int label_predict = InferenceUsingBeliefPropagation(class_var); // The root node (label) has index of 0.
     ResetJunctionTree();
 
-    if (label_predict == tst->dataset_all_vars[i][tst->class_var_index]) {
+    if (label_predict == dts->dataset_all_vars[i][dts->class_var_index]) {
 //      #pragma omp critical
       { ++num_of_correct; }
     } else {

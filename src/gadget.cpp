@@ -5,7 +5,7 @@
 #include "gadget.h"
 
 
-set<DiscreteConfig> GenAllCombFromSets(set<DiscreteConfig> *set_of_sets) {
+set<DiscreteConfig> GenAllConfgFromSets(set<DiscreteConfig> *set_of_sets) {
 
   // Error Case
 //  if (set_of_sets->empty()) {
@@ -31,7 +31,7 @@ set<DiscreteConfig> GenAllCombFromSets(set<DiscreteConfig> *set_of_sets) {
 
   // Recursive Case (the size of set_of_sets is greater than 1)
   set_of_sets->erase(its);
-  temp_result = GenAllCombFromSets(set_of_sets);
+  temp_result = GenAllConfgFromSets(set_of_sets);
   for (auto &p : to_be_inserted){
     for (DiscreteConfig c : temp_result) {
       c.insert(p);
@@ -42,7 +42,7 @@ set<DiscreteConfig> GenAllCombFromSets(set<DiscreteConfig> *set_of_sets) {
 }
 
 
-set<DiscreteConfig> ExpandCombFromTwoCombs(set<DiscreteConfig> *one, set<DiscreteConfig> *two) {
+set<DiscreteConfig> ExpandConfgFromTwoConfgs(set<DiscreteConfig> *one, set<DiscreteConfig> *two) {
   set<int> set_all_vars;
   for (const auto &p : *one->begin()) {
     set_all_vars.insert(p.first);
@@ -68,11 +68,11 @@ set<DiscreteConfig> ExpandCombFromTwoCombs(set<DiscreteConfig> *one, set<Discret
   for (const auto &kv : map_var_to_combs_domain) {
     set_of_sets.insert(kv.second);
   }
-  return GenAllCombFromSets(&set_of_sets);
+  return GenAllConfgFromSets(&set_of_sets);
 }
 
 
-bool EachFirstIsInSecond(const DiscreteConfig *first, const DiscreteConfig *second) {
+bool FirstIsSubsetOfSecond(const DiscreteConfig *first, const DiscreteConfig *second) {
   for (const auto &f : *first) {
     if (second->find(f)==second->end()) return false;
   }
@@ -90,9 +90,9 @@ bool FirstCompatibleSecond(const DiscreteConfig *first, const DiscreteConfig *se
 }
 
 
-bool Conflict(const DiscreteConfig *first, const DiscreteConfig *second) {
-  for (const auto &f : *first) {
-    for (const auto &s : *second) {
+bool Conflict(const DiscreteConfig *cfg1, const DiscreteConfig *cfg2) {
+  for (const auto &f : *cfg1) {
+    for (const auto &s : *cfg2) {
       if (f.first==s.first && f.second!=s.second) {
         return true;
       }

@@ -43,7 +43,7 @@ Clique::Clique(set<Node*> set_node_ptr, int elim_var_index) {
     }
   }
 
-  set_disc_configs = GenAllCombFromSets(&set_of_sets);
+  set_disc_configs = GenAllConfgFromSets(&set_of_sets);
 
   PreInitializePotentials();
 

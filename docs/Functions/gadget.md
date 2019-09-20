@@ -11,7 +11,7 @@ Example (pseudocode)
 A = {<a,1>, <a,3>, <a,5>}
 B = {<b,100>, <b,101>, <b,102>}
 set_of_sets = {A, B}
-result = GenAllCombFromSets(set_of_sets)
+result = GenAllConfgFromSets(set_of_sets)
 print(result)
 ```
 Output:
@@ -37,8 +37,8 @@ X = { {<a,1>, <b,1>},
       {<a,1>, <b,2>} }
 Y = { {<c,1>, <d,1>},
       {<c,2>, <d,1>} }
-result = ExpandCombFromTwoCombs(X,Y)
-pritn(result)
+result = ExpandConfgFromTwoConfgs(X,Y)
+print(result)
 ```
 Output
 ```
@@ -48,8 +48,8 @@ Output
   {<a,1>, <b,2>, <c,2>, <d,1>} }
 ```
 
-## bool EachFirstIsInSecond(DiscreteConfig \*first, DiscreteConfig \*second)
-A function that is used when multipling two factors. <br/>
+## bool FirstIsSubsetOfSecond(DiscreteConfig \*first, DiscreteConfig \*second)
+A function that is used when multiplying two factors. <br/>
 If each element in the first DiscreteConfig is in the second DiscreteConfig, return true. <br/>
 
 Input: two `DiscreteConfig`s <br/>
@@ -66,9 +66,9 @@ sec_2 = { <a,1> , <b,2> , <c,3> , whatever more... }
 fir_3 = { <a,1> , <b,2> , <c,3> }
 sec_3 = { <a,1> , <b,2> }
 
-print( EachFirstIsInSecond(fir_1, sec_1),
-       EachFirstIsInSecond(fir_2, sec_2),
-       EachFirstIsInSecond(fir_3, sec_3) )
+print( FirstIsSubsetOfSecond(fir_1, sec_1),
+       FirstIsSubsetOfSecond(fir_2, sec_2),
+       FirstIsSubsetOfSecond(fir_3, sec_3) )
 ```
 Output
 ```
@@ -76,7 +76,7 @@ true false false
 ```
 
 ## bool FirstCompatibleSecond(DiscreteConfig \*first, DiscreteConfig \*second)
-A function that is used when multipling two factors. <br/>
+A function that is used when multiplying two factors. <br/>
 If elements in the first DiscreteConfig is compatible with the second DiscreteConfig, return true. <br/>
 
 Input: two `DiscreteConfig`s <br/>
@@ -107,7 +107,7 @@ Example (pseudocode)
          EachFirstIsInSecond(f3, s3),
          EachFirstIsInSecond(f4, s4),
          EachFirstIsInSecond(f5, s5),
-         EachFirstIsInSecond(f6, s6), )
+         FirstIsSubsetOfSecond(f6, s6), )
 
 ```
 Output
@@ -127,14 +127,14 @@ If `a` occurs before `b` in `vec`, return true. Otherwise, return false.
 
 
 ## int\* WidthFirstTraversalWithAdjacencyMatrix(int \*\*graph, int num_nodes, int start)
-Input: graph:2-d array representation of the adjacency matrix of the graph
+Input: graph: 2-d array representation of the adjacency matrix of the graph
        num_nodes: number of nodes in the graph
        start: the index of the starting node
 
 Output: an array containing the node indexes in the order of width-first traversal
 
 ## vector<int> TopoSortOfDAGZeroInDegreeFirst(int \*\*graph, int num_nodes)
-Input: graph:2-d array representation of the adjacency matrix of the graph
+Input: graph: 2-d array representation of the adjacency matrix of the graph
        num_nodes: number of nodes in the graph
 
 Output: an array containing the node indexes in the topological sorted order

@@ -119,7 +119,7 @@ void CGRegression::PrepareForExchange(CGRegression &Z, CGRegression &Y) {
          << Y.GetExpression() << endl;
 
     set<DiscreteConfig> union_two_cgr_disc_combs
-            = ExpandCombFromTwoCombs(&Z.set_discrete_tails_combinations, &Y.set_discrete_tails_combinations);
+            = ExpandConfgFromTwoConfgs(&Z.set_discrete_tails_combinations, &Y.set_discrete_tails_combinations);
 
     Z.set_discrete_tails_combinations = union_two_cgr_disc_combs;
     Y.set_discrete_tails_combinations = union_two_cgr_disc_combs;

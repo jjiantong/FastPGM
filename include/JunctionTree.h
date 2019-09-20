@@ -41,7 +41,7 @@ class JunctionTree {
   Factor BeliefPropagationCalcuDiscreteVarMarginal(int query_index);
   int InferenceUsingBeliefPropagation(int &query_index);
 
-  double TestNetReturnAccuracy(int class_var, Dataset *tst);
+  double TestNetReturnAccuracy(int class_var, Dataset *dts);
 
   //==================================================
  protected:

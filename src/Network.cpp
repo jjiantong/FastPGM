@@ -544,7 +544,6 @@ double Network::TestNetReturnAccuracy(Dataset *dts) {
   gettimeofday(&start,NULL);
 
   cout << "Progress indicator: ";
-
   int num_of_correct=0, num_of_wrong=0, m=dts->num_instance, m20= m / 20, progress=0;
 
 //  int num_cores = omp_get_num_procs();

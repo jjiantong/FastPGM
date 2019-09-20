@@ -107,12 +107,12 @@ void ChowLiuTree::StructLearnChowLiuTreeCompData(Dataset *dts, bool print_struct
 
     Node *node_ptr = new DiscreteNode(i);  // For now, only support discrete node.
 
-    node_ptr->num_potential_vals = dts->num_of_possible_values_of_vars[i];
+    node_ptr->num_potential_vals = dts->num_of_possible_values_of_disc_vars[i];
 
     node_ptr->potential_vals = new int[node_ptr->num_potential_vals];
 
     int j = 0;
-    for (auto v : dts->map_vars_possible_values[i]) {
+    for (auto v : dts->map_disc_vars_possible_values[i]) {
       node_ptr->potential_vals[j++] = v;
     }
 

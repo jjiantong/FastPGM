@@ -10,7 +10,7 @@
 Dataset::Dataset() {}
 
 
-void Dataset::LoadLIBSVMDataAutoDetectConfig(string data_file_path) {
+void Dataset::LoadLIBSVMDataAutoDetectConfig(string data_file_path, set<int> cont_vars) {
 
   class_var_index = 0;
 
@@ -27,30 +27,44 @@ void Dataset::LoadLIBSVMDataAutoDetectConfig(string data_file_path) {
   string sample;
   int max_index_occurred = -1;
   // Load data.
-  vector<int> dataset_y_vector;
-  vector<vector<pair<int,int>>> dataset_X_vector;
+  vector<Value> dataset_y_vector;
+  vector<vector<VarVal>> dataset_X_vector;
   getline(in_file, sample);
   while (!in_file.eof()) {
     // There is a whitespace at the end of each line of
     // libSVM dataset format, which will cause a bug if we do not trim it.
     sample = TrimRight(sample);
     vector<string> parsed_sample = Split(sample, " ");
-    auto it = parsed_sample.begin();   // The label is the first element.
-    map_vars_possible_values[class_var_index].insert(stoi(*it));
-    dataset_y_vector.push_back(stoi(*it));
+    int it = 0;   // The label is the first element.
+    if (cont_vars.find(0)==cont_vars.end()) {
+      map_disc_vars_possible_values[class_var_index].insert(stoi(parsed_sample.at(it)));
+      Value v;
+      v.SetInt(stoi(parsed_sample.at(it)));
+      dataset_y_vector.push_back(v);
+    } else {
+      Value v;
+      v.SetFloat(stof(parsed_sample.at(it)));
+      dataset_y_vector.push_back(v);
+    }
 
-    vector<pair<int,int>> single_sample_vector;
-    for (++it; it!=parsed_sample.end(); ++it) {
+    vector<VarVal> single_sample_vector;
+    for (++it; it < parsed_sample.size(); ++it) {
       // Each element is in the form of "feature_index:feature_value".
-      vector<string> parsed_feature = Split(*it, ":");
-      int index = stoi(parsed_feature[0]);
-      int value = stoi(parsed_feature[1]);
+      string feature_val = parsed_sample.at(it);
+      vector<string> parsed_feature_val = Split(feature_val, ":");
+      int index = stoi(parsed_feature_val[0]);
       max_index_occurred = index>max_index_occurred ? index : max_index_occurred;
-      map_vars_possible_values[index].insert(value);
-      pair<int,int> pair_feature_value;
-      pair_feature_value.first = index;
-      pair_feature_value.second = value;
-      single_sample_vector.push_back(pair_feature_value);
+      Value v;
+      if (cont_vars.find(index)==cont_vars.end()) {
+        int value = stoi(parsed_feature_val[1]);
+        v.SetInt(value);
+        map_disc_vars_possible_values[index].insert(value);
+      } else {
+        float value = stof(parsed_feature_val[1]);
+        v.SetFloat(value);
+      }
+      VarVal var_value(index, v);
+      single_sample_vector.push_back(var_value);
     }
     dataset_X_vector.push_back(single_sample_vector);
     getline(in_file, sample);
@@ -61,26 +75,30 @@ void Dataset::LoadLIBSVMDataAutoDetectConfig(string data_file_path) {
   for (int i=0; i<vector_dataset_all_vars.size(); ++i) {
     vector_dataset_all_vars.at(i).insert(
             vector_dataset_all_vars.at(i).begin(),
-            pair<int,int>(class_var_index,dataset_y_vector.at(i))
+            VarVal(class_var_index,dataset_y_vector.at(i))
     );
   }
 
 
   num_instance = vector_dataset_all_vars.size();
   num_vars = max_index_occurred + 1;
-  is_vars_discrete = new bool[num_vars];
-  num_of_possible_values_of_vars = new int[num_vars];
+  is_vars_discrete.reserve(num_vars);
+  num_of_possible_values_of_disc_vars = new int[num_vars];
 
   for (int i=0; i<num_vars; ++i) {
     if (i!=class_var_index) {
-      // Because features of LIBSVM format do not record the value of 0, we need to add it in.
-      map_vars_possible_values[i].insert(0);
+      if (cont_vars.find(i)==cont_vars.end()) {
+        // Because features of LIBSVM format do not record the value of 0, we need to add it in.
+        map_disc_vars_possible_values[i].insert(0);
+      }
     }
-    num_of_possible_values_of_vars[i] = map_vars_possible_values[i].size();
-    is_vars_discrete[i] = true; // For now, we can only process discrete variables.
+    num_of_possible_values_of_disc_vars[i] = map_disc_vars_possible_values[i].size();
+    is_vars_discrete.push_back(cont_vars.find(i)==cont_vars.end()); // For now, we can only process discrete variables.
   }
 
-  ConvertLIBSVMVectorDatasetIntoArrayDataset();
+  if (cont_vars.empty()) {
+    ConvertLIBSVMVectorDatasetIntoIntArrayDataset();
+  }
 
   cout << "Finish loading data. " << '\n'
        << "Number of instances: " << num_instance << ". \n"
@@ -91,33 +109,33 @@ void Dataset::LoadLIBSVMDataAutoDetectConfig(string data_file_path) {
 }
 
 
-void Dataset::ConvertLIBSVMVectorDatasetIntoArrayDataset() {
+void Dataset::ConvertLIBSVMVectorDatasetIntoIntArrayDataset() {
   // Initialize to be all zero.
   dataset_all_vars = new int *[num_instance];
   #pragma omp parallel for
   for (int s=0; s<num_instance; ++s) {
     dataset_all_vars[s] = new int[num_vars]();
-    vector<pair<int,int>> vec_instance = vector_dataset_all_vars.at(s);
-    for (pair<int,int> p : vec_instance) {  // For each non-zero-value feature of this sample.
-      dataset_all_vars[s][p.first] = p.second;
+    vector<VarVal> vec_instance = vector_dataset_all_vars.at(s);
+    for (const VarVal &vv : vec_instance) {  // For each non-zero-value feature of this sample.
+      dataset_all_vars[s][vv.first] = vv.second.GetInt();
     }
   }
 }
 
 
-void Dataset::ConvertCSVVectorDatasetIntoArrayDataset() {
+void Dataset::ConvertCSVVectorDatasetIntoIntArrayDataset() {
   dataset_all_vars = new int *[num_instance];
   #pragma omp parallel for
   for (int s=0; s<num_instance; ++s) {
     dataset_all_vars[s] = new int[num_vars]();  // The parentheses at end will initialize the array to be all zeros.
-    for (pair<int,int> p : vector_dataset_all_vars.at(s)) {
-      dataset_all_vars[s][p.first] = p.second;
+    for (const VarVal &vv : vector_dataset_all_vars.at(s)) {
+      dataset_all_vars[s][vv.first] = vv.second.GetInt();
     }
   }
 }
 
 
-void Dataset::LoadCSVDataAutoDetectConfig(string data_file_path) {
+void Dataset::LoadCSVDataAutoDetectConfig(string data_file_path, set<int> cont_vars) {
   ifstream in_file;
   in_file.open(data_file_path);
   if (!in_file.is_open()) {
@@ -132,7 +150,8 @@ void Dataset::LoadCSVDataAutoDetectConfig(string data_file_path) {
   sample = TrimRight(sample);
   vector<string> parsed_variable = Split(sample, ",");
   num_vars = parsed_variable.size();
-  num_of_possible_values_of_vars = new int[num_vars]();
+  is_vars_discrete.reserve(num_vars);
+  num_of_possible_values_of_disc_vars = new int[num_vars]();
 
   // Load data.
   getline(in_file, sample);
@@ -141,27 +160,36 @@ void Dataset::LoadCSVDataAutoDetectConfig(string data_file_path) {
     // it will cause a bug if we do not trim it.
     sample = TrimRight(sample);
     vector<string> parsed_sample = Split(sample, ",");
-    vector<pair<int,int>> single_sample_vector;
+    vector<VarVal> single_sample_vector;
     for (int i=0; i<num_vars; ++i) {
-      int value = stoi(parsed_sample.at(i));
-      map_vars_possible_values[i].insert(value);
-      pair<int,int> pair_feature_value(i, value);
-      single_sample_vector.push_back(pair_feature_value);
+      Value v;
+      if (cont_vars.find(i)==cont_vars.end()) {
+        int value = stoi(parsed_sample.at(i));
+        v.SetInt(value);
+        map_disc_vars_possible_values[i].insert(value);
+      } else {
+        float value = stof(parsed_sample.at(i));
+        v.SetFloat(value);
+      }
+
+      VarVal var_value(i, v);
+      single_sample_vector.push_back(var_value);
     }
     vector_dataset_all_vars.push_back(single_sample_vector);
     getline(in_file, sample);
   }
 
   num_instance = vector_dataset_all_vars.size();
-  is_vars_discrete = new bool[num_vars];
-  num_of_possible_values_of_vars = new int[num_vars];
+  num_of_possible_values_of_disc_vars = new int[num_vars];
 
   for (int i=0; i<num_vars; ++i) {
-    num_of_possible_values_of_vars[i] = map_vars_possible_values[i].size();
-    is_vars_discrete[i] = true; // For now, we can only process discrete features.
+    num_of_possible_values_of_disc_vars[i] = map_disc_vars_possible_values[i].size();
+    is_vars_discrete.push_back(cont_vars.find(i)==cont_vars.end()); // For now, we can only process discrete features.
   }
 
-  ConvertCSVVectorDatasetIntoArrayDataset();
+  if (cont_vars.empty()) {
+    ConvertCSVVectorDatasetIntoIntArrayDataset();
+  }
 
   cout << "Finish loading data. " << '\n'
        << "Number of instances: " << num_instance << ".\n"

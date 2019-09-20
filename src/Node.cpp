@@ -74,7 +74,7 @@ void Node::GenDiscParCombs() {
   }
 
   // Generate
-  set_discrete_parents_combinations = GenAllCombFromSets(&set_of_sets);
+  set_discrete_parents_combinations = GenAllConfgFromSets(&set_of_sets);
 
 }
 
