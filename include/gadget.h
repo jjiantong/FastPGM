@@ -48,13 +48,14 @@ typedef pair<int, Value> VarVal;
 typedef set<VarVal> Configuration;
 
 set<DiscreteConfig> GenAllConfgFromSets(set<DiscreteConfig> *set_of_sets);
-set<DiscreteConfig> ExpandConfgFromTwoConfgs(set<DiscreteConfig> *one, set<DiscreteConfig> *two);
+set<DiscreteConfig> ExpandConfgFromTwoConfgs(const set<DiscreteConfig> *one, const set<DiscreteConfig> *two);
 bool FirstIsSubsetOfSecond(const DiscreteConfig *first, const DiscreteConfig *second);
 bool FirstCompatibleSecond(const DiscreteConfig *, const DiscreteConfig *);
 bool Conflict(const DiscreteConfig *cfg1, const DiscreteConfig *cfg2);
 bool OccurInCorrectOrder(int a, int b, vector<int> vec);
-int* WidthFirstTraversalWithAdjacencyMatrix(int **graph, int num_nodes, int start);
-vector<int> TopoSortOfDAGZeroInDegreeFirst(int **graph, int num_nodes);
+bool DAGObeyOrdering(const int **graph, int num_nodes, vector<int> ord);
+int* WidthFirstTraversalWithAdjacencyMatrix(const int **graph, int num_nodes, int start);
+vector<int> TopoSortOfDAGZeroInDegreeFirst(const int **graph, int num_nodes);
 
 string TrimRight(string);
 string TrimLeft(string);

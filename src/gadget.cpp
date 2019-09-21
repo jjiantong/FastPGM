@@ -42,7 +42,7 @@ set<DiscreteConfig> GenAllConfgFromSets(set<DiscreteConfig> *set_of_sets) {
 }
 
 
-set<DiscreteConfig> ExpandConfgFromTwoConfgs(set<DiscreteConfig> *one, set<DiscreteConfig> *two) {
+set<DiscreteConfig> ExpandConfgFromTwoConfgs(const set<DiscreteConfig> *one, const set<DiscreteConfig> *two) {
   set<int> set_all_vars;
   for (const auto &p : *one->begin()) {
     set_all_vars.insert(p.first);
@@ -115,8 +115,30 @@ bool OccurInCorrectOrder(int a, int b, vector<int> vec) {
   return false;
 }
 
+bool DAGObeyOrdering(const int **graph, int num_nodes, vector<int> ord) {
+  if (num_nodes!=ord.size()) {
+    fprintf(stderr, "Error in function [%s]. Number of nodes is not equal to the size of ordering.", __FUNCTION__);
+    exit(1);  // return false;
+  }
+  int *in_degrees = new int[num_nodes](); // The parentheses at end will initialize the array to be all zeros.
+  for (int i=0; i<num_nodes; ++i) {
+    for (int j=0; j<num_nodes; ++j) {
+      if (graph[i][j]==1) { ++in_degrees[j]; }
+    }
+  }
+  for (const auto &o : ord) {
+    if (in_degrees[o] != 0) {
+      return false;
+    }
+    for (int j=0; j<num_nodes; ++j) {
+      if (graph[o][j]==1) { --in_degrees[j]; }
+    }
+  }
+  return true;
+}
 
-int* WidthFirstTraversalWithAdjacencyMatrix(int **graph, int num_nodes, int start) {
+
+int* WidthFirstTraversalWithAdjacencyMatrix(const int **graph, int num_nodes, int start) {
   int *result = new int[num_nodes];
   int itResult = 0;
   queue<int> que;
@@ -137,7 +159,7 @@ int* WidthFirstTraversalWithAdjacencyMatrix(int **graph, int num_nodes, int star
 }
 
 
-vector<int> TopoSortOfDAGZeroInDegreeFirst(int **graph, int num_nodes) {
+vector<int> TopoSortOfDAGZeroInDegreeFirst(const int **graph, int num_nodes) {
   vector<int> result;
   queue<int> que;
 

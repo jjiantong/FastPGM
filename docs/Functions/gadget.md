@@ -126,6 +126,11 @@ Output: false (if they have different values on the same variable)
 If `a` occurs before `b` in `vec`, return true. Otherwise, return false.
 
 
+## bool DAGObeyOrdering(int **graph, int num_nodes, vector<int> ord)
+If `ord` is one of the topological orderings of the `graph`, return `true`.
+Else, return `false`.
+
+
 ## int\* WidthFirstTraversalWithAdjacencyMatrix(int \*\*graph, int num_nodes, int start)
 Input: graph: 2-d array representation of the adjacency matrix of the graph
        num_nodes: number of nodes in the graph
