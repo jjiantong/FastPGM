@@ -5,6 +5,7 @@
 //
 
 #include "Network.h"
+#include "ScoreFunction.h"
 
 Network::Network(): Network(true) {}
 
@@ -63,7 +64,104 @@ Node* Network::FindNodePtrByName(const string &name) const {
 
 void Network::StructLearnCompData(Dataset *dts, bool print_struct) {
   fprintf(stderr, "Not be implemented yet!");
-  exit(1);
+//  exit(1);
+
+
+
+  cout << "==================================================" << '\n'
+       << "Begin structural learning with complete data......" << endl;
+
+  num_nodes = dts->num_vars;
+  // Assign an index for each node.
+  #pragma omp parallel for
+  for (int i=0; i<num_nodes; ++i) {
+    Node *node_ptr = new DiscreteNode(i);  // For now, only support discrete node.
+    node_ptr->num_potential_vals = dts->num_of_possible_values_of_disc_vars[i];
+    node_ptr->potential_vals = new int[node_ptr->num_potential_vals];
+    int j = 0;
+    for (auto v : dts->map_disc_vars_possible_values[i]) {
+      node_ptr->potential_vals[j++] = v;
+    }
+    #pragma omp critical
+    { set_node_ptr_container.insert(node_ptr); }
+  }
+
+
+  // todo: implement structure learning
+
+
+
+
+//  cout << "==================================================" << '\n'
+//       << "Setting children and parents......" << endl;
+//  #pragma omp parallel for
+//  for (int i=0; i<num_nodes; ++i) {
+//    for (int j=0; j<i; ++j) {  // graphAdjacencyMatrix is symmetric, so loop while j<i instead of j<n
+//      if (i==j) continue;
+//      if (graphAdjacencyMatrix[i][j]==1){
+//
+//        // Determine the topological position of i and j.
+//        int topoIndexI=-1, topoIndexJ=-1;
+//        for (int k=0; k<num_nodes; ++k) {
+//          if (topologicalSortedPermutation[k]==i && topoIndexI==-1) {
+//            topoIndexI = k;
+//          } else if (topologicalSortedPermutation[k]==j && topoIndexJ==-1) {
+//            topoIndexJ = k;
+//          }
+//          if (topoIndexI!=-1 && topoIndexJ!=-1) { break; }
+//        }
+//
+//        if (topoIndexI<topoIndexJ) {
+//          SetParentChild(i, j);
+//        } else {
+//          SetParentChild(j, i);
+//        }
+//      }
+//    }
+//  }
+
+  cout << "==================================================" << '\n'
+       << "Generating parents combinations for each node......" << endl;
+
+  // Store the pointers in an array to make use of OpenMP.
+  Node** arr_node_ptr_container = new Node*[num_nodes];
+  auto iter_n_ptr = set_node_ptr_container.begin();
+  for (int i=0; i<num_nodes; ++i) {
+    arr_node_ptr_container[i] = *(iter_n_ptr++);
+  }
+  #pragma omp parallel for
+  for (int i=0; i<num_nodes; ++i) {
+    arr_node_ptr_container[i]->GenDiscParCombs();
+  }
+  delete[] arr_node_ptr_container;
+
+
+  cout << "==================================================" << '\n'
+       << "Finish structural learning." << endl;
+
+
+  // The following code are just to print the result.
+
+  if (print_struct) {
+
+    cout << "==================================================" << '\n'
+         << "Topological sorted permutation generated using width-first-traversal: " << endl;
+    auto topo = GetTopoOrd();
+    for (int m = 0; m < num_nodes; ++m) {
+      cout << topo.at(m) << '\t';
+    }
+    cout << endl;
+
+    cout << "==================================================" << '\n'
+         << "Each node's parents: " << endl;
+    this->PrintEachNodeParents();
+
+  }
+
+//  for (int i=0; i<num_nodes; ++i) {
+//    delete[] graphAdjacencyMatrix[i];
+//  }
+//  delete[] graphAdjacencyMatrix;
 }
 
 
@@ -978,4 +1076,13 @@ int Network::ApproxInferByProbLogiRejectSamp(DiscreteConfig e, Node *node, vecto
 int Network::ApproxInferByProbLogiRejectSamp(DiscreteConfig e, int node_index, vector<DiscreteConfig> &samples) {
   return ApproxInferByProbLogiRejectSamp(e, FindNodePtrByIndex(node_index), samples);
 }
+
+
+
+
+pair<double, set<Node*>> Network::F(Node *node, set<Node*> candidate_parents) {
+  
+}
+
+
 #pragma clang diagnostic pop

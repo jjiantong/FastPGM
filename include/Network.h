@@ -24,6 +24,9 @@
 
 using namespace std;
 
+// Forward Declaration
+class ScoreFunction;
+
 
 class Network {
 
@@ -108,6 +111,17 @@ class Network {
   vector<int> GenTopoOrd();
   pair<DiscreteConfig, double> DrawOneLikelihoodWeightingSample(const DiscreteConfig &evidence);
   set<int> GetMarkovBlanketIndexesOfNode(Node *node_ptr);
+
+  // ==================================================
+  // Functions for structure learning.
+  // Based on the work of Ott et al. (2003) FINDING OPTIMAL MODELS FOR SMALL GENE NETWORKS
+  pair<double, set<Node*>> F(Node *node, set<Node*> candidate_parents);
+
+
+
+
+
+
 };
 
 

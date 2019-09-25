@@ -25,11 +25,10 @@
 class ScoreFunction {
  public:
 
-  ScoreFunction(Network *net, Dataset *trn);
+  ScoreFunction(Network *net, Dataset *dts);
   double LogLikelihoodForNode(Node *node_ptr);
   double LogLikelihood();
   double K2();
-  double BDe();
   double BDeu(int equi_sample_size = 10);
   double AIC();
   double BIC();
@@ -39,15 +38,14 @@ class ScoreFunction {
 
   ScoreFunction() = default;
 
-  int num_network_params = 0;
-  Network *net;
-  Dataset *trn;
+  int num_network_params;
+  Network *network;
+  Dataset *dataset;
 
   double LogLikelihoodForNode(Node*, Network*, Dataset*);
   double LogLikelihood(Network*, Dataset*);
   double K2(Network*, Dataset*);
   double LogK2(Network*, Dataset*);
-  double BDe(Network*, Dataset*, int);
   double BDeu(Network*, Dataset*, int);
   double LogBDeu(Network*, Dataset*, int);
   double AIC(Network*, Dataset*);

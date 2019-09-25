@@ -33,10 +33,10 @@ Input: node name
 
 Output: node pointer
 
-## virtual void StructLearnCompData(Dataset \*trn) = 0;
+## virtual void StructLearnCompData(Dataset \*dts) = 0;
 A virtual function to do structure learning with complete data.
 
-## void LearnParamsKnowStructCompData(const Dataset \*trn)
+## void LearnParamsKnowStructCompData(const Dataset \*dts)
 Learn parameters of the network, provided with known structure and complete data.
 
 ## void ClearParams()

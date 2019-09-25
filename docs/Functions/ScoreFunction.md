@@ -1,6 +1,6 @@
 # class ScoreFunction
 
-## ScoreFunction(Network \*net, Dataset \*trn)
+## ScoreFunction(Network \*net, Dataset \*dts)
 
 ## double LogLikelihoodForNode(Node \*node_ptr)
 For the i-th node, the log likelihood value is

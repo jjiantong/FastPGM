@@ -53,9 +53,9 @@ bool FirstIsSubsetOfSecond(const DiscreteConfig *first, const DiscreteConfig *se
 bool FirstCompatibleSecond(const DiscreteConfig *, const DiscreteConfig *);
 bool Conflict(const DiscreteConfig *cfg1, const DiscreteConfig *cfg2);
 bool OccurInCorrectOrder(int a, int b, vector<int> vec);
-bool DAGObeyOrdering(const int **graph, int num_nodes, vector<int> ord);
-int* WidthFirstTraversalWithAdjacencyMatrix(const int **graph, int num_nodes, int start);
-vector<int> TopoSortOfDAGZeroInDegreeFirst(const int **graph, int num_nodes);
+bool DAGObeyOrdering(int **graph, int num_nodes, vector<int> ord);
+int* WidthFirstTraversalWithAdjacencyMatrix(int **graph, int num_nodes, int start);
+vector<int> TopoSortOfDAGZeroInDegreeFirst(int **graph, int num_nodes);
 
 string TrimRight(string);
 string TrimLeft(string);
