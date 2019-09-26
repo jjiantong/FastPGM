@@ -3,6 +3,7 @@
 //
 
 #include "Node.h"
+#include "DiscreteNode.h"
 
 Node::Node(int index) {
   SetNodeIndex(index);
@@ -54,20 +55,19 @@ void Node::RemoveParent(Node *p) {
 }
 
 
-/**
- * Generate all combinations of values of parents.
- */
 void Node::GenDiscParCombs() {
+  set_discrete_parents_combinations.clear();
+
   // Preprocess. Construct set of sets.
   set<DiscreteConfig> set_of_sets;
-  if (set_parents_ptrs.empty()) return;
+  if (set_parents_ptrs.empty()) {return;}
   for (const auto par_ptr : set_parents_ptrs) {
     if (!par_ptr->is_discrete) { continue; }
     DiscreteConfig cb;
     pair<int, int> ele;
-    for (int i=0; i<par_ptr->num_potential_vals; i++) {
+    for (int i=0; i<dynamic_cast<DiscreteNode*>(par_ptr)->num_potential_vals; i++) {
       ele.first = par_ptr->node_index;
-      ele.second = par_ptr->potential_vals[i];
+      ele.second = dynamic_cast<DiscreteNode*>(par_ptr)->potential_vals[i];
       cb.insert(ele);
     }
     set_of_sets.insert(cb);

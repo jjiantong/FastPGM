@@ -9,7 +9,7 @@ ScoreFunction::ScoreFunction(Network *net, Dataset *dts) {
   this->dataset = dts;
   num_network_params = 0;
   for (const auto &node_ptr : net->set_node_ptr_container) {
-    num_network_params += node_ptr->num_potential_vals * node_ptr->set_discrete_parents_combinations.size();
+    num_network_params += dynamic_cast<DiscreteNode*>(node_ptr)->num_potential_vals * node_ptr->set_discrete_parents_combinations.size();
   }
 }
 
@@ -25,7 +25,8 @@ double ScoreFunction::LogLikelihoodForNode(Node *node_ptr, Network *net, Dataset
 
   // Use the notation like the papers (e.g. r_i, q_i, N_ij, N_ijk).
 
-  const int &r_i = node_ptr->num_potential_vals;
+  auto d_node_ptr = dynamic_cast<DiscreteNode*>(node_ptr);
+  const int &r_i = d_node_ptr->num_potential_vals;
   double log_likelihood = 0;
   for (const auto &par_comb : node_ptr->set_discrete_parents_combinations) {
     int index = node_ptr->GetNodeIndex();
@@ -50,7 +51,7 @@ double ScoreFunction::LogLikelihoodForNode(Node *node_ptr, Network *net, Dataset
     }
 
     for (int k=0; k<r_i; ++k){
-      int val = node_ptr->potential_vals[k];
+      int val = d_node_ptr->potential_vals[k];
 
       int n_ijk = 0;
 
@@ -106,7 +107,8 @@ double ScoreFunction::K2(Network *net, Dataset *dts) {
 
   for (const auto &node_ptr : net->set_node_ptr_container) {
     const int &node_index = node_ptr->GetNodeIndex();
-    const int &r_i = node_ptr->num_potential_vals;
+    auto d_node_ptr = dynamic_cast<DiscreteNode*>(node_ptr);
+    const int &r_i = d_node_ptr->num_potential_vals;
 
     double multiply_over_j = 1;
 
@@ -135,7 +137,7 @@ double ScoreFunction::K2(Network *net, Dataset *dts) {
       for (int k=0; k<r_i; ++k){
         int n_ijk = 0;
         for (const auto &s : set_instances_parent_compatible) {
-          int val = node_ptr->potential_vals[k];
+          int val = d_node_ptr->potential_vals[k];
           // Check this node.
           n_ijk += (dts->dataset_all_vars[s][node_index] == val) ? 1 : 0;
         }
@@ -170,7 +172,8 @@ double ScoreFunction::LogK2(Network *net, Dataset *dts) {
 
   for (const auto &node_ptr : net->set_node_ptr_container) {
     const int &node_index = node_ptr->GetNodeIndex();
-    const int &r_i = node_ptr->num_potential_vals;
+    auto d_node_ptr = dynamic_cast<DiscreteNode*>(node_ptr);
+    const int &r_i = d_node_ptr->num_potential_vals;
 
     double sum_over_j = 0;
 
@@ -199,7 +202,7 @@ double ScoreFunction::LogK2(Network *net, Dataset *dts) {
       for (int k=0; k<r_i; ++k){
         int n_ijk = 0;
         for (const auto &s : set_instances_parent_compatible) {
-          int val = node_ptr->potential_vals[k];
+          int val = d_node_ptr->potential_vals[k];
           // Check this node.
           n_ijk += (dts->dataset_all_vars[s][node_index] == val) ? 1 : 0;
         }
@@ -247,7 +250,8 @@ double ScoreFunction::BDeu(Network *net, Dataset *dts, int equi_sample_size) {
 
   for (const auto &node_ptr : net->set_node_ptr_container) {
     const int &node_index = node_ptr->GetNodeIndex();
-    const int &r_i = node_ptr->num_potential_vals;
+    auto d_node_ptr = dynamic_cast<DiscreteNode*>(node_ptr);
+    const int &r_i = d_node_ptr->num_potential_vals;
     const int &q_i = node_ptr->set_discrete_parents_combinations.size();
     double multiply_over_j = 1;
 
@@ -276,7 +280,7 @@ double ScoreFunction::BDeu(Network *net, Dataset *dts, int equi_sample_size) {
       for (int k=0; k<r_i; ++k){
         int n_ijk = 0;
         for (const auto &s : set_instances_parent_compatible) {
-          int val = node_ptr->potential_vals[k];
+          int val = d_node_ptr->potential_vals[k];
           // Check this node.
           n_ijk += (dts->dataset_all_vars[s][node_index] == val) ? 1 : 0;
         }
@@ -314,7 +318,8 @@ double ScoreFunction::LogBDeu(Network *net, Dataset *dts, int equi_sample_size) 
 
   for (const auto &node_ptr : net->set_node_ptr_container) {
     const int &node_index = node_ptr->GetNodeIndex();
-    const int &r_i = node_ptr->num_potential_vals;
+    auto d_node_ptr = dynamic_cast<DiscreteNode*>(node_ptr);
+    const int &r_i = d_node_ptr->num_potential_vals;
     const int &q_i = node_ptr->set_discrete_parents_combinations.size();
     double sum_over_j = 0;
 
@@ -343,7 +348,7 @@ double ScoreFunction::LogBDeu(Network *net, Dataset *dts, int equi_sample_size) 
       for (int k=0; k<r_i; ++k){
         int n_ijk = 0;
         for (const auto &s : set_instances_parent_compatible) {
-          int val = node_ptr->potential_vals[k];
+          int val = d_node_ptr->potential_vals[k];
           // Check this node.
           n_ijk += (dts->dataset_all_vars[s][node_index] == val) ? 1 : 0;
         }

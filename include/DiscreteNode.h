@@ -17,6 +17,12 @@ using namespace std;
 
 class DiscreteNode : public Node {
  public:
+  int num_potential_vals;
+  int *potential_vals;
+  // The domain of a variable has an order if it is specified by an XMLBIF file.
+  vector<string> vec_str_potential_vals;
+  vector<int> vec_potential_vals;
+
   map<int, map<DiscreteConfig, double> >  map_cond_prob_table;
   map<int, double>  map_marg_prob_table;
 

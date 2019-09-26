@@ -16,8 +16,11 @@ double ChowLiuTree::ComputeMutualInformation(Node *Xi, Node *Xj, const Dataset *
   // Find the indexes of these two features in training set.
   int xi=Xi->GetNodeIndex(), xj=Xj->GetNodeIndex();
 
+  auto dXi = dynamic_cast<DiscreteNode*>(Xi);
+  auto dXj = dynamic_cast<DiscreteNode*>(Xj);
+
   // Initialize the table.
-  int m = dts->num_instance, ri = Xi->num_potential_vals, rj = Xj->num_potential_vals;
+  int m = dts->num_instance, ri = dXi->num_potential_vals, rj = dXj->num_potential_vals;
   double **Pij = new double* [ri];
   for (int i=0; i<ri; ++i) {
     Pij[i] = new double[rj]();    // The parentheses at end will initialize the array to be all zeros.
@@ -30,7 +33,7 @@ double ChowLiuTree::ComputeMutualInformation(Node *Xi, Node *Xj, const Dataset *
   for (a=0; a<ri; a++) {
     for (b=0; b<rj; b++) {
       for (s=0; s<m; s++) {
-        if (dts->dataset_all_vars[s][xi] == Xi->potential_vals[a] && dts->dataset_all_vars[s][xj] == Xj->potential_vals[b]) {
+        if (dts->dataset_all_vars[s][xi] == dXi->potential_vals[a] && dts->dataset_all_vars[s][xj] == dXj->potential_vals[b]) {
           Pij[a][b] += 1;
         }
       }
@@ -41,7 +44,7 @@ double ChowLiuTree::ComputeMutualInformation(Node *Xi, Node *Xj, const Dataset *
   // Update Pi.
   for (a=0; a<ri; a++) {
     for (s=0; s<m; s++) {
-      if (dts->dataset_all_vars[s][xi] == Xi->potential_vals[a]) {
+      if (dts->dataset_all_vars[s][xi] == dXi->potential_vals[a]) {
         Pi[a] += 1;
       }
     }
@@ -51,7 +54,7 @@ double ChowLiuTree::ComputeMutualInformation(Node *Xi, Node *Xj, const Dataset *
   // Update Pj.
   for (b=0; b<rj; b++) {
     for (s=0; s<m; s++) {
-      if (dts->dataset_all_vars[s][xj] == Xj->potential_vals[b]) {
+      if (dts->dataset_all_vars[s][xj] == dXj->potential_vals[b]) {
         Pj[b] += 1;
       }
     }
@@ -105,7 +108,7 @@ void ChowLiuTree::StructLearnChowLiuTreeCompData(Dataset *dts, bool print_struct
   for (int i=0; i<num_nodes; ++i) {
     // The 0-th node_ptr denotes the label node.
 
-    Node *node_ptr = new DiscreteNode(i);  // For now, only support discrete node.
+    DiscreteNode *node_ptr = new DiscreteNode(i);  // For now, only support discrete node.
 
     node_ptr->num_potential_vals = dts->num_of_possible_values_of_disc_vars[i];
 

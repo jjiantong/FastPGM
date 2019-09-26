@@ -45,11 +45,6 @@ class NetworkTest : public ::testing::Test {
     network->LearnParamsKnowStructCompData(trainer, false);
   }
 
-  void TearDown() override {
-//    delete trainer;
-//    delete tester;
-//    delete network;
-  }
 
   Dataset *trainer;
   Dataset *tester;

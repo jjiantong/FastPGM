@@ -27,13 +27,6 @@ class Node {
 
   string node_name;
   bool is_discrete;
-  int num_potential_vals;
-
-  // The domain of a variable has an order if it is specified by an XMLBIF file.
-  vector<string> vec_str_potential_vals;
-  vector<int> vec_potential_vals;
-
-  int *potential_vals;
 
   set<Node*> set_parents_ptrs;
   set<Node*> set_children_ptrs;

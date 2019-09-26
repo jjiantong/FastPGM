@@ -44,7 +44,7 @@ vector<Node*> XMLBIFParser::GetUnconnectedNodes() const {
   for (auto &xvp : vec_xml_vars_ptr) {
     if (((string)xvp->FirstChildElement("TYPE")->GetText())=="discrete") {
 
-      Node *n_p = new DiscreteNode(vec_node_ptrs.size());
+      DiscreteNode *n_p = new DiscreteNode(vec_node_ptrs.size());
       n_p->node_name = xvp->FirstChildElement("NAME")->GetText();
 
       XMLElement *xml_val_ptr = xvp->FirstChildElement("VALUE");
@@ -78,11 +78,11 @@ void XMLBIFParser::AssignProbsToNodes(vector<XMLElement*> vec_xml_elems_ptr, vec
 
     // Parse "FOR" ==================================================
     string str_for = (xpp->FirstChildElement("FOR")->GetText());
-    Node* for_np = nullptr;
+    DiscreteNode* for_np = nullptr;
     // Find the variable corresponding to this probability.
     for (auto &vnp : vec_nodes_ptr) {
       if (vnp->node_name==str_for) {
-        for_np = vnp;
+        for_np = dynamic_cast<DiscreteNode*>(vnp);
         break;
       }
     }
@@ -144,7 +144,7 @@ void XMLBIFParser::AssignProbsToNodes(vector<XMLElement*> vec_xml_elems_ptr, vec
 
     // The following "digits" are for parents of this node.
     for (int i=0; i<num_given; ++i) {
-      vec_range_each_digit.push_back(vec_given_vars_ptrs[i]->num_potential_vals);
+      vec_range_each_digit.push_back(dynamic_cast<DiscreteNode*>(vec_given_vars_ptrs[i])->num_potential_vals);
     }
 
     vector<vector<int>> nary_counts = NaryCount(vec_range_each_digit);
@@ -171,7 +171,7 @@ void XMLBIFParser::AssignProbsToNodes(vector<XMLElement*> vec_xml_elems_ptr, vec
         comb.insert(
                 pair<int,int>(
                         vec_given_vars_ptrs[j-1]->GetNodeIndex(),
-                        vec_given_vars_ptrs[j-1]->vec_potential_vals[digits[j]])
+                        dynamic_cast<DiscreteNode*>(vec_given_vars_ptrs[j-1])->vec_potential_vals[digits[j]])
         );
       }
 
