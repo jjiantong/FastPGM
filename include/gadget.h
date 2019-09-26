@@ -48,6 +48,8 @@ typedef pair<int, Value> VarVal;
 typedef set<VarVal> Configuration;
 
 set<DiscreteConfig> GenAllConfgFromSets(set<DiscreteConfig> *set_of_sets);
+template <typename T> set<set<T>> GenAllCombinationsFromSets(set<set<T>> *set_of_sets);
+template <typename T> set<T> GenPowerSet(set<T> src_set);
 set<DiscreteConfig> ExpandConfgFromTwoConfgs(const set<DiscreteConfig> *one, const set<DiscreteConfig> *two);
 bool FirstIsSubsetOfSecond(const DiscreteConfig *first, const DiscreteConfig *second);
 bool FirstCompatibleSecond(const DiscreteConfig *, const DiscreteConfig *);

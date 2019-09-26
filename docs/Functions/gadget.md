@@ -1,7 +1,8 @@
 # gadget.h
 
 ## set<DiscreteConfig> GenAllCombFromSets(set<DiscreteConfig> \*)
-A recursive function generate all possible combinations from several sets. <br/>
+Given several sets, draw one element from every set, making a combination. <br/>
+The function uses recursion to generate all possible combinations.
 
 Input: several sets (set of sets) <br/>
 Output: all possible combinations of elements of each set, by picking one element in each set. <br/>
