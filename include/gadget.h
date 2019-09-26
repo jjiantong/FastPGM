@@ -47,9 +47,47 @@ typedef pair<int, Value> VarVal;
 
 typedef set<VarVal> Configuration;
 
-set<DiscreteConfig> GenAllConfgFromSets(set<DiscreteConfig> *set_of_sets);
-template <typename T> set<set<T>> GenAllCombinationsFromSets(set<set<T>> *set_of_sets);
-template <typename T> set<T> GenPowerSet(set<T> src_set);
+template <typename T> set<set<T>> GenAllCombinationsFromSets(set<set<T>> *set_of_sets) {
+  if (set_of_sets->empty()) { return set<set<T>>(); }
+  auto its=set_of_sets->begin();
+  set<T> to_be_inserted = *its;
+  set<set<T>> result, temp_result;
+  // Base Case
+  if (set_of_sets->size()==1) {
+    for (T p : to_be_inserted){
+      set<T> c;
+      c.insert(p);
+      result.insert(c);
+    }
+    return result;
+  }
+  // Recursive Case (the size of set_of_sets is greater than 1)
+  set_of_sets->erase(its);
+  temp_result = GenAllCombinationsFromSets(set_of_sets);
+  for (T p : to_be_inserted){
+    for (set<T> c : temp_result) {
+      c.insert(p);
+      result.insert(c);
+    }
+  }
+  return result;
+};
+
+template <typename T> set<set<T>> GenPowerSet(set<T> src_set) {
+  // Avoid recursion.
+  set<set<T>> power_set;
+  set<T> empty;
+  power_set.insert(empty);
+  for (T elem : src_set) {
+    set<set<T>> power_set_temp = power_set;
+    for (set<T> subset : power_set_temp) {
+      subset.insert(elem);
+      power_set.insert(subset);
+    }
+  }
+  return power_set;
+};
+
 set<DiscreteConfig> ExpandConfgFromTwoConfgs(const set<DiscreteConfig> *one, const set<DiscreteConfig> *two);
 bool FirstIsSubsetOfSecond(const DiscreteConfig *first, const DiscreteConfig *second);
 bool FirstCompatibleSecond(const DiscreteConfig *, const DiscreteConfig *);

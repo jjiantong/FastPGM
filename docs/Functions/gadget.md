@@ -1,6 +1,6 @@
 # gadget.h
 
-## set<DiscreteConfig> GenAllCombFromSets(set<DiscreteConfig> \*)
+## set<set<T>> GenAllCombinationsFromSets(set<set<T>> \*)
 Given several sets, draw one element from every set, making a combination. <br/>
 The function uses recursion to generate all possible combinations.
 
@@ -12,7 +12,7 @@ Example (pseudocode)
 A = {<a,1>, <a,3>, <a,5>}
 B = {<b,100>, <b,101>, <b,102>}
 set_of_sets = {A, B}
-result = GenAllConfgFromSets(set_of_sets)
+result = GenAllCombinationsFromSets(set_of_sets)
 print(result)
 ```
 Output:

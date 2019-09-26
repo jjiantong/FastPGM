@@ -5,84 +5,6 @@
 #include "gadget.h"
 
 
-set<DiscreteConfig> GenAllConfgFromSets(set<DiscreteConfig> *set_of_sets) {
-
-  if (set_of_sets->empty()) { return set<DiscreteConfig>(); }
-
-  auto its=set_of_sets->begin();
-  DiscreteConfig to_be_inserted = *its;
-  set<DiscreteConfig> result, temp_result;
-
-  // Base Case
-  if (set_of_sets->size()==1) {
-    for (auto &p : to_be_inserted){
-      DiscreteConfig c;
-      c.insert(p);
-      result.insert(c);
-    }
-    return result;
-  }
-
-  // Recursive Case (the size of set_of_sets is greater than 1)
-  set_of_sets->erase(its);
-  temp_result = GenAllConfgFromSets(set_of_sets);
-  for (auto &p : to_be_inserted){
-    for (DiscreteConfig c : temp_result) {
-      c.insert(p);
-      result.insert(c);
-    }
-  }
-  return result;
-}
-
-
-template <typename T> set<set<T>> GenAllCombinationsFromSets(set<set<T>> *set_of_sets) {
-
-  if (set_of_sets->empty()) { return set<set<T>>(); }
-
-  auto its=set_of_sets->begin();
-  set<T> to_be_inserted = *its;
-  set<set<T>> result, temp_result;
-
-  // Base Case
-  if (set_of_sets->size()==1) {
-    for (auto &p : to_be_inserted){
-      set<T> c;
-      c.insert(p);
-      result.insert(c);
-    }
-    return result;
-  }
-
-  // Recursive Case (the size of set_of_sets is greater than 1)
-  set_of_sets->erase(its);
-  temp_result = GenAllCombinationsFromSets(set_of_sets);
-  for (auto &p : to_be_inserted){
-    for (set<T> c : temp_result) {
-      c.insert(p);
-      result.insert(c);
-    }
-  }
-  return result;
-}
-
-
-template <typename T> set<T> GenPowerSet(set<T> src_set) {
-  // Avoid recursion.
-  set<set<T>> power_set;
-  set<T> empty;
-  power_set.insert(empty);
-  for (auto &elem : src_set) {
-    set<set<T>> power_set_temp = power_set;
-    for (auto &subset : power_set_temp) {
-      subset.insert(elem);
-      power_set.insert(subset);
-    }
-  }
-  return power_set;
-}
-
-
 set<DiscreteConfig> ExpandConfgFromTwoConfgs(const set<DiscreteConfig> *one, const set<DiscreteConfig> *two) {
   set<int> set_all_vars;
   for (const auto &p : *one->begin()) {
@@ -109,7 +31,7 @@ set<DiscreteConfig> ExpandConfgFromTwoConfgs(const set<DiscreteConfig> *one, con
   for (const auto &kv : map_var_to_combs_domain) {
     set_of_sets.insert(kv.second);
   }
-  return GenAllConfgFromSets(&set_of_sets);
+  return GenAllCombinationsFromSets(&set_of_sets);
 }
 
 
@@ -156,7 +78,7 @@ bool OccurInCorrectOrder(int a, int b, vector<int> vec) {
   return false;
 }
 
-bool DAGObeyOrdering(const int **graph, int num_nodes, vector<int> ord) {
+bool DAGObeyOrdering(int **graph, int num_nodes, vector<int> ord) {
   if (num_nodes!=ord.size()) {
     fprintf(stderr, "Error in function [%s]. Number of nodes is not equal to the size of ordering.", __FUNCTION__);
     exit(1);  // return false;
@@ -179,7 +101,7 @@ bool DAGObeyOrdering(const int **graph, int num_nodes, vector<int> ord) {
 }
 
 
-int* WidthFirstTraversalWithAdjacencyMatrix(const int **graph, int num_nodes, int start) {
+int* WidthFirstTraversalWithAdjacencyMatrix(int **graph, int num_nodes, int start) {
   int *result = new int[num_nodes];
   int itResult = 0;
   queue<int> que;
@@ -200,7 +122,7 @@ int* WidthFirstTraversalWithAdjacencyMatrix(const int **graph, int num_nodes, in
 }
 
 
-vector<int> TopoSortOfDAGZeroInDegreeFirst(const int **graph, int num_nodes) {
+vector<int> TopoSortOfDAGZeroInDegreeFirst(int **graph, int num_nodes) {
   vector<int> result;
   queue<int> que;
 
