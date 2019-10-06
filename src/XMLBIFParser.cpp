@@ -42,24 +42,33 @@ vector<Node*> XMLBIFParser::GetUnconnectedNodes() const {
   }
   vector<Node*> vec_node_ptrs;
   for (auto &xvp : vec_xml_vars_ptr) {
-    Node *n_p = new Node();
-    n_p->node_name = xvp->FirstChildElement("NAME")->GetText();
-    n_p->is_discrete =
-            ((string)xvp->FirstChildElement("TYPE")->GetText())=="discrete";
+    if (((string)xvp->FirstChildElement("TYPE")->GetText())=="discrete") {
 
-    XMLElement *xml_val_ptr = xvp->FirstChildElement("VALUE");
-    while (xml_val_ptr!=nullptr) {
-      n_p->vec_str_potential_vals.push_back(((string)xml_val_ptr->GetText()));
-      xml_val_ptr = xml_val_ptr->NextSiblingElement("VALUE");
+      DiscreteNode *n_p = new DiscreteNode(vec_node_ptrs.size());
+      n_p->node_name = xvp->FirstChildElement("NAME")->GetText();
+
+      XMLElement *xml_val_ptr = xvp->FirstChildElement("VALUE");
+      while (xml_val_ptr!=nullptr) {
+        n_p->vec_str_potential_vals.push_back(((string)xml_val_ptr->GetText()));
+        xml_val_ptr = xml_val_ptr->NextSiblingElement("VALUE");
+      }
+      n_p->num_potential_vals = n_p->vec_str_potential_vals.size();
+      n_p->potential_vals = new int[n_p->num_potential_vals];
+      for (int i=0; i<n_p->num_potential_vals; ++i) {
+        n_p->potential_vals[i] = i;
+        n_p->vec_potential_vals.push_back(i);
+      }
+      vec_node_ptrs.push_back(n_p);
+
+    } else {  // If the "TYPE" is "continuous".
+
+      // todo: implement continuous node
+      Node *n_p = new ContinuousNode();
+      n_p->node_name = xvp->FirstChildElement("NAME")->GetText();
+      fprintf(stderr, "Has not implemented function for continuous node!");
+      exit(1);
     }
-    n_p->num_potential_vals = n_p->vec_str_potential_vals.size();
-    n_p->potential_vals = new int[n_p->num_potential_vals];
-    for (int i=0; i<n_p->num_potential_vals; ++i) {
-      n_p->potential_vals[i] = i;
-      n_p->vec_potential_vals.push_back(i);
-    }
-    n_p->SetNodeIndex(vec_node_ptrs.size());
-    vec_node_ptrs.push_back(n_p);
+
   }
   return vec_node_ptrs;
 }
@@ -67,16 +76,13 @@ vector<Node*> XMLBIFParser::GetUnconnectedNodes() const {
 void XMLBIFParser::AssignProbsToNodes(vector<XMLElement*> vec_xml_elems_ptr, vector<Node*> vec_nodes_ptr) {
   for (auto &xpp : vec_xml_elems_ptr) { // Parse each "PROBABILITY" element.
 
-
-
-    // Parse "FOR"
-
+    // Parse "FOR" ==================================================
     string str_for = (xpp->FirstChildElement("FOR")->GetText());
-    Node* for_np = nullptr;
+    DiscreteNode* for_np = nullptr;
     // Find the variable corresponding to this probability.
     for (auto &vnp : vec_nodes_ptr) {
       if (vnp->node_name==str_for) {
-        for_np = vnp;
+        for_np = dynamic_cast<DiscreteNode*>(vnp);
         break;
       }
     }
@@ -85,10 +91,7 @@ void XMLBIFParser::AssignProbsToNodes(vector<XMLElement*> vec_xml_elems_ptr, vec
       exit(1);
     }
 
-
-
-    // Parse "GIVEN"
-
+    // Parse "GIVEN" ==================================================
     // Store variables of all "GIVEN" in a vector.
     // Because, if the parameters are given in the form of "TABLE",
     // we need to do something like binary counting (change from right)
@@ -118,12 +121,9 @@ void XMLBIFParser::AssignProbsToNodes(vector<XMLElement*> vec_xml_elems_ptr, vec
       gvp->AddChild(for_np);
     }
 
-    for_np->GenParCombs();
+    for_np->GenDiscParCombs();
 
-
-
-    // Parse "TABLE"
-
+    // Parse "TABLE" ==================================================
     string str_table = xpp->FirstChildElement("TABLE")->GetText();
     str_table = Trim(str_table);
     vector<string> vec_str_table_entry = Split(str_table," ");
@@ -144,7 +144,7 @@ void XMLBIFParser::AssignProbsToNodes(vector<XMLElement*> vec_xml_elems_ptr, vec
 
     // The following "digits" are for parents of this node.
     for (int i=0; i<num_given; ++i) {
-      vec_range_each_digit.push_back(vec_given_vars_ptrs[i]->num_potential_vals);
+      vec_range_each_digit.push_back(dynamic_cast<DiscreteNode*>(vec_given_vars_ptrs[i])->num_potential_vals);
     }
 
     vector<vector<int>> nary_counts = NaryCount(vec_range_each_digit);
@@ -162,7 +162,7 @@ void XMLBIFParser::AssignProbsToNodes(vector<XMLElement*> vec_xml_elems_ptr, vec
 
       // The first (left-most) digit is for this node.
       int query = for_np->vec_potential_vals[digits[0]];
-      Combination comb;
+      DiscreteConfig comb;
 
       // The first (left-most) digit is for this node not the parents.
       // So, j start at 1.
@@ -171,15 +171,15 @@ void XMLBIFParser::AssignProbsToNodes(vector<XMLElement*> vec_xml_elems_ptr, vec
         comb.insert(
                 pair<int,int>(
                         vec_given_vars_ptrs[j-1]->GetNodeIndex(),
-                        vec_given_vars_ptrs[j-1]->vec_potential_vals[digits[j]])
+                        dynamic_cast<DiscreteNode*>(vec_given_vars_ptrs[j-1])->vec_potential_vals[digits[j]])
         );
       }
 
       if (digits.size()==1) {
         // If true, then this node does not have parent.
-        for_np->map_marg_prob_table[query] = vec_db_table_entry[i];
+        dynamic_cast<DiscreteNode*>(for_np)->map_marg_prob_table[query] = vec_db_table_entry[i];
       } else {
-        for_np->map_cond_prob_table[query][comb] = vec_db_table_entry[i];
+        dynamic_cast<DiscreteNode*>(for_np)->map_cond_prob_table[query][comb] = vec_db_table_entry[i];
       }
 
     }

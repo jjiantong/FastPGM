@@ -1,15 +1,18 @@
+#pragma clang diagnostic push
+#pragma ide diagnostic ignored "openmp-use-default-none"
 //
 // Created by LinjianLi on 2019/1/25.
 //
 
 #include "CustomNetwork.h"
 
-void CustomNetwork::StructLearnCompData(Trainer *) {
-  return;
+CustomNetwork::CustomNetwork(): CustomNetwork(true) {}
+
+CustomNetwork::CustomNetwork(bool pure_disc) {
+  this->pure_discrete = pure_disc;
 }
 
-
-pair<int*, int> CustomNetwork::SimplifyDefaultElimOrd(Combination evidence) {
+pair<int*, int> CustomNetwork::SimplifyDefaultElimOrd(DiscreteConfig evidence) {
   return {default_elim_ord, num_nodes-1};
 }
 
@@ -34,3 +37,4 @@ void CustomNetwork::GetNetFromXMLBIFFile(string file_path) {
 
   GenTopoOrd();
 }
+#pragma clang diagnostic pop

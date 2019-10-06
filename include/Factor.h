@@ -13,24 +13,23 @@
 
 #include "gadget.h"
 #include "Node.h"
+#include "DiscreteNode.h"
 
 using namespace std;
-
-typedef set< pair<int, int> > Combination;
 
 class Factor {
  public:
   set<int> related_variables;
-  set<Combination> set_combinations;
-  map<Combination, double> map_potentials;
+  set<DiscreteConfig> set_combinations;
+  map<DiscreteConfig, double> map_potentials;
 
   Factor() = default;
-  Factor(Node*);
+  explicit Factor(DiscreteNode*);
   void CopyFactor(Factor F);
-  void SetMembers(set<int> , set<Combination> , map<Combination, double> );
-  void ConstructFactor(Node*);
+  void SetMembers(set<int> , set<DiscreteConfig> , map<DiscreteConfig, double> );
+  void ConstructFactor(DiscreteNode*);
   Factor MultiplyWithFactor(Factor);
-  Factor SumOverVar(Node *);
+  Factor SumOverVar(DiscreteNode *);
   Factor SumOverVar(int);
   void Normalize();
 

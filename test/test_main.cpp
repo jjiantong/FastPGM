@@ -1,9 +1,4 @@
-//
-// Created by llj on 3/20/19.
-//
-
 #include "gtest/gtest.h"
-
 
 int main(int argc, char **argv) {
   ::testing::InitGoogleTest(&argc, argv);

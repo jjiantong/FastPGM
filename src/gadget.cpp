@@ -5,42 +5,37 @@
 #include "gadget.h"
 
 
-set<Combination> GenAllCombFromSets(set<Combination> *set_of_sets) {
-
-  // Error Case
-  if (set_of_sets->empty()) {
-    fprintf(stderr, "Error in function %s! \nThe size of set_of_sets is less than 1", __FUNCTION__);
-    exit(1);
+set<DiscreteConfig> ExpandConfgFromTwoConfgs(const set<DiscreteConfig> *one, const set<DiscreteConfig> *two) {
+  set<int> set_all_vars;
+  for (const auto &p : *one->begin()) {
+    set_all_vars.insert(p.first);
   }
-
-  auto its=set_of_sets->begin();
-  Combination to_be_inserted = *its;
-  set<Combination> result, temp_result;
-
-  // Base Case
-  if (set_of_sets->size()==1) {
-    for (auto &p : to_be_inserted){
-      Combination c;
-      c.insert(p);
-      result.insert(c);
-    }
-    return result;
+  for (const auto &p : *two->begin()) {
+    set_all_vars.insert(p.first);
   }
-
-  // Recursive Case (the size of set_of_sets is greater than 1)
-  set_of_sets->erase(its);
-  temp_result = GenAllCombFromSets(set_of_sets);
-  for (auto &p : to_be_inserted){
-    for (Combination c : temp_result) {
-      c.insert(p);
-      result.insert(c);
+  map<int, DiscreteConfig> map_var_to_combs_domain;
+  for (const auto &v : set_all_vars) {
+    map_var_to_combs_domain[v] = DiscreteConfig();
+  }
+  for (const auto &c : *one) {
+    for (const auto &p : c) {
+      map_var_to_combs_domain[p.first].insert(p);
     }
   }
-  return result;
+  for (const auto &c : *two) {
+    for (const auto &p : c) {
+      map_var_to_combs_domain[p.first].insert(p);
+    }
+  }
+  set<DiscreteConfig> set_of_sets;
+  for (const auto &kv : map_var_to_combs_domain) {
+    set_of_sets.insert(kv.second);
+  }
+  return GenAllCombinationsFromSets(&set_of_sets);
 }
 
 
-bool EachFirstIsInSecond(const Combination *first, const Combination *second) {
+bool FirstIsSubsetOfSecond(const DiscreteConfig *first, const DiscreteConfig *second) {
   for (const auto &f : *first) {
     if (second->find(f)==second->end()) return false;
   }
@@ -48,7 +43,7 @@ bool EachFirstIsInSecond(const Combination *first, const Combination *second) {
 }
 
 
-bool FirstCompatibleSecond(const Combination *first, const Combination *second) {
+bool FirstCompatibleSecond(const DiscreteConfig *first, const DiscreteConfig *second) {
   for (const auto &f : *first) {
     for (const auto &s : *second) {
       if (f.first==s.first && f.second!=s.second) return false;
@@ -58,15 +53,51 @@ bool FirstCompatibleSecond(const Combination *first, const Combination *second) 
 }
 
 
-bool Conflict(const Combination *first, const Combination *second) {
-  for (const auto &f : *first) {
-    for (const auto &s : *second) {
+bool Conflict(const DiscreteConfig *cfg1, const DiscreteConfig *cfg2) {
+  for (const auto &f : *cfg1) {
+    for (const auto &s : *cfg2) {
       if (f.first==s.first && f.second!=s.second) {
         return true;
       }
     }
   }
   return false;
+}
+
+bool OccurInCorrectOrder(int a, int b, vector<int> vec) {
+  bool have_met_a = false, have_met_b = false;
+  for (const auto &elem : vec) {
+    have_met_a = (have_met_a || (elem==a));
+    have_met_b = (have_met_b || (elem==b));
+    if (have_met_b && !have_met_a) {
+      return false;
+    } else if (have_met_b && have_met_a) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool DAGObeyOrdering(int **graph, int num_nodes, vector<int> ord) {
+  if (num_nodes!=ord.size()) {
+    fprintf(stderr, "Error in function [%s]. Number of nodes is not equal to the size of ordering.", __FUNCTION__);
+    exit(1);  // return false;
+  }
+  int *in_degrees = new int[num_nodes](); // The parentheses at end will initialize the array to be all zeros.
+  for (int i=0; i<num_nodes; ++i) {
+    for (int j=0; j<num_nodes; ++j) {
+      if (graph[i][j]==1) { ++in_degrees[j]; }
+    }
+  }
+  for (const auto &o : ord) {
+    if (in_degrees[o] != 0) {
+      return false;
+    }
+    for (int j=0; j<num_nodes; ++j) {
+      if (graph[o][j]==1) { --in_degrees[j]; }
+    }
+  }
+  return true;
 }
 
 
@@ -115,7 +146,7 @@ vector<int> TopoSortOfDAGZeroInDegreeFirst(int **graph, int num_nodes) {
     result.push_back(que.front());
     que.pop();
   }
-
+  delete[] in_degrees;
   return result;
 }
 

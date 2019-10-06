@@ -1,6 +1,6 @@
 # class ScoreFunction
 
-## ScoreFunction(Network \*net, Trainer \*trn)
+## ScoreFunction(Network \*net, Dataset \*dts)
 
 ## double LogLikelihoodForNode(Node \*node_ptr)
 For the i-th node, the log likelihood value is
@@ -54,7 +54,7 @@ Output: **log** of the BDeu score
 
 The reason why using log is that it may need to calculate the factorial of a large number (e.g. 2000!) causing overflow. So, I need to turn to the log space.
 
-The original equation is in *[Learning Bayesian Networks The Combination of Knowledge and Statistical Data (Heckerman, 1995)]*.
+The original equation is in *[Learning Bayesian Networks The DiscreteConfig of Knowledge and Statistical Data (Heckerman, 1995)]*.
 ```
 (LaTeX)
 $$

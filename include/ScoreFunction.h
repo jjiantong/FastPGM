@@ -12,7 +12,7 @@
 #include <cmath>
 
 #include "Network.h"
-#include "Trainer.h"
+#include "Dataset.h"
 #include "Node.h"
 #include "Factor.h"
 #include "gadget.h"
@@ -25,35 +25,33 @@
 class ScoreFunction {
  public:
 
-  ScoreFunction(Network *net, Trainer *trn);
+  ScoreFunction(Network *net, Dataset *dts);
+  double ScoreForNode(Node *node_ptr, string metric);
+
   double LogLikelihoodForNode(Node *node_ptr);
   double LogLikelihood();
+
+  double LogK2ForNode(Node*);
+  double LogK2();
   double K2();
-  double BDe();
+
+  double LogBDeuForNode(Node*, int equi_sample_size);
+  double LogBDeu(int equi_sample_size = 10);
   double BDeu(int equi_sample_size = 10);
+
+  double AICForNode(Node*);
   double AIC();
+
+  double BICForNode(Node*);
   double BIC();
+
+  double MDLForNode(Node*);
   double MDL();
 
  private:
-
   ScoreFunction() = default;
-
-  int num_network_params = 0;
-  Network *net;
-  Trainer *trn;
-
-  double LogLikelihoodForNode(Node*, Network*, Trainer*);
-  double LogLikelihood(Network*, Trainer*);
-  double K2(Network*, Trainer*);
-  double LogK2(Network*, Trainer*);
-  double BDe(Network*, Trainer*, int);
-  double BDeu(Network*, Trainer*, int);
-  double LogBDeu(Network*, Trainer*, int);
-  double AIC(Network*, Trainer*);
-  double BIC(Network*, Trainer*);
-  double MDL(Network*, Trainer*);
-
+  Network *network;
+  Dataset *dataset;
 };
 
 

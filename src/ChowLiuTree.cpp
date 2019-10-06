@@ -1,16 +1,26 @@
+#pragma clang diagnostic push
+#pragma ide diagnostic ignored "openmp-use-default-none"
 //
 // Created by LinjianLi on 2019/1/23.
 //
 
 #include "ChowLiuTree.h"
 
+ChowLiuTree::ChowLiuTree(): ChowLiuTree(true) {}
 
-double ChowLiuTree::ComputeMutualInformation(Node *Xi, Node *Xj, const Trainer *trainer) {
+ChowLiuTree::ChowLiuTree(bool pure_disc) {
+  this->pure_discrete = pure_disc;
+}
+
+double ChowLiuTree::ComputeMutualInformation(Node *Xi, Node *Xj, const Dataset *dts) {
   // Find the indexes of these two features in training set.
   int xi=Xi->GetNodeIndex(), xj=Xj->GetNodeIndex();
 
+  auto dXi = dynamic_cast<DiscreteNode*>(Xi);
+  auto dXj = dynamic_cast<DiscreteNode*>(Xj);
+
   // Initialize the table.
-  int m = trainer->num_train_instance, ri = Xi->num_potential_vals, rj = Xj->num_potential_vals;
+  int m = dts->num_instance, ri = dXi->num_potential_vals, rj = dXj->num_potential_vals;
   double **Pij = new double* [ri];
   for (int i=0; i<ri; ++i) {
     Pij[i] = new double[rj]();    // The parentheses at end will initialize the array to be all zeros.
@@ -23,7 +33,7 @@ double ChowLiuTree::ComputeMutualInformation(Node *Xi, Node *Xj, const Trainer *
   for (a=0; a<ri; a++) {
     for (b=0; b<rj; b++) {
       for (s=0; s<m; s++) {
-        if (trainer->train_set_y_X[s][xi]==Xi->potential_vals[a] && trainer->train_set_y_X[s][xj]==Xj->potential_vals[b]) {
+        if (dts->dataset_all_vars[s][xi] == dXi->potential_vals[a] && dts->dataset_all_vars[s][xj] == dXj->potential_vals[b]) {
           Pij[a][b] += 1;
         }
       }
@@ -34,7 +44,7 @@ double ChowLiuTree::ComputeMutualInformation(Node *Xi, Node *Xj, const Trainer *
   // Update Pi.
   for (a=0; a<ri; a++) {
     for (s=0; s<m; s++) {
-      if (trainer->train_set_y_X[s][xi]==Xi->potential_vals[a]) {
+      if (dts->dataset_all_vars[s][xi] == dXi->potential_vals[a]) {
         Pi[a] += 1;
       }
     }
@@ -44,7 +54,7 @@ double ChowLiuTree::ComputeMutualInformation(Node *Xi, Node *Xj, const Trainer *
   // Update Pj.
   for (b=0; b<rj; b++) {
     for (s=0; s<m; s++) {
-      if (trainer->train_set_y_X[s][xj]==Xj->potential_vals[b]) {
+      if (dts->dataset_all_vars[s][xj] == dXj->potential_vals[b]) {
         Pj[b] += 1;
       }
     }
@@ -69,64 +79,51 @@ double ChowLiuTree::ComputeMutualInformation(Node *Xi, Node *Xj, const Trainer *
   }
   delete[] Pij;
 
-  // Return
   return mutualInformation;
 }
 
 
-void ChowLiuTree::StructLearnCompData(Trainer *trainer) {
+void ChowLiuTree::StructLearnCompData(Dataset *dts, bool print_struct) {
   struct timeval start, end;
   double diff;
   gettimeofday(&start,NULL);
 
-  StructLearnChowLiuTreeCompData(trainer);
+  StructLearnChowLiuTreeCompData(dts, print_struct);
 
   gettimeofday(&end,NULL);
   diff = (end.tv_sec-start.tv_sec) + ((double)(end.tv_usec-start.tv_usec))/1.0E6;
   setlocale(LC_NUMERIC, "");
-  cout << "=======================================================================" << '\n'
+  cout << "==================================================" << '\n'
        << "The time spent to construct Chow-Liu tree is " << diff << " seconds" << endl;
 }
 
 
-void ChowLiuTree::StructLearnChowLiuTreeCompData(Trainer *trainer) {
-  cout << "=======================================================================" << '\n'
+void ChowLiuTree::StructLearnChowLiuTreeCompData(Dataset *dts, bool print_struct) {
+  cout << "==================================================" << '\n'
        << "Begin structural learning. \nConstructing Chow-Liu tree with complete data......" << endl;
 
-  num_nodes = trainer->num_vars;
+  num_nodes = dts->num_vars;
   // Assign an index for each node.
   #pragma omp parallel for
   for (int i=0; i<num_nodes; ++i) {
-    Node *node_ptr = new Node();
-    node_ptr->SetNodeIndex(i);
-    node_ptr->is_discrete = true;  // trainer->is_features_discrete[i];
+    // The 0-th node_ptr denotes the label node.
 
-    if (i == 0) {   // The 0-th node_ptr denotes the label node.
-      node_ptr->num_potential_vals = trainer->num_of_possible_values_of_label;
-    } else {
-      // Number of features is one less than number of nodes.
-      node_ptr->num_potential_vals = trainer->num_of_possible_values_of_features[i-1];
-    }
+    DiscreteNode *node_ptr = new DiscreteNode(i);  // For now, only support discrete node.
+
+    node_ptr->num_potential_vals = dts->num_of_possible_values_of_disc_vars[i];
 
     node_ptr->potential_vals = new int[node_ptr->num_potential_vals];
-    if (i == 0) {  // The 0-th node_ptr denotes the label node.
-      int j = 0;
-      for (auto v : trainer->set_label_possible_values) {
-        node_ptr->potential_vals[j++] = v;
-      }
-    } else {  // The other nodes are features.
-      int j = 0;
-      for (auto v : trainer->map_feature_possible_values[i]) {
-        node_ptr->potential_vals[j++] = v;
-      }
+
+    int j = 0;
+    for (auto v : dts->map_disc_vars_possible_values[i]) {
+      node_ptr->potential_vals[j++] = v;
     }
+
     #pragma omp critical
-    {
-      set_node_ptr_container.insert(node_ptr);
-    }
+    { set_node_ptr_container.insert(node_ptr); }
   }
 
-  cout << "=======================================================================" << '\n'
+  cout << "==================================================" << '\n'
        << "Constructing mutual information table......" << endl;
 
   int n = num_nodes;
@@ -155,13 +152,13 @@ void ChowLiuTree::StructLearnChowLiuTreeCompData(Trainer *trainer) {
           if (Xi!=nullptr && Xj!=nullptr) { break; }
         }
         // Mutual information table is symmetric.
-        mutualInfoTab[i][j] = ComputeMutualInformation(Xi, Xj, trainer);
-        mutualInfoTab[j][i] = ComputeMutualInformation(Xi, Xj, trainer);
+        mutualInfoTab[i][j] = ComputeMutualInformation(Xi, Xj, dts);
+        mutualInfoTab[j][i] = ComputeMutualInformation(Xi, Xj, dts);
       }
     }
   }
 
-  cout << "=======================================================================" << '\n'
+  cout << "==================================================" << '\n'
        << "Constructing maximum spanning tree using mutual information table and Prim's algorithm......" << endl;
 
   // Use Prim's algorithm to generate a spanning tree.
@@ -199,12 +196,10 @@ void ChowLiuTree::StructLearnChowLiuTreeCompData(Trainer *trainer) {
   for (int i=1; i<n; ++i) {
     default_elim_ord[i-1] = topologicalSortedPermutation[n-i];
   }
-  for (int i=0; i<n; ++i) {
-    topo_ord.push_back(topologicalSortedPermutation[i]);
-  }
+  topo_ord = vector<int> (topologicalSortedPermutation, topologicalSortedPermutation+n);
 
 
-  cout << "=======================================================================" << '\n'
+  cout << "==================================================" << '\n'
        << "Setting children and parents......" << endl;
   #pragma omp parallel for
   for (int i=0; i<n; ++i) {
@@ -232,7 +227,7 @@ void ChowLiuTree::StructLearnChowLiuTreeCompData(Trainer *trainer) {
     }
   }
 
-  cout << "=======================================================================" << '\n'
+  cout << "==================================================" << '\n'
        << "Generating parents combinations for each node......" << endl;
 
   // Store the pointers in an array to make use of OpenMP.
@@ -243,43 +238,31 @@ void ChowLiuTree::StructLearnChowLiuTreeCompData(Trainer *trainer) {
   }
   #pragma omp parallel for
   for (int i=0; i<num_nodes; ++i) {
-    arr_node_ptr_container[i]->GenParCombs();
+    arr_node_ptr_container[i]->GenDiscParCombs();
   }
   delete[] arr_node_ptr_container;
 
 
-  cout << "=======================================================================" << '\n'
+  cout << "==================================================" << '\n'
        << "Finish structural learning." << endl;
 
 
   // The following code are just to print the result.
 
-//  cout << "=======================================================================" << '\n'
-//       << "The Chow-Liu Tree has the following edges (adjacency matrix): " << endl;
-//  for (int l = 0; l < n; ++l) {
-//    for (int j = 0; j < n; ++j) {
-//      if (graphAdjacencyMatrix[l][j]==1) {
-//        cout << '<' << l << ',' << j << '>' << '\t';
-//      }
-//    }
-//    cout << endl;
-//  }
+  if (print_struct) {
 
-  cout << "=======================================================================" << '\n'
-       << "Topological sorted permutation generated using width-first-traversal: " << endl;
-  for (int m = 0; m < n; ++m) {
-    cout << topologicalSortedPermutation[m] << '\t';
+    cout << "==================================================" << '\n'
+         << "Topological sorted permutation generated using width-first-traversal: " << endl;
+    for (int m = 0; m < n; ++m) {
+      cout << topologicalSortedPermutation[m] << '\t';
+    }
+    cout << endl;
+
+    cout << "==================================================" << '\n'
+         << "Each node's parents: " << endl;
+    this->PrintEachNodeParents();
+
   }
-  cout << endl;
-
-  cout << "=======================================================================" << '\n'
-       << "Each node's parents: " << endl;
-  this->PrintEachNodeParents();
-
-//  cout << "=======================================================================" << '\n'
-//       << "Each node's children: " << endl;
-//  this->PrintEachNodeChildren();
-//
 
   for (int i=0; i<n; ++i) {
     delete[] mutualInfoTab[i];
@@ -293,12 +276,12 @@ void ChowLiuTree::StructLearnChowLiuTreeCompData(Trainer *trainer) {
 }
 
 
-pair<int*, int> ChowLiuTree::SimplifyDefaultElimOrd(Combination evidence) {
+pair<int*, int> ChowLiuTree::SimplifyDefaultElimOrd(DiscreteConfig evidence) {
   return SimplifyTreeDefaultElimOrd(evidence);
 }
 
 
-pair<int*, int> ChowLiuTree::SimplifyTreeDefaultElimOrd(Combination evidence) {
+pair<int*, int> ChowLiuTree::SimplifyTreeDefaultElimOrd(DiscreteConfig evidence) {
 
   // Remove all the barren nodes
   set<int> to_be_removed;
@@ -345,7 +328,7 @@ pair<int*, int> ChowLiuTree::SimplifyTreeDefaultElimOrd(Combination evidence) {
 }
 
 
-void ChowLiuTree::DepthFirstTraversalUntillMeetObserved(Combination evidence, int start, set<int>& visited, set<int>& to_be_removed) {
+void ChowLiuTree::DepthFirstTraversalUntillMeetObserved(DiscreteConfig evidence, int start, set<int>& visited, set<int>& to_be_removed) {
 
   // Base case
   if (visited.find(start)!=visited.end()) return;

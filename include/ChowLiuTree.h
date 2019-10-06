@@ -5,9 +5,10 @@
 #ifndef BAYESIANNETWORK_CHOWLIUTREE_H
 #define BAYESIANNETWORK_CHOWLIUTREE_H
 
-#include "Trainer.h"
+#include "Dataset.h"
 #include "Network.h"
 #include "Node.h"
+#include "DiscreteNode.h"
 #include "Factor.h"
 #include "gadget.h"
 #include <set>
@@ -21,7 +22,7 @@
 
 using namespace std;
 
-typedef set< pair<int, int> > Combination;
+typedef set< pair<int, int> > DiscreteConfig;
 
 
 class ChowLiuTree : public Network {
@@ -36,13 +37,20 @@ class ChowLiuTree : public Network {
    *   It is just the reverse order of topological sorting using width-first-traversal start at the root node.
    */
   int *default_elim_ord;
-  double ComputeMutualInformation(Node *Xi, Node *Xj, const Trainer *trainer);
-  void StructLearnCompData(Trainer *trainer);
-  void StructLearnChowLiuTreeCompData(Trainer *trainer);
 
-  pair<int*, int> SimplifyDefaultElimOrd(Combination evidence) override;
-  pair<int*, int> SimplifyTreeDefaultElimOrd(Combination evidence);
-  void DepthFirstTraversalUntillMeetObserved(Combination evidence, int start, set<int>& visited, set<int>& to_be_removed);
+  ChowLiuTree();
+  explicit ChowLiuTree(bool pure_disc);
+
+  double ComputeMutualInformation(Node *Xi, Node *Xj, const Dataset *dts);
+  void StructLearnCompData(Dataset *dts, bool print_struct=true) override;
+  void StructLearnChowLiuTreeCompData(Dataset *dts, bool print_struct=true);
+
+
+  pair<int*, int> SimplifyDefaultElimOrd(DiscreteConfig evidence) override;
+  pair<int*, int> SimplifyTreeDefaultElimOrd(DiscreteConfig evidence);
+
+ protected:
+  void DepthFirstTraversalUntillMeetObserved(DiscreteConfig evidence, int start, set<int>& visited, set<int>& to_be_removed);
   void DepthFirstTraversalToRemoveMSeparatedNodes(int start, set<int>& visited, set<int>& to_be_removed);
 
 };

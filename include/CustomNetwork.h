@@ -5,7 +5,7 @@
 #ifndef BAYESIANNETWORK_CUSTOMNETWORK_H
 #define BAYESIANNETWORK_CUSTOMNETWORK_H
 
-#include "Trainer.h"
+#include "Dataset.h"
 #include "Network.h"
 #include "Node.h"
 #include "Factor.h"
@@ -20,15 +20,15 @@
 
 using namespace std;
 
-typedef set< pair<int, int> > Combination;
+typedef set< pair<int, int> > DiscreteConfig;
 
 class CustomNetwork : public Network {
  public:
 
-  CustomNetwork() = default;
+  CustomNetwork();
+  explicit CustomNetwork(bool pure_disc);
 
-  void StructLearnCompData(Trainer *);
-  pair<int*, int> SimplifyDefaultElimOrd(Combination evidence) override;
+  pair<int*, int> SimplifyDefaultElimOrd(DiscreteConfig evidence) override;
 
   void GetNetFromXMLBIFFile(string file_path);
 

@@ -1,15 +1,10 @@
-//
-// Created by llj on 3/11/19.
-//
-
 #include <iostream>
 #include <string>
 #include <vector>
-#include <iostream>
-#include <fstream>
 #include "gtest/gtest.h"
+#include "tinyxml2.h"
 
-#include "Trainer.h"
+#include "Dataset.h"
 #include "Network.h"
 #include "ChowLiuTree.h"
 #include "JunctionTree.h"
@@ -21,9 +16,9 @@ class NetworkTest : public ::testing::Test {
  protected:
 
   void SetUp() override {
-    trainer = new Trainer();
-    tester = new Trainer();
-    network = new ChowLiuTree();
+    trainer = new Dataset();
+    tester = new Dataset();
+    network = new ChowLiuTree(true);
 
     string train_set_file_path, test_set_file_path;
 
@@ -31,7 +26,7 @@ class NetworkTest : public ::testing::Test {
     train_set_file_path =
             //  "../../data/a1a.txt"
             //  "../../data/a2a.txt"
-              "../../data/dataset/a3a-medium.txt"
+              "../../data/dataset/a3a-small.txt"
       //  "../../data/w1a.txt"
       //  "../../data/w7a.txt"
             ;
@@ -39,32 +34,23 @@ class NetworkTest : public ::testing::Test {
     test_set_file_path =
             //  "../../data/a1a.test.txt"
             //  "../../data/a2a.test.txt"
-              "../../data/dataset/a3a-medium.test.txt"
+              "../../data/dataset/a3a-small.test.txt"
       //  "../../data/w1a.test.txt"
       //  "../../data/w7a.test.txt"
             ;
 
     trainer->LoadLIBSVMDataAutoDetectConfig(train_set_file_path);
     tester->LoadLIBSVMDataAutoDetectConfig(test_set_file_path);
-    network->StructLearnCompData(trainer);
-    network->LearnParmsKnowStructCompData(trainer);
+    network->StructLearnCompData(trainer, false);
+    network->LearnParamsKnowStructCompData(trainer, false);
   }
 
-  void TearDown() override {
-//    delete trainer;
-//    delete tester;
-//    delete network;
-  }
 
-  Trainer *trainer;
-  Trainer *tester;
+  Dataset *trainer;
+  Dataset *tester;
   Network *network;
 };
 
-TEST(OtherTest,DISABLED_usablity_of_gtest) {
-  EXPECT_EQ(1,1);
-  EXPECT_EQ(tgamma(6),FactorialForSmallInteger(5));
-}
 
 TEST_F(NetworkTest, chow_liu_tree_var_elim_accuracy) { // The prefix "DISABLED" disable this test.
   double accuracy = network->TestNetReturnAccuracy(tester);
@@ -75,40 +61,45 @@ TEST_F(NetworkTest, chow_liu_tree_var_elim_accuracy) { // The prefix "DISABLED" 
        << "BIC: " <<  sf.BIC() << '\n'
        << "K2: " <<  sf.K2()  << '\n'
        << "BDeu: " <<  sf.BDeu() << endl;
-  EXPECT_GT(accuracy,0.8);
+  EXPECT_GT(accuracy,0.6);
+  EXPECT_LT(sf.K2()+6196.83, 1e-3);
+  EXPECT_LT(sf.BDeu()+7944.37, 1e-5);
+  EXPECT_LT(sf.AIC()+5970.43, 1e-5);
+  EXPECT_LT(sf.BIC()-sf.MDL(), 1e-5);
+  EXPECT_LT(sf.BIC()+6577.86,1e-5);
+  EXPECT_LT(sf.MDL()+6577.86, 1e-5);
 }
 
 TEST_F(NetworkTest, DISABLED_approx_inference_accuracy) {
-  network->TestNetByApproxInferReturnAccuracy(tester,100);
-  EXPECT_EQ(1,2);
+  double acc = network->TestNetByApproxInferReturnAccuracy(tester,100);
+  //EXPECT_GT(acc, 0.6);
 }
 
-TEST_F(NetworkTest, DISABLED_gibbs_samples_to_libsvm_file) {
-  vector<Combination> samples = network->DrawSamplesByGibbsSamp(10000,1000000);
-  trainer->SamplesToLIBSVMFile(samples,"./gibbs_samples_to_LIBSVM_file.txt");
+TEST_F(NetworkTest, gibbs_samples_to_libsvm_file) {
+  vector<DiscreteConfig> samples = network->DrawSamplesByGibbsSamp(1e4, 1e5);
+  string sample_file = "./gibbs_samples_to_LIBSVM_file.txt";
+  trainer->SamplesToLIBSVMFile(samples, sample_file);
 
-  Trainer *trn_samp = new Trainer();
+  Dataset *trn_samp = new Dataset();
   Network *net_samp = new ChowLiuTree();
   trn_samp->LoadLIBSVMDataAutoDetectConfig("./gibbs_samples_to_LIBSVM_file.txt");
-  net_samp->StructLearnCompData(trn_samp);
-  net_samp->LearnParmsKnowStructCompData(trn_samp);
+  net_samp->StructLearnCompData(trn_samp, false);
+  net_samp->LearnParamsKnowStructCompData(trn_samp, false);
 
   for(int i=0; i<net_samp->num_nodes; ++i) {
     fprintf(stdout, "\n====================================\n");
     Factor f1, f2;
-    f1.ConstructFactor(network->FindNodePtrByIndex(i));
+    f1.ConstructFactor(dynamic_cast<DiscreteNode*>(network->FindNodePtrByIndex(i)));
     f1.PrintPotentials();
-    f2.ConstructFactor(net_samp->FindNodePtrByIndex(i));
+    f2.ConstructFactor(dynamic_cast<DiscreteNode*>(net_samp->FindNodePtrByIndex(i)));
     f2.PrintPotentials();
   }
-
-  EXPECT_EQ(1,1);
 }
 
-TEST_F(NetworkTest,DISABLED_var_elim_and_jun_tree) { // The prefix "DISABLED" disable this test.
-  Combination E;
-  E.insert(pair<int,int>(104,1));
-  E.insert(pair<int,int>(112,1));
+TEST_F(NetworkTest, var_elim_and_jun_tree) {
+  DiscreteConfig E;
+  E.insert(pair<int,int>(50,1));
+  E.insert(pair<int,int>(51,1));
   E.insert(pair<int,int>(99,1));
   cout << "Size of evidence: " << E.size() << endl;
   cout << "Evidence (only print 1): { ";
@@ -121,15 +112,10 @@ TEST_F(NetworkTest,DISABLED_var_elim_and_jun_tree) { // The prefix "DISABLED" di
   Factor f1 = network->VarElimInferReturnPossib(E,node_ptr);
   f1.PrintPotentials();
 
+  auto *jt = new JunctionTree(network, false);
+  jt->LoadEvidenceAndMessagePassingUpdateJT(E);
 
-  auto *jt = new JunctionTree(network);
-  jt->LoadEvidence(E);
-
-  jt->MessagePassingUpdateJT();
-
-  set<int> indexes;
-  indexes.insert(0);
-  Factor f2 = jt->BeliefPropagationReturnPossib(indexes);
+  Factor f2 = jt->BeliefPropagationCalcuDiscreteVarMarginal(0);
   f2.PrintPotentials();
 
   for (auto &c : f1.set_combinations) {
@@ -141,7 +127,9 @@ TEST_F(NetworkTest,DISABLED_var_elim_and_jun_tree) { // The prefix "DISABLED" di
 
 
 TEST_F(NetworkTest, jun_tree_accuracy) {
-  auto *jt = new JunctionTree(network);
+
+  auto *jt = new JunctionTree(network, false);
+
   ScoreFunction sf(network, trainer);
   cout << "Scores\n"
        << "LogLikelihood: " << sf.LogLikelihood()  << '\n'
@@ -151,11 +139,11 @@ TEST_F(NetworkTest, jun_tree_accuracy) {
        << "BDeu: " <<  sf.BDeu() << endl;
   double accuracy = jt->TestNetReturnAccuracy(0,tester);
   delete jt;
-  EXPECT_GT(accuracy,0.7);
+  EXPECT_GT(accuracy,0.6);
 }
 
 
-TEST_F(NetworkTest, likelihood_weighting_accuracy) {
+TEST_F(NetworkTest, DISABLED_likelihood_weighting_accuracy) {
   ScoreFunction sf(network, trainer);
   cout << "Scores\n"
        << "LogLikelihood: " << sf.LogLikelihood()  << '\n'
@@ -164,7 +152,7 @@ TEST_F(NetworkTest, likelihood_weighting_accuracy) {
        << "K2: " <<  sf.K2()  << '\n'
        << "BDeu: " <<  sf.BDeu() << endl;
   double accuracy = network->TestAccuracyByLikelihoodWeighting(tester, 50);
-  EXPECT_GT(accuracy,0.7);
+  EXPECT_GT(accuracy,0.6);
 }
 
 
@@ -185,7 +173,7 @@ TEST_F(NetworkTest, DISABLED_score_comparison) {
     if (0==(*n->set_parents_ptrs.begin())->GetNodeIndex()) {
       continue;
     }
-    n->set_parents_combinations.clear();
+    n->set_discrete_parents_combinations.clear();
   }
 
   auto *sf2 = new ScoreFunction(network,trainer);
@@ -199,11 +187,11 @@ TEST_F(NetworkTest, DISABLED_sampling_node) {
   //Factor fac(n_39);
   //fac.PrintPotentials();
 
-  Combination e;
+  DiscreteConfig e;
   e.insert(pair<int,int>(0,-1));
   int count_0 = 0;
   for (int i=0; i<10000; ++i) {
-    if(0== n_39->SampleNodeGivenParents(e)) {
+    if(0 == dynamic_cast<DiscreteNode*>(n_39)->SampleNodeGivenParents(e)) {
       ++count_0;
     }
   }
@@ -214,13 +202,35 @@ TEST_F(NetworkTest, DISABLED_sampling_node) {
 }
 
 TEST_F(NetworkTest, DISABLED_sampling_network) {
-  Combination samp = network->ProbLogicSampleNetwork();
-  EXPECT_EQ(1,1);
+  DiscreteConfig samp = network->ProbLogicSampleNetwork();
 }
 
-TEST(OtherTest, DISABLED_log_of_factorial) {
-  cout << FactorialForSmallInteger(2000) << '\n'
-       << log(2000) << '\n'
-       << LogOfFactorial(2000) << endl;
-  EXPECT_GT(LogOfFactorial(2000),0);
+TEST(CustomNetworkTest, sampling_dog_net_to_csv_file_and_relearn) {
+
+  string custom_file = "../../data/interchange-format-file/dog-problem.xml";
+  auto custom_net = new CustomNetwork(true);
+  custom_net->GetNetFromXMLBIFFile(custom_file);
+
+  vector<DiscreteConfig> samples = custom_net->DrawSamplesByGibbsSamp(2e4, 1e5);
+  string sample_file = "./gibbs_samples_to_CSV_file.txt";
+  auto trainer = new Dataset();
+  trainer->SamplesToCSVFile(samples, sample_file);
+
+  CustomNetwork *net_samp = new CustomNetwork(true);
+  net_samp->GetNetFromXMLBIFFile(custom_file);
+  net_samp->ClearParams();
+
+  Dataset *trn_samp = new Dataset();
+  trn_samp->LoadCSVDataAutoDetectConfig(sample_file);
+
+  net_samp->LearnParamsKnowStructCompData(trn_samp, false);
+
+  for(int i=0; i<net_samp->num_nodes; ++i) {
+    fprintf(stdout, "\n====================================\n");
+    Factor f1, f2;
+    f1.ConstructFactor(dynamic_cast<DiscreteNode*>(custom_net->FindNodePtrByIndex(i)));
+    f1.PrintPotentials();
+    f2.ConstructFactor(dynamic_cast<DiscreteNode*>(net_samp->FindNodePtrByIndex(i)));
+    f2.PrintPotentials();
+  }
 }
