@@ -78,3 +78,7 @@ void Node::GenDiscParCombs() {
 
 }
 
+void Node::ClearParents() {
+  set_parents_ptrs.clear();
+  set_discrete_parents_combinations.clear();
+}

@@ -46,6 +46,14 @@ void ContinuousNode::RemoveParent(Node *p) {
   }
 }
 
+int ContinuousNode::GetNumParams() const {
+  int scale = this->set_discrete_parents_combinations.empty() ? 1 : this->set_discrete_parents_combinations.size();
+  int num_params_for_a_config = 0;
+  num_params_for_a_config += 2;  // For mu and variance.
+  num_params_for_a_config += contin_par_indexes.size();  // For coefficients.
+  return num_params_for_a_config * scale;
+}
+
 void ContinuousNode::ClearParams() {
   fprintf(stderr, "Function [%s] not implemented yet!", __FUNCTION__);
   exit(1);

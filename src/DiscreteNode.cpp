@@ -47,6 +47,11 @@ void DiscreteNode::AddParent(Node *p) {
   set_parents_ptrs.insert(p);
 }
 
+int DiscreteNode::GetNumParams() const {
+  int scale = this->set_discrete_parents_combinations.empty() ? 1 : this->set_discrete_parents_combinations.size();
+  return this->num_potential_vals * scale;
+}
+
 void DiscreteNode::ClearParams() {
   if (set_parents_ptrs.empty()) {
     for (auto &kv : map_marg_prob_table) {

@@ -73,7 +73,7 @@ template <typename T> set<set<T>> GenAllCombinationsFromSets(set<set<T>> *set_of
   return result;
 };
 
-template <typename T> set<set<T>> GenPowerSet(set<T> src_set) {
+template <typename T> set<set<T>> GenPowerSet(set<T> &src_set) {
   // Avoid recursion.
   set<set<T>> power_set;
   set<T> empty;

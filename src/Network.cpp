@@ -420,12 +420,26 @@ void Network::LearnParamsKnowStructCompData(const Dataset *dts, bool print_param
 }
 
 
+int Network::GetNumParams() const {
+  int result = 0;
+  for (const auto &n : set_node_ptr_container) {
+    result += n->GetNumParams();
+  }
+  return result;
+}
+
+
 void Network::ClearParams() {
   for (auto &n_p : this->set_node_ptr_container) {
     n_p->ClearParams();
   }
 }
 
+
+pair<int*, int> Network::SimplifyDefaultElimOrd(DiscreteConfig) {
+  fprintf(stderr, "Function [%s] not implemented yet!", __FUNCTION__);
+  exit(1);
+}
 
 DiscreteConfig Network::ConstructEvidence(int *nodes_indexes, int *observations, int num_of_observations) {
   DiscreteConfig result;
@@ -1079,10 +1093,170 @@ int Network::ApproxInferByProbLogiRejectSamp(DiscreteConfig e, int node_index, v
 
 
 
+pair<double, set<Node*>> Network::F(Node *node,
+        set<Node*> &candidate_parents,
+        Dataset *dts,
+        map<Node*, map<set<Node*>, double>> &dynamic_program_for_F) {
 
-pair<double, set<Node*>> Network::F(Node *node, set<Node*> candidate_parents) {
-  set<set<Node*>> set_of_possible_parent_sets;
-  // todo: implement
+  // The original paper chooses minimum score but this program chooses maximum score.
+
+  map<set<Node*>, double> &this_node_dynamic_program = dynamic_program_for_F[node];
+
+  // Look up the table.
+  if (this_node_dynamic_program.find(candidate_parents) != this_node_dynamic_program.end()) {
+    return pair<double, set<Node*>>(this_node_dynamic_program[candidate_parents], candidate_parents);
+  }
+
+  pair<double, set<Node*>> max_score_parents;
+  max_score_parents.first = -DBL_MAX;
+
+  // Look up the dynamic programming table.
+  for (auto n : candidate_parents) {
+    set<Node*> candidate_parents_temp = candidate_parents;
+    candidate_parents_temp.erase(n);
+
+    if (this_node_dynamic_program.find(candidate_parents_temp) == this_node_dynamic_program.end()) {
+      this_node_dynamic_program[candidate_parents_temp] = F(node, candidate_parents_temp, dts, dynamic_program_for_F).first;
+    }
+
+    if (this_node_dynamic_program[candidate_parents_temp] > max_score_parents.first) {
+      max_score_parents.first = this_node_dynamic_program[candidate_parents_temp];
+      max_score_parents.second = candidate_parents_temp;
+    }
+  }
+
+  if (this_node_dynamic_program.find(candidate_parents)==this_node_dynamic_program.end()) {
+
+    DiscreteNode node_copy = *dynamic_cast<DiscreteNode*>(node);
+    vector<DiscreteNode> candidate_parents_copy;
+    for (auto n : candidate_parents) {
+      candidate_parents_copy.push_back(*dynamic_cast<DiscreteNode*>(n));
+    }
+
+    Network temp_net;
+    temp_net.AddNode(&node_copy);
+    for (auto n : candidate_parents_copy) {
+      temp_net.AddNode(&n);
+      temp_net.SetParentChild(&n,node);
+    }
+    for (auto n : temp_net.set_node_ptr_container) {
+      n->GenDiscParCombs();
+    }
+
+    ScoreFunction sf(&temp_net, dts);
+    this_node_dynamic_program[candidate_parents] = sf.ScoreForNode(&node_copy,"log likelihood");
+
+  }
+
+  if (this_node_dynamic_program[candidate_parents] > max_score_parents.first) {
+    max_score_parents.first = this_node_dynamic_program[candidate_parents];
+    max_score_parents.second = candidate_parents;
+  }
+
+  return max_score_parents;
+}
+
+pair<double, vector<pair<Node*, set<Node*>>>>
+ Network::Q(set<Node*> &set_nodes,
+         vector<int> topo_ord,
+         Dataset *dts,
+         map<Node*,   map<set<Node*>, double>> &dynamic_program_for_F,
+         map<pair<set<Node*>, vector<int>>,   pair<double, vector<pair<Node*, set<Node*>>>>> dynamic_program_for_Q) {
+
+  // Look up the table.
+  pair<set<Node*>, vector<int>> to_find(set_nodes, topo_ord);
+  if (dynamic_program_for_Q.find(to_find)!=dynamic_program_for_Q.end()) {
+    return dynamic_program_for_Q[to_find];
+  }
+
+  double score = 0;
+  vector<pair<Node*, set<Node*>>> vec_node_parents;
+
+  for (auto &n : set_nodes) {
+    set<Node*> candidate_parents;
+    for (const auto &i : topo_ord) {
+      if (n->GetNodeIndex() == i) { break; }
+      candidate_parents.insert(this->FindNodePtrByIndex(i));
+    }
+    pair<double, set<Node*>> best_score_parents = F(n, candidate_parents, dts, dynamic_program_for_F);
+
+    score += best_score_parents.first;
+    vec_node_parents.push_back(pair<Node*, set<Node*>>(n, best_score_parents.second));
+  }
+
+  return pair<double, vector<pair<Node*, set<Node*>>>>(score, vec_node_parents);
+}
+
+vector<int> Network::M(set<Node*> &set_nodes,
+        Dataset *dts,
+        map<Node*, map<set<Node*>, double>> &dynamic_program_for_F,
+        map<pair<set<Node*>, vector<int>>,   pair<double, vector<pair<Node*, set<Node*>>>>> dynamic_program_for_Q,
+        map<set<Node*>, vector<int>> dynamic_program_for_M) {
+
+  // Look up the table.
+  if (dynamic_program_for_M.find(set_nodes) != dynamic_program_for_M.end()) {
+    return dynamic_program_for_M[set_nodes];
+  }
+
+  Node *g_star = nullptr;
+  double score = -DBL_MAX;
+  for (auto n : set_nodes) {
+    set<Node*> set_nodes_temp = set_nodes;
+    set_nodes_temp.erase(n);
+    vector<int> m_of_set_nodes_temp = M(set_nodes_temp, dts, dynamic_program_for_F, dynamic_program_for_Q, dynamic_program_for_M);
+    double score_temp = F(n, set_nodes_temp, dts, dynamic_program_for_F).first + Q(set_nodes_temp, m_of_set_nodes_temp, dts, dynamic_program_for_F, dynamic_program_for_Q).first;
+    if (score_temp > score) {
+      score = score_temp;
+      g_star = n;
+    }
+  }
+
+  set<Node*> set_nodes_remove_g_star = set_nodes;
+  set_nodes_remove_g_star.erase(g_star);
+  vector<int> result = M(set_nodes_remove_g_star, dts, dynamic_program_for_F, dynamic_program_for_Q, dynamic_program_for_M);
+  result.push_back(g_star->GetNodeIndex());
+
+  return result;
+
+
+//  vector<int> possible_topo_ord;
+//  for (const auto &n : set_nodes) {
+//    possible_topo_ord.push_back(n->GetNodeIndex());
+//  }
+//  sort(possible_topo_ord.begin(), possible_topo_ord.end());
+//  vector<vector<int>> all_possible_topo_ords;
+//  all_possible_topo_ords.push_back(possible_topo_ord);
+//  while (next_permutation(possible_topo_ord.begin(), possible_topo_ord.end())) {
+//    all_possible_topo_ords.push_back(possible_topo_ord);
+//  }
+//
+//  pair<double, vector<int>> max_score_topo_ord;
+//  max_score_topo_ord.first = -DBL_MAX;
+//  for (auto ord : all_possible_topo_ords) {
+//
+//  }
+}
+
+
+void Network::StructLearnByOtt(Dataset *dts) {
+
+  map<Node*, map<set<Node*>, double>> dynamic_program_for_F;
+  map<pair<set<Node*>, vector<int>>,   pair<double, vector<pair<Node*, set<Node*>>>>> dynamic_program_for_Q;
+  map<set<Node*>, vector<int>> dynamic_program_for_M;
+
+  vector<int> m_of_all_nodes = M(this->set_node_ptr_container, dts, dynamic_program_for_F, dynamic_program_for_Q, dynamic_program_for_M);
+  pair<double, vector<pair<Node*, set<Node*>>>> score_vec_node_parents = Q(this->set_node_ptr_container, m_of_all_nodes, dts, dynamic_program_for_F, dynamic_program_for_Q);
+  vector<pair<Node*, set<Node*>>> vec_node_parents = score_vec_node_parents.second;
+
+  for (auto p : vec_node_parents) {
+    Node *chi = p.first;
+    for (auto par : p.second) {
+      SetParentChild(par, chi);
+    }
+  }
+  for (auto n : this->set_node_ptr_container) {
+    n->GenDiscParCombs();
+  }
 }
 
 

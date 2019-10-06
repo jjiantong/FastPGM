@@ -32,6 +32,7 @@ class DiscreteNode : public Node {
   void SetDomain(vector<string> str_domain);
   void SetDomain(vector<int> int_domain);
   void AddParent(Node *node_ptr) override;
+  int GetNumParams() const override;
   void ClearParams() override;
   void PrintProbabilityTable();
   int SampleNodeGivenParents(DiscreteConfig evidence);

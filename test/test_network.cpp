@@ -62,6 +62,12 @@ TEST_F(NetworkTest, chow_liu_tree_var_elim_accuracy) { // The prefix "DISABLED" 
        << "K2: " <<  sf.K2()  << '\n'
        << "BDeu: " <<  sf.BDeu() << endl;
   EXPECT_GT(accuracy,0.6);
+  EXPECT_LT(sf.K2()+6196.83, 1e-3);
+  EXPECT_LT(sf.BDeu()+7944.37, 1e-5);
+  EXPECT_LT(sf.AIC()+5970.43, 1e-5);
+  EXPECT_LT(sf.BIC()-sf.MDL(), 1e-5);
+  EXPECT_LT(sf.BIC()+6577.86,1e-5);
+  EXPECT_LT(sf.MDL()+6577.86, 1e-5);
 }
 
 TEST_F(NetworkTest, DISABLED_approx_inference_accuracy) {

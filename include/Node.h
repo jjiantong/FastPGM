@@ -42,6 +42,8 @@ class Node {
   void RemoveChild(Node *node_ptr);
   virtual void RemoveParent(Node *node_ptr);
   void GenDiscParCombs();
+  void ClearParents();
+  virtual int GetNumParams() const = 0;
   virtual void ClearParams() = 0;
 };
 

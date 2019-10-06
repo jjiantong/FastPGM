@@ -26,6 +26,7 @@ class ScoreFunction {
  public:
 
   ScoreFunction(Network *net, Dataset *dts);
+  double ScoreForNode(Node *node_ptr, string metric);
   double LogLikelihoodForNode(Node *node_ptr);
   double LogLikelihood();
   double K2();
@@ -45,12 +46,18 @@ class ScoreFunction {
   double LogLikelihoodForNode(Node*, Network*, Dataset*);
   double LogLikelihood(Network*, Dataset*);
   double K2(Network*, Dataset*);
+  double LogK2ForNode(Node*, Network*, Dataset*);
   double LogK2(Network*, Dataset*);
-  double BDeu(Network*, Dataset*, int);
-  double LogBDeu(Network*, Dataset*, int);
+  double BDeu(Network*, Dataset*, int equi_sample_size);
+  double LogBDeuForNode(Node*, Dataset*, int equi_sample_size);
+  double LogBDeu(Network*, Dataset*, int equi_sample_size);
+  double AICForNode(Node*, Dataset*);
   double AIC(Network*, Dataset*);
+  double BICForNode(Node*, Dataset*);
   double BIC(Network*, Dataset*);
+  double MDLForNode(Node*, Dataset*);
   double MDL(Network*, Dataset*);
+
 
 };
 

@@ -54,6 +54,7 @@ class Network {
 
   virtual void LearnParamsKnowStructCompData(const Dataset *dts, bool print_params=true);
 
+  int GetNumParams() const;
   void ClearParams();
 
   void AddNode(Node *node_ptr);
@@ -70,7 +71,7 @@ class Network {
   int** ConvertDAGNetworkToAdjacencyMatrix();
 
 
-  virtual pair<int*, int> SimplifyDefaultElimOrd(DiscreteConfig) = 0;
+  virtual pair<int*, int> SimplifyDefaultElimOrd(DiscreteConfig);
 
   DiscreteConfig ConstructEvidence(int *nodes_indexes, int *observations, int num_of_observations);
 
@@ -115,8 +116,20 @@ class Network {
   // ==================================================
   // Functions for structure learning.
   // Based on the work of Ott et al. (2003) FINDING OPTIMAL MODELS FOR SMALL GENE NETWORKS
-  pair<double, set<Node*>> F(Node *node, set<Node*> candidate_parents);
-
+  pair<double, set<Node*>> F(Node *node, set<Node*> &candidate_parents, Dataset *dts, map<Node*, map<set<Node*>, double>> &dynamic_program);
+  pair<double, vector<pair<Node*, set<Node*>>>>
+   Q(set<Node*> &set_nodes,
+     vector<int> topo_ord,
+     Dataset *dts,
+     map<Node*,   map<set<Node*>, double>> &dynamic_program_for_F,
+     map<pair<set<Node*>, vector<int>>,   pair<double, vector<pair<Node*, set<Node*>>>>> dynamic_program_for_Q);
+  vector<int> M(set<Node*> &set_nodes,
+                Dataset *dts,
+                map<Node*, map<set<Node*>, double>> &dynamic_program_for_F,
+                map<pair<set<Node*>, vector<int>>,   pair<double, vector<pair<Node*, set<Node*>>>>> dynamic_program_for_Q,
+                map<set<Node*>, vector<int>> dynamic_program_for_M);
+  void StructLearnByOtt(Dataset *dts);
+  // ==================================================
 
 
 
