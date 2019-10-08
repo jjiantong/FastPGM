@@ -611,7 +611,7 @@ Factor JunctionTree::BeliefPropagationCalcuDiscreteVarMarginal(int query_index) 
 
   if (selected_clique==nullptr) {
     fprintf(stderr, "Error in function [%s]\n"
-                    "Variable does not appear in any clique!", __FUNCTION__);
+                    "Variable [%d] does not appear in any clique!", __FUNCTION__, query_index);
     exit(1);
   }
 
@@ -665,6 +665,7 @@ double JunctionTree::TestNetReturnAccuracy(int class_var, Dataset *dts) {
 
 //    #pragma omp critical
     { ++progress; }
+//    cout << progress << '/' << m << endl;  // todo: delete
 
     if (progress % m20 == 0) {
       cout << (double)progress/m * 100 << "%... " << endl;

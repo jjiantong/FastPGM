@@ -103,10 +103,10 @@ void ChowLiuTree::StructLearnChowLiuTreeCompData(Dataset *dts, bool print_struct
        << "Begin structural learning. \nConstructing Chow-Liu tree with complete data......" << endl;
 
   num_nodes = dts->num_vars;
+  root_node_index = dts->class_var_index;
   // Assign an index for each node.
   #pragma omp parallel for
   for (int i=0; i<num_nodes; ++i) {
-    // The 0-th node_ptr denotes the label node.
 
     DiscreteNode *node_ptr = new DiscreteNode(i);  // For now, only support discrete node.
 
@@ -188,7 +188,7 @@ void ChowLiuTree::StructLearnChowLiuTreeCompData(Dataset *dts, bool print_struct
     graphAdjacencyMatrix[maxI][maxJ] = graphAdjacencyMatrix[maxJ][maxI] = 1;
   }
   // Add arrows in tree, set parents and children
-  int* topologicalSortedPermutation = WidthFirstTraversalWithAdjacencyMatrix(graphAdjacencyMatrix, n, 0);
+  int* topologicalSortedPermutation = WidthFirstTraversalWithAdjacencyMatrix(graphAdjacencyMatrix, n, root_node_index);
 
 
   // !!! See the comments for "default_elim_ord" in the "ChowLiuTree.h" file.
@@ -286,7 +286,8 @@ pair<int*, int> ChowLiuTree::SimplifyTreeDefaultElimOrd(DiscreteConfig evidence)
   // Remove all the barren nodes
   set<int> to_be_removed;
   for (int i=0; i<num_nodes-1; ++i) {
-    Node *ptr_curr_node = FindNodePtrByIndex(default_elim_ord[i]);
+    int default_elim_ord_i = default_elim_ord[i];
+    Node *ptr_curr_node = FindNodePtrByIndex(default_elim_ord_i);
     bool observed = false, need_to_be_removed = true;
     for (auto p : evidence) {
       if (p.first == ptr_curr_node->GetNodeIndex()) {    // If it is observed.
@@ -294,7 +295,7 @@ pair<int*, int> ChowLiuTree::SimplifyTreeDefaultElimOrd(DiscreteConfig evidence)
         break;
       }
     }
-    if (observed) continue;
+    if (observed) { continue; }
 
     // If it is not a leaf.
     if (!ptr_curr_node->set_children_ptrs.empty()) {
@@ -311,7 +312,7 @@ pair<int*, int> ChowLiuTree::SimplifyTreeDefaultElimOrd(DiscreteConfig evidence)
 
   // Remove all m-separated nodes.
   set<int> visited;
-  DepthFirstTraversalUntillMeetObserved(evidence, 0,visited,to_be_removed);  // Start at root.
+  DepthFirstTraversalUntillMeetObserved(evidence, root_node_index, visited, to_be_removed);  // Start at root.
 
   // Record all the remaining nodes in array "simplified_order".
   int num_of_remain = num_nodes-1-to_be_removed.size();    // The 0-th node is root and do not need to be eliminated.
@@ -331,7 +332,7 @@ pair<int*, int> ChowLiuTree::SimplifyTreeDefaultElimOrd(DiscreteConfig evidence)
 void ChowLiuTree::DepthFirstTraversalUntillMeetObserved(DiscreteConfig evidence, int start, set<int>& visited, set<int>& to_be_removed) {
 
   // Base case
-  if (visited.find(start)!=visited.end()) return;
+  if (visited.find(start)!=visited.end()) { return; }
   visited.insert(start);
 
   bool observed=false;

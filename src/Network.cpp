@@ -36,7 +36,7 @@ void Network::PrintEachNodeChildren() {
 
 Node* Network::FindNodePtrByIndex(const int &index) const {
   if (index<0 || index>num_nodes) {
-    fprintf(stderr, "Error in function %s! \nInvalid index!", __FUNCTION__);
+    fprintf(stderr, "Error in function %s! \nInvalid index [%d]!", __FUNCTION__, index);
     exit(1);
   }
   Node* node_ptr = nullptr;
@@ -658,10 +658,9 @@ double Network::TestNetReturnAccuracy(Dataset *dts) {
   cout << "Progress indicator: ";
   int num_of_correct=0, num_of_wrong=0, m=dts->num_instance, m20= m / 20, progress=0;
 
-//  int num_cores = omp_get_num_procs();
-//  omp_set_num_threads(num_cores);
+
   // For each sample in test set
-  #pragma omp parallel for
+//  #pragma omp parallel for
   for (int i=0; i<m; ++i) {
 
     #pragma omp critical
@@ -671,7 +670,6 @@ double Network::TestNetReturnAccuracy(Dataset *dts) {
       cout << (double)progress/m * 100 << "%... " << endl;
     }
 
-
     // For now, only support complete data.
     int e_num = num_nodes - 1, *e_index = new int[e_num], *e_value = new int[e_num];
     for (int j = 0; j < num_nodes; ++j) {
@@ -680,7 +678,7 @@ double Network::TestNetReturnAccuracy(Dataset *dts) {
       e_value[j < dts->class_var_index ? j : j - 1] = dts->dataset_all_vars[i][j];
     }
     DiscreteConfig E = ConstructEvidence(e_index, e_value, e_num);
-    int label_predict = PredictUseVarElimInfer(E, 0); // The root node (label) has index of 0.
+    int label_predict = PredictUseVarElimInfer(E, dts->class_var_index);
     if (label_predict == dts->dataset_all_vars[i][dts->class_var_index]) {
       #pragma omp critical
       { ++num_of_correct; }
@@ -707,17 +705,22 @@ double Network::TestNetReturnAccuracy(Dataset *dts) {
 
 double Network::TestNetByApproxInferReturnAccuracy(Dataset *dts, int num_samp) {
 
-  // implement by Gibbs sampling
+
   cout << "==================================================" << '\n'
        << "Begin testing the trained network." << endl;
+
+  struct timeval start, end;
+  double diff;
+  gettimeofday(&start,NULL);
 
   cout << "Progress indicator: ";
 
   int num_of_correct=0, num_of_wrong=0, m=dts->num_instance, m20= m / 20, progress=0;
 
-  vector<DiscreteConfig> samples = this->DrawSamplesByProbLogiSamp(10000);
+  vector<DiscreteConfig> samples = this->DrawSamplesByProbLogiSamp(num_samp);
+  cout << "Finish drawing samples." << endl;
 
-//  #pragma omp parallel for
+  #pragma omp parallel for
   for (int i=0; i<m; ++i) {  // For each sample in test set
 
 //    #pragma omp critical
@@ -727,7 +730,6 @@ double Network::TestNetByApproxInferReturnAccuracy(Dataset *dts, int num_samp) {
       cout << (double)progress/m * 100 << "%... " << endl;
     }
 
-
     // For now, only support complete data.
     int e_num=num_nodes-1, *e_index=new int[e_num], *e_value=new int[e_num];
     for (int j=0; j<num_nodes; ++j) {
@@ -736,7 +738,7 @@ double Network::TestNetByApproxInferReturnAccuracy(Dataset *dts, int num_samp) {
       e_value[j < dts->class_var_index ? j : j - 1] = dts->dataset_all_vars[i][j];
     }
     DiscreteConfig E = ConstructEvidence(e_index, e_value, e_num);
-    int label_predict = ApproxInferByProbLogiRejectSamp(E, 0, samples); // The root node (label) has index of 0.
+    int label_predict = ApproxInferByProbLogiRejectSamp(E, dts->class_var_index, samples);
     if (label_predict == dts->dataset_all_vars[i][dts->class_var_index]) {
       ++num_of_correct;
     } else {
@@ -744,6 +746,13 @@ double Network::TestNetByApproxInferReturnAccuracy(Dataset *dts, int num_samp) {
     }
 
   }
+
+  gettimeofday(&end,NULL);
+  diff = (end.tv_sec-start.tv_sec) + ((double)(end.tv_usec-start.tv_usec))/1.0E6;
+  setlocale(LC_NUMERIC, "");
+  cout << "==================================================" << '\n'
+       << "The time spent to test the accuracy is " << diff << " seconds" << endl;
+
   double accuracy = num_of_correct / (double)(num_of_correct+num_of_wrong);
   cout << '\n' << "Accuracy: " << accuracy << endl;
   return accuracy;
@@ -780,7 +789,7 @@ double Network::TestAccuracyByLikelihoodWeighting(Dataset *dts, int num_samp) {
       e_value[j < dts->class_var_index ? j : j - 1] = dts->dataset_all_vars[i][j];
     }
     DiscreteConfig E = ConstructEvidence(e_index, e_value, e_num);
-    int label_predict = ApproxinferByLikelihoodWeighting(E, 0, num_samp); // The root node (label) has index of 0.
+    int label_predict = ApproxinferByLikelihoodWeighting(E, dts->class_var_index, num_samp);
     if (label_predict == dts->dataset_all_vars[i][dts->class_var_index]) {
       #pragma omp critical
       { ++num_of_correct; }

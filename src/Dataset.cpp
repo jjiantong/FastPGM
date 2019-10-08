@@ -112,7 +112,7 @@ void Dataset::LoadLIBSVMDataAutoDetectConfig(string data_file_path, set<int> con
 void Dataset::ConvertLIBSVMVectorDatasetIntoIntArrayDataset() {
   // Initialize to be all zero.
   dataset_all_vars = new int *[num_instance];
-  #pragma omp parallel for
+#pragma omp parallel for
   for (int s=0; s<num_instance; ++s) {
     dataset_all_vars[s] = new int[num_vars]();
     vector<VarVal> vec_instance = vector_dataset_all_vars.at(s);
@@ -125,7 +125,7 @@ void Dataset::ConvertLIBSVMVectorDatasetIntoIntArrayDataset() {
 
 void Dataset::ConvertCSVVectorDatasetIntoIntArrayDataset() {
   dataset_all_vars = new int *[num_instance];
-  #pragma omp parallel for
+#pragma omp parallel for
   for (int s=0; s<num_instance; ++s) {
     dataset_all_vars[s] = new int[num_vars]();  // The parentheses at end will initialize the array to be all zeros.
     for (const VarVal &vv : vector_dataset_all_vars.at(s)) {
@@ -135,7 +135,8 @@ void Dataset::ConvertCSVVectorDatasetIntoIntArrayDataset() {
 }
 
 
-void Dataset::LoadCSVDataAutoDetectConfig(string data_file_path, set<int> cont_vars) {
+void Dataset::LoadCSVDataAutoDetectConfig(string data_file_path, bool header, int cls_var_id, set<int> cont_vars) {
+  this->class_var_index = cls_var_id;
   ifstream in_file;
   in_file.open(data_file_path);
   if (!in_file.is_open()) {
@@ -146,7 +147,8 @@ void Dataset::LoadCSVDataAutoDetectConfig(string data_file_path, set<int> cont_v
   cout << "Data file opened. Begin to load data. " << endl;
 
   string sample;
-  getline(in_file, sample);   // The first line is like the table head.
+  // Use the first line to detect the dataset attributes. It is like the table head.
+  getline(in_file, sample);
   sample = TrimRight(sample);
   vector<string> parsed_variable = Split(sample, ",");
   num_vars = parsed_variable.size();
@@ -154,7 +156,9 @@ void Dataset::LoadCSVDataAutoDetectConfig(string data_file_path, set<int> cont_v
   num_of_possible_values_of_disc_vars = new int[num_vars]();
 
   // Load data.
-  getline(in_file, sample);
+  if (header) {
+    getline(in_file, sample);
+  }
   while (!in_file.eof()) {
     // If there is a whitespace at the end of each line,
     // it will cause a bug if we do not trim it.
