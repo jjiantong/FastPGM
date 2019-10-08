@@ -660,7 +660,7 @@ double Network::TestNetReturnAccuracy(Dataset *dts) {
 
 
   // For each sample in test set
-//  #pragma omp parallel for
+  #pragma omp parallel for
   for (int i=0; i<m; ++i) {
 
     #pragma omp critical
@@ -723,7 +723,7 @@ double Network::TestNetByApproxInferReturnAccuracy(Dataset *dts, int num_samp) {
   #pragma omp parallel for
   for (int i=0; i<m; ++i) {  // For each sample in test set
 
-//    #pragma omp critical
+    #pragma omp critical
     { ++progress; }
 
     if (progress % m20 == 0) {

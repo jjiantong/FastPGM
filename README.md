@@ -78,9 +78,12 @@ As a benchmark,
    * NaiveBayes: **0.803269**
    * RandomForest: **0.828886**
  
-My bayesian network using **Chow-Liu Tree** and **variable elimination inference**
-Consumed time and accuracy for the whose process on "a1a" (load data -> train -> test)
- * Using optimal elimination order for **tree shape** network, it achieves accuracy of **0.823782**
+My bayesian network
+* Chow-Liu Tree, variable elimination, accuracy of **0.823782**, 20 seconds.
+* Chow-Liu Tree, likelihood weighting (50 samples), accuracy of **0.814059**, 654 seconds.
+* Chow-Liu Tree, junction tree, accuracy of **0.816869**, 1495 seconds.
+* Chow-Liu Tree, probabilistic logic sampling and rejection sampling (100000 samples), accuracy of **0.501147**, 5534 seconds.
+
 
 ## LIBSVM dataset "a2a"
  * Chow-Liu Tree, variable elimination, accuracy of **0.826281**

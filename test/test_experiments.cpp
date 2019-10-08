@@ -108,3 +108,50 @@ TEST_F(ExperimentOnPhishing, jun_tree_accuracy) {
   delete jt;
   EXPECT_GT(accuracy,0.9);
 }
+
+class ExperimentOnA1a : public ::testing::Test {
+ protected:
+
+  void SetUp() override {
+    trainer = new Dataset();
+    tester = new Dataset();
+    network = new ChowLiuTree(true);
+
+    string train_set_file_path = "../../data/dataset/a1a.txt",
+            test_set_file_path = "../../data/dataset/a1a.test.txt";
+
+
+    trainer->LoadLIBSVMDataAutoDetectConfig(train_set_file_path);
+    tester->LoadLIBSVMDataAutoDetectConfig(test_set_file_path);
+    network->StructLearnCompData(trainer, false);
+    network->LearnParamsKnowStructCompData(trainer, false);
+  }
+
+
+  Dataset *trainer;
+  Dataset *tester;
+  Network *network;
+};
+
+TEST_F(ExperimentOnA1a, var_elim) {
+  double accuracy = network->TestNetReturnAccuracy(tester);
+  EXPECT_GT(accuracy, 0.65);
+}
+
+TEST_F(ExperimentOnA1a, like_weigh) {
+  double accuracy = network->TestAccuracyByLikelihoodWeighting(tester, 50);
+  EXPECT_GT(accuracy, 0.65);
+}
+
+TEST_F(ExperimentOnA1a, jun_tree_accuracy) {
+  auto *jt = new JunctionTree(network, false);
+  double accuracy = jt->TestNetReturnAccuracy(0,tester);
+  delete jt;
+  EXPECT_GT(accuracy,0.65);
+}
+
+TEST_F(ExperimentOnA1a, approx) {
+  double accuracy = network->TestNetByApproxInferReturnAccuracy(tester,100000);
+  EXPECT_GT(accuracy, 0.65);
+}
+
