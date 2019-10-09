@@ -663,12 +663,19 @@ double JunctionTree::TestNetReturnAccuracy(int class_var, Dataset *dts) {
 //  #pragma omp parallel for
   for (int i=0; i<m; i++) {  // For each sample in test set
 
-//    #pragma omp critical
+    #pragma omp critical
     { ++progress; }
-//    cout << progress << '/' << m << endl;  // todo: delete
+    string progress_detail = to_string(progress) + '/' + to_string(m);
+    fprintf(stdout, "%s\n", progress_detail.c_str());
+    fflush(stdout);
+
 
     if (progress % m20 == 0) {
-      cout << (double)progress/m * 100 << "%... " << endl;
+      string progress_percentage = to_string((double)progress/m * 100) + "%...\n";
+      fprintf(stdout, "Progress: %s\n", progress_percentage.c_str());
+      double acc_so_far = num_of_correct / (double)(num_of_correct+num_of_wrong);
+      fprintf(stdout, "Accuracy so far: %f\n", acc_so_far);
+      fflush(stdout);
     }
 
 
@@ -687,11 +694,14 @@ double JunctionTree::TestNetReturnAccuracy(int class_var, Dataset *dts) {
 //    auto jt = new JunctionTree(this);
 //    jt->LoadDiscreteEvidence(E);
 //    jt->MessagePassingUpdateJT();
-//    int label_predict = jt->InferenceUsingBeliefPropagation(query); // The root node (label) has index of 0.
+//    int label_predict = jt->InferenceUsingBeliefPropagation(query);
 //    delete jt;
     LoadDiscreteEvidence(E);
     MessagePassingUpdateJT();
-    int label_predict = InferenceUsingBeliefPropagation(class_var); // The root node (label) has index of 0.
+    int label_predict = InferenceUsingBeliefPropagation(class_var);
+//    string pred_true = to_string(label_predict) + ':' + to_string(dts->dataset_all_vars[i][class_var_index]);
+//    fprintf(stdout, "%s\n", pred_true.c_str());
+//    fflush(stdout);
     ResetJunctionTree();
 
     if (label_predict == dts->dataset_all_vars[i][dts->class_var_index]) {

@@ -104,15 +104,23 @@ Number of instances: 581012
 
 Number of attributes: 54
 
-Chow-Liu Tree, variable elimination, accuracy of **0.457765**, 232 seconds.
+Chow-Liu Tree, variable elimination, accuracy of **0.530348**, 10075 seconds.
 
-Chow-Liu Tree, likelihood weighting (50 samples), accuracy of **0.514571**, 3620 seconds.
+Chow-Liu Tree, likelihood weighting (50 samples), accuracy of **0.514571**, 3620 seconds (first 50000 instances).
 
 Chow-Liu Tree, junction tree, 2.4 instances per second, ETA 235,788 seconds (65.5 hours).
 It takes such a long time because the implementation of junction tree is not parallel-friendly.
 If I only test the first 50000 instances in the test set, it achieves accuracy of **0.681632** with 21,915 seconds.
 
-Chow-Liu Tree, probabilistic logic sampling and rejection sampling (100000 samples), accuracy of **0.143157**, 7067 seconds.
+Chow-Liu Tree, probabilistic logic sampling and rejection sampling (100000 samples), accuracy of **0.143157**, 7067 seconds (first 50000 instances).
+
+#### On Weka
+
+Naive Bayes, accuracy of 0.521686, 34 seconds.
+
+Bayes Net, accuracy of 0.524978, 19 seconds.
+
+SMO, accuracy of 0.574944, 10 seconds.
 
 ## Phishing Websites Data Set from UCI
 
@@ -127,6 +135,14 @@ Chow-Liu Tree, likelihood weighting (50 samples), accuracy of **0.923648**, 25 s
 Chow-Liu Tree, junction tree, accuracy of **0.924914**, 131 seconds.
 
 Chow-Liu Tree, probabilistic logic sampling and rejection sampling (100000 samples), accuracy of **0.500045**, 35 seconds.
+
+#### On Weka
+
+Naive Bayes, split train:test=1:9, accuracy of 0.925621, 0.08 seconds.
+
+Bayes Net, split train:test=1:9, accuracy of 0.915971, 0.09 seconds.
+
+SMO, split train:test=1:9, accuracy of 0.932858, 0.05 seconds.
 
 
 

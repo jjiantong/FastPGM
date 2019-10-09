@@ -658,6 +658,8 @@ double Network::TestNetReturnAccuracy(Dataset *dts) {
   cout << "Progress indicator: ";
   int num_of_correct=0, num_of_wrong=0, m=dts->num_instance, m20= m / 20, progress=0;
 
+  int class_var_index = dts->class_var_index;
+
 
   // For each sample in test set
   #pragma omp parallel for
@@ -665,21 +667,31 @@ double Network::TestNetReturnAccuracy(Dataset *dts) {
 
     #pragma omp critical
     { ++progress; }
+    string progress_detail = to_string(progress) + '/' + to_string(m);
+    fprintf(stdout, "%s\n", progress_detail.c_str());
+    fflush(stdout);
 
     if (progress % m20 == 0) {
-      cout << (double)progress/m * 100 << "%... " << endl;
+      string progress_percentage = to_string((double)progress/m * 100) + "%...\n";
+      fprintf(stdout, "Progress: %s\n", progress_percentage.c_str());
+      double acc_so_far = num_of_correct / (double)(num_of_correct+num_of_wrong);
+      fprintf(stdout, "Accuracy so far: %f\n", acc_so_far);
+      fflush(stdout);
     }
 
     // For now, only support complete data.
     int e_num = num_nodes - 1, *e_index = new int[e_num], *e_value = new int[e_num];
     for (int j = 0; j < num_nodes; ++j) {
-      if (j == dts->class_var_index) {continue;}
-      e_index[j < dts->class_var_index ? j : j - 1] = j;
-      e_value[j < dts->class_var_index ? j : j - 1] = dts->dataset_all_vars[i][j];
+      if (j == class_var_index) {continue;}
+      e_index[j < class_var_index ? j : j - 1] = j;
+      e_value[j < class_var_index ? j : j - 1] = dts->dataset_all_vars[i][j];
     }
     DiscreteConfig E = ConstructEvidence(e_index, e_value, e_num);
-    int label_predict = PredictUseVarElimInfer(E, dts->class_var_index);
-    if (label_predict == dts->dataset_all_vars[i][dts->class_var_index]) {
+    int label_predict = PredictUseVarElimInfer(E, class_var_index);
+//    string pred_true = to_string(label_predict) + ':' + to_string(dts->dataset_all_vars[i][class_var_index]);
+//    fprintf(stdout, "%s\n", pred_true.c_str());
+//    fflush(stdout);
+    if (label_predict == dts->dataset_all_vars[i][class_var_index]) {
       #pragma omp critical
       { ++num_of_correct; }
     } else {
@@ -717,6 +729,8 @@ double Network::TestNetByApproxInferReturnAccuracy(Dataset *dts, int num_samp) {
 
   int num_of_correct=0, num_of_wrong=0, m=dts->num_instance, m20= m / 20, progress=0;
 
+  int class_var_index = dts->class_var_index;
+
   vector<DiscreteConfig> samples = this->DrawSamplesByProbLogiSamp(num_samp);
   cout << "Finish drawing samples." << endl;
 
@@ -725,21 +739,31 @@ double Network::TestNetByApproxInferReturnAccuracy(Dataset *dts, int num_samp) {
 
     #pragma omp critical
     { ++progress; }
+    string progress_detail = to_string(progress) + '/' + to_string(m);
+    fprintf(stdout, "%s\n", progress_detail.c_str());
+    fflush(stdout);
 
     if (progress % m20 == 0) {
-      cout << (double)progress/m * 100 << "%... " << endl;
+      string progress_percentage = to_string((double)progress/m * 100) + "%...\n";
+      fprintf(stdout, "Progress: %s\n", progress_percentage.c_str());
+      double acc_so_far = num_of_correct / (double)(num_of_correct+num_of_wrong);
+      fprintf(stdout, "Accuracy so far: %f\n", acc_so_far);
+      fflush(stdout);
     }
 
     // For now, only support complete data.
     int e_num=num_nodes-1, *e_index=new int[e_num], *e_value=new int[e_num];
     for (int j=0; j<num_nodes; ++j) {
-      if (j == dts->class_var_index) { continue; }
-      e_index[j < dts->class_var_index ? j : j - 1] = j + 1;
-      e_value[j < dts->class_var_index ? j : j - 1] = dts->dataset_all_vars[i][j];
+      if (j == class_var_index) { continue; }
+      e_index[j < class_var_index ? j : j - 1] = j + 1;
+      e_value[j < class_var_index ? j : j - 1] = dts->dataset_all_vars[i][j];
     }
     DiscreteConfig E = ConstructEvidence(e_index, e_value, e_num);
-    int label_predict = ApproxInferByProbLogiRejectSamp(E, dts->class_var_index, samples);
-    if (label_predict == dts->dataset_all_vars[i][dts->class_var_index]) {
+    int label_predict = ApproxInferByProbLogiRejectSamp(E, class_var_index, samples);
+//    string pred_true = to_string(label_predict) + ':' + to_string(dts->dataset_all_vars[i][class_var_index]);
+//    fprintf(stdout, "%s\n", pred_true.c_str());
+//    fflush(stdout);
+    if (label_predict == dts->dataset_all_vars[i][class_var_index]) {
       ++num_of_correct;
     } else {
       ++num_of_wrong;
@@ -770,27 +794,39 @@ double Network::TestAccuracyByLikelihoodWeighting(Dataset *dts, int num_samp) {
 
   int num_of_correct=0, num_of_wrong=0, m=dts->num_instance, m20= m / 20, progress=0;
 
+  int class_var_index = dts->class_var_index;
+
   #pragma omp parallel for
   for (int i=0; i<m; ++i) {  // For each sample in test set
 
     #pragma omp critical
     { ++progress; }
+    string progress_detail = to_string(progress) + '/' + to_string(m);
+    fprintf(stdout, "%s\n", progress_detail.c_str());
+    fflush(stdout);
 
     if (progress % m20 == 0) {
-      cout << (double)progress/m * 100 << "%... " << endl;
+      string progress_percentage = to_string((double)progress/m * 100) + "%...\n";
+      fprintf(stdout, "Progress: %s\n", progress_percentage.c_str());
+      double acc_so_far = num_of_correct / (double)(num_of_correct+num_of_wrong);
+      fprintf(stdout, "Accuracy so far: %f\n", acc_so_far);
+      fflush(stdout);
     }
 
 
     // For now, only support complete data.
     int e_num=num_nodes-1, *e_index=new int[e_num], *e_value=new int[e_num];
     for (int j=0; j<num_nodes; ++j) {
-      if (j == dts->class_var_index) { continue; }
-      e_index[j < dts->class_var_index ? j : j - 1] = j;
-      e_value[j < dts->class_var_index ? j : j - 1] = dts->dataset_all_vars[i][j];
+      if (j == class_var_index) { continue; }
+      e_index[j < class_var_index ? j : j - 1] = j;
+      e_value[j < class_var_index ? j : j - 1] = dts->dataset_all_vars[i][j];
     }
     DiscreteConfig E = ConstructEvidence(e_index, e_value, e_num);
-    int label_predict = ApproxinferByLikelihoodWeighting(E, dts->class_var_index, num_samp);
-    if (label_predict == dts->dataset_all_vars[i][dts->class_var_index]) {
+    int label_predict = ApproxinferByLikelihoodWeighting(E, class_var_index, num_samp);
+//    string pred_true = to_string(label_predict) + ':' + to_string(dts->dataset_all_vars[i][class_var_index]);
+//    fprintf(stdout, "%s\n", pred_true.c_str());
+//    fflush(stdout);
+    if (label_predict == dts->dataset_all_vars[i][class_var_index]) {
       #pragma omp critical
       { ++num_of_correct; }
     } else {

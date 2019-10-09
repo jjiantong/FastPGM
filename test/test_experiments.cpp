@@ -25,13 +25,13 @@ class ExperimentOnCovertype : public ::testing::Test {
     network = new ChowLiuTree(true);
 
     string train_set_file_path = "../../data/dataset/Covertype/covtype_discretization_train.data",
-           test_set_file_path = "../../data/dataset/Covertype/covtype_discretization_test_small.data";
+           test_set_file_path = "../../data/dataset/Covertype/covtype_discretization_test.data";
 
 
     trainer->LoadCSVDataAutoDetectConfig(train_set_file_path, false, 54);
     tester->LoadCSVDataAutoDetectConfig(test_set_file_path, false, 54);
-    network->StructLearnCompData(trainer, false);
-    network->LearnParamsKnowStructCompData(trainer, false);
+    network->StructLearnCompData(trainer, true);
+    network->LearnParamsKnowStructCompData(trainer, true);
   }
 
 

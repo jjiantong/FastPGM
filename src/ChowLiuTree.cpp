@@ -254,7 +254,7 @@ void ChowLiuTree::StructLearnChowLiuTreeCompData(Dataset *dts, bool print_struct
     cout << "==================================================" << '\n'
          << "Topological sorted permutation generated using width-first-traversal: " << endl;
     for (int m = 0; m < n; ++m) {
-      cout << topologicalSortedPermutation[m] << '\t';
+      cout << topologicalSortedPermutation[m] << ", ";
     }
     cout << endl;
 
@@ -315,11 +315,27 @@ pair<int*, int> ChowLiuTree::SimplifyTreeDefaultElimOrd(DiscreteConfig evidence)
   DepthFirstTraversalUntillMeetObserved(evidence, root_node_index, visited, to_be_removed);  // Start at root.
 
   // Record all the remaining nodes in array "simplified_order".
-  int num_of_remain = num_nodes-1-to_be_removed.size();    // The 0-th node is root and do not need to be eliminated.
+  int num_of_remain = num_nodes-1-to_be_removed.size();    // The one of the nodes is class variable node and does not need to be eliminated.
+  vector<int> vec_simplified_order;
+  vec_simplified_order.reserve(num_of_remain);
+  for (int i=0; i<num_nodes-1; ++i) {
+    int ord = default_elim_ord[i];
+    if (to_be_removed.find(ord) == to_be_removed.end()) {
+      vec_simplified_order.push_back(ord);
+    }
+  }
+  if (vec_simplified_order.size() != num_of_remain) {
+    fprintf(stderr, "Error in function [%s], simplified order size not equal to number of remaining nodes!\n", __FUNCTION__);
+    exit(1);
+  }
+
   int* simplified_order = new int[num_of_remain];
-  for (int i=0, j=1; i<num_of_remain; ++i) {    // j=1 because the 0-th node is root.
-    while (to_be_removed.find(j)!=to_be_removed.end()) { ++j; }
-    simplified_order[i] = j++;  // "j++" is to move to the next j, or else it will stuck at the first j that is not in "to_be_removed".
+//  for (int i=0, j=1; i<num_of_remain; ++i) {    // j=1 because the 0-th node is root.
+//    while (to_be_removed.find(j)!=to_be_removed.end()) { ++j; }
+//    simplified_order[i] = j++;  // "j++" is to move to the next j, or else it will stuck at the first j that is not in "to_be_removed".
+//  }
+  for (int i=0; i<num_of_remain; ++i) {
+    simplified_order[i] = vec_simplified_order.at(i);
   }
 
 
@@ -361,11 +377,22 @@ void ChowLiuTree::DepthFirstTraversalUntillMeetObserved(DiscreteConfig evidence,
 void ChowLiuTree::DepthFirstTraversalToRemoveMSeparatedNodes(int start, set<int>& visited, set<int>& to_be_removed) {
   visited.insert(start);
   Node* ptr_curr_node = FindNodePtrByIndex(start);
-  for (auto it_ptr_child=ptr_curr_node->set_children_ptrs.begin();
-       it_ptr_child!=ptr_curr_node->set_children_ptrs.end() && visited.find((*it_ptr_child)->GetNodeIndex())==visited.end();
-       ++it_ptr_child) {
-    to_be_removed.insert((*it_ptr_child)->GetNodeIndex());
-    DepthFirstTraversalToRemoveMSeparatedNodes((*it_ptr_child)->GetNodeIndex(), visited, to_be_removed);
+  for (auto ptr_child : ptr_curr_node->set_children_ptrs) {
+    int child_index = ptr_child->GetNodeIndex();
+    if (visited.find(child_index) == visited.end()) { break; }
+    to_be_removed.insert(child_index);
+    DepthFirstTraversalToRemoveMSeparatedNodes(child_index, visited, to_be_removed);
   }
 
 }
+//void ChowLiuTree::DepthFirstTraversalToRemoveMSeparatedNodes(int start, set<int>& visited, set<int>& to_be_removed) {
+//  visited.insert(start);
+//  Node* ptr_curr_node = FindNodePtrByIndex(start);
+//  for (auto it_ptr_child=ptr_curr_node->set_children_ptrs.begin();
+//       it_ptr_child!=ptr_curr_node->set_children_ptrs.end() && visited.find((*it_ptr_child)->GetNodeIndex())==visited.end();
+//       ++it_ptr_child) {
+//    to_be_removed.insert((*it_ptr_child)->GetNodeIndex());
+//    DepthFirstTraversalToRemoveMSeparatedNodes((*it_ptr_child)->GetNodeIndex(), visited, to_be_removed);
+//  }
+//
+//}
