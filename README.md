@@ -34,6 +34,7 @@ Developed by Linjian Li, using Clion
 classification with discrete/continuous feature values
 
 # to do:
+ * test conditional gaussian Bayesian network
  * load continuous values from data file
  * classification with features of continuous values
  * explore regression
@@ -78,9 +79,12 @@ As a benchmark,
    * NaiveBayes: **0.803269**
    * RandomForest: **0.828886**
  
-My bayesian network using **Chow-Liu Tree** and **variable elimination inference**
-Consumed time and accuracy for the whose process on "a1a" (load data -> train -> test)
- * Using optimal elimination order for **tree shape** network, it achieves accuracy of **0.823782**
+My bayesian network
+* Chow-Liu Tree, variable elimination, accuracy of **0.823782**, 20 seconds.
+* Chow-Liu Tree, likelihood weighting (50 samples), accuracy of **0.814059**, 654 seconds.
+* Chow-Liu Tree, junction tree, accuracy of **0.816869**, 1495 seconds.
+* Chow-Liu Tree, probabilistic logic sampling and rejection sampling (100000 samples), accuracy of **0.501147**, 5534 seconds.
+
 
 ## LIBSVM dataset "a2a"
  * Chow-Liu Tree, variable elimination, accuracy of **0.826281**
@@ -91,6 +95,60 @@ Consumed time and accuracy for the whose process on "a1a" (load data -> train ->
 
 ## LIBSVM dataset "w1a"
  * Chow-Liu Tree, variable elimination, accuracy of **0.972436**
+
+## Covertype Data Set from UCI
+
+Number of instances: 581012
+* first 11,340 records used for training data subset
+* next 3,780 records used for validation data subset
+* last 565,892 records used for testing data subset
+
+Number of attributes: 54
+
+Chow-Liu Tree, variable elimination, accuracy of **0.530348**, 10075 seconds.
+
+Chow-Liu Tree, likelihood weighting (50 samples), accuracy of **0.514571**, 3620 seconds (first 50000 instances).
+
+Chow-Liu Tree, junction tree, 2.4 instances per second, ETA 235,788 seconds (65.5 hours).
+It takes such a long time because the implementation of junction tree is not parallel-friendly.
+If I only test the first 50000 instances in the test set, it achieves accuracy of **0.681632** with 21,915 seconds.
+
+Chow-Liu Tree, probabilistic logic sampling and rejection sampling (100000 samples), accuracy of **0.143157**, 7067 seconds (first 50000 instances).
+
+#### On Weka
+
+Naive Bayes, accuracy of 0.521686, 34 seconds.
+
+Bayes Net, accuracy of 0.524978, 19 seconds.
+
+SMO, accuracy of 0.574944, 10 seconds.
+
+## Phishing Websites Data Set from UCI
+
+Number of instances: 11054 (2456 in old dataset)
+
+Number of attributes: 30
+
+Train-test data split = 1:9
+
+Naive Bayes network, variable elimination, accuracy of **0.83526**, 12 seconds.
+
+Chow-Liu Tree, variable elimination, accuracy of **0.602674**, 11 seconds.
+
+Chow-Liu Tree, likelihood weighting (50 samples), accuracy of **0.600764**, 25 seconds.
+
+Chow-Liu Tree, junction tree, accuracy of **0.924914**, 131 seconds.
+
+Chow-Liu Tree, probabilistic logic sampling and rejection sampling (100000 samples), accuracy of **0.508142**, 300 seconds.
+
+#### On Weka
+
+Naive Bayes, split train:test=1:9, accuracy of 0.925621, 0.08 seconds.
+
+Bayes Net, split train:test=1:9, accuracy of 0.915971, 0.09 seconds.
+
+SMO, split train:test=1:9, accuracy of 0.932858, 0.05 seconds.
+
 
 
 # Dependency

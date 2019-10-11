@@ -36,7 +36,7 @@ void Network::PrintEachNodeChildren() {
 
 Node* Network::FindNodePtrByIndex(const int &index) const {
   if (index<0 || index>num_nodes) {
-    fprintf(stderr, "Error in function %s! \nInvalid index!", __FUNCTION__);
+    fprintf(stderr, "Error in function %s! \nInvalid index [%d]!", __FUNCTION__, index);
     exit(1);
   }
   Node* node_ptr = nullptr;
@@ -59,6 +59,52 @@ Node* Network::FindNodePtrByName(const string &name) const {
     }
   }
   return node_ptr;
+}
+
+
+void Network::ConstructNaiveBayesNetwork(Dataset *dts) {
+  num_nodes = dts->num_vars;
+  // Assign an index for each node.
+#pragma omp parallel for
+  for (int i=0; i<num_nodes; ++i) {
+    DiscreteNode *node_ptr = new DiscreteNode(i);  // For now, only support discrete node.
+    node_ptr->num_potential_vals = dts->num_of_possible_values_of_disc_vars[i];
+    node_ptr->potential_vals = new int[node_ptr->num_potential_vals];
+    int j = 0;
+    for (auto v : dts->map_disc_vars_possible_values[i]) {
+      node_ptr->potential_vals[j++] = v;
+    }
+#pragma omp critical
+    { set_node_ptr_container.insert(node_ptr); }
+  }
+
+  // Set parents and children.
+  Node *class_node_ptr = FindNodePtrByIndex(dts->class_var_index);
+  for (auto &n : set_node_ptr_container) {
+    if (n == class_node_ptr) { continue; }
+    SetParentChild(class_node_ptr, n);
+  }
+
+  // Generate configurations of parents.
+  // Store the pointers in an array to make use of OpenMP.
+  Node** arr_node_ptr_container = new Node*[num_nodes];
+  auto iter_n_ptr = set_node_ptr_container.begin();
+  for (int i=0; i<num_nodes; ++i) {
+    arr_node_ptr_container[i] = *(iter_n_ptr++);
+  }
+#pragma omp parallel for
+  for (int i=0; i<num_nodes; ++i) {
+    arr_node_ptr_container[i]->GenDiscParCombs();
+  }
+  delete[] arr_node_ptr_container;
+
+  // Generate topological ordering and default elimination ordering.
+  vector<int> topo = GetTopoOrd();
+  this->default_elim_ord = new int[num_nodes - 1];
+#pragma omp parallel for
+  for (int i=0; i<num_nodes-1; ++i) {
+    default_elim_ord[i] = topo.at(num_nodes-1-i);
+  }
 }
 
 
@@ -604,6 +650,7 @@ Factor Network::VarElimInferReturnPossib(int *Z, int nz, DiscreteConfig E, Node 
 
 Factor Network::VarElimInferReturnPossib(DiscreteConfig E, Node *Y) {
   pair<int*, int> simplified_elimination_order = SimplifyDefaultElimOrd(E);
+//  pair<int*, int> simplified_elimination_order = pair<int*, int>(default_elim_ord, num_nodes-1);
   return this->VarElimInferReturnPossib(
                   simplified_elimination_order.first,
                   simplified_elimination_order.second,
@@ -658,30 +705,40 @@ double Network::TestNetReturnAccuracy(Dataset *dts) {
   cout << "Progress indicator: ";
   int num_of_correct=0, num_of_wrong=0, m=dts->num_instance, m20= m / 20, progress=0;
 
-//  int num_cores = omp_get_num_procs();
-//  omp_set_num_threads(num_cores);
+  int class_var_index = dts->class_var_index;
+
+
   // For each sample in test set
   #pragma omp parallel for
   for (int i=0; i<m; ++i) {
 
     #pragma omp critical
     { ++progress; }
+    string progress_detail = to_string(progress) + '/' + to_string(m);
+    fprintf(stdout, "%s\n", progress_detail.c_str());
+    fflush(stdout);
 
     if (progress % m20 == 0) {
-      cout << (double)progress/m * 100 << "%... " << endl;
+      string progress_percentage = to_string((double)progress/m * 100) + "%...\n";
+      fprintf(stdout, "Progress: %s\n", progress_percentage.c_str());
+      double acc_so_far = num_of_correct / (double)(num_of_correct+num_of_wrong);
+      fprintf(stdout, "Accuracy so far: %f\n", acc_so_far);
+      fflush(stdout);
     }
-
 
     // For now, only support complete data.
     int e_num = num_nodes - 1, *e_index = new int[e_num], *e_value = new int[e_num];
     for (int j = 0; j < num_nodes; ++j) {
-      if (j == dts->class_var_index) {continue;}
-      e_index[j < dts->class_var_index ? j : j - 1] = j;
-      e_value[j < dts->class_var_index ? j : j - 1] = dts->dataset_all_vars[i][j];
+      if (j == class_var_index) {continue;}
+      e_index[j < class_var_index ? j : j - 1] = j;
+      e_value[j < class_var_index ? j : j - 1] = dts->dataset_all_vars[i][j];
     }
     DiscreteConfig E = ConstructEvidence(e_index, e_value, e_num);
-    int label_predict = PredictUseVarElimInfer(E, 0); // The root node (label) has index of 0.
-    if (label_predict == dts->dataset_all_vars[i][dts->class_var_index]) {
+    int label_predict = PredictUseVarElimInfer(E, class_var_index);
+//    string pred_true = to_string(label_predict) + ':' + to_string(dts->dataset_all_vars[i][class_var_index]);
+//    fprintf(stdout, "%s\n", pred_true.c_str());
+//    fflush(stdout);
+    if (label_predict == dts->dataset_all_vars[i][class_var_index]) {
       #pragma omp critical
       { ++num_of_correct; }
     } else {
@@ -707,43 +764,66 @@ double Network::TestNetReturnAccuracy(Dataset *dts) {
 
 double Network::TestNetByApproxInferReturnAccuracy(Dataset *dts, int num_samp) {
 
-  // implement by Gibbs sampling
+
   cout << "==================================================" << '\n'
        << "Begin testing the trained network." << endl;
+
+  struct timeval start, end;
+  double diff;
+  gettimeofday(&start,NULL);
 
   cout << "Progress indicator: ";
 
   int num_of_correct=0, num_of_wrong=0, m=dts->num_instance, m20= m / 20, progress=0;
 
-  vector<DiscreteConfig> samples = this->DrawSamplesByProbLogiSamp(10000);
+  int class_var_index = dts->class_var_index;
 
-//  #pragma omp parallel for
+  vector<DiscreteConfig> samples = this->DrawSamplesByProbLogiSamp(num_samp);
+  cout << "Finish drawing samples." << endl;
+
+  #pragma omp parallel for
   for (int i=0; i<m; ++i) {  // For each sample in test set
 
-//    #pragma omp critical
+    #pragma omp critical
     { ++progress; }
+    string progress_detail = to_string(progress) + '/' + to_string(m);
+    fprintf(stdout, "%s\n", progress_detail.c_str());
+    fflush(stdout);
 
     if (progress % m20 == 0) {
-      cout << (double)progress/m * 100 << "%... " << endl;
+      string progress_percentage = to_string((double)progress/m * 100) + "%...\n";
+      fprintf(stdout, "Progress: %s\n", progress_percentage.c_str());
+      double acc_so_far = num_of_correct / (double)(num_of_correct+num_of_wrong);
+      fprintf(stdout, "Accuracy so far: %f\n", acc_so_far);
+      fflush(stdout);
     }
-
 
     // For now, only support complete data.
     int e_num=num_nodes-1, *e_index=new int[e_num], *e_value=new int[e_num];
     for (int j=0; j<num_nodes; ++j) {
-      if (j == dts->class_var_index) { continue; }
-      e_index[j < dts->class_var_index ? j : j - 1] = j + 1;
-      e_value[j < dts->class_var_index ? j : j - 1] = dts->dataset_all_vars[i][j];
+      if (j == class_var_index) { continue; }
+      e_index[j < class_var_index ? j : j - 1] = j + 1;
+      e_value[j < class_var_index ? j : j - 1] = dts->dataset_all_vars[i][j];
     }
     DiscreteConfig E = ConstructEvidence(e_index, e_value, e_num);
-    int label_predict = ApproxInferByProbLogiRejectSamp(E, 0, samples); // The root node (label) has index of 0.
-    if (label_predict == dts->dataset_all_vars[i][dts->class_var_index]) {
+    int label_predict = ApproxInferByProbLogiRejectSamp(E, class_var_index, samples);
+//    string pred_true = to_string(label_predict) + ':' + to_string(dts->dataset_all_vars[i][class_var_index]);
+//    fprintf(stdout, "%s\n", pred_true.c_str());
+//    fflush(stdout);
+    if (label_predict == dts->dataset_all_vars[i][class_var_index]) {
       ++num_of_correct;
     } else {
       ++num_of_wrong;
     }
 
   }
+
+  gettimeofday(&end,NULL);
+  diff = (end.tv_sec-start.tv_sec) + ((double)(end.tv_usec-start.tv_usec))/1.0E6;
+  setlocale(LC_NUMERIC, "");
+  cout << "==================================================" << '\n'
+       << "The time spent to test the accuracy is " << diff << " seconds" << endl;
+
   double accuracy = num_of_correct / (double)(num_of_correct+num_of_wrong);
   cout << '\n' << "Accuracy: " << accuracy << endl;
   return accuracy;
@@ -761,27 +841,39 @@ double Network::TestAccuracyByLikelihoodWeighting(Dataset *dts, int num_samp) {
 
   int num_of_correct=0, num_of_wrong=0, m=dts->num_instance, m20= m / 20, progress=0;
 
+  int class_var_index = dts->class_var_index;
+
   #pragma omp parallel for
   for (int i=0; i<m; ++i) {  // For each sample in test set
 
     #pragma omp critical
     { ++progress; }
+    string progress_detail = to_string(progress) + '/' + to_string(m);
+    fprintf(stdout, "%s\n", progress_detail.c_str());
+    fflush(stdout);
 
     if (progress % m20 == 0) {
-      cout << (double)progress/m * 100 << "%... " << endl;
+      string progress_percentage = to_string((double)progress/m * 100) + "%...\n";
+      fprintf(stdout, "Progress: %s\n", progress_percentage.c_str());
+      double acc_so_far = num_of_correct / (double)(num_of_correct+num_of_wrong);
+      fprintf(stdout, "Accuracy so far: %f\n", acc_so_far);
+      fflush(stdout);
     }
 
 
     // For now, only support complete data.
     int e_num=num_nodes-1, *e_index=new int[e_num], *e_value=new int[e_num];
     for (int j=0; j<num_nodes; ++j) {
-      if (j == dts->class_var_index) { continue; }
-      e_index[j < dts->class_var_index ? j : j - 1] = j;
-      e_value[j < dts->class_var_index ? j : j - 1] = dts->dataset_all_vars[i][j];
+      if (j == class_var_index) { continue; }
+      e_index[j < class_var_index ? j : j - 1] = j;
+      e_value[j < class_var_index ? j : j - 1] = dts->dataset_all_vars[i][j];
     }
     DiscreteConfig E = ConstructEvidence(e_index, e_value, e_num);
-    int label_predict = ApproxinferByLikelihoodWeighting(E, 0, num_samp); // The root node (label) has index of 0.
-    if (label_predict == dts->dataset_all_vars[i][dts->class_var_index]) {
+    int label_predict = ApproxinferByLikelihoodWeighting(E, class_var_index, num_samp);
+//    string pred_true = to_string(label_predict) + ':' + to_string(dts->dataset_all_vars[i][class_var_index]);
+//    fprintf(stdout, "%s\n", pred_true.c_str());
+//    fflush(stdout);
+    if (label_predict == dts->dataset_all_vars[i][class_var_index]) {
       #pragma omp critical
       { ++num_of_correct; }
     } else {

@@ -37,8 +37,6 @@ class Network {
   set<Node*> set_node_ptr_container;
 
   int *default_elim_ord;
-  vector<int> topo_ord;
-
   Network();
   explicit Network(bool pure_disc);
   virtual ~Network() = default;
@@ -49,6 +47,8 @@ class Network {
   Node* FindNodePtrByIndex(const int &index) const;
 
   Node* FindNodePtrByName(const string &name) const;
+
+  void ConstructNaiveBayesNetwork(Dataset *dts);
 
   virtual void StructLearnCompData(Dataset *, bool print_struct=true);
 
@@ -109,6 +109,8 @@ class Network {
   int ApproxInferByProbLogiRejectSamp(DiscreteConfig e, int node_index, vector<DiscreteConfig> &samples);
 
  protected:
+  vector<int> topo_ord;
+
   vector<int> GenTopoOrd();
   pair<DiscreteConfig, double> DrawOneLikelihoodWeightingSample(const DiscreteConfig &evidence);
   set<int> GetMarkovBlanketIndexesOfNode(Node *node_ptr);
