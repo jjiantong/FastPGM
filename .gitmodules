@@ -1,3 +1,9 @@
 [submodule "lib/ARFF"]
 	path = lib/ARFF
 	url = https://github.com/LinjianLi/ARFF
+[submodule "lib/googletest"]
+	path = lib/googletest
+	url = https://github.com/google/googletest
+[submodule "lib/tinyxml2"]
+	path = lib/tinyxml2
+	url = https://github.com/leethomason/tinyxml2
