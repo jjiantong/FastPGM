@@ -34,6 +34,7 @@ Developed by Linjian Li, using Clion
 classification with discrete/continuous feature values
 
 # to do:
+ * test conditional gaussian Bayesian network
  * load continuous values from data file
  * classification with features of continuous values
  * explore regression
