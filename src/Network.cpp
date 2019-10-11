@@ -62,6 +62,52 @@ Node* Network::FindNodePtrByName(const string &name) const {
 }
 
 
+void Network::ConstructNaiveBayesNetwork(Dataset *dts) {
+  num_nodes = dts->num_vars;
+  // Assign an index for each node.
+#pragma omp parallel for
+  for (int i=0; i<num_nodes; ++i) {
+    DiscreteNode *node_ptr = new DiscreteNode(i);  // For now, only support discrete node.
+    node_ptr->num_potential_vals = dts->num_of_possible_values_of_disc_vars[i];
+    node_ptr->potential_vals = new int[node_ptr->num_potential_vals];
+    int j = 0;
+    for (auto v : dts->map_disc_vars_possible_values[i]) {
+      node_ptr->potential_vals[j++] = v;
+    }
+#pragma omp critical
+    { set_node_ptr_container.insert(node_ptr); }
+  }
+
+  // Set parents and children.
+  Node *class_node_ptr = FindNodePtrByIndex(dts->class_var_index);
+  for (auto &n : set_node_ptr_container) {
+    if (n == class_node_ptr) { continue; }
+    SetParentChild(class_node_ptr, n);
+  }
+
+  // Generate configurations of parents.
+  // Store the pointers in an array to make use of OpenMP.
+  Node** arr_node_ptr_container = new Node*[num_nodes];
+  auto iter_n_ptr = set_node_ptr_container.begin();
+  for (int i=0; i<num_nodes; ++i) {
+    arr_node_ptr_container[i] = *(iter_n_ptr++);
+  }
+#pragma omp parallel for
+  for (int i=0; i<num_nodes; ++i) {
+    arr_node_ptr_container[i]->GenDiscParCombs();
+  }
+  delete[] arr_node_ptr_container;
+
+  // Generate topological ordering and default elimination ordering.
+  vector<int> topo = GetTopoOrd();
+  this->default_elim_ord = new int[num_nodes - 1];
+#pragma omp parallel for
+  for (int i=0; i<num_nodes-1; ++i) {
+    default_elim_ord[i] = topo.at(num_nodes-1-i);
+  }
+}
+
+
 void Network::StructLearnCompData(Dataset *dts, bool print_struct) {
   fprintf(stderr, "Not be implemented yet!");
 //  exit(1);
@@ -604,6 +650,7 @@ Factor Network::VarElimInferReturnPossib(int *Z, int nz, DiscreteConfig E, Node 
 
 Factor Network::VarElimInferReturnPossib(DiscreteConfig E, Node *Y) {
   pair<int*, int> simplified_elimination_order = SimplifyDefaultElimOrd(E);
+//  pair<int*, int> simplified_elimination_order = pair<int*, int>(default_elim_ord, num_nodes-1);
   return this->VarElimInferReturnPossib(
                   simplified_elimination_order.first,
                   simplified_elimination_order.second,

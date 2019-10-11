@@ -143,11 +143,11 @@ void ChowLiuTree::StructLearnChowLiuTreeCompData(Dataset *dts, bool print_struct
         // To calculate the mutual information, we need to find the nodes which correspond to the indexes i and j.
         Node* Xi = nullptr;
         Node* Xj = nullptr;
-        for (auto it=set_node_ptr_container.begin(); it!=set_node_ptr_container.end(); it++) {
-          if ((*it)->GetNodeIndex()==i && Xi==nullptr) {
-            Xi = *it;
-          } else if ((*it)->GetNodeIndex()==j && Xj==nullptr) {
-            Xj = *it;
+        for (auto node_ptr : set_node_ptr_container) {
+          if (node_ptr->GetNodeIndex()==i && Xi==nullptr) {
+            Xi = node_ptr;
+          } else if (node_ptr->GetNodeIndex()==j && Xj==nullptr) {
+            Xj = node_ptr;
           }
           if (Xi!=nullptr && Xj!=nullptr) { break; }
         }
@@ -385,14 +385,3 @@ void ChowLiuTree::DepthFirstTraversalToRemoveMSeparatedNodes(int start, set<int>
   }
 
 }
-//void ChowLiuTree::DepthFirstTraversalToRemoveMSeparatedNodes(int start, set<int>& visited, set<int>& to_be_removed) {
-//  visited.insert(start);
-//  Node* ptr_curr_node = FindNodePtrByIndex(start);
-//  for (auto it_ptr_child=ptr_curr_node->set_children_ptrs.begin();
-//       it_ptr_child!=ptr_curr_node->set_children_ptrs.end() && visited.find((*it_ptr_child)->GetNodeIndex())==visited.end();
-//       ++it_ptr_child) {
-//    to_be_removed.insert((*it_ptr_child)->GetNodeIndex());
-//    DepthFirstTraversalToRemoveMSeparatedNodes((*it_ptr_child)->GetNodeIndex(), visited, to_be_removed);
-//  }
-//
-//}

@@ -71,14 +71,14 @@ class ExperimentOnPhishing : public ::testing::Test {
     tester = new Dataset();
     network = new ChowLiuTree(true);
 
-    string train_set_file_path = "../../data/dataset/Phishing/Phishing_Training_Dataset.csv",
-            test_set_file_path = "../../data/dataset/Phishing/Phishing_Training_Dataset.csv";
+    string train_set_file_path = "../../data/dataset/Phishing/Phishing_Training_Dataset_split_1_of_10.csv",
+            test_set_file_path = "../../data/dataset/Phishing/Phishing_Training_Dataset_split_9_of_10.csv";
 
 
     trainer->LoadCSVDataAutoDetectConfig(train_set_file_path, false, 30);
     tester->LoadCSVDataAutoDetectConfig(test_set_file_path, false, 30);
-    network->StructLearnCompData(trainer, true);
-    network->LearnParamsKnowStructCompData(trainer, true);
+    network->StructLearnCompData(trainer, false);
+    network->LearnParamsKnowStructCompData(trainer, false);
   }
 
 
@@ -86,6 +86,15 @@ class ExperimentOnPhishing : public ::testing::Test {
   Dataset *tester;
   Network *network;
 };
+
+TEST_F(ExperimentOnPhishing, naive_bayes_var_elim) {
+  ChowLiuTree *net = new ChowLiuTree(true);
+  net->root_node_index = 30;
+  net->ConstructNaiveBayesNetwork(trainer);
+  net->LearnParamsKnowStructCompData(trainer, true);
+  double accuracy = net->TestNetReturnAccuracy(tester);
+  EXPECT_GT(accuracy, 0.9);
+}
 
 TEST_F(ExperimentOnPhishing, var_elim) {
   double accuracy = network->TestNetReturnAccuracy(tester);

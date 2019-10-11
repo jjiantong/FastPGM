@@ -128,13 +128,17 @@ Number of instances: 11054 (2456 in old dataset)
 
 Number of attributes: 30
 
-Chow-Liu Tree, variable elimination, accuracy of **0.924914**, 11 seconds.
+Train-test data split = 1:9
 
-Chow-Liu Tree, likelihood weighting (50 samples), accuracy of **0.923648**, 25 seconds.
+Naive Bayes network, variable elimination, accuracy of **0.83526**, 12 seconds.
+
+Chow-Liu Tree, variable elimination, accuracy of **0.602674**, 11 seconds.
+
+Chow-Liu Tree, likelihood weighting (50 samples), accuracy of **0.600764**, 25 seconds.
 
 Chow-Liu Tree, junction tree, accuracy of **0.924914**, 131 seconds.
 
-Chow-Liu Tree, probabilistic logic sampling and rejection sampling (100000 samples), accuracy of **0.500045**, 35 seconds.
+Chow-Liu Tree, probabilistic logic sampling and rejection sampling (100000 samples), accuracy of **0.508142**, 300 seconds.
 
 #### On Weka
 

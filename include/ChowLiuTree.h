@@ -36,7 +36,7 @@ class ChowLiuTree : public Network {
    *   The order is fixed for one tree, but different for different trees.
    *   It is just the reverse order of topological sorting using width-first-traversal start at the root node.
    */
-  int *default_elim_ord;
+//  int *default_elim_ord;
   int root_node_index = -1;
 
   ChowLiuTree();
