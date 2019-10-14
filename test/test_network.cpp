@@ -59,8 +59,8 @@ TEST_F(NetworkTest, chow_liu_tree_var_elim_accuracy) { // The prefix "DISABLED" 
        << "LogLikelihood: " << sf.LogLikelihood()  << '\n'
        << "AIC: " <<  sf.AIC() << '\n'
        << "BIC: " <<  sf.BIC() << '\n'
-       << "K2: " <<  sf.K2()  << '\n'
-       << "BDeu: " <<  sf.BDeu() << endl;
+       << "LogK2: " <<  sf.LogK2()  << '\n'
+       << "LogBDeu: " <<  sf.LogBDeu() << endl;
   EXPECT_GT(accuracy,0.67);
   EXPECT_LT(sf.K2()+6196.83, 1e-3);
   EXPECT_LT(sf.BDeu()+7944.37, 1e-5);

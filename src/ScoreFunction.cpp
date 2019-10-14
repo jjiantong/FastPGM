@@ -215,8 +215,8 @@ double ScoreFunction::LogK2() {
 
 
 double ScoreFunction::K2() {
-  fprintf(stderr, "Simple K2 will cause overflow. Changed to log space.\n");
-  return LogK2();
+  fprintf(stderr, "Simple K2 will cause overflow. Please use log-K2.\n");
+  exit(1);
 }
 
 
@@ -332,8 +332,8 @@ double ScoreFunction::LogBDeu(int equi_sample_size) {
 
 
 double ScoreFunction::BDeu(int equi_sample_size) {
-  fprintf(stderr, "Simple BDeu will cause overflow. Changed to log space.\n");
-  return LogBDeu(equi_sample_size);
+  fprintf(stderr, "Simple BDeu will cause overflow. Please use log-BDeu.\n");
+  exit(1);
 }
 
 

@@ -131,24 +131,29 @@ Number of attributes: 30
 
 Train-test data split = 1:9
 
-Naive Bayes network, variable elimination, accuracy of **0.83526**, 12 seconds.
+Naive Bayes network, variable elimination, accuracy of **0.83546**, 12 seconds.
 
 Chow-Liu Tree, variable elimination, accuracy of **0.602674**, 11 seconds.
 
 Chow-Liu Tree, likelihood weighting (50 samples), accuracy of **0.600764**, 25 seconds.
 
-Chow-Liu Tree, junction tree, accuracy of **0.924914**, 131 seconds.
+Chow-Liu Tree, junction tree, accuracy of **0.602674**, 131 seconds.
 
 Chow-Liu Tree, probabilistic logic sampling and rejection sampling (100000 samples), accuracy of **0.508142**, 300 seconds.
 
 #### On Weka
 
-Naive Bayes, split train:test=1:9, accuracy of 0.925621, 0.08 seconds.
+Naive Bayes, accuracy of 0.925621, 0.08 seconds.
 
-Bayes Net, split train:test=1:9, accuracy of 0.915971, 0.09 seconds.
+Bayes Net, accuracy of 0.915971, 0.09 seconds.
 
 SMO, split train:test=1:9, accuracy of 0.932858, 0.05 seconds.
 
+#### On Scikit-Learn
+
+MultinomialNB (alpha=1), accuracy of 0.7457, 0.004 seconds.
+
+MultinomialNB (alpha=400), accuracy of 0.8268, 0.004 seconds.
 
 
 # Dependency
