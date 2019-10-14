@@ -381,9 +381,10 @@ int** Network::ConvertDAGNetworkToAdjacencyMatrix() {
 }
 
 
-void Network::LearnParamsKnowStructCompData(const Dataset *dts, bool print_params){
+void Network::LearnParamsKnowStructCompData(const Dataset *dts, int alpha, bool print_params){
   cout << "==================================================" << '\n'
-       << "Begin learning parameters with known structure and complete data." << endl;
+       << "Begin learning parameters with known structure and complete data." << '\n'
+       << "Laplace smoothing param: alpha = " << alpha << endl;
 
   struct timeval start, end;
   double diff;
@@ -403,15 +404,15 @@ void Network::LearnParamsKnowStructCompData(const Dataset *dts, bool print_param
       if (this_node->set_parents_ptrs.empty()) {
 
         map<int, double> *MPT = &(dynamic_cast<DiscreteNode*>(this_node)->map_marg_prob_table);
-        int denominator = 0;
+        int denominator = dts->num_instance;
         for (int s = 0; s < dts->num_instance; ++s) {
-          denominator += 1;
           int query = dts->dataset_all_vars[s][i];
           (*MPT)[query] += 1;
         }
         for (int ii = 0; ii < this_node->num_potential_vals; ++ii) {
           int query = this_node->potential_vals[ii];
-          (*MPT)[query] /= denominator;
+          // Laplace smoothing.
+          (*MPT)[query] = ((*MPT)[query] + alpha) / (denominator + alpha * this_node->num_potential_vals);
         }
 
       } else {  // If the node has parents.
@@ -439,7 +440,8 @@ void Network::LearnParamsKnowStructCompData(const Dataset *dts, bool print_param
           // Normalize so that the sum is 1.
           for (int j = 0; j < this_node->num_potential_vals; ++j) {
             int query = this_node->potential_vals[j];
-            (*CPT)[query][par_comb] /= denominator;
+            // Laplace smoothing.
+            (*CPT)[query][par_comb] = ((*CPT)[query][par_comb] + alpha) / (denominator + alpha * this_node->num_potential_vals);
           }
         }
 

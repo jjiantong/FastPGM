@@ -52,7 +52,7 @@ class Network {
 
   virtual void StructLearnCompData(Dataset *, bool print_struct=true);
 
-  virtual void LearnParamsKnowStructCompData(const Dataset *dts, bool print_params=true);
+  void LearnParamsKnowStructCompData(const Dataset *dts, int alpha=1, bool print_params=true);
 
   int GetNumParams() const;
   void ClearParams();

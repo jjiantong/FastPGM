@@ -81,7 +81,7 @@ As a benchmark,
  
 My bayesian network
 * Chow-Liu Tree, variable elimination, accuracy of **0.823782**, 20 seconds.
-* Chow-Liu Tree, likelihood weighting (50 samples), accuracy of **0.814059**, 654 seconds.
+* Chow-Liu Tree, likelihood weighting (50 samples), accuracy of **0.821973**, 698 seconds.
 * Chow-Liu Tree, junction tree, accuracy of **0.816869**, 1495 seconds.
 * Chow-Liu Tree, probabilistic logic sampling and rejection sampling (100000 samples), accuracy of **0.501147**, 5534 seconds.
 
@@ -133,11 +133,19 @@ Train-test data split = 1:9
 
 Naive Bayes network, variable elimination, accuracy of **0.83546**, 12 seconds.
 
+Naive Bayes network, Laplace smoothing parameter alpha=2, variable elimination, accuracy of **0.83677**, 12 seconds.
+
 Chow-Liu Tree, variable elimination, accuracy of **0.602674**, 11 seconds.
+
+Chow-Liu Tree, Laplace smoothing parameter alpha=1, variable elimination, accuracy of **0.830435**, 11 seconds.
 
 Chow-Liu Tree, likelihood weighting (50 samples), accuracy of **0.600764**, 25 seconds.
 
+Chow-Liu Tree, Laplace smoothing parameter alpha=1, likelihood weighting (50 samples), accuracy of **0.82883**, 25 seconds.
+
 Chow-Liu Tree, junction tree, accuracy of **0.602674**, 131 seconds.
+
+Chow-Liu Tree, Laplace smoothing parameter alpha=1, junction tree, accuracy of **0.830435**, 25 seconds.
 
 Chow-Liu Tree, probabilistic logic sampling and rejection sampling (100000 samples), accuracy of **0.508142**, 300 seconds.
 

@@ -78,7 +78,7 @@ class ExperimentOnPhishing : public ::testing::Test {
     trainer->LoadCSVDataAutoDetectConfig(train_set_file_path, false, 30);
     tester->LoadCSVDataAutoDetectConfig(test_set_file_path, false, 30);
     network->StructLearnCompData(trainer, false);
-    network->LearnParamsKnowStructCompData(trainer, false);
+    network->LearnParamsKnowStructCompData(trainer, 1, false);
   }
 
 
@@ -91,7 +91,7 @@ TEST_F(ExperimentOnPhishing, naive_bayes_var_elim) {
   ChowLiuTree *net = new ChowLiuTree(true);
   net->root_node_index = 30;
   net->ConstructNaiveBayesNetwork(trainer);
-  net->LearnParamsKnowStructCompData(trainer, true);
+  net->LearnParamsKnowStructCompData(trainer, 2, true);
 
   ScoreFunction sf(net, tester);
   cout << "Scores\n"
@@ -102,7 +102,7 @@ TEST_F(ExperimentOnPhishing, naive_bayes_var_elim) {
        << "LogBDeu: " <<  sf.LogBDeu() << endl;
 
   double accuracy = net->TestNetReturnAccuracy(tester);
-  EXPECT_GT(accuracy, 0.8);
+  EXPECT_GT(accuracy, 0.8367);
 }
 
 TEST_F(ExperimentOnPhishing, naive_bayes_lik_wei) {
@@ -110,8 +110,8 @@ TEST_F(ExperimentOnPhishing, naive_bayes_lik_wei) {
   net->root_node_index = 30;
   net->ConstructNaiveBayesNetwork(trainer);
   net->LearnParamsKnowStructCompData(trainer, true);
-  double accuracy = network->TestAccuracyByLikelihoodWeighting(tester, 500);
-  EXPECT_GT(accuracy, 0.601);
+  double accuracy = network->TestAccuracyByLikelihoodWeighting(tester, 50);
+  EXPECT_GT(accuracy, 0.82882);
 }
 
 TEST_F(ExperimentOnPhishing, var_elim) {
@@ -151,7 +151,7 @@ class ExperimentOnA1a : public ::testing::Test {
     trainer->LoadLIBSVMDataAutoDetectConfig(train_set_file_path);
     tester->LoadLIBSVMDataAutoDetectConfig(test_set_file_path);
     network->StructLearnCompData(trainer, false);
-    network->LearnParamsKnowStructCompData(trainer, false);
+    network->LearnParamsKnowStructCompData(trainer, 2, false);
   }
 
 
@@ -162,19 +162,19 @@ class ExperimentOnA1a : public ::testing::Test {
 
 TEST_F(ExperimentOnA1a, var_elim) {
   double accuracy = network->TestNetReturnAccuracy(tester);
-  EXPECT_GT(accuracy, 0.65);
+  EXPECT_GT(accuracy, 0.8237);
 }
 
 TEST_F(ExperimentOnA1a, like_weigh) {
   double accuracy = network->TestAccuracyByLikelihoodWeighting(tester, 50);
-  EXPECT_GT(accuracy, 0.65);
+  EXPECT_GT(accuracy, 0.815);
 }
 
 TEST_F(ExperimentOnA1a, jun_tree_accuracy) {
   auto *jt = new JunctionTree(network, false);
   double accuracy = jt->TestNetReturnAccuracy(0,tester);
   delete jt;
-  EXPECT_GT(accuracy,0.65);
+  EXPECT_GT(accuracy,0.815);
 }
 
 TEST_F(ExperimentOnA1a, approx) {

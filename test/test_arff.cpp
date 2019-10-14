@@ -6,7 +6,7 @@
 #include "arff_parser.h"
 
 TEST(ArffTest, sometest) {
-  ArffParser ap = ArffParser("../../data/dataset/Phishing/Training Dataset.arff");
+  ArffParser ap = ArffParser("../../data/dataset/Phishing/Phishing_Training_Dataset.arff");
   auto ap_data = ap.parse();
   EXPECT_EQ(ap_data->get_relation_name(), "phishing");
   EXPECT_EQ(ap_data->num_attributes(), 31);
