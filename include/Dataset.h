@@ -29,6 +29,7 @@ class Dataset {
   int* num_of_possible_values_of_disc_vars;
   vector<bool> is_vars_discrete;
   int **dataset_all_vars;
+  vector<string> vec_var_names;
   vector<vector<VarVal>> vector_dataset_all_vars;
 
 

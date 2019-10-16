@@ -61,13 +61,17 @@ void Node::GenDiscParCombs() {
   // Preprocess. Construct set of sets.
   set<DiscreteConfig> set_of_sets;
   if (set_parents_ptrs.empty()) {return;}
-  for (const auto par_ptr : set_parents_ptrs) {
+  for (auto par_ptr : set_parents_ptrs) {
     if (!par_ptr->is_discrete) { continue; }
     DiscreteConfig cb;
     pair<int, int> ele;
-    for (int i=0; i<dynamic_cast<DiscreteNode*>(par_ptr)->num_potential_vals; i++) {
+//    DiscreteNode *d_par_ptr = dynamic_cast<DiscreteNode*>(par_ptr);
+    DiscreteNode *d_par_ptr = (DiscreteNode*)(par_ptr);
+
+    for (int i=0; i<d_par_ptr->num_potential_vals; ++i) {
       ele.first = par_ptr->node_index;
-      ele.second = dynamic_cast<DiscreteNode*>(par_ptr)->potential_vals[i];
+//      ele.second = dynamic_cast<DiscreteNode*>(par_ptr)->potential_vals[i];
+      ele.second = ((DiscreteNode*)par_ptr)->potential_vals[i];
       cb.insert(ele);
     }
     set_of_sets.insert(cb);
@@ -81,4 +85,8 @@ void Node::GenDiscParCombs() {
 void Node::ClearParents() {
   set_parents_ptrs.clear();
   set_discrete_parents_combinations.clear();
+}
+
+void Node::ClearChildren() {
+  set_children_ptrs.clear();
 }

@@ -155,10 +155,19 @@ void Dataset::LoadCSVDataAutoDetectConfig(string data_file_path, bool header, in
   is_vars_discrete.reserve(num_vars);
   num_of_possible_values_of_disc_vars = new int[num_vars]();
 
-  // Load data.
+
   if (header) {
+    vec_var_names = parsed_variable;
+    set<string> temp;
+    temp.insert(parsed_variable.begin(), parsed_variable.end());
+    if (temp.size() != parsed_variable.size()) {
+      fprintf(stderr, "Error in function [%s]\nDuplicate variable names in header!", __FUNCTION__);
+      exit(1);
+    }
     getline(in_file, sample);
   }
+
+  // Load data.
   while (!in_file.eof()) {
     // If there is a whitespace at the end of each line,
     // it will cause a bug if we do not trim it.

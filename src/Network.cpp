@@ -110,9 +110,6 @@ void Network::ConstructNaiveBayesNetwork(Dataset *dts) {
 
 void Network::StructLearnCompData(Dataset *dts, bool print_struct) {
   fprintf(stderr, "Not be implemented yet!");
-//  exit(1);
-
-
 
   cout << "==================================================" << '\n'
        << "Begin structural learning with complete data......" << endl;
@@ -133,60 +130,11 @@ void Network::StructLearnCompData(Dataset *dts, bool print_struct) {
   }
 
 
-  // todo: implement structure learning
-
-
-
-
-//  cout << "==================================================" << '\n'
-//       << "Setting children and parents......" << endl;
-//  #pragma omp parallel for
-//  for (int i=0; i<num_nodes; ++i) {
-//    for (int j=0; j<i; ++j) {  // graphAdjacencyMatrix is symmetric, so loop while j<i instead of j<n
-//      if (i==j) continue;
-//      if (graphAdjacencyMatrix[i][j]==1){
-//
-//        // Determine the topological position of i and j.
-//        int topoIndexI=-1, topoIndexJ=-1;
-//        for (int k=0; k<num_nodes; ++k) {
-//          if (topologicalSortedPermutation[k]==i && topoIndexI==-1) {
-//            topoIndexI = k;
-//          } else if (topologicalSortedPermutation[k]==j && topoIndexJ==-1) {
-//            topoIndexJ = k;
-//          }
-//          if (topoIndexI!=-1 && topoIndexJ!=-1) { break; }
-//        }
-//
-//        if (topoIndexI<topoIndexJ) {
-//          SetParentChild(i, j);
-//        } else {
-//          SetParentChild(j, i);
-//        }
-//      }
-//    }
-//  }
-
-  cout << "==================================================" << '\n'
-       << "Generating parents combinations for each node......" << endl;
-
-  // Store the pointers in an array to make use of OpenMP.
-  Node** arr_node_ptr_container = new Node*[num_nodes];
-  auto iter_n_ptr = set_node_ptr_container.begin();
-  for (int i=0; i<num_nodes; ++i) {
-    arr_node_ptr_container[i] = *(iter_n_ptr++);
-  }
-  #pragma omp parallel for
-  for (int i=0; i<num_nodes; ++i) {
-    arr_node_ptr_container[i]->GenDiscParCombs();
-  }
-  delete[] arr_node_ptr_container;
-
+  StructLearnByOtt(dts);
 
   cout << "==================================================" << '\n'
        << "Finish structural learning." << endl;
 
-
-  // The following code are just to print the result.
 
   if (print_struct) {
 
@@ -194,7 +142,7 @@ void Network::StructLearnCompData(Dataset *dts, bool print_struct) {
          << "Topological sorted permutation generated using width-first-traversal: " << endl;
     auto topo = GetTopoOrd();
     for (int m = 0; m < num_nodes; ++m) {
-      cout << topo.at(m) << '\t';
+      cout << topo.at(m) << ", ";
     }
     cout << endl;
 
@@ -204,10 +152,6 @@ void Network::StructLearnCompData(Dataset *dts, bool print_struct) {
 
   }
 
-//  for (int i=0; i<num_nodes; ++i) {
-//    delete[] graphAdjacencyMatrix[i];
-//  }
-//  delete[] graphAdjacencyMatrix;
 }
 
 
@@ -227,7 +171,8 @@ void Network::SetParentChild(Node *p, Node *c) {
   if (set_node_ptr_container.find(p)==set_node_ptr_container.end()
       ||
       set_node_ptr_container.find(c)==set_node_ptr_container.end()) {
-    fprintf(stderr, "The nodes do not belong to this network!");
+    fprintf(stderr, "Error in function [%s].\nThe nodes [%d] and [%d] do not belong to this network!",
+            __FUNCTION__, p->GetNodeIndex(), c->GetNodeIndex());
     exit(1);
   }
   p->AddChild(c);
@@ -249,6 +194,12 @@ void Network::RemoveParentChild(Node *p, Node *c) {
   }
   p->RemoveChild(c);
   c->RemoveParent(p);
+}
+
+void Network::GenDiscParCombsForAllNodes() {
+  for (auto n : this->set_node_ptr_container) {
+    n->GenDiscParCombs();
+  }
 }
 
 vector<int> Network::GetTopoOrd() {
@@ -474,6 +425,15 @@ int Network::GetNumParams() const {
     result += n->GetNumParams();
   }
   return result;
+}
+
+
+void Network::ClearStructure() {
+  for (auto n : this->set_node_ptr_container) {
+    n->ClearParams();
+    n->ClearParents();
+    n->ClearChildren();
+  }
 }
 
 
@@ -1231,14 +1191,12 @@ pair<double, set<Node*>> Network::F(Node *node,
     temp_net.AddNode(&node_copy);
     for (auto n : candidate_parents_copy) {
       temp_net.AddNode(&n);
-      temp_net.SetParentChild(&n,node);
+      temp_net.SetParentChild(&n, &node_copy);
     }
-    for (auto n : temp_net.set_node_ptr_container) {
-      n->GenDiscParCombs();
-    }
+    temp_net.GenDiscParCombsForAllNodes();
 
     ScoreFunction sf(&temp_net, dts);
-    this_node_dynamic_program[candidate_parents] = sf.ScoreForNode(&node_copy,"log likelihood");
+    this_node_dynamic_program[candidate_parents] = sf.ScoreForNode(&node_copy,"log BDeu");
 
   }
 
@@ -1287,6 +1245,8 @@ vector<int> Network::M(set<Node*> &set_nodes,
         map<pair<set<Node*>, vector<int>>,   pair<double, vector<pair<Node*, set<Node*>>>>> dynamic_program_for_Q,
         map<set<Node*>, vector<int>> dynamic_program_for_M) {
 
+  if (set_nodes.empty()) { return vector<int> {}; }
+
   // Look up the table.
   if (dynamic_program_for_M.find(set_nodes) != dynamic_program_for_M.end()) {
     return dynamic_program_for_M[set_nodes];
@@ -1312,23 +1272,6 @@ vector<int> Network::M(set<Node*> &set_nodes,
 
   return result;
 
-
-//  vector<int> possible_topo_ord;
-//  for (const auto &n : set_nodes) {
-//    possible_topo_ord.push_back(n->GetNodeIndex());
-//  }
-//  sort(possible_topo_ord.begin(), possible_topo_ord.end());
-//  vector<vector<int>> all_possible_topo_ords;
-//  all_possible_topo_ords.push_back(possible_topo_ord);
-//  while (next_permutation(possible_topo_ord.begin(), possible_topo_ord.end())) {
-//    all_possible_topo_ords.push_back(possible_topo_ord);
-//  }
-//
-//  pair<double, vector<int>> max_score_topo_ord;
-//  max_score_topo_ord.first = -DBL_MAX;
-//  for (auto ord : all_possible_topo_ords) {
-//
-//  }
 }
 
 
@@ -1342,15 +1285,18 @@ void Network::StructLearnByOtt(Dataset *dts) {
   pair<double, vector<pair<Node*, set<Node*>>>> score_vec_node_parents = Q(this->set_node_ptr_container, m_of_all_nodes, dts, dynamic_program_for_F, dynamic_program_for_Q);
   vector<pair<Node*, set<Node*>>> vec_node_parents = score_vec_node_parents.second;
 
+  cout << "==================================================" << '\n'
+       << "Setting children and parents......" << endl;
   for (auto p : vec_node_parents) {
     Node *chi = p.first;
     for (auto par : p.second) {
       SetParentChild(par, chi);
     }
   }
-  for (auto n : this->set_node_ptr_container) {
-    n->GenDiscParCombs();
-  }
+
+  cout << "==================================================" << '\n'
+       << "Generating parents combinations for each node......" << endl;
+  GenDiscParCombsForAllNodes();
 }
 
 

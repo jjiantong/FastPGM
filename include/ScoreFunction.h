@@ -48,6 +48,8 @@ class ScoreFunction {
   double MDLForNode(Node*);
   double MDL();
 
+  void PrintAllScore();
+
  private:
   ScoreFunction() = default;
   Network *network;

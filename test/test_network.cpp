@@ -55,12 +55,7 @@ class NetworkTest : public ::testing::Test {
 TEST_F(NetworkTest, chow_liu_tree_var_elim_accuracy) { // The prefix "DISABLED" disable this test.
   double accuracy = network->TestNetReturnAccuracy(tester);
   ScoreFunction sf(network, trainer);
-  cout << "Scores\n"
-       << "LogLikelihood: " << sf.LogLikelihood()  << '\n'
-       << "AIC: " <<  sf.AIC() << '\n'
-       << "BIC: " <<  sf.BIC() << '\n'
-       << "LogK2: " <<  sf.LogK2()  << '\n'
-       << "LogBDeu: " <<  sf.LogBDeu() << endl;
+  sf.PrintAllScore();
   EXPECT_GT(accuracy,0.67);
   EXPECT_LT(sf.K2()+6196.83, 1e-3);
   EXPECT_LT(sf.BDeu()+7944.37, 1e-5);
@@ -233,4 +228,52 @@ TEST(CustomNetworkTest, sampling_dog_net_to_csv_file_and_relearn) {
     f2.ConstructFactor(dynamic_cast<DiscreteNode*>(net_samp->FindNodePtrByIndex(i)));
     f2.PrintPotentials();
   }
+
+  Dataset *dts = new Dataset();
+  dts->LoadCSVDataAutoDetectConfig("./gibbs_samples_to_CSV_file.txt", false, 0);
+  Network *net = new Network();
+  net->StructLearnCompData(dts, true);
+
+}
+
+TEST(CustomNetworkTest, dog_net_struct_learn) {
+  Dataset *dts = new Dataset();
+  dts->LoadCSVDataAutoDetectConfig("./gibbs_samples_to_CSV_file.txt", true, 0);
+  Network *net = new Network();
+  net->StructLearnCompData(dts, true);
+//  net->LearnParamsKnowStructCompData(dts);
+  ScoreFunction sf(net, dts);
+  sf.PrintAllScore();
+
+
+  cout << "=====================================\n"
+       << "Checking score with Weka" << endl;
+//  ================ Weka ======================
+//  ============================================
+//  === Classifier model (full training set) ===
+//
+//  Bayes Network Classifier
+//  not using ADTree
+//  #attributes=5 #classindex=0
+//  Network structure (nodes followed by parents)
+//  0(2): 4
+//  1(2): 2
+//  2(2): 3
+//  3(2):
+//  4(2): 2
+//  LogScore Bayes: -32367.607275120718
+//  LogScore BDeu: -32374.4788768857
+//  LogScore MDL: -32382.62930993226
+//  LogScore ENTROPY: -32338.06361594585
+//  LogScore AIC: -32347.06361594585
+
+  net->ClearStructure();
+  net->SetParentChild(4, 0);
+  net->SetParentChild(2, 1);
+  net->SetParentChild(3, 2);
+  net->SetParentChild(2, 4);
+  net->GetTopoOrd();
+  net->GenDiscParCombsForAllNodes();
+  ScoreFunction sf2(net, dts);
+  sf2.PrintAllScore();
 }

@@ -378,3 +378,13 @@ double ScoreFunction::MDL() {
   }
   return result;
 }
+
+void ScoreFunction::PrintAllScore() {
+  cout << "Scores\n"
+       << "LogLikelihood: " << LogLikelihood()  << '\n'
+       << "AIC: " << AIC() << '\n'
+       << "BIC: " << BIC() << '\n'
+       << "MDL: " << MDL() << '\n'
+       << "LogK2: " << LogK2()  << '\n'
+       << "LogBDeu: " << LogBDeu() << endl;
+}

@@ -55,6 +55,7 @@ class Network {
   void LearnParamsKnowStructCompData(const Dataset *dts, int alpha=1, bool print_params=true);
 
   int GetNumParams() const;
+  void ClearStructure();
   void ClearParams();
 
   void AddNode(Node *node_ptr);
@@ -64,6 +65,8 @@ class Network {
 
   void RemoveParentChild(int, int);
   void RemoveParentChild(Node *par, Node *chi);
+
+  void GenDiscParCombsForAllNodes();
 
   vector<int> GetTopoOrd();
   vector<int> GetReverseTopoOrd();
