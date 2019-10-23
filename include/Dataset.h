@@ -41,8 +41,8 @@ class Dataset {
 
   void LoadCSVDataAutoDetectConfig(string data_file_path, bool header=true, int cls_var_id=-1, set<int> cont_vars={});
   void ConvertCSVVectorDatasetIntoIntArrayDataset();
-  void SamplesToCSVFile(vector<DiscreteConfig> &samples, string &file) const;
-  void SamplesToCSVFile(vector<Configuration> &samples, string &file) const;
+  void SamplesToCSVFile(vector<DiscreteConfig> &samples, string &file, vector<string> header={}) const;
+  void SamplesToCSVFile(vector<Configuration> &samples, string &file, vector<string> header={}) const;
 };
 
 

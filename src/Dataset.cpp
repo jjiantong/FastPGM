@@ -86,6 +86,10 @@ void Dataset::LoadLIBSVMDataAutoDetectConfig(string data_file_path, set<int> con
   num_of_possible_values_of_disc_vars = new int[num_vars];
 
   for (int i=0; i<num_vars; ++i) {
+    vec_var_names.push_back(to_string(i));
+  }
+
+  for (int i=0; i<num_vars; ++i) {
     if (i!=class_var_index) {
       if (cont_vars.find(i)==cont_vars.end()) {
         // Because features of LIBSVM format do not record the value of 0, we need to add it in.
@@ -266,7 +270,7 @@ void Dataset::SamplesToLIBSVMFile(vector<Configuration> &samples, string &file) 
 }
 
 
-void Dataset::SamplesToCSVFile(vector<DiscreteConfig> &samples, string &file) const {
+void Dataset::SamplesToCSVFile(vector<DiscreteConfig> &samples, string &file, vector<string> header) const {
   vector<Configuration> smps;
   for (const auto &samp : samples) {
     Configuration cfg;
@@ -278,11 +282,11 @@ void Dataset::SamplesToCSVFile(vector<DiscreteConfig> &samples, string &file) co
     }
     smps.push_back(cfg);
   }
-  SamplesToCSVFile(smps, file);
+  SamplesToCSVFile(smps, file, header);
 }
 
 
-void Dataset::SamplesToCSVFile(vector<Configuration> &samples, string &file) const {
+void Dataset::SamplesToCSVFile(vector<Configuration> &samples, string &file, vector<string> header) const {
   // Detect configuration.
   auto &c = samples.front();
   auto it = c.end();
@@ -292,8 +296,17 @@ void Dataset::SamplesToCSVFile(vector<Configuration> &samples, string &file) con
   f = fopen(file.c_str(), "w");
 
   string first_line = "";   // The first line is like the table head.
-  for (int i=0; i<=max_index; ++i) {
-    first_line += to_string(i) + ',';
+  if (header.empty() || (vec_var_names.size() == max_index+1)) {  // Because index starts at 0.
+    for (const auto &name : vec_var_names) {
+      first_line += name + ',';
+    }
+  } else if (header.size() == max_index+1) {  // Because index starts at 0.
+    for (const auto &name : header) {
+      first_line += name + ',';
+    }
+  } else {
+    fprintf(stderr, "Error in function [%s]!\nInvalid header size.", __FUNCTION__);
+    exit(1);
   }
   first_line = first_line.substr(0, first_line.size()-1);   // No comma at the last character.
   fprintf(f, "%s\n", first_line.c_str());

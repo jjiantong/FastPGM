@@ -16,9 +16,9 @@ Network::Network(bool pure_disc) {
 
 void Network::PrintEachNodeParents() {
   for (const auto &node_ptr : set_node_ptr_container) {
-    cout << node_ptr->GetNodeIndex() << ":\t";
+    cout << node_ptr->node_name << ":\t";
     for (const auto &par_node_ptr : node_ptr->set_parents_ptrs) {
-      cout << par_node_ptr->GetNodeIndex() << '\t';
+      cout << par_node_ptr->node_name << '\t';
     }
     cout << endl;
   }
@@ -26,9 +26,9 @@ void Network::PrintEachNodeParents() {
 
 void Network::PrintEachNodeChildren() {
   for (const auto &node_ptr : set_node_ptr_container) {
-    cout << node_ptr->GetNodeIndex() << ":\t";
+    cout << node_ptr->node_name << ":\t";
     for (const auto &par_node_ptr : node_ptr->set_children_ptrs) {
-      cout << par_node_ptr->GetNodeIndex() << '\t';
+      cout << par_node_ptr->node_name << '\t';
     }
     cout << endl;
   }
@@ -114,11 +114,20 @@ void Network::StructLearnCompData(Dataset *dts, bool print_struct) {
   cout << "==================================================" << '\n'
        << "Begin structural learning with complete data......" << endl;
 
+  struct timeval start, end;
+  double diff;
+  gettimeofday(&start,NULL);
+
   num_nodes = dts->num_vars;
   // Assign an index for each node.
   #pragma omp parallel for
   for (int i=0; i<num_nodes; ++i) {
     DiscreteNode *node_ptr = new DiscreteNode(i);  // For now, only support discrete node.
+    if (dts->vec_var_names.size() == num_nodes) {
+      node_ptr->node_name = dts->vec_var_names.at(i);
+    } else {
+      node_ptr->node_name = to_string(i);
+    }
     node_ptr->num_potential_vals = dts->num_of_possible_values_of_disc_vars[i];
     node_ptr->potential_vals = new int[node_ptr->num_potential_vals];
     int j = 0;
@@ -134,6 +143,12 @@ void Network::StructLearnCompData(Dataset *dts, bool print_struct) {
 
   cout << "==================================================" << '\n'
        << "Finish structural learning." << endl;
+
+  gettimeofday(&end,NULL);
+  diff = (end.tv_sec-start.tv_sec) + ((double)(end.tv_usec-start.tv_usec))/1.0E6;
+  setlocale(LC_NUMERIC, "");
+  cout << "==================================================" << '\n'
+       << "The time spent to learn the structure is " << diff << " seconds" << endl;
 
 
   if (print_struct) {
