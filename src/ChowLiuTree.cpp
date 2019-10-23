@@ -83,10 +83,12 @@ double ChowLiuTree::ComputeMutualInformation(Node *Xi, Node *Xj, const Dataset *
 }
 
 
-void ChowLiuTree::StructLearnCompData(Dataset *dts, bool print_struct) {
+void ChowLiuTree::StructLearnCompData(Dataset *dts, bool print_struct, string topo_ord_constraint) {
   struct timeval start, end;
   double diff;
   gettimeofday(&start,NULL);
+
+  fprintf(stdout, "In function [%s]:\nChow-Liu tree will not be restricted by the argument \"topo_ord_constraint\".", __FUNCTION__);
 
   StructLearnChowLiuTreeCompData(dts, print_struct);
 

@@ -43,7 +43,7 @@ class ChowLiuTree : public Network {
   explicit ChowLiuTree(bool pure_disc);
 
   double ComputeMutualInformation(Node *Xi, Node *Xj, const Dataset *dts);
-  void StructLearnCompData(Dataset *dts, bool print_struct=true) override;
+  void StructLearnCompData(Dataset *dts, bool print_struct=true, string topo_ord_constraint="dataset-ord") override;
   void StructLearnChowLiuTreeCompData(Dataset *dts, bool print_struct=true);
 
 

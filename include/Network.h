@@ -50,7 +50,7 @@ class Network {
 
   void ConstructNaiveBayesNetwork(Dataset *dts);
 
-  virtual void StructLearnCompData(Dataset *, bool print_struct=true);
+  virtual void StructLearnCompData(Dataset *, bool print_struct=true, string topo_ord_constraint="dataset-ord");
 
   void LearnParamsKnowStructCompData(const Dataset *dts, int alpha=1, bool print_params=true);
 
@@ -133,7 +133,7 @@ class Network {
                 map<Node*, map<set<Node*>, double>> &dynamic_program_for_F,
                 map<pair<set<Node*>, vector<int>>,   pair<double, vector<pair<Node*, set<Node*>>>>> dynamic_program_for_Q,
                 map<set<Node*>, vector<int>> dynamic_program_for_M);
-  void StructLearnByOtt(Dataset *dts);
+  void StructLearnByOtt(Dataset *dts, vector<int> topo_ord_constraint={});
   // ==================================================
 
 

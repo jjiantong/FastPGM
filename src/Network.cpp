@@ -108,7 +108,7 @@ void Network::ConstructNaiveBayesNetwork(Dataset *dts) {
 }
 
 
-void Network::StructLearnCompData(Dataset *dts, bool print_struct) {
+void Network::StructLearnCompData(Dataset *dts, bool print_struct, string topo_ord_constraint) {
   fprintf(stderr, "Not be implemented yet!");
 
   cout << "==================================================" << '\n'
@@ -138,8 +138,25 @@ void Network::StructLearnCompData(Dataset *dts, bool print_struct) {
     { set_node_ptr_container.insert(node_ptr); }
   }
 
+  vector<int> ord;
+  ord.reserve(num_nodes);
+  for (int i=0; i<num_nodes; ++i) {
+    ord.push_back(i);   // Because the nodes are created the same order as in the dataset.
+  }
+  cout << "topo_ord_constraint: " << topo_ord_constraint << endl;
+  if (topo_ord_constraint == "dataset-ord") {
+    StructLearnByOtt(dts, ord);
+  } else if (topo_ord_constraint == "random") {
+    std::srand ( unsigned ( std::time(0) ) );
+    std::random_shuffle ( ord.begin(), ord.end() );
+    StructLearnByOtt(dts, ord);
+  } else if (topo_ord_constraint == "best") {
+    StructLearnByOtt(dts);
+  } else {
+    fprintf(stderr, "Error in function [%s]!\nInvalid topological ordering restriction!", __FUNCTION__);
+    exit(1);
+  }
 
-  StructLearnByOtt(dts);
 
   cout << "==================================================" << '\n'
        << "Finish structural learning." << endl;
@@ -1290,14 +1307,19 @@ vector<int> Network::M(set<Node*> &set_nodes,
 }
 
 
-void Network::StructLearnByOtt(Dataset *dts) {
+void Network::StructLearnByOtt(Dataset *dts, vector<int> topo_ord_constraint) {
 
   map<Node*, map<set<Node*>, double>> dynamic_program_for_F;
   map<pair<set<Node*>, vector<int>>,   pair<double, vector<pair<Node*, set<Node*>>>>> dynamic_program_for_Q;
-  map<set<Node*>, vector<int>> dynamic_program_for_M;
 
-  vector<int> m_of_all_nodes = M(this->set_node_ptr_container, dts, dynamic_program_for_F, dynamic_program_for_Q, dynamic_program_for_M);
-  pair<double, vector<pair<Node*, set<Node*>>>> score_vec_node_parents = Q(this->set_node_ptr_container, m_of_all_nodes, dts, dynamic_program_for_F, dynamic_program_for_Q);
+  if (topo_ord_constraint.empty() || topo_ord_constraint.size() != num_nodes) {
+    map<set<Node *>, vector<int>> dynamic_program_for_M;
+    vector<int> m_of_all_nodes = M(this->set_node_ptr_container, dts, dynamic_program_for_F, dynamic_program_for_Q,
+                                   dynamic_program_for_M);
+    topo_ord_constraint = m_of_all_nodes;
+  }
+
+  pair<double, vector<pair<Node*, set<Node*>>>> score_vec_node_parents = Q(this->set_node_ptr_container, topo_ord_constraint, dts, dynamic_program_for_F, dynamic_program_for_Q);
   vector<pair<Node*, set<Node*>>> vec_node_parents = score_vec_node_parents.second;
 
   cout << "==================================================" << '\n'
