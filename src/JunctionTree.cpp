@@ -661,7 +661,7 @@ double JunctionTree::TestNetReturnAccuracy(int class_var, Dataset *dts) {
   // which means the memory consumption is too large.
   // I don't know how to solve yet.
 //  #pragma omp parallel for
-  for (int i=0; i<m; i++) {  // For each sample in test set
+  for (int i = 0; i < m; ++i) {  // For each sample in test set
 
     #pragma omp critical
     { ++progress; }
@@ -681,7 +681,7 @@ double JunctionTree::TestNetReturnAccuracy(int class_var, Dataset *dts) {
 
     // For now, only support complete data.
     int e_num=network->num_nodes-1, *e_index=new int[e_num], *e_value=new int[e_num];
-    for (int j=0; j<network->num_nodes; ++j) {
+    for (int j = 0; j < network->num_nodes; ++j) {
       if (j == dts->class_var_index) {continue;}
       e_index[j < dts->class_var_index ? j : j - 1] = j;
       e_value[j < dts->class_var_index ? j : j - 1] = dts->dataset_all_vars[i][j];

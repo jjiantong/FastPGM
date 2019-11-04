@@ -40,6 +40,7 @@ double ScoreFunction::LogLikelihoodForNode(Node *node_ptr) {
   if (!node_ptr->set_parents_ptrs.empty()) {
 
 
+    // For every "j".
     for (const auto &par_comb : node_ptr->set_discrete_parents_combinations) {
 
       set<int> set_instances_parent_compatible;
@@ -61,6 +62,7 @@ double ScoreFunction::LogLikelihoodForNode(Node *node_ptr) {
 
       }
 
+      // For every "k"
       for (int k=0; k<r_i; ++k){
         int val = d_node_ptr->potential_vals[k];
 

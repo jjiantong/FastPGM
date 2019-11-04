@@ -108,7 +108,7 @@ void ChowLiuTree::StructLearnChowLiuTreeCompData(Dataset *dts, bool print_struct
   root_node_index = dts->class_var_index;
   // Assign an index for each node.
   #pragma omp parallel for
-  for (int i=0; i<num_nodes; ++i) {
+  for (int i = 0; i<num_nodes; ++i) {
 
     DiscreteNode *node_ptr = new DiscreteNode(i);  // For now, only support discrete node.
 

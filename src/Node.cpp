@@ -65,12 +65,10 @@ void Node::GenDiscParCombs() {
     if (!par_ptr->is_discrete) { continue; }
     DiscreteConfig cb;
     pair<int, int> ele;
-//    DiscreteNode *d_par_ptr = dynamic_cast<DiscreteNode*>(par_ptr);
     DiscreteNode *d_par_ptr = (DiscreteNode*)(par_ptr);
 
     for (int i=0; i<d_par_ptr->num_potential_vals; ++i) {
       ele.first = par_ptr->node_index;
-//      ele.second = dynamic_cast<DiscreteNode*>(par_ptr)->potential_vals[i];
       ele.second = ((DiscreteNode*)par_ptr)->potential_vals[i];
       cb.insert(ele);
     }

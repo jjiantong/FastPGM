@@ -266,12 +266,13 @@ vector<int> Network::GenTopoOrd() {
     for (int i=0; i<num_nodes; ++i) { delete[] graph[i]; }
     delete[] graph;
 
-  } else {  // If the network is not pure discrete, then it is conditional Gaussian.
-            // Discrete nodes should not have continuous parents.
-            // Continuous nodes can have both discrete and continuous parents.
-            // In topological ordering, all discrete nodes should
-            // occur before any continuous node.
-            // todo: test correctness of the case of Gaussian network
+  } else {  
+
+    // If the network is not pure discrete, then it is conditional Gaussian.
+    // Discrete nodes should not have continuous parents.
+    // Continuous nodes can have both discrete and continuous parents.
+    // In topological ordering, all discrete nodes should occur before any continuous node.
+    // todo: test correctness of the case of Gaussian network
 
     set<Node*> set_disc_node_ptr, set_cont_node_ptr;
     for (const auto &n_p : set_node_ptr_container) {
@@ -517,7 +518,7 @@ void Network::LoadEvidenceIntoFactors(vector<Factor> *factors_list, DiscreteConf
 //    for (int i = omp_get_thread_num() * max_work_per_thread;
 //         i < (omp_get_thread_num()+1) * max_work_per_thread && i < factors_list->size();
 //         ++i) {
-    for (int i=0; i<factors_list->size(); ++i) {
+    for (int i = 0; i < factors_list->size(); ++i) {
       Factor &f = factors_list->at(i);   // For each factor. "std::vector::at" returns reference.
       for (const auto &e : E) {  // For each node's observation in E
         // If this factor is related to this node

@@ -31,7 +31,7 @@ void Factor::ConstructFactor(DiscreteNode *node) {
   related_variables.insert(node_index);
 
   set<pair<int,int>> set_pair_temp;
-  for (int i=0; i<node->num_potential_vals; ++i) {
+  for (int i = 0; i < node->num_potential_vals; ++i) {
     DiscreteConfig comb_temp;
     pair<int, int> pair_temp;
     pair_temp.first = node_index;

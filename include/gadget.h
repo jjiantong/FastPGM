@@ -49,7 +49,7 @@ typedef set<VarVal> Configuration;
 
 template <typename T> set<set<T>> GenAllCombinationsFromSets(set<set<T>> *set_of_sets) {
   if (set_of_sets->empty()) { return set<set<T>>(); }
-  auto its=set_of_sets->begin();
+  auto its = set_of_sets->begin();
   set<T> to_be_inserted = *its;
   set<set<T>> result, temp_result;
   // Base Case
