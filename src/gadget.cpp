@@ -5,6 +5,30 @@
 #include "gadget.h"
 
 
+int ArgMax(map<int, double> &x) {
+  int argmax = (x.begin())->first;
+  double max = (x.begin())->second;
+  for (const auto &key_value : x) {
+    if (key_value.second >= max) {
+      max = key_value.second;
+      argmax = key_value.first;
+    }
+  }
+  return argmax;
+}
+
+map<int, double> Normalize(map<int, double> &x) {
+  double denominator = 0;
+  for (const auto &key_value : x) {
+      denominator += key_value.second;
+  }
+  for (const auto &key_value : x) {
+    x[key_value.first] /= denominator;
+  }
+  return x;
+}
+
+
 set<DiscreteConfig> ExpandConfgFromTwoConfgs(const set<DiscreteConfig> *one, const set<DiscreteConfig> *two) {
   set<int> set_all_vars;
   for (const auto &p : *one->begin()) {
@@ -203,7 +227,7 @@ double LogOfFactorial(int n) {
 
 
 vector<vector<int>> NaryCount(vector<int> vec_range_each_digit) {
-  vector<vector<int>> result_counts;
+
   int num_digits = vec_range_each_digit.size();
   int num_counts = 1;   // The number of all n-ary counts.
   vector<int> single_count;
@@ -212,14 +236,15 @@ vector<vector<int>> NaryCount(vector<int> vec_range_each_digit) {
     single_count.push_back(0);
     num_counts *= vec_range_each_digit[i];
   }
+
+  vector<vector<int>> result_counts;
   result_counts.reserve(num_counts);
 
   // The left-most digit is the most significant digit.
   // The domain of each digit start at 0,
   // so the max value of this digit is one smaller than the range.
-  
-  // While it does not overflow.
-  while (single_count[0] < vec_range_each_digit[0]) {
+
+  for (int i = 0; i < num_counts; ++i) {
     result_counts.push_back(single_count);
     int check_digit = num_digits-1;
 
@@ -240,4 +265,18 @@ vector<vector<int>> NaryCount(vector<int> vec_range_each_digit) {
   }
 
   return result_counts;
+}
+
+vector<int> TheNthNaryCount(vector<int> vec_range_each_digit, int n) {
+  // Like decimal to binary.
+  // Faster than generating all count first and find the n-th one.
+  int num_digits = vec_range_each_digit.size();
+  vector<int> result(num_digits, 0);
+  int i = num_digits - 1;
+  while (n > 0) {
+    int radix = vec_range_each_digit.at(i);
+    result.at(i--) = n % radix;
+    n /= radix;
+  }
+  return result;
 }

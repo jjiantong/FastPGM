@@ -88,6 +88,9 @@ template <typename T> set<set<T>> GenPowerSet(set<T> &src_set) {
   return power_set;
 };
 
+int ArgMax(map<int, double> &x);
+map<int, double> Normalize(map<int, double> &x);
+
 set<DiscreteConfig> ExpandConfgFromTwoConfgs(const set<DiscreteConfig> *one, const set<DiscreteConfig> *two);
 bool FirstIsSubsetOfSecond(const DiscreteConfig *first, const DiscreteConfig *second);
 bool FirstCompatibleSecond(const DiscreteConfig *, const DiscreteConfig *);
@@ -106,5 +109,6 @@ int FactorialForSmallInteger(int);
 double LogOfFactorial(int);
 
 vector<vector<int>> NaryCount(vector<int> vec_range_each_digit);
+vector<int> TheNthNaryCount(vector<int> vec_range_each_digit, int n);
 
 #endif //BAYESIANNETWORK_GADGET_H
