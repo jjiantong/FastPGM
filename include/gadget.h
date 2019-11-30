@@ -91,6 +91,8 @@ template <typename T> set<set<T>> GenPowerSet(set<T> &src_set) {
 int ArgMax(map<int, double> &x);
 map<int, double> Normalize(map<int, double> &x);
 
+map<int, int> DiscreteConfigToMap(DiscreteConfig disc_cfg);
+
 set<DiscreteConfig> ExpandConfgFromTwoConfgs(const set<DiscreteConfig> *one, const set<DiscreteConfig> *two);
 bool FirstIsSubsetOfSecond(const DiscreteConfig *first, const DiscreteConfig *second);
 bool FirstCompatibleSecond(const DiscreteConfig *, const DiscreteConfig *);

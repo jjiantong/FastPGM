@@ -28,6 +28,14 @@ map<int, double> Normalize(map<int, double> &x) {
   return x;
 }
 
+map<int, int> DiscreteConfigToMap(DiscreteConfig &disc_cfg) {
+  map<int, int> result;
+  for (const auto var_val : disc_cfg) {
+    result[var_val.first] = var_val.second;
+  }
+  return result;
+}
+
 
 set<DiscreteConfig> ExpandConfgFromTwoConfgs(const set<DiscreteConfig> *one, const set<DiscreteConfig> *two) {
   set<int> set_all_vars;
