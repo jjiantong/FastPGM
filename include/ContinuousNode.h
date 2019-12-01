@@ -45,7 +45,7 @@ class ContinuousNode : public Node {
   void AddChild(Node *node_ptr) override;
   void AddParent(Node *node_ptr) override;
   void RemoveParent(Node *node_ptr) override;
-  int GetNumParams() const override;
+  int GetNumParams() override;
   void ClearParams() override;
 
  private:
