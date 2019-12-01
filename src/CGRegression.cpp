@@ -4,14 +4,14 @@
 
 #include "CGRegression.h"
 
-CGRegression::CGRegression(Node *node_ptr) {
+CGRegression::CGRegression(Node *node_ptr, set<Node*> set_parent_ptrs) {
   if (node_ptr->is_discrete) {
     fprintf(stderr, "The node is not continuous!");
     exit(1);
   }
   ContinuousNode *c_n_p = dynamic_cast<ContinuousNode*>(node_ptr);
   head_var_index = node_ptr->GetNodeIndex();
-  for (const auto &par : node_ptr->set_parents_ptrs) {
+  for (const auto &par : set_parent_ptrs) {
     set_all_tail_index.insert(par->GetNodeIndex());
     if (!par->is_discrete) {
       vec_contin_tail_indexes.push_back(par->GetNodeIndex());

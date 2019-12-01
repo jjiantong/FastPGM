@@ -51,7 +51,7 @@ class CGRegression {
   map<DiscreteConfig, double> map_variance;
   double marginal_variance;
 
-  CGRegression(Node *node_ptr);
+  CGRegression(Node *node_ptr, set<Node*> set_parent_ptrs);
 
   void Substitute(pair<int, double> var_value);
   static void Exchange(CGRegression &Z, CGRegression &Y);
