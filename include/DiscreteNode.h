@@ -32,7 +32,7 @@ class DiscreteNode : public Node {
   void AddInstanceOfVarVal(DiscreteConfig instance_of_var_val);
   void AddCount(int query_val, DiscreteConfig &parents_config, int count);
   double GetProbability(int query_val, DiscreteConfig &parents_config);
-  int GetIndexOfValue(int val);
+//  int GetIndexOfValue(int val);
 
   bool cpt_initialized = false;
   void InitializeCPT();

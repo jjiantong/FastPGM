@@ -37,8 +37,8 @@ Clique::Clique(set<Node*> set_node_ptr, int elim_var_index) {
     if (n->is_discrete) {
       auto dn = dynamic_cast<DiscreteNode*>(n);
       DiscreteConfig c;
-      for (int i = 0; i < dn->num_potential_vals; ++i) {
-        c.insert(pair<int, int>(n->GetNodeIndex(), dn->potential_vals[i]));
+      for (int i = 0; i < dn->GetDomainSize(); ++i) {
+        c.insert(pair<int, int>(n->GetNodeIndex(), dn->vec_potential_vals.at(i)));
       }
       set_of_sets.insert(c);
     }
@@ -139,8 +139,7 @@ void Clique::Distribute(Factor f) {
 }
 
 Factor Clique::SumOutExternalVars(Factor f) {
-  Factor factor_of_this_clique;
-  factor_of_this_clique.SetMembers(this->related_variables,
+  Factor factor_of_this_clique(this->related_variables,
                                    this->set_disc_configs,
                                    this->map_potentials);
 
@@ -158,8 +157,7 @@ Factor Clique::SumOutExternalVars(Factor f) {
 
 
 void Clique::MultiplyWithFactorSumOverExternalVars(Factor f) {
-  Factor factor_of_this_clique;
-  factor_of_this_clique.SetMembers(related_variables, set_disc_configs, map_potentials);
+  Factor factor_of_this_clique(related_variables, set_disc_configs, map_potentials);
 
   f = SumOutExternalVars(f);
 
@@ -174,8 +172,7 @@ void Clique::UpdateUseMessage(Factor f) {
 }
 
 Factor Clique::ConstructMessage() {
-  Factor message_factor;
-  message_factor.SetMembers(related_variables, set_disc_configs, map_potentials);
+  Factor message_factor(related_variables, set_disc_configs, map_potentials);
   return message_factor;
 }
 

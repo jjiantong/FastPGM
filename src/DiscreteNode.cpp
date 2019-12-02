@@ -155,8 +155,8 @@ double DiscreteNode::GetProbability(int query_val, DiscreteConfig &parents_confi
   return prob;
 }
 
-int DiscreteNode::GetIndexOfValue(int val) {
-  auto it = std::find(this->vec_potential_vals.begin(), this->vec_potential_vals.end(), val);
-  int val_index = std::distance(this->vec_potential_vals.begin(), it);
-  return val_index;
-}
+//int DiscreteNode::GetIndexOfValue(int val) {
+//  auto it = std::find(this->vec_potential_vals.begin(), this->vec_potential_vals.end(), val);
+//  int val_index = std::distance(this->vec_potential_vals.begin(), it);
+//  return val_index;
+//}

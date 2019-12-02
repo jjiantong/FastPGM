@@ -3,65 +3,66 @@
 //
 
 #include "Factor.h"
+#include "Network.h"
 
 
-void Factor::SetMembers(set<int> rv,
-               set<DiscreteConfig> sc,
-               map<DiscreteConfig, double> mp) {
-  this->related_variables = rv;
-  this->set_combinations = sc;
-  this->map_potentials = mp;
-}
-
-
-void Factor::CopyFactor(Factor F) {
-  this->SetMembers(F.related_variables, F.set_combinations, F.map_potentials);
-}
-
-
-Factor::Factor(DiscreteNode *node) {
-  ConstructFactor(node);
-}
-
-
-void Factor::ConstructFactor(DiscreteNode *node) {
-
-  int node_index = node->GetNodeIndex();
+Factor::Factor(DiscreteNode *disc_node, Network *net) {
+  int node_index = disc_node->GetNodeIndex();
 
   related_variables.insert(node_index);
 
   set<pair<int,int>> set_pair_temp;
-  for (int i = 0; i < node->num_potential_vals; ++i) {
+  for (int i = 0; i < disc_node->GetDomainSize(); ++i) {
     DiscreteConfig comb_temp;
     pair<int, int> pair_temp;
     pair_temp.first = node_index;
-    pair_temp.second = node->potential_vals[i];
+    pair_temp.second = disc_node->vec_potential_vals.at(i);
     set_pair_temp.insert(pair_temp);
   }
 
-  // If this node has no parents.
-  if (node->set_parents_ptrs.empty()) {
-    for (auto &p : set_pair_temp) {
-      DiscreteConfig c;
-      c.insert(p);
-      set_combinations.insert(c);
-      map_potentials[c] = dynamic_cast<DiscreteNode*>(node)->map_marg_prob_table[p.second];
-    }
-    return;
-  }
+  // If this disc_node has no parents.
+  if (!disc_node->HasParents()) {
 
-  // If this node has parents, the outer loop is for the node, and the inner loop is for the parents.
-  for (auto &p : node->set_parents_ptrs) {
-    related_variables.insert(p->GetNodeIndex());
-  }
-  for (auto &p : set_pair_temp) {
-    for (auto it_pc=node->set_discrete_parents_combinations.begin(); it_pc!=node->set_discrete_parents_combinations.end(); ++it_pc) {
-      DiscreteConfig c = (*it_pc);
+
+    for (auto &p : set_pair_temp) {
+      DiscreteConfig c, empty_par_config;
       c.insert(p);
       set_combinations.insert(c);
-      map_potentials[c] = dynamic_cast<DiscreteNode*>(node)->map_cond_prob_table[p.second][*it_pc];
+      map_potentials[c] = disc_node->GetProbability(p.second, empty_par_config);
     }
+
+
+  } else {
+
+
+    // If this disc_node has parents, the outer loop is for the disc_node, and the inner loop is for the parents.
+    related_variables.insert(disc_node->set_parent_indexes.begin(), disc_node->set_parent_indexes.end());
+    for (auto &p : set_pair_temp) {
+      for (const auto & comb : disc_node->set_discrete_parents_combinations) {
+        DiscreteConfig c = comb;
+        auto c_old = c;
+        c.insert(p);
+        set_combinations.insert(c);
+
+        DiscreteConfig par_config = disc_node->GetDiscParConfigGivenAllVarValue(c_old);
+
+        map_potentials[c] = disc_node->GetProbability(
+                p.second,
+                par_config);
+      }
+    }
+
+
   }
+}
+
+
+Factor::Factor(set<int> &rv,
+               set<DiscreteConfig> &sc,
+               map<DiscreteConfig, double> &mp) {
+  this->related_variables = rv;
+  this->set_combinations = sc;
+  this->map_potentials = mp;
 }
 
 
@@ -92,6 +93,7 @@ Factor Factor::MultiplyWithFactor(Factor second_factor) {
       newFactor.map_potentials[new_comb] = this->map_potentials[first] * second_factor.map_potentials[second];
     }
   }
+
   return newFactor;
 }
 
