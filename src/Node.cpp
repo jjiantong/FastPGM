@@ -54,7 +54,7 @@ DiscreteConfig Node::GetDiscParConfigGivenAllVarValue(DiscreteConfig &all_var_va
     return par_var_val;  // Return an empty config.
   }
 
-  assert(all_var_val.size() > GetNumDiscParents());
+  assert(all_var_val.size() >= GetNumDiscParents());
 
   for (auto const var_val : all_var_val) {
     if (std::find(vec_disc_parent_indexes.begin(), vec_disc_parent_indexes.end(), var_val.first) != vec_disc_parent_indexes.end()) {

@@ -130,14 +130,22 @@ void DiscreteNode::AddInstanceOfVarVal(DiscreteConfig instance_of_var_val) {
 
 
 void DiscreteNode::InitializeCPT() {
-  auto it = set_discrete_parents_combinations.begin();
-  for (int j = 0; j < GetNumParentsConfig(); ++j) {
-    map_total_count_under_parents_config[*it] = 0;
+
+  if (!HasParents()) {
+    DiscreteConfig par_config;
+    map_total_count_under_parents_config[par_config] = 0;
     for (int i = 0; i < GetDomainSize(); ++i) {
-      map_cond_prob_table_statistics[vec_potential_vals.at(i)][*it] = 0;
+      map_cond_prob_table_statistics[vec_potential_vals.at(i)][par_config] = 0;
     }
-    ++it;
+  } else {
+    for (const auto &par_config : set_discrete_parents_combinations) {
+      map_total_count_under_parents_config[par_config] = 0;
+      for (int i = 0; i < GetDomainSize(); ++i) {
+        map_cond_prob_table_statistics[vec_potential_vals.at(i)][par_config] = 0;
+      }
+    }
   }
+
   cpt_initialized = true;
 }
 
