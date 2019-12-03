@@ -119,9 +119,16 @@ void Node::RemoveParent(Node *p) {
 void Node::GenDiscParCombs(set<Node*> set_parent_ptrs) {
   set_discrete_parents_combinations.clear();
 
+  // If the node has no parent, then it should have ONE empty parent configuration.
+  if (set_parent_ptrs.empty()) {
+    DiscreteConfig empty_config;
+    set_discrete_parents_combinations.insert(empty_config);
+    return;
+  }
+
   // Preprocess. Construct set of sets.
   set<DiscreteConfig> set_of_sets;
-  if (set_parent_indexes.empty()) {return;}
+
   for (auto par_ptr : set_parent_ptrs) {
     if (!par_ptr->is_discrete) { continue; }
     DiscreteConfig cb;
