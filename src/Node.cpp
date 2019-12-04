@@ -56,11 +56,13 @@ DiscreteConfig Node::GetDiscParConfigGivenAllVarValue(DiscreteConfig &all_var_va
 
   assert(all_var_val.size() >= GetNumDiscParents());
 
-  for (auto const var_val : all_var_val) {
-    if (std::find(vec_disc_parent_indexes.begin(), vec_disc_parent_indexes.end(), var_val.first) != vec_disc_parent_indexes.end()) {
-      par_var_val.insert(var_val);
-    }
+  map<int, int> map_all_var_val = DiscreteConfigToMap(all_var_val);
+
+  for (const auto & par : this->vec_disc_parent_indexes) {
+    int given_val = map_all_var_val.at(par);
+    par_var_val.insert(pair<int, int>(par, given_val));
   }
+
   return par_var_val;
 }
 
