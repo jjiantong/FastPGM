@@ -33,6 +33,9 @@ map<int, int> DiscreteConfigToMap(DiscreteConfig &disc_cfg) {
   for (const auto var_val : disc_cfg) {
     result[var_val.first] = var_val.second;
   }
+  if (disc_cfg.size() != result.size()) {
+    fprintf(stderr, "Function [%s]: The given DiscreteConfig may contain duplicate keys!", __FUNCTION__);
+  }
   return result;
 }
 

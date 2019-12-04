@@ -44,6 +44,7 @@ struct Value {
 };
 
 typedef pair<int, Value> VarVal;
+typedef pair<int, int> DiscVarVal;
 
 typedef set<VarVal> Configuration;
 
