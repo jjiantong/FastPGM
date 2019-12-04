@@ -20,7 +20,7 @@ double ChowLiuTree::ComputeMutualInformation(Node *Xi, Node *Xj, const Dataset *
   auto dXj = dynamic_cast<DiscreteNode*>(Xj);
 
   // Initialize the table.
-  int m = dts->num_instance, ri = dXi->num_potential_vals, rj = dXj->num_potential_vals;
+  int m = dts->num_instance, ri = dXi->GetDomainSize(), rj = dXj->GetDomainSize();
   double **Pij = new double* [ri];
   for (int i=0; i<ri; ++i) {
     Pij[i] = new double[rj]();    // The parentheses at end will initialize the array to be all zeros.
@@ -33,7 +33,7 @@ double ChowLiuTree::ComputeMutualInformation(Node *Xi, Node *Xj, const Dataset *
   for (a=0; a<ri; a++) {
     for (b=0; b<rj; b++) {
       for (s=0; s<m; s++) {
-        if (dts->dataset_all_vars[s][xi] == dXi->potential_vals[a] && dts->dataset_all_vars[s][xj] == dXj->potential_vals[b]) {
+        if (dts->dataset_all_vars[s][xi] == dXi->vec_potential_vals.at(a) && dts->dataset_all_vars[s][xj] == dXj->vec_potential_vals.at(b)) {
           Pij[a][b] += 1;
         }
       }
@@ -44,7 +44,7 @@ double ChowLiuTree::ComputeMutualInformation(Node *Xi, Node *Xj, const Dataset *
   // Update Pi.
   for (a=0; a<ri; a++) {
     for (s=0; s<m; s++) {
-      if (dts->dataset_all_vars[s][xi] == dXi->potential_vals[a]) {
+      if (dts->dataset_all_vars[s][xi] == dXi->vec_potential_vals.at(a)) {
         Pi[a] += 1;
       }
     }
@@ -54,7 +54,7 @@ double ChowLiuTree::ComputeMutualInformation(Node *Xi, Node *Xj, const Dataset *
   // Update Pj.
   for (b=0; b<rj; b++) {
     for (s=0; s<m; s++) {
-      if (dts->dataset_all_vars[s][xj] == dXj->potential_vals[b]) {
+      if (dts->dataset_all_vars[s][xj] == dXj->vec_potential_vals.at(b)) {
         Pj[b] += 1;
       }
     }
@@ -108,21 +108,20 @@ void ChowLiuTree::StructLearnChowLiuTreeCompData(Dataset *dts, bool print_struct
   root_node_index = dts->class_var_index;
   // Assign an index for each node.
   #pragma omp parallel for
-  for (int i = 0; i<num_nodes; ++i) {
+  for (int i = 0; i < num_nodes; ++i) {
 
     DiscreteNode *node_ptr = new DiscreteNode(i);  // For now, only support discrete node.
 
-    node_ptr->num_potential_vals = dts->num_of_possible_values_of_disc_vars[i];
+    node_ptr->SetDomainSize(dts->num_of_possible_values_of_disc_vars[i]);
 
-    node_ptr->potential_vals = new int[node_ptr->num_potential_vals];
-
-    int j = 0;
     for (auto v : dts->map_disc_vars_possible_values[i]) {
-      node_ptr->potential_vals[j++] = v;
+      node_ptr->vec_potential_vals.push_back(v);
     }
 
     #pragma omp critical
-    { set_node_ptr_container.insert(node_ptr); }
+    {
+      map_idx_node_ptr[i] = node_ptr;
+    }
   }
 
   cout << "==================================================" << '\n'
@@ -145,7 +144,8 @@ void ChowLiuTree::StructLearnChowLiuTreeCompData(Dataset *dts, bool print_struct
         // To calculate the mutual information, we need to find the nodes which correspond to the indexes i and j.
         Node* Xi = nullptr;
         Node* Xj = nullptr;
-        for (auto node_ptr : set_node_ptr_container) {
+        for (auto id_node_ptr : map_idx_node_ptr) {
+          auto node_ptr = id_node_ptr.second;
           if (node_ptr->GetNodeIndex()==i && Xi==nullptr) {
             Xi = node_ptr;
           } else if (node_ptr->GetNodeIndex()==j && Xj==nullptr) {
@@ -194,9 +194,9 @@ void ChowLiuTree::StructLearnChowLiuTreeCompData(Dataset *dts, bool print_struct
 
 
   // !!! See the comments for "default_elim_ord" in the "ChowLiuTree.h" file.
-  default_elim_ord = new int[n-1];
+  vec_default_elim_ord.reserve(n-1);
   for (int i=1; i<n; ++i) {
-    default_elim_ord[i-1] = topologicalSortedPermutation[n-i];
+    vec_default_elim_ord.push_back(topologicalSortedPermutation[n-i]);
   }
   topo_ord = vector<int> (topologicalSortedPermutation, topologicalSortedPermutation+n);
 
@@ -204,23 +204,23 @@ void ChowLiuTree::StructLearnChowLiuTreeCompData(Dataset *dts, bool print_struct
   cout << "==================================================" << '\n'
        << "Setting children and parents......" << endl;
   #pragma omp parallel for
-  for (int i=0; i<n; ++i) {
-    for (int j=0; j<i; ++j) {  // graphAdjacencyMatrix is symmetric, so loop while j<i instead of j<n
-      if (i==j) continue;
-      if (graphAdjacencyMatrix[i][j]==1){
+  for (int i = 0; i < n; ++i) {
+    for (int j = 0; j < i; ++j) {  // graphAdjacencyMatrix is symmetric, so loop while j<i instead of j<n
+      if (i == j) continue;
+      if (graphAdjacencyMatrix[i][j] == 1){
 
         // Determine the topological position of i and j.
-        int topoIndexI=-1, topoIndexJ=-1;
+        int topoIndexI = -1, topoIndexJ = -1;
         for (int k=0; k<n; ++k) {
-          if (topologicalSortedPermutation[k]==i && topoIndexI==-1) {
+          if (topologicalSortedPermutation[k] == i && topoIndexI == -1) {
             topoIndexI = k;
-          } else if (topologicalSortedPermutation[k]==j && topoIndexJ==-1) {
+          } else if (topologicalSortedPermutation[k] == j && topoIndexJ == -1) {
             topoIndexJ = k;
           }
-          if (topoIndexI!=-1 && topoIndexJ!=-1) { break; }
+          if (topoIndexI != -1 && topoIndexJ != -1) { break; }
         }
 
-        if (topoIndexI<topoIndexJ) {
+        if (topoIndexI < topoIndexJ) {
           SetParentChild(i, j);
         } else {
           SetParentChild(j, i);
@@ -232,18 +232,7 @@ void ChowLiuTree::StructLearnChowLiuTreeCompData(Dataset *dts, bool print_struct
   cout << "==================================================" << '\n'
        << "Generating parents combinations for each node......" << endl;
 
-  // Store the pointers in an array to make use of OpenMP.
-  Node** arr_node_ptr_container = new Node*[num_nodes];
-  auto iter_n_ptr = set_node_ptr_container.begin();
-  for (int i=0; i<num_nodes; ++i) {
-    arr_node_ptr_container[i] = *(iter_n_ptr++);
-  }
-  #pragma omp parallel for
-  for (int i=0; i<num_nodes; ++i) {
-    arr_node_ptr_container[i]->GenDiscParCombs();
-  }
-  delete[] arr_node_ptr_container;
-
+  GenDiscParCombsForAllNodes();
 
   cout << "==================================================" << '\n'
        << "Finish structural learning." << endl;
@@ -278,17 +267,27 @@ void ChowLiuTree::StructLearnChowLiuTreeCompData(Dataset *dts, bool print_struct
 }
 
 
-pair<int*, int> ChowLiuTree::SimplifyDefaultElimOrd(DiscreteConfig evidence) {
+vector<int> ChowLiuTree::SimplifyDefaultElimOrd(DiscreteConfig evidence) {
   return SimplifyTreeDefaultElimOrd(evidence);
 }
 
 
-pair<int*, int> ChowLiuTree::SimplifyTreeDefaultElimOrd(DiscreteConfig evidence) {
+vector<int> ChowLiuTree::SimplifyTreeDefaultElimOrd(DiscreteConfig evidence) {
+
+  // todo: delete the next line
+//  fprintf(stderr, "Start [%s]\n", __FUNCTION__);
 
   // Remove all the barren nodes
   set<int> to_be_removed;
-  for (int i=0; i<num_nodes-1; ++i) {
-    int default_elim_ord_i = default_elim_ord[i];
+  for (int i = 0; i < num_nodes-1; ++i) {
+
+    int vec_size = vec_default_elim_ord.size();
+    int vec_capacity = vec_default_elim_ord.capacity();
+    if (vec_size != vec_capacity) {
+      fprintf(stderr, "Function [%s]: vec_size != vec_capacity\n", __FUNCTION__);
+    }
+
+    int default_elim_ord_i = vec_default_elim_ord.at(i);
     Node *ptr_curr_node = FindNodePtrByIndex(default_elim_ord_i);
     bool observed = false, need_to_be_removed = true;
     for (auto p : evidence) {
@@ -300,8 +299,8 @@ pair<int*, int> ChowLiuTree::SimplifyTreeDefaultElimOrd(DiscreteConfig evidence)
     if (observed) { continue; }
 
     // If it is not a leaf.
-    if (!ptr_curr_node->set_children_ptrs.empty()) {
-      for (auto ptr_child : ptr_curr_node->set_children_ptrs) {
+    if (!ptr_curr_node->set_children_indexes.empty()) {
+      for (auto ptr_child : GetChildrenPtrsOfNode(ptr_curr_node->GetNodeIndex())) {
         // And if its children are not all removed.
         if (to_be_removed.find(ptr_child->GetNodeIndex()) == to_be_removed.end()) {
           need_to_be_removed = false;
@@ -312,16 +311,22 @@ pair<int*, int> ChowLiuTree::SimplifyTreeDefaultElimOrd(DiscreteConfig evidence)
     if (need_to_be_removed) { to_be_removed.insert(ptr_curr_node->GetNodeIndex()); }
   }
 
+  // todo: delete the next line
+//  fprintf(stderr, "Middle_1 [%s]\n", __FUNCTION__);
+
   // Remove all m-separated nodes.
   set<int> visited;
   DepthFirstTraversalUntillMeetObserved(evidence, root_node_index, visited, to_be_removed);  // Start at root.
+
+  // todo: delete the next line
+//  fprintf(stderr, "Middle_2 [%s]\n", __FUNCTION__);
 
   // Record all the remaining nodes in array "simplified_order".
   int num_of_remain = num_nodes-1-to_be_removed.size();    // The one of the nodes is class variable node and does not need to be eliminated.
   vector<int> vec_simplified_order;
   vec_simplified_order.reserve(num_of_remain);
-  for (int i=0; i<num_nodes-1; ++i) {
-    int ord = default_elim_ord[i];
+  for (int i = 0; i < num_nodes-1; ++i) {
+    int ord = vec_default_elim_ord.at(i);
     if (to_be_removed.find(ord) == to_be_removed.end()) {
       vec_simplified_order.push_back(ord);
     }
@@ -331,23 +336,17 @@ pair<int*, int> ChowLiuTree::SimplifyTreeDefaultElimOrd(DiscreteConfig evidence)
     exit(1);
   }
 
-  int* simplified_order = new int[num_of_remain];
-//  for (int i=0, j=1; i<num_of_remain; ++i) {    // j=1 because the 0-th node is root.
-//    while (to_be_removed.find(j)!=to_be_removed.end()) { ++j; }
-//    simplified_order[i] = j++;  // "j++" is to move to the next j, or else it will stuck at the first j that is not in "to_be_removed".
-//  }
-  for (int i=0; i<num_of_remain; ++i) {
-    simplified_order[i] = vec_simplified_order.at(i);
-  }
+  // todo: delete the next line
+//  fprintf(stderr, "End [%s]\n", __FUNCTION__);
 
-
-  pair<int*, int> simplified_order_and_nodes_number = make_pair(simplified_order, num_of_remain);
-//  delete[] simplified_order;
-  return simplified_order_and_nodes_number;
+  return vec_simplified_order;
 }
 
 
 void ChowLiuTree::DepthFirstTraversalUntillMeetObserved(DiscreteConfig evidence, int start, set<int>& visited, set<int>& to_be_removed) {
+
+  // todo: delete the next line
+//  fprintf(stderr, "Start [%s]\n", __FUNCTION__);
 
   // Base case
   if (visited.find(start)!=visited.end()) { return; }
@@ -368,7 +367,7 @@ void ChowLiuTree::DepthFirstTraversalUntillMeetObserved(DiscreteConfig evidence,
   // If not observed
   // Recursive case
   Node* ptr_curr_node = FindNodePtrByIndex(start);
-  for (auto ptr_child : ptr_curr_node->set_children_ptrs) {
+  for (auto ptr_child : GetChildrenPtrsOfNode(ptr_curr_node->GetNodeIndex())) {
     int child_index = ptr_child->GetNodeIndex();
     DepthFirstTraversalUntillMeetObserved(evidence, child_index, visited, to_be_removed);
   }
@@ -379,7 +378,7 @@ void ChowLiuTree::DepthFirstTraversalUntillMeetObserved(DiscreteConfig evidence,
 void ChowLiuTree::DepthFirstTraversalToRemoveMSeparatedNodes(int start, set<int>& visited, set<int>& to_be_removed) {
   visited.insert(start);
   Node* ptr_curr_node = FindNodePtrByIndex(start);
-  for (auto ptr_child : ptr_curr_node->set_children_ptrs) {
+  for (auto ptr_child : GetChildrenPtrsOfNode(ptr_curr_node->GetNodeIndex())) {
     int child_index = ptr_child->GetNodeIndex();
     if (visited.find(child_index) == visited.end()) { break; }
     to_be_removed.insert(child_index);

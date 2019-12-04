@@ -15,15 +15,18 @@ class CGNetworkTest : public ::testing::Test {
     // Figure 2 in [Local Propagation in Conditional Gaussian Bayesian Networks (Cowell, 2005)]
 
     net = new CustomNetwork(false);
+
+    DiscreteConfig empty_config;
+
     auto a = new DiscreteNode(0, "A");
     a->SetDomain(vector<int> {0});
-    a->map_marg_prob_table[0] = 1;
+    a->AddCount(0,empty_config,1);
     auto b = new DiscreteNode(1, "B");
     b->SetDomain(vector<int> {0});
-    b->map_marg_prob_table[0] = 1;
+    b->AddCount(0,empty_config,1);
     auto c = new DiscreteNode(2, "C");
     c->SetDomain(vector<int> {0});
-    c->map_marg_prob_table[0] = 1;
+    c->AddCount(0,empty_config,1);
     auto x = new ContinuousNode(3, "X");
     auto y = new ContinuousNode(4, "Y");
     auto z = new ContinuousNode(5, "Z");
@@ -45,11 +48,11 @@ class CGNetworkTest : public ::testing::Test {
 
 
 //    x->IdentifyContPar();
-    x->GenDiscParCombs();
+    x->GenDiscParCombs(net->GetParentPtrsOfNode(x->GetNodeIndex()));
 //    y->IdentifyContPar();
-    y->GenDiscParCombs();
+    y->GenDiscParCombs(net->GetParentPtrsOfNode(y->GetNodeIndex()));
 //    z->IdentifyContPar();
-    z->GenDiscParCombs();
+    z->GenDiscParCombs(net->GetParentPtrsOfNode(z->GetNodeIndex()));
 
     x->map_mu[*(x->set_discrete_parents_combinations.begin())] = 0;
     x->map_variance[*(x->set_discrete_parents_combinations.begin())] = 1;

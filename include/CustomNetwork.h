@@ -28,7 +28,7 @@ class CustomNetwork : public Network {
   CustomNetwork();
   explicit CustomNetwork(bool pure_disc);
 
-  pair<int*, int> SimplifyDefaultElimOrd(DiscreteConfig evidence) override;
+  vector<int> SimplifyDefaultElimOrd(DiscreteConfig evidence) override;
 
   void GetNetFromXMLBIFFile(string file_path);
 

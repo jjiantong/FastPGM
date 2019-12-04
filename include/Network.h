@@ -32,11 +32,13 @@ class Network {
 
  public:
   string network_name;
-  int num_nodes;
+  int num_nodes = 0;
   bool pure_discrete;
-  set<Node*> set_node_ptr_container;
+  vector<int> vec_default_elim_ord;
 
-  int *default_elim_ord;
+  map<int, Node*> map_idx_node_ptr;  // Key: node index. Value: node pointer.
+  vector<int> SparseInstanceFillZeroToCompleteInstance(DiscreteConfig &sparse_instance);
+
   Network();
   explicit Network(bool pure_disc);
   virtual ~Network() = default;
@@ -59,12 +61,16 @@ class Network {
   void ClearParams();
 
   void AddNode(Node *node_ptr);
+  void RemoveNode(int node_index);
 
   void SetParentChild(int, int);
   void SetParentChild(Node *par, Node *chi);
 
   void RemoveParentChild(int, int);
   void RemoveParentChild(Node *par, Node *chi);
+
+  set<Node*> GetParentPtrsOfNode(int node_index);
+  set<Node*> GetChildrenPtrsOfNode(int node_index);
 
   void GenDiscParCombsForAllNodes();
 
@@ -74,21 +80,25 @@ class Network {
   int** ConvertDAGNetworkToAdjacencyMatrix();
 
 
-  virtual pair<int*, int> SimplifyDefaultElimOrd(DiscreteConfig);
+  virtual vector<int> SimplifyDefaultElimOrd(DiscreteConfig);
 
   DiscreteConfig ConstructEvidence(int *nodes_indexes, int *observations, int num_of_observations);
 
-  vector<Factor> ConstructFactors(int *Z, int nz, Node *Y);
+  vector<Factor> ConstructFactors(vector<int> Z, Node *Y);
   void LoadEvidenceIntoFactors(vector<Factor> *factors_list, DiscreteConfig E, set<int> all_related_vars);
 
-  Factor SumProductVarElim(vector<Factor> factors_list, int *Z, int nz);
-  Factor VarElimInferReturnPossib(int *elim_ord, int num_elim_ord, DiscreteConfig evidence, Node *target);
+  Factor SumProductVarElim(vector<Factor> factors_list, vector<int> Z);
+  Factor VarElimInferReturnPossib(vector<int> elim_ord, DiscreteConfig evidence, Node *target);
   Factor VarElimInferReturnPossib(DiscreteConfig evidence, Node *target);
 
-  int PredictUseVarElimInfer(int *Z, int nz, DiscreteConfig E, int Y_index);
+  map<int, double> DistributionOfValueIndexGivenCompleteInstanceValueIndex(int target_var_index, DiscreteConfig evidence);
+  int PredictUseSimpleBruteForce(DiscreteConfig E, int Y_index);
+
+  int PredictUseVarElimInfer(vector<int> Z, DiscreteConfig E, int Y_index);
   int PredictUseVarElimInfer(DiscreteConfig E, int Y_index);
 
   double TestNetReturnAccuracy(Dataset *dts);
+  double TestNetReturnAccuracyGivenAllCompleteInstances(Dataset *dts);
   double TestNetByApproxInferReturnAccuracy(Dataset *dts, int num_samp);
   double TestAccuracyByLikelihoodWeighting(Dataset *dts, int num_samp);
 

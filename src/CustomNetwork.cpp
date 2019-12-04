@@ -12,8 +12,8 @@ CustomNetwork::CustomNetwork(bool pure_disc) {
   this->pure_discrete = pure_disc;
 }
 
-pair<int*, int> CustomNetwork::SimplifyDefaultElimOrd(DiscreteConfig evidence) {
-  return {default_elim_ord, num_nodes-1};
+vector<int> CustomNetwork::SimplifyDefaultElimOrd(DiscreteConfig evidence) {
+  return vec_default_elim_ord;
 }
 
 void CustomNetwork::GetNetFromXMLBIFFile(string file_path) {
@@ -32,7 +32,7 @@ void CustomNetwork::GetNetFromXMLBIFFile(string file_path) {
   network_name = xbp.xml_network_name_ptr->GetText();
   num_nodes = connected_nodes.size();
   for (auto &node_ptr : connected_nodes) {
-    set_node_ptr_container.insert(node_ptr);
+    map_idx_node_ptr[node_ptr->GetNodeIndex()] = node_ptr;
   }
 
   GenTopoOrd();

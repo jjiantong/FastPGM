@@ -39,23 +39,24 @@ TEST(XMLBIFParser, dog_problem_xmlbif) {
   auto *node_bowel_problem = dog_net.FindNodePtrByName("bowel-problem");
   auto *node_dog_out = dog_net.FindNodePtrByName("dog-out");
 
-  EXPECT_EQ(node_family_out->set_parents_ptrs.size(),0);
-  EXPECT_EQ(node_bowel_problem->set_parents_ptrs.size(),0);
-  EXPECT_EQ(node_dog_out->set_parents_ptrs.size(),2);
-  EXPECT_NE(node_dog_out->set_parents_ptrs.find(node_family_out)
+  EXPECT_EQ(node_family_out->set_parent_indexes.size(),0);
+  EXPECT_EQ(node_bowel_problem->set_parent_indexes.size(),0);
+  EXPECT_EQ(node_dog_out->set_parent_indexes.size(),2);
+  EXPECT_NE(node_dog_out->set_parent_indexes.find(node_family_out->GetNodeIndex())
             ,
-            node_dog_out->set_parents_ptrs.end());
-  EXPECT_NE(node_dog_out->set_parents_ptrs.find(node_bowel_problem)
+            node_dog_out->set_parent_indexes.end());
+  EXPECT_NE(node_dog_out->set_parent_indexes.find(node_bowel_problem->GetNodeIndex())
             ,
-            node_dog_out->set_parents_ptrs.end());
-  EXPECT_NE(node_family_out->set_children_ptrs.find(node_dog_out)
+            node_dog_out->set_parent_indexes.end());
+  EXPECT_NE(node_family_out->set_parent_indexes.find(node_dog_out->GetNodeIndex())
             ,
-            node_family_out->set_children_ptrs.end());
+            node_family_out->set_parent_indexes.end());
 
 
   DiscreteConfig condition;
   condition.insert(pair<int,int>(node_bowel_problem->GetNodeIndex(),dynamic_cast<DiscreteNode*>(node_bowel_problem)->vec_potential_vals[0]));
   condition.insert(pair<int,int>(node_family_out->GetNodeIndex(),dynamic_cast<DiscreteNode*>(node_family_out)->vec_potential_vals[1]));
-  EXPECT_EQ(dynamic_cast<DiscreteNode*>(node_dog_out)->map_cond_prob_table[dynamic_cast<DiscreteNode*>(node_dog_out)->vec_potential_vals[0]][condition],0.97);
+  double prob = dynamic_cast<DiscreteNode*>(node_dog_out)->GetProbability(dynamic_cast<DiscreteNode*>(node_dog_out)->vec_potential_vals[0], condition);
+  EXPECT_EQ(prob, 0.97);
 
 }

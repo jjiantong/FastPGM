@@ -448,11 +448,12 @@ void JunctionTree::AssignPotentials() {
   // Extract the CG regressions of continuous nodes.
   vector<Factor> factors; // Can not use std::set, because Factor does not have definition on operator "<".
   vector<CGRegression> cgrs;
-  for (auto &node_ptr : network->set_node_ptr_container) {
+  for (auto &id_node_ptr : network->map_idx_node_ptr) {
+    auto node_ptr = id_node_ptr.second;
     if (node_ptr->is_discrete) {
-      factors.push_back(Factor(dynamic_cast<DiscreteNode*>(node_ptr)));
+      factors.push_back(Factor(dynamic_cast<DiscreteNode*>(node_ptr), this->network));
     } else {  // If the node is continuous.
-      cgrs.push_back(CGRegression(node_ptr));
+      cgrs.push_back(CGRegression(node_ptr, network->GetParentPtrsOfNode(node_ptr->GetNodeIndex())));
     }
   }
 
@@ -618,8 +619,7 @@ Factor JunctionTree::BeliefPropagationCalcuDiscreteVarMarginal(int query_index) 
   set<int> other_vars = selected_clique->related_variables;
   other_vars.erase(query_index);
 
-  Factor f;
-  f.SetMembers(selected_clique->related_variables, selected_clique->set_disc_configs, selected_clique->map_potentials);
+  Factor f(selected_clique->related_variables, selected_clique->set_disc_configs, selected_clique->map_potentials);
   for (auto &index : other_vars) {
     f = f.SumOverVar(index);
   }
@@ -665,9 +665,9 @@ double JunctionTree::TestNetReturnAccuracy(int class_var, Dataset *dts) {
 
     #pragma omp critical
     { ++progress; }
-    string progress_detail = to_string(progress) + '/' + to_string(m);
-    fprintf(stdout, "%s\n", progress_detail.c_str());
-    fflush(stdout);
+//    string progress_detail = to_string(progress) + '/' + to_string(m);
+//    fprintf(stdout, "%s\n", progress_detail.c_str());
+//    fflush(stdout);
 
 
     if (progress % m20 == 0) {

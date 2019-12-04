@@ -47,8 +47,8 @@ class ChowLiuTree : public Network {
   void StructLearnChowLiuTreeCompData(Dataset *dts, bool print_struct=true);
 
 
-  pair<int*, int> SimplifyDefaultElimOrd(DiscreteConfig evidence) override;
-  pair<int*, int> SimplifyTreeDefaultElimOrd(DiscreteConfig evidence);
+  vector<int> SimplifyDefaultElimOrd(DiscreteConfig evidence) override;
+  vector<int> SimplifyTreeDefaultElimOrd(DiscreteConfig evidence);
 
  protected:
   void DepthFirstTraversalUntillMeetObserved(DiscreteConfig evidence, int start, set<int>& visited, set<int>& to_be_removed);
