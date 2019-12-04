@@ -28,7 +28,9 @@ class DiscreteNode : public Node {
   map< int, map<DiscreteConfig, int> > map_cond_prob_table_statistics;  // Keys: query variable, parents config. Value: count under condition.
                                                              // If the node has no parents, then the second dimension, parents_config, will only use the key 0.
   map<DiscreteConfig, int> map_total_count_under_parents_config;   // Key: parents config. Value: total count.
-  double laplace_smooth = 1;
+
+  void SetLaplaceSmooth(double alpha);
+
   void AddInstanceOfVarVal(DiscreteConfig instance_of_var_val);
   void AddCount(int query_val, DiscreteConfig &parents_config, int count);
   double GetProbability(int query_val, DiscreteConfig &parents_config);
@@ -54,6 +56,7 @@ class DiscreteNode : public Node {
 
  private:
   int num_potential_vals;
+  double laplace_smooth = 1;
 };
 
 
