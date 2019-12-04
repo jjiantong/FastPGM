@@ -48,6 +48,7 @@ int Node::GetNumParentsConfig() {
 }
 
 DiscreteConfig Node::GetDiscParConfigGivenAllVarValue(DiscreteConfig &all_var_val) {
+  // This version is 2x SLOWER than the version that accept DiscreteConfig as argument.
   DiscreteConfig par_var_val;
 
   if (!HasParents()) {
@@ -56,13 +57,27 @@ DiscreteConfig Node::GetDiscParConfigGivenAllVarValue(DiscreteConfig &all_var_va
 
   assert(all_var_val.size() >= GetNumDiscParents());
 
-  map<int, int> map_all_var_val = DiscreteConfigToMap(all_var_val);
+  for (auto const var_val : all_var_val) {
+    if (std::find(vec_disc_parent_indexes.begin(), vec_disc_parent_indexes.end(), var_val.first) != vec_disc_parent_indexes.end()) {
+      par_var_val.insert(var_val);
+    }
+  }
+  return par_var_val;
+}
 
-  for (const auto & par : this->vec_disc_parent_indexes) {
-    int given_val = map_all_var_val.at(par);
-    par_var_val.insert(pair<int, int>(par, given_val));
+DiscreteConfig Node::GetDiscParConfigGivenAllVarValue(vector<int> &all_var_val) {
+  // This version is 2x FASTER than the version that accept DiscreteConfig as argument.
+  DiscreteConfig par_var_val;
+
+  if (!HasParents()) {
+    return par_var_val;  // Return an empty config.
   }
 
+  assert(all_var_val.size() >= GetNumDiscParents());
+
+  for (auto const par : vec_disc_parent_indexes) {
+    par_var_val.insert(DiscVarVal(par, all_var_val.at(par)));
+  }
   return par_var_val;
 }
 

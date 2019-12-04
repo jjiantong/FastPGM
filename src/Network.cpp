@@ -659,7 +659,8 @@ map<int, double> Network::DistributionOfValueIndexGivenCompleteInstanceValueInde
     result[i] = 0;
     for (int j = 0; j < num_nodes; ++j) {
       DiscreteNode *node_j = (DiscreteNode*) FindNodePtrByIndex(j);
-      DiscreteConfig par_config = node_j->GetDiscParConfigGivenAllVarValue(evidence);
+      DiscreteConfig par_config = node_j->GetDiscParConfigGivenAllVarValue(vec_complete_instance_values);
+
       double temp_prob = 0;
       if (j == target_var_index) {
         temp_prob = target_node->GetProbability(target_node->vec_potential_vals.at(i), par_config);

@@ -41,6 +41,7 @@ class Node {
 
   int GetNumParentsConfig();
   DiscreteConfig GetDiscParConfigGivenAllVarValue(DiscreteConfig &all_var_val);
+  DiscreteConfig GetDiscParConfigGivenAllVarValue(vector<int> &all_var_val);
   // ==================================================
 
   Node() = default;
