@@ -83,7 +83,7 @@ void Dataset::LoadLIBSVMDataAutoDetectConfig(string data_file_path, set<int> con
   num_instance = vector_dataset_all_vars.size();
   num_vars = max_index_occurred + 1;
   is_vars_discrete.reserve(num_vars);
-  num_of_possible_values_of_disc_vars = new int[num_vars];
+  num_of_possible_values_of_disc_vars.reserve(num_vars);
 
   for (int i=0; i<num_vars; ++i) {
     vec_var_names.push_back(to_string(i));
@@ -96,7 +96,7 @@ void Dataset::LoadLIBSVMDataAutoDetectConfig(string data_file_path, set<int> con
         map_disc_vars_possible_values[i].insert(0);
       }
     }
-    num_of_possible_values_of_disc_vars[i] = map_disc_vars_possible_values[i].size();
+    num_of_possible_values_of_disc_vars.push_back(map_disc_vars_possible_values[i].size());
     is_vars_discrete.push_back(cont_vars.find(i)==cont_vars.end()); // For now, we can only process discrete variables.
   }
 
@@ -157,7 +157,7 @@ void Dataset::LoadCSVDataAutoDetectConfig(string data_file_path, bool header, in
   vector<string> parsed_variable = Split(sample, ",");
   num_vars = parsed_variable.size();
   is_vars_discrete.reserve(num_vars);
-  num_of_possible_values_of_disc_vars = new int[num_vars]();
+  num_of_possible_values_of_disc_vars.reserve(num_vars);
 
 
   if (header) {
@@ -197,10 +197,10 @@ void Dataset::LoadCSVDataAutoDetectConfig(string data_file_path, bool header, in
   }
 
   num_instance = vector_dataset_all_vars.size();
-  num_of_possible_values_of_disc_vars = new int[num_vars];
+  num_of_possible_values_of_disc_vars.reserve(num_vars);
 
   for (int i=0; i<num_vars; ++i) {
-    num_of_possible_values_of_disc_vars[i] = map_disc_vars_possible_values[i].size();
+    num_of_possible_values_of_disc_vars.push_back(map_disc_vars_possible_values[i].size());
     is_vars_discrete.push_back(cont_vars.find(i)==cont_vars.end()); // For now, we can only process discrete features.
   }
 

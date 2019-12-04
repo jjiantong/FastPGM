@@ -26,7 +26,7 @@ class Dataset {
   int class_var_index = -1;  // "-1" for no specified class variable.
 
   map<int,set<int>> map_disc_vars_possible_values;
-  int* num_of_possible_values_of_disc_vars;
+  vector<int> num_of_possible_values_of_disc_vars;
   vector<bool> is_vars_discrete;
   int **dataset_all_vars;
   vector<string> vec_var_names;
