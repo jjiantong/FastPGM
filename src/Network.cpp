@@ -403,6 +403,7 @@ void Network::LearnParamsKnowStructCompData(const Dataset *dts, int alpha, bool 
          ++i) {
 //    for (int i=0; i<dts->num_vars; ++i) {
       DiscreteNode *this_node = dynamic_cast<DiscreteNode*>(FindNodePtrByIndex(i));   // todo: support continuous node
+      this_node->SetLaplaceSmooth(alpha);
 
       for (int s = 0; s < dts->num_instance; ++s) {
         vector<int> values = vector<int>(dts->dataset_all_vars[s], dts->dataset_all_vars[s]+dts->num_vars);
@@ -950,9 +951,9 @@ double Network::TestAccuracyByLikelihoodWeighting(Dataset *dts, int num_samp) {
 
 #pragma omp critical
     { ++progress; }
-    string progress_detail = to_string(progress) + '/' + to_string(m);
-    fprintf(stdout, "%s\n", progress_detail.c_str());
-    fflush(stdout);
+//    string progress_detail = to_string(progress) + '/' + to_string(m);
+//    fprintf(stdout, "%s\n", progress_detail.c_str());
+//    fflush(stdout);
 
     if (progress % m20 == 0) {
       string progress_percentage = to_string((double)progress/m * 100) + "%...\n";

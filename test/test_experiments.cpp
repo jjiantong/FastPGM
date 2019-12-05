@@ -42,24 +42,29 @@ class ExperimentOnCovertype : public ::testing::Test {
 
 TEST_F(ExperimentOnCovertype, covertype_test_var_elim) {
   double accuracy = network->TestNetReturnAccuracy(tester);
-  EXPECT_GT(accuracy, 0.65);
+  EXPECT_GT(accuracy, 0.600);
+}
+
+TEST_F(ExperimentOnCovertype, DISABLED_covertype_test_brute_force) {
+  double accuracy = network->TestNetReturnAccuracyGivenAllCompleteInstances(tester);
+  EXPECT_GT(accuracy, 0.600);
 }
 
 TEST_F(ExperimentOnCovertype, covertype_test_like_weigh) {
   double accuracy = network->TestAccuracyByLikelihoodWeighting(tester, 50);
-  EXPECT_GT(accuracy, 0.65);
+  EXPECT_GT(accuracy, 0.600);
 }
 
 TEST_F(ExperimentOnCovertype, covertype_test_approx) {
   double accuracy = network->TestNetByApproxInferReturnAccuracy(tester,100000);
-  EXPECT_GT(accuracy, 0.65);
+  EXPECT_GT(accuracy, 0.600);
 }
 
 TEST_F(ExperimentOnCovertype, covertype_test_jun_tree_accuracy) {
   auto *jt = new JunctionTree(network, false);
   double accuracy = jt->TestNetReturnAccuracy(54,tester);
   delete jt;
-  EXPECT_GT(accuracy,0.65);
+  EXPECT_GT(accuracy,0.600);
 }
 
 
@@ -87,7 +92,16 @@ class ExperimentOnPhishing : public ::testing::Test {
   Network *network;
 };
 
-TEST_F(ExperimentOnPhishing, naive_bayes_var_elim) {
+TEST_F(ExperimentOnPhishing, DISABLED_naive_bayes_brute_force) {
+  ChowLiuTree *net = new ChowLiuTree(true);
+  net->root_node_index = 30;
+  net->ConstructNaiveBayesNetwork(trainer);
+  net->LearnParamsKnowStructCompData(trainer, true);
+  double accuracy = network->TestNetReturnAccuracyGivenAllCompleteInstances(tester);
+  EXPECT_GT(accuracy, 0.8270);
+}
+
+TEST_F(ExperimentOnPhishing, DISABLED_naive_bayes_var_elim) {
   ChowLiuTree *net = new ChowLiuTree(true);
   net->root_node_index = 30;
   net->ConstructNaiveBayesNetwork(trainer);
@@ -96,7 +110,7 @@ TEST_F(ExperimentOnPhishing, naive_bayes_var_elim) {
   EXPECT_GT(accuracy, 0.8360);
 }
 
-TEST_F(ExperimentOnPhishing, naive_bayes_lik_wei) {
+TEST_F(ExperimentOnPhishing, DISABLED_naive_bayes_lik_wei) {
   ChowLiuTree *net = new ChowLiuTree(true);
   net->root_node_index = 30;
   net->ConstructNaiveBayesNetwork(trainer);
@@ -105,27 +119,27 @@ TEST_F(ExperimentOnPhishing, naive_bayes_lik_wei) {
   EXPECT_GT(accuracy, 0.8270);
 }
 
-TEST_F(ExperimentOnPhishing, var_elim) {
+TEST_F(ExperimentOnPhishing, DISABLED_var_elim) {
   double accuracy = network->TestNetReturnAccuracy(tester);
   EXPECT_GT(accuracy, 0.8250);
 }
 
-TEST_F(ExperimentOnPhishing, brute_force) {
+TEST_F(ExperimentOnPhishing, DISABLED_brute_force) {
   double accuracy = network->TestNetReturnAccuracyGivenAllCompleteInstances(tester);
   EXPECT_GT(accuracy, 0.8250);
 }
 
-TEST_F(ExperimentOnPhishing, like_weigh) {
+TEST_F(ExperimentOnPhishing, DISABLED_like_weigh) {
   double accuracy = network->TestAccuracyByLikelihoodWeighting(tester, 50);
   EXPECT_GT(accuracy, 0.6);
 }
 
-TEST_F(ExperimentOnPhishing,approx) {
+TEST_F(ExperimentOnPhishing, DISABLED_approx) {
   double accuracy = network->TestNetByApproxInferReturnAccuracy(tester,100000);
   EXPECT_GT(accuracy, 0.6500);
 }
 
-TEST_F(ExperimentOnPhishing, jun_tree_accuracy) {
+TEST_F(ExperimentOnPhishing, DISABLED_jun_tree_accuracy) {
   auto *jt = new JunctionTree(network, false);
   double accuracy = jt->TestNetReturnAccuracy(30, tester);
   delete jt;
@@ -156,22 +170,22 @@ class ExperimentOnA1a : public ::testing::Test {
   Network *network;
 };
 
-TEST_F(ExperimentOnA1a, var_elim) {
+TEST_F(ExperimentOnA1a, DISABLED_var_elim) {
   double accuracy = network->TestNetReturnAccuracy(tester);
   EXPECT_GT(accuracy, 0.8230);
 }
 
-TEST_F(ExperimentOnA1a, brute_force) {
+TEST_F(ExperimentOnA1a, DISABLED_brute_force) {
   double accuracy = network->TestNetReturnAccuracyGivenAllCompleteInstances(tester);
   EXPECT_GT(accuracy, 0.8230);
 }
 
-TEST_F(ExperimentOnA1a, like_weigh) {
+TEST_F(ExperimentOnA1a, DISABLED_like_weigh) {
   double accuracy = network->TestAccuracyByLikelihoodWeighting(tester, 50);
   EXPECT_GT(accuracy, 0.8150);
 }
 
-TEST_F(ExperimentOnA1a, jun_tree_accuracy) {
+TEST_F(ExperimentOnA1a, DISABLED_jun_tree_accuracy) {
   auto *jt = new JunctionTree(network, false);
   double accuracy = jt->TestNetReturnAccuracy(0,tester);
   delete jt;
