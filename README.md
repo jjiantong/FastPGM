@@ -80,11 +80,11 @@ As a benchmark,
    * RandomForest: **0.828886**
  
 My bayesian network
-* Chow-Liu Tree, variable elimination, accuracy of **0.823782**, 20 seconds.
-* Chow-Liu Tree, likelihood weighting (50 samples), accuracy of **0.821973**, 698 seconds.
-* Chow-Liu Tree, junction tree, accuracy of **0.816869**, 1495 seconds.
+* Chow-Liu Tree, Laplace smoothing alpha=2, brute force given complete instance (like Weka), accuracy of **0.827626**, **7** seconds.
+* Chow-Liu Tree, Laplace smoothing alpha=2, variable elimination, accuracy of **0.823782**, 161 seconds.
+* Chow-Liu Tree, alpha=2, likelihood weighting (50 samples), accuracy of **0.8248**, 636 seconds.
+* Chow-Liu Tree, Laplace smoothing alpha=1, junction tree algorithm, accuracy of **0.823782**, 1335 seconds.
 * Chow-Liu Tree, probabilistic logic sampling and rejection sampling (100000 samples), accuracy of **0.501147**, 5534 seconds.
-
 
 ## LIBSVM dataset "a2a"
  * Chow-Liu Tree, variable elimination, accuracy of **0.826281**
@@ -105,13 +105,15 @@ Number of instances: 581012
 
 Number of attributes: 54
 
+Chow-Liu Tree, Laplace smoothing parameter alpha=1, brute force given complete instance (like Weka), accuracy of **0.5324**, 222 seconds.
+
 Chow-Liu Tree, variable elimination, accuracy of **0.530348**, 10075 seconds.
 
 Chow-Liu Tree, likelihood weighting (50 samples), accuracy of **0.514571**, 3620 seconds (first 50000 instances).
 
 Chow-Liu Tree, junction tree, 2.4 instances per second, ETA 235,788 seconds (65.5 hours).
 It takes such a long time because the implementation of junction tree is not parallel-friendly.
-If I only test the first 50000 instances in the test set, it achieves accuracy of **0.681632** with 21,915 seconds.
+If I only test the first 50000 instances in the test set, it achieves accuracy of **0.681632** taking 21,915 seconds.
 
 Chow-Liu Tree, probabilistic logic sampling and rejection sampling (100000 samples), accuracy of **0.143157**, 7067 seconds (first 50000 instances).
 
@@ -133,19 +135,25 @@ Train-test data split = 1:9
 
 Naive Bayes network, variable elimination, accuracy of **0.83546**, 12 seconds.
 
-Naive Bayes network, Laplace smoothing parameter alpha=2, variable elimination, accuracy of **0.83677**, 12 seconds.
+Naive Bayes network, Laplace smoothing parameter alpha=2, variable elimination, accuracy of **0.8368**, 10 seconds.
+
+Naive Bayes network, Laplace smoothing alpha=1, likelihood weighting (50 samples), accuracy of **0.9009**, 38 seconds.
+
+Naive Bayes network, Laplace smoothing parameter alpha=1, brute force given complete instance (like Weka), accuracy of **0.9023**, **0.9** seconds.
+
+Chow-Liu Tree, Laplace smoothing alpha=1, brute force given complete instance (like Weka), accuracy of **0.9023**, **0.7** seconds.
 
 Chow-Liu Tree, variable elimination, accuracy of **0.602674**, 11 seconds.
 
-Chow-Liu Tree, Laplace smoothing parameter alpha=1, variable elimination, accuracy of **0.830435**, 11 seconds.
+Chow-Liu Tree, Laplace smoothing parameter alpha=1, variable elimination, accuracy of **0.8304**, 13 seconds.
 
 Chow-Liu Tree, likelihood weighting (50 samples), accuracy of **0.600764**, 25 seconds.
 
-Chow-Liu Tree, Laplace smoothing parameter alpha=1, likelihood weighting (50 samples), accuracy of **0.82883**, 25 seconds.
+Chow-Liu Tree, Laplace smoothing parameter alpha=1, likelihood weighting (50 samples), accuracy of **0.9011**, 32 seconds.
 
 Chow-Liu Tree, junction tree, accuracy of **0.602674**, 131 seconds.
 
-Chow-Liu Tree, Laplace smoothing parameter alpha=1, junction tree, accuracy of **0.830435**, 25 seconds.
+Chow-Liu Tree, Laplace smoothing parameter alpha=1, junction tree, accuracy of **0.8304**, 113 seconds.
 
 Chow-Liu Tree, probabilistic logic sampling and rejection sampling (100000 samples), accuracy of **0.508142**, 300 seconds.
 
