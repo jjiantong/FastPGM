@@ -173,8 +173,9 @@ MultinomialNB (alpha=400), accuracy of 0.8268, 0.004 seconds.
 
 
 # Dependency
- * Google Test (embedded in the project)
- * TinyXML-2 (embedded in the project)
+ * [GoogleTest](https://github.com/google/googletest)
+ * [TinyXML2](https://github.com/leethomason/tinyxml2)
+ * [ARFF](https://github.com/LinjianLi/ARFF)
 
 
 # blah blah
