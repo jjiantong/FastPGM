@@ -41,6 +41,7 @@ class Network {
 
   Network();
   explicit Network(bool pure_disc);
+  Network(Network &net);
   virtual ~Network() = default;
 
   void PrintEachNodeParents();

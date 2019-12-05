@@ -6,6 +6,8 @@
 
 #include "Network.h"
 #include "ScoreFunction.h"
+#include "DiscreteNode.h"
+#include "ContinuousNode.h"
 
 Network::Network(): Network(true) {}
 
@@ -13,6 +15,32 @@ Network::Network(bool pure_disc) {
   this->pure_discrete = pure_disc;
 }
 
+Network::Network(Network &net) {
+  // todo: test correctness
+
+  network_name = net.network_name;
+  num_nodes = net.num_nodes;
+  pure_discrete = net.pure_discrete;
+  vec_default_elim_ord = net.vec_default_elim_ord;
+  topo_ord = net.GetTopoOrd();
+
+  map_idx_node_ptr = net.map_idx_node_ptr;
+  for (int i = 0; i < num_nodes; ++i) {
+    auto old_node = map_idx_node_ptr.at(i);
+    Node *n = nullptr;
+    if (old_node->is_discrete) {
+      auto disc_old_node = (DiscreteNode*)old_node;
+      DiscreteNode new_node(*disc_old_node);
+      n = &new_node;
+    } else {
+      auto cont_old_node = (ContinuousNode*)old_node;
+      ContinuousNode new_node(*cont_old_node);
+      n = &new_node;
+    }
+    map_idx_node_ptr[i] = n;
+  }
+
+}
 
 void Network::PrintEachNodeParents() {
   for (const auto &id_node_ptr : map_idx_node_ptr) {

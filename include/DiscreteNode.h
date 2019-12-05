@@ -30,6 +30,7 @@ class DiscreteNode : public Node {
   map<DiscreteConfig, int> map_total_count_under_parents_config;   // Key: parents config. Value: total count.
 
   void SetLaplaceSmooth(double alpha);
+  double GetLaplaceSmooth();
 
   void AddInstanceOfVarVal(DiscreteConfig instance_of_var_val);
   void AddCount(int query_val, DiscreteConfig &parents_config, int count);
@@ -43,6 +44,7 @@ class DiscreteNode : public Node {
   DiscreteNode();
   explicit DiscreteNode(int index);
   DiscreteNode(int index, string name);
+  DiscreteNode(DiscreteNode &n) = default;
 
   void SetDomain(vector<string> str_domain);
   void SetDomain(vector<int> int_domain);

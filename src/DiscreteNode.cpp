@@ -125,6 +125,10 @@ void DiscreteNode::SetLaplaceSmooth(double alpha) {
   this->laplace_smooth = alpha;
 }
 
+double DiscreteNode::GetLaplaceSmooth() {
+  return this->laplace_smooth;
+}
+
 
 void DiscreteNode::AddInstanceOfVarVal(DiscreteConfig instance_of_var_val) {
   DiscreteConfig parents_config = GetDiscParConfigGivenAllVarValue(instance_of_var_val);
