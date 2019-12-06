@@ -100,6 +100,7 @@ bool FirstCompatibleSecond(const DiscreteConfig *, const DiscreteConfig *);
 bool Conflict(const DiscreteConfig *cfg1, const DiscreteConfig *cfg2);
 bool OccurInCorrectOrder(int a, int b, vector<int> vec);
 bool DAGObeyOrdering(int **graph, int num_nodes, vector<int> ord);
+bool DirectedGraphContainsCircleByBFS(int **graph, int num_nodes);
 int* WidthFirstTraversalWithAdjacencyMatrix(int **graph, int num_nodes, int start);
 vector<int> TopoSortOfDAGZeroInDegreeFirst(int **graph, int num_nodes);
 

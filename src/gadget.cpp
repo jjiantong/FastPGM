@@ -136,6 +136,38 @@ bool DAGObeyOrdering(int **graph, int num_nodes, vector<int> ord) {
 }
 
 
+bool DirectedGraphContainsCircleByBFS(int **graph, int num_nodes) {
+  int visited_count = 0;
+  queue<int> que;
+
+  // Calculate the in-degrees of all nodes.
+  int *in_degrees = new int[num_nodes](); // The parentheses at end will initialize the array to be all zeros.
+  for (int i = 0; i < num_nodes; ++i) {
+    for (int j = 0; j < num_nodes; ++j) {
+      if (graph[i][j] == 1) { ++in_degrees[j]; }
+    }
+  }
+
+  for (int i = 0; i < num_nodes; ++i) {
+    if (in_degrees[i] == 0) { que.push(i); }
+  }
+
+  while (!que.empty()) {
+    for (int j = 0; j < num_nodes; ++j) {
+      if (graph[que.front()][j] == 1) {
+        --in_degrees[j];
+        if (in_degrees[j] == 0) { que.push(j); }
+      }
+    }
+    que.pop();
+    ++visited_count;
+  }
+
+  delete[] in_degrees;
+  return (visited_count != num_nodes);
+}
+
+
 int* WidthFirstTraversalWithAdjacencyMatrix(int **graph, int num_nodes, int start) {
   int *result = new int[num_nodes];
   int itResult = 0;
@@ -147,8 +179,8 @@ int* WidthFirstTraversalWithAdjacencyMatrix(int **graph, int num_nodes, int star
     result[itResult++] = pos;
     markSet.insert(pos);
     que.pop();
-    for (int i=0; i<num_nodes; i++) {
-      if (graph[pos][i]!=0 && markSet.find(i)==markSet.end()) {
+    for (int i = 0; i < num_nodes; i++) {
+      if (graph[pos][i] != 0 && markSet.find(i) == markSet.end()) {
         que.push(i);
       }
     }
@@ -161,21 +193,23 @@ vector<int> TopoSortOfDAGZeroInDegreeFirst(int **graph, int num_nodes) {
   vector<int> result;
   queue<int> que;
 
+  // Calculate the in-degrees of all nodes.
   int *in_degrees = new int[num_nodes](); // The parentheses at end will initialize the array to be all zeros.
-  for (int i=0; i<num_nodes; ++i) {
-    for (int j=0; j<num_nodes; ++j) {
-      if (graph[i][j]==1) {++in_degrees[j];}
+  for (int i = 0; i < num_nodes; ++i) {
+    for (int j = 0; j < num_nodes; ++j) {
+      if (graph[i][j] == 1) { ++in_degrees[j]; }
     }
   }
 
-  for (int i=0; i<num_nodes; ++i) {
-    if (in_degrees[i]==0) {que.push(i);}
+  for (int i = 0; i < num_nodes; ++i) {
+    if (in_degrees[i] == 0) { que.push(i); }
   }
+
   while (!que.empty()) {
-    for (int j=0; j<num_nodes; ++j) {
-      if (graph[que.front()][j]==1) {
+    for (int j = 0; j < num_nodes; ++j) {
+      if (graph[que.front()][j] == 1) {
         --in_degrees[j];
-        if (in_degrees[j]==0) {que.push(j);}
+        if (in_degrees[j] == 0) { que.push(j); }
       }
     }
     result.push_back(que.front());
@@ -209,28 +243,28 @@ string Trim(string &s) {
 
 vector<string> Split(string &s, string delimiter) {
   vector<string> result;
-  size_t begin=0, end=0;
-  while ((end=s.find_first_of(delimiter, begin))!=string::npos) {
+  size_t begin = 0, end = 0;
+  while ((end=s.find_first_of(delimiter, begin)) != string::npos) {
     result.push_back(s.substr(begin, end-begin));
-    begin = ++end;
+    begin = (++end);
   }
   result.push_back(s.substr(begin, s.size()-begin));
   return result;
 }
 
 int FactorialForSmallInteger(int n) {
-  if (n<0) { return -1; }
+  if (n < 0) { return -1; }
   int result = 1;
-  while (n>0) {
-    result *= n--;
+  while (n > 0) {
+    result *= (n--);
   }
   return result;
 }
 
 double LogOfFactorial(int n) {
-  if (n<0) { return -1; }
+  if (n < 0) { return -1; }
   double result = 0;
-  while (n>1) {
+  while (n > 1) {
     result += log(n--);
   }
   return result;
