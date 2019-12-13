@@ -686,7 +686,7 @@ double JunctionTree::TestNetReturnAccuracy(int class_var, Dataset *dts) {
       e_index[j < dts->class_var_index ? j : j - 1] = j;
       e_value[j < dts->class_var_index ? j : j - 1] = dts->dataset_all_vars[i][j];
     }
-    DiscreteConfig E = network->ConstructEvidence(e_index, e_value, e_num);
+    DiscreteConfig E = ArrayToDiscreteConfig(e_index, e_value, e_num);
 
     delete[] e_index;
     delete[] e_value;

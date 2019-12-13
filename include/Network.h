@@ -49,13 +49,12 @@ class Network {
   void PrintEachNodeChildren();
 
   Node* FindNodePtrByIndex(const int &index) const;
-
   Node* FindNodePtrByName(const string &name) const;
 
   void ConstructNaiveBayesNetwork(Dataset *dts);
-
-  virtual void StructLearnCompData(Dataset *, bool print_struct=true, string algo="k2-weka", string topo_ord_constraint="dataset-ord", int max_num_parents=INT_MAX);
-
+  virtual void StructLearnCompData(Dataset *dts, bool print_struct=true,
+                                   string algo="k2-weka", string topo_ord_constraint="dataset-ord",
+                                   int max_num_parents=INT_MAX);
 
   void LearnParamsKnowStructCompData(const Dataset *dts, int alpha=1, bool print_params=true);
 
@@ -92,8 +91,6 @@ class Network {
 
 
   virtual vector<int> SimplifyDefaultElimOrd(DiscreteConfig);
-
-  DiscreteConfig ConstructEvidence(int *nodes_indexes, int *observations, int num_of_observations);
 
   vector<Factor> ConstructFactors(vector<int> Z, Node *Y);
   void LoadEvidenceIntoFactors(vector<Factor> *factors_list, DiscreteConfig E, set<int> all_related_vars);

@@ -101,6 +101,16 @@ Output
 true false false
 ```
 
+## DiscreteConfig ArrayToDiscreteConfig(int \*nodes_indexes, int \*observations, int num_of_observations)
+
+Construct evidence (observation).
+
+Input: nodes_indexes: array of indexes of nodes \
+       observations: array of observed values of nodes \
+       num_of_observations: number of the observed nodes
+
+Output: an instance of type `DiscreteConfig`
+
 ## bool FirstCompatibleSecond(DiscreteConfig \*first, DiscreteConfig \*second)
 A function that is used when multiplying two factors. 
 

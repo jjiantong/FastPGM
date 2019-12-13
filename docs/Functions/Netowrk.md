@@ -120,16 +120,6 @@ Time complexity: O( number of arcs ). The worse case is O(n^2)
 
 The performance of variable elimination relies heavily on the elimination ordering. A good elimination ordering will greatly accelerate the performance.
 
-## DiscreteConfig ConstructEvidence(int \*nodes_indexes, int \*observations, int num_of_observations)
-
-Construct evidence (observation).
-
-Input: nodes_indexes: array of indexes of nodes \
-       observations: array of observed values of nodes \
-       num_of_observations: number of the observed nodes
-
-Output: an instance of type `DiscreteConfig`
-
 ## vector\<Factor\> ConstructFactors(int \*Z, int nz, Node \*Y)
 
 Construct a set factors from an array of node pointers.

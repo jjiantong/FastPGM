@@ -28,6 +28,17 @@ map<int, double> Normalize(map<int, double> &x) {
   return x;
 }
 
+DiscreteConfig ArrayToDiscreteConfig(int *nodes_indexes, int *observations, int num_of_observations) {
+  DiscreteConfig result;
+  pair<int, int> p;
+  for (int i = 0; i < num_of_observations; ++i) {
+    p.first = nodes_indexes[i];
+    p.second = observations[i];
+    result.insert(p);
+  }
+  return result;
+}
+
 map<int, int> DiscreteConfigToMap(DiscreteConfig &disc_cfg) {
   map<int, int> result;
   for (const auto var_val : disc_cfg) {

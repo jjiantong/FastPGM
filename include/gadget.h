@@ -92,6 +92,8 @@ template <typename T> set<set<T>> GenPowerSet(set<T> &src_set) {
 int ArgMax(map<int, double> &x);
 map<int, double> Normalize(map<int, double> &x);
 
+DiscreteConfig ArrayToDiscreteConfig(int *nodes_indexes, int *observations, int num_of_observations);
+
 map<int, int> DiscreteConfigToMap(DiscreteConfig &disc_cfg);
 
 set<DiscreteConfig> ExpandConfgFromTwoConfgs(const set<DiscreteConfig> *one, const set<DiscreteConfig> *two);

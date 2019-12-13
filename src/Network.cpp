@@ -579,17 +579,6 @@ vector<int> Network::SimplifyDefaultElimOrd(DiscreteConfig) {
   exit(1);
 }
 
-DiscreteConfig Network::ConstructEvidence(int *nodes_indexes, int *observations, int num_of_observations) {
-  DiscreteConfig result;
-  pair<int, int> p;
-  for (int i=0; i<num_of_observations; ++i) {
-    p.first = nodes_indexes[i];
-    p.second = observations[i];
-    result.insert(p);
-  }
-  return result;
-}
-
 
 vector<Factor> Network::ConstructFactors(vector<int> Z, Node *Y) {
   vector<Factor> factors_list;
@@ -880,7 +869,7 @@ double Network::TestNetReturnAccuracy(Dataset *dts) {
       e_index[j < class_var_index ? j : j - 1] = j;
       e_value[j < class_var_index ? j : j - 1] = dts->dataset_all_vars[i][j];
     }
-    DiscreteConfig E = ConstructEvidence(e_index, e_value, e_num);
+    DiscreteConfig E = ArrayToDiscreteConfig(e_index, e_value, e_num);
     int label_predict = PredictUseVarElimInfer(E, class_var_index);
 //    string pred_true = to_string(label_predict) + ':' + to_string(dts->dataset_all_vars[i][class_var_index]);
 //    fprintf(stdout, "%s\n", pred_true.c_str());
@@ -949,7 +938,7 @@ double Network::TestNetReturnAccuracyGivenAllCompleteInstances(Dataset *dts) {
       e_index[j < class_var_index ? j : j - 1] = j;
       e_value[j < class_var_index ? j : j - 1] = dts->dataset_all_vars[i][j];
     }
-    DiscreteConfig E = ConstructEvidence(e_index, e_value, e_num);
+    DiscreteConfig E = ArrayToDiscreteConfig(e_index, e_value, e_num);
     int label_predict = PredictUseSimpleBruteForce(E, class_var_index);
 //    string pred_true = to_string(label_predict) + ':' + to_string(dts->dataset_all_vars[i][class_var_index]);
 //    fprintf(stdout, "%s\n", pred_true.c_str());
@@ -1021,7 +1010,7 @@ double Network::TestNetByApproxInferReturnAccuracy(Dataset *dts, int num_samp) {
       e_index[j < class_var_index ? j : j - 1] = j + 1;
       e_value[j < class_var_index ? j : j - 1] = dts->dataset_all_vars[i][j];
     }
-    DiscreteConfig E = ConstructEvidence(e_index, e_value, e_num);
+    DiscreteConfig E = ArrayToDiscreteConfig(e_index, e_value, e_num);
     int label_predict = ApproxInferByProbLogiRejectSamp(E, class_var_index, samples);
 //    string pred_true = to_string(label_predict) + ':' + to_string(dts->dataset_all_vars[i][class_var_index]);
 //    fprintf(stdout, "%s\n", pred_true.c_str());
@@ -1084,7 +1073,7 @@ double Network::TestAccuracyByLikelihoodWeighting(Dataset *dts, int num_samp) {
       e_index[j < class_var_index ? j : j - 1] = j;
       e_value[j < class_var_index ? j : j - 1] = dts->dataset_all_vars[i][j];
     }
-    DiscreteConfig E = ConstructEvidence(e_index, e_value, e_num);
+    DiscreteConfig E = ArrayToDiscreteConfig(e_index, e_value, e_num);
     int label_predict = ApproxinferByLikelihoodWeighting(E, class_var_index, num_samp);
 //    string pred_true = to_string(label_predict) + ':' + to_string(dts->dataset_all_vars[i][class_var_index]);
 //    fprintf(stdout, "%s\n", pred_true.c_str());
