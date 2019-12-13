@@ -574,7 +574,7 @@ void Network::ClearParams() {
 }
 
 
-vector<int> Network::SimplifyDefaultElimOrd(DiscreteConfig) {
+vector<int> Network::SimplifyDefaultElimOrd(DiscreteConfig evidence) {
   fprintf(stderr, "Function [%s] not implemented yet!", __FUNCTION__);
   exit(1);
 }
@@ -643,11 +643,11 @@ void Network::LoadEvidenceIntoFactors(vector<Factor> *factors_list,
 }
 
 
-Factor Network::SumProductVarElim(vector<Factor> factors_list, vector<int> Z) {
-  for (int i = 0; i < Z.size(); ++i) {
+Factor Network::SumProductVarElim(vector<Factor> factors_list, vector<int> elim_order) {
+  for (int i = 0; i < elim_order.size(); ++i) {
     vector<Factor> tempFactorsList;
-    Node* nodePtr = FindNodePtrByIndex(Z.at(i));
-    // Move every factor that is related to the node Z[i] from factors_list to tempFactorsList.
+    Node* nodePtr = FindNodePtrByIndex(elim_order.at(i));
+    // Move every factor that is related to the node elim_order[i] from factors_list to tempFactorsList.
     /*
      * Note: This for loop does not contain "++it" in the parentheses.
      *      Because if we do so, it may cause some logic faults which,
@@ -703,10 +703,15 @@ Factor Network::SumProductVarElim(vector<Factor> factors_list, vector<int> Z) {
 }
 
 
-Factor Network::VarElimInferReturnPossib(vector<int> Z, DiscreteConfig E, Node *Y) {
-  // Z is the array of variable elimination order.
-  // E is the evidences.
-  vector<Factor> factorsList = ConstructFactors(Z, Y);
+Factor Network::VarElimInferReturnPossib(DiscreteConfig evid, Node *target_node, vector<int> elim_order) {
+  // elim_order is the array of variable elimination order.
+  // evid is the evidences.
+
+  if (elim_order.empty()) {
+    elim_order = SimplifyDefaultElimOrd(evid);
+  }
+
+  vector<Factor> factorsList = ConstructFactors(elim_order, target_node);
 
   //--------------------------------------------------------------------------------
   // This block is to fix the bug occurring when the target node
@@ -718,31 +723,16 @@ Factor Network::VarElimInferReturnPossib(vector<int> Z, DiscreteConfig E, Node *
   // the parent of parent of this node, which is "A",
   // still appears in the constructed factor of the parent which is "B".
   set<int> all_related_vars;
-  all_related_vars.insert(Y->GetNodeIndex());
-  for (int i = 0; i < Z.size(); ++i) { all_related_vars.insert(Z.at(i)); }
+  all_related_vars.insert(target_node->GetNodeIndex());
+  for (int i = 0; i < elim_order.size(); ++i) { all_related_vars.insert(elim_order.at(i)); }
   //--------------------------------------------------------------------------------
 
 
-  LoadEvidenceIntoFactors(&factorsList, E, all_related_vars);
-  Factor F = SumProductVarElim(factorsList, Z);
+  LoadEvidenceIntoFactors(&factorsList, evid, all_related_vars);
+  Factor F = SumProductVarElim(factorsList, elim_order);
   F.Normalize();
   return F;
 }
-
-
-Factor Network::VarElimInferReturnPossib(DiscreteConfig E, Node *Y) {
-  vector<int> vec_simplified_elimination_order = SimplifyDefaultElimOrd(E);
-
-  // todo: delete the next line
-//  fprintf(stderr, "Middle [%s]\n", __FUNCTION__);
-
-  return this->VarElimInferReturnPossib(
-                  vec_simplified_elimination_order,
-                  E,
-                  Y
-               );
-}
-
 
 
 map<int, double> Network::DistributionOfValueIndexGivenCompleteInstanceValueIndex(int target_var_index, DiscreteConfig evidence) {
@@ -784,9 +774,9 @@ map<int, double> Network::DistributionOfValueIndexGivenCompleteInstanceValueInde
 
 
 
-int Network::PredictUseVarElimInfer(vector<int> Z, DiscreteConfig E, int Y_index) {
-  Node *Y = FindNodePtrByIndex(Y_index);
-  Factor F = VarElimInferReturnPossib(Z, E, Y);
+int Network::PredictUseVarElimInfer(DiscreteConfig evid, int target_node_idx, vector<int> elim_order) {
+  Node *Y = FindNodePtrByIndex(target_node_idx);
+  Factor F = VarElimInferReturnPossib(evid, Y, elim_order);
   double max_prob = 0;
   DiscreteConfig comb_predict;
   for (auto &comb : F.set_combinations) {
@@ -796,27 +786,6 @@ int Network::PredictUseVarElimInfer(vector<int> Z, DiscreteConfig E, int Y_index
     }
   }
   int label_predict = comb_predict.begin()->second;
-  return label_predict;
-}
-
-
-int Network::PredictUseVarElimInfer(DiscreteConfig E, int Y_index) {
-  Node *Y = FindNodePtrByIndex(Y_index);
-  Factor F = VarElimInferReturnPossib(E, Y);
-
-  double max_prob = 0;
-  DiscreteConfig comb_predict;
-  for (auto &comb : F.set_combinations) {
-    if (F.map_potentials[comb] > max_prob) {
-      max_prob = F.map_potentials[comb];
-      comb_predict = comb;
-    }
-  }
-  int label_predict = comb_predict.begin()->second;
-
-  // todo: delete the next line
-//  fprintf(stderr, "End [%s]\n", __FUNCTION__);
-
   return label_predict;
 }
 
@@ -826,6 +795,36 @@ int Network::PredictUseSimpleBruteForce(DiscreteConfig E, int Y_index) {
   int label_index = ArgMax(distribution);
   int label_pridict = ((DiscreteNode*)FindNodePtrByIndex(Y_index))->vec_potential_vals.at(label_index);
   return label_pridict;
+}
+
+
+vector<int> Network::PredictUseSimpleBruteForce(vector<DiscreteConfig> evidences, int target_node_idx) {
+  int size = evidences.size();
+
+  cout << "Progress indicator: ";
+  int every_1_of_20 = size / 20,
+      progress = 0;
+
+
+  vector<int> results(size, 0);
+#pragma omp parallel for
+  for (int i = 0; i < size; ++i) {
+#pragma omp critical
+    { ++progress; }
+//    string progress_detail = to_string(progress) + '/' + to_string(size);
+//    fprintf(stdout, "%s\n", progress_detail.c_str());
+//    fflush(stdout);
+
+    if (progress % every_1_of_20 == 0) {
+      string progress_percentage = to_string((double)progress/size * 100) + "%...\n";
+      fprintf(stdout, "%s\n", progress_percentage.c_str());
+      fflush(stdout);
+    }
+
+    int pred = PredictUseSimpleBruteForce(evidences.at(i), target_node_idx);
+    results.at(i) = pred;
+  }
+  return results;
 }
 
 
@@ -1320,7 +1319,7 @@ int Network::SampleNodeGivenMarkovBlanketReturnValIndex(Node *node_ptr, Discrete
     var_elim_ord.push_back(n_v.first);
   }
 
-  Factor f = VarElimInferReturnPossib(var_elim_ord, markov_blanket, node_ptr);
+  Factor f = VarElimInferReturnPossib(markov_blanket, node_ptr, var_elim_ord);
 
   vector<int> weights;
   for (int i=0; i<dynamic_cast<DiscreteNode*>(node_ptr)->GetDomainSize(); ++i) {
@@ -1602,6 +1601,24 @@ void Network::StructLearnLikeK2Weka(Dataset *dts, vector<int> topo_ord_constrain
     }
 
   }
+}
+
+double Network::Accuracy(vector<int> ground_truth, vector<int> predictions) {
+  int size = ground_truth.size(),
+      num_of_correct = 0,
+      num_of_wrong = 0;
+  for (int i = 0; i < size; ++i) {
+    int g = ground_truth.at(i),
+        p = predictions.at(i);
+    if (g == p) {
+      ++num_of_correct;
+    } else {
+      ++num_of_wrong;
+    }
+  }
+  double accuracy = num_of_correct / (double)(num_of_correct+num_of_wrong);
+  cout << '\n' << "Accuracy: " << accuracy << endl;
+  return accuracy;
 }
 
 #pragma clang diagnostic pop

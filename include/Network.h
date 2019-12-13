@@ -90,20 +90,19 @@ class Network {
   bool ContainCircle();
 
 
-  virtual vector<int> SimplifyDefaultElimOrd(DiscreteConfig);
+  virtual vector<int> SimplifyDefaultElimOrd(DiscreteConfig evidence);
 
   vector<Factor> ConstructFactors(vector<int> Z, Node *Y);
   void LoadEvidenceIntoFactors(vector<Factor> *factors_list, DiscreteConfig E, set<int> all_related_vars);
 
-  Factor SumProductVarElim(vector<Factor> factors_list, vector<int> Z);
-  Factor VarElimInferReturnPossib(vector<int> elim_ord, DiscreteConfig evidence, Node *target);
-  Factor VarElimInferReturnPossib(DiscreteConfig evidence, Node *target);
+  Factor SumProductVarElim(vector<Factor> factors_list, vector<int> elim_order);
+  Factor VarElimInferReturnPossib(DiscreteConfig evid, Node *target_node, vector<int> elim_order=vector<int>{});
 
   map<int, double> DistributionOfValueIndexGivenCompleteInstanceValueIndex(int target_var_index, DiscreteConfig evidence);
   int PredictUseSimpleBruteForce(DiscreteConfig E, int Y_index);
+  vector<int> PredictUseSimpleBruteForce(vector<DiscreteConfig> evidences, int target_node_idx);
 
-  int PredictUseVarElimInfer(vector<int> Z, DiscreteConfig E, int Y_index);
-  int PredictUseVarElimInfer(DiscreteConfig E, int Y_index);
+  int PredictUseVarElimInfer(DiscreteConfig evid, int target_node_idx, vector<int> elim_order=vector<int>{});
 
   double TestNetReturnAccuracy(Dataset *dts);
   double TestNetReturnAccuracyGivenAllCompleteInstances(Dataset *dts);
@@ -125,6 +124,7 @@ class Network {
   int ApproxInferByProbLogiRejectSamp(DiscreteConfig e, Node *node, vector<DiscreteConfig> &samples);
   int ApproxInferByProbLogiRejectSamp(DiscreteConfig e, int node_index, vector<DiscreteConfig> &samples);
 
+  double Accuracy(vector<int> ground_truth, vector<int> predictions);
 
  protected:
   vector<int> topo_ord;
