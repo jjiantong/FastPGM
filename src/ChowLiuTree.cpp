@@ -83,7 +83,7 @@ double ChowLiuTree::ComputeMutualInformation(Node *Xi, Node *Xj, const Dataset *
 }
 
 
-void ChowLiuTree::StructLearnCompData(Dataset *dts, bool print_struct, string topo_ord_constraint) {
+void ChowLiuTree::StructLearnCompData(Dataset *dts, bool print_struct, string algo, string topo_ord_constraint, int max_num_parents) {
   struct timeval start, end;
   double diff;
   gettimeofday(&start,NULL);

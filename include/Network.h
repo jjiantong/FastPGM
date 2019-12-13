@@ -19,6 +19,7 @@
 #include <sys/time.h>
 #include <locale.h>
 #include <algorithm>
+#include <bits/stdc++.h>
 #include "omp.h"
 
 
@@ -53,7 +54,8 @@ class Network {
 
   void ConstructNaiveBayesNetwork(Dataset *dts);
 
-  virtual void StructLearnCompData(Dataset *, bool print_struct=true, string topo_ord_constraint="dataset-ord");
+  virtual void StructLearnCompData(Dataset *, bool print_struct=true, string algo="k2-weka", string topo_ord_constraint="dataset-ord", int max_num_parents=INT_MAX);
+
 
   void LearnParamsKnowStructCompData(const Dataset *dts, int alpha=1, bool print_params=true);
 
@@ -64,10 +66,17 @@ class Network {
   void AddNode(Node *node_ptr);
   void RemoveNode(int node_index);
 
-  void SetParentChild(int, int);
+  bool AddArc(int p_index, int c_index);
+  void DeleteArc(int p_index, int c_index);
+  bool ReverseArc(int p_index, int c_index);
+
+  double CalcuExtraScoreWithModifiedArc(int p_index, int c_index, Dataset *dts,
+                                        string modification, string score_metric);
+
+  void SetParentChild(int p_index, int c_index);
   void SetParentChild(Node *par, Node *chi);
 
-  void RemoveParentChild(int, int);
+  void RemoveParentChild(int p_index, int c_index);
   void RemoveParentChild(Node *par, Node *chi);
 
   set<Node*> GetParentPtrsOfNode(int node_index);
@@ -79,6 +88,7 @@ class Network {
   vector<int> GetReverseTopoOrd();
 
   int** ConvertDAGNetworkToAdjacencyMatrix();
+  bool ContainCircle();
 
 
   virtual vector<int> SimplifyDefaultElimOrd(DiscreteConfig);
@@ -103,11 +113,7 @@ class Network {
   double TestNetByApproxInferReturnAccuracy(Dataset *dts, int num_samp);
   double TestAccuracyByLikelihoodWeighting(Dataset *dts, int num_samp);
 
-
-  // Probabilistic logic sampling is a method
-  // proposed by Max Henrion at 1988.
   DiscreteConfig ProbLogicSampleNetwork();
-
 
   vector<pair<DiscreteConfig, double>> DrawSamplesByLikelihoodWeighting(const DiscreteConfig &evidence, int num_samp);
   Factor CalcuMargWithLikelihoodWeightingSamples(const vector<pair<DiscreteConfig, double>> &samples, const int &node_index);
@@ -122,6 +128,7 @@ class Network {
   int ApproxInferByProbLogiRejectSamp(DiscreteConfig e, Node *node, vector<DiscreteConfig> &samples);
   int ApproxInferByProbLogiRejectSamp(DiscreteConfig e, int node_index, vector<DiscreteConfig> &samples);
 
+
  protected:
   vector<int> topo_ord;
 
@@ -132,7 +139,10 @@ class Network {
   // ==================================================
   // Functions for structure learning.
   // Based on the work of Ott et al. (2003) FINDING OPTIMAL MODELS FOR SMALL GENE NETWORKS
-  pair<double, set<Node*>> F(Node *node, set<Node*> &candidate_parents, Dataset *dts, map<Node*, map<set<Node*>, double>> &dynamic_program);
+  pair<double, set<Node*>> F(Node *node,
+                             set<Node*> &candidate_parents,
+                             Dataset *dts,
+                             map<Node*, map<set<Node*>, double>> &dynamic_program);
   pair<double, vector<pair<Node*, set<Node*>>>>
    Q(set<Node*> &set_nodes,
      vector<int> topo_ord,
@@ -147,8 +157,10 @@ class Network {
   void StructLearnByOtt(Dataset *dts, vector<int> topo_ord_constraint={});
   // ==================================================
 
-
-
+  // ==================================================
+  // Functions for structure learning like K2 of Weka
+  void StructLearnLikeK2Weka(Dataset *dts, vector<int> topo_ord_constraint={}, int max_num_parents=INT_MAX);
+  // ==================================================
 
 
 };

@@ -11,11 +11,14 @@ ScoreFunction::ScoreFunction(Network *net, Dataset *dts) {
 
 
 double ScoreFunction::ScoreForNode(Node *node_ptr, string metric) {
+  // Convert the string to lowercase
+  transform(metric.begin(), metric.end(), metric.begin(), ::tolower);
+
   if (metric=="log likelihood") {
     return LogLikelihoodForNode(node_ptr);
-  } else if (metric=="log K2") {
+  } else if (metric=="log k2") {
     return LogK2ForNode(node_ptr);
-  } else if (metric=="log BDeu") {
+  } else if (metric=="log bdeu") {
     return LogBDeuForNode(node_ptr, 10);
   } else if (metric=="aic") {
     return AICForNode(node_ptr);

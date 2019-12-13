@@ -30,12 +30,10 @@ Network::Network(Network &net) {
     Node *n = nullptr;
     if (old_node->is_discrete) {
       auto disc_old_node = (DiscreteNode*)old_node;
-      DiscreteNode new_node(*disc_old_node);
-      n = &new_node;
+      n = new DiscreteNode(*disc_old_node);
     } else {
       auto cont_old_node = (ContinuousNode*)old_node;
-      ContinuousNode new_node(*cont_old_node);
-      n = &new_node;
+      n = new ContinuousNode(*cont_old_node);
     }
     map_idx_node_ptr[i] = n;
   }
@@ -126,8 +124,8 @@ void Network::ConstructNaiveBayesNetwork(Dataset *dts) {
 }
 
 
-void Network::StructLearnCompData(Dataset *dts, bool print_struct, string topo_ord_constraint) {
-  fprintf(stderr, "Not be implemented yet!");
+void Network::StructLearnCompData(Dataset *dts, bool print_struct, string algo, string topo_ord_constraint, int max_num_parents) {
+  fprintf(stderr, "Not be completely implemented yet!");
 
   cout << "==================================================" << '\n'
        << "Begin structural learning with complete data......" << endl;
@@ -138,7 +136,7 @@ void Network::StructLearnCompData(Dataset *dts, bool print_struct, string topo_o
 
   num_nodes = dts->num_vars;
   // Assign an index for each node.
-  #pragma omp parallel for
+#pragma omp parallel for
   for (int i = 0; i < num_nodes; ++i) {
     DiscreteNode *node_ptr = new DiscreteNode(i);  // For now, only support discrete node.
     if (dts->vec_var_names.size() == num_nodes) {
@@ -150,7 +148,7 @@ void Network::StructLearnCompData(Dataset *dts, bool print_struct, string topo_o
     for (auto v : dts->map_disc_vars_possible_values[i]) {
       node_ptr->vec_potential_vals.push_back(v);
     }
-    #pragma omp critical
+#pragma omp critical
     {
       map_idx_node_ptr[i] = node_ptr;
     }
@@ -158,21 +156,28 @@ void Network::StructLearnCompData(Dataset *dts, bool print_struct, string topo_o
 
   vector<int> ord;
   ord.reserve(num_nodes);
-  for (int i=0; i<num_nodes; ++i) {
+  for (int i = 0; i < num_nodes; ++i) {
     ord.push_back(i);   // Because the nodes are created the same order as in the dataset.
   }
+
   cout << "topo_ord_constraint: " << topo_ord_constraint << endl;
+
   if (topo_ord_constraint == "dataset-ord") {
-    StructLearnByOtt(dts, ord);
+    // Do nothing.
   } else if (topo_ord_constraint == "random") {
-    std::srand ( unsigned ( std::time(0) ) );
-    std::random_shuffle ( ord.begin(), ord.end() );
-    StructLearnByOtt(dts, ord);
+    std::srand(unsigned(std::time(0)));
+    std::random_shuffle(ord.begin(), ord.end());
   } else if (topo_ord_constraint == "best") {
-    StructLearnByOtt(dts);
+    ord = vector<int> {};
   } else {
     fprintf(stderr, "Error in function [%s]!\nInvalid topological ordering restriction!", __FUNCTION__);
     exit(1);
+  }
+
+  if (algo == "ott") {
+    StructLearnByOtt(dts, ord);
+  } else if (algo == "k2-weka") {
+    StructLearnLikeK2Weka(dts, ord, max_num_parents);
   }
 
 
@@ -217,6 +222,76 @@ void Network::RemoveNode(int node_index) {
 }
 
 
+bool Network::AddArc(int p_index, int c_index) {
+    // If NOT form a circle, return true. Otherwise, return false and delete the added arc.
+  SetParentChild(p_index, c_index);
+  bool contain_circle = ContainCircle();
+  if (contain_circle) {
+    DeleteArc(p_index, c_index);
+  }
+  return !contain_circle;
+}
+
+void Network::DeleteArc(int p_index, int c_index) {
+  RemoveParentChild(p_index, c_index);
+}
+
+bool Network::ReverseArc(int p_index, int c_index) {
+  // If not form a circle, return true. Otherwise, return false.
+  DeleteArc(p_index, c_index);
+  return AddArc(c_index, p_index);
+}
+
+
+double Network::CalcuExtraScoreWithModifiedArc(int p_index, int c_index,
+                                               Dataset *dts,
+                                               string modification,
+                                               string score_metric) {
+  // todo: test correctness
+  Network new_net(*this);
+
+  // Convert the string to lowercase
+  transform(modification.begin(), modification.end(), modification.begin(), ::tolower);
+
+  Node *node = new_net.FindNodePtrByIndex(c_index);
+
+  if (modification == "add") {
+    if (node->set_parent_indexes.find(p_index)!=node->set_parent_indexes.end()) {
+      return 0; // The parent already exists.
+    }
+    new_net.AddArc(p_index, c_index);
+  } else if (modification == "delete") {
+    if (node->set_parent_indexes.find(p_index)==node->set_parent_indexes.end()) {
+      return 0; // The parent does not exist.
+    }
+    new_net.DeleteArc(p_index, c_index);
+  } else if (modification == "reverse") {
+    if (node->set_parent_indexes.find(p_index)==node->set_parent_indexes.end()) {
+      return 0; // The parent does not exist.
+    }
+    new_net.ReverseArc(p_index, c_index);
+  } else {
+    fprintf(stderr, "Fucntion [%s]: Invalid modification string \"%s\"!",
+            __FUNCTION__, modification.c_str());
+    exit(1);
+  }
+
+  Node *old_c_node = this->FindNodePtrByIndex(c_index),
+       *new_c_node = new_net.FindNodePtrByIndex(c_index);
+
+  new_c_node->GenDiscParCombs(new_net.GetParentPtrsOfNode(c_index));
+
+  ScoreFunction old_sf(this, dts),
+                new_sf(&new_net, dts);
+
+  double old_score = old_sf.ScoreForNode(old_c_node, score_metric),
+         new_score = new_sf.ScoreForNode(new_c_node, score_metric);
+
+  double delta = new_score - old_score;
+  return delta;
+}
+
+
 void Network::SetParentChild(int p_index, int c_index) {
   Node *p = FindNodePtrByIndex(p_index), *c = FindNodePtrByIndex(c_index);
   SetParentChild(p,c);
@@ -234,7 +309,6 @@ void Network::SetParentChild(Node *p, Node *c) {
   p->AddChild(c);
   c->AddParent(p);
 }
-
 
 void Network::RemoveParentChild(int p_index, int c_index) {
   Node *p = FindNodePtrByIndex(p_index), *c = FindNodePtrByIndex(c_index);
@@ -408,6 +482,13 @@ int** Network::ConvertDAGNetworkToAdjacencyMatrix() {
     }
   }
   return adjac_matrix;
+}
+
+
+bool Network::ContainCircle() {
+  int **graph = ConvertDAGNetworkToAdjacencyMatrix();
+  bool result = DirectedGraphContainsCircleByBFS(graph, num_nodes);
+  return result;
 }
 
 
@@ -1031,6 +1112,9 @@ double Network::TestAccuracyByLikelihoodWeighting(Dataset *dts, int num_samp) {
 
 
 DiscreteConfig Network::ProbLogicSampleNetwork() {
+  // Probabilistic logic sampling is a method
+  // proposed by Max Henrion at 1988.
+
   DiscreteConfig instance;
   // Cannot use OpenMP, because must draw samples in the topological ordering.
   for (const auto &index : this->GetTopoOrd()) {
@@ -1348,7 +1432,7 @@ pair<double, set<Node*>> Network::F(Node *node,
     DiscreteNode node_copy = *dynamic_cast<DiscreteNode*>(node);
     vector<DiscreteNode> candidate_parents_copy;
     for (auto n : candidate_parents) {
-      candidate_parents_copy.push_back(*dynamic_cast<DiscreteNode*>(n));
+      candidate_parents_copy.push_back(*(DiscreteNode*)(n));
     }
 
     Network temp_net;
@@ -1483,6 +1567,48 @@ vector<int> Network::SparseInstanceFillZeroToCompleteInstance(DiscreteConfig &sp
     complete_instance.at(p.first) = p.second;
   }
   return complete_instance;
+}
+
+
+void Network::StructLearnLikeK2Weka(Dataset *dts, vector<int> topo_ord_constraint, int max_num_parents) {
+  // todo: test the correctness
+  if (topo_ord_constraint.empty() || topo_ord_constraint.size() != num_nodes) {
+    topo_ord_constraint.reserve(num_nodes);
+    for (int i = 0; i < num_nodes; ++i) {
+      topo_ord_constraint.push_back(i);
+    }
+  }
+  GenDiscParCombsForAllNodes();
+//#pragma omp parallel for
+  for (int i = 0; i < num_nodes; ++i) {
+
+    int var_index = topo_ord_constraint.at(i);
+    DiscreteNode *node = (DiscreteNode*) this->map_idx_node_ptr.at(var_index);
+
+    bool progress = (node->GetNumParents() < max_num_parents);
+    while (progress) {
+      int best_par_index = -1;
+      double best_extra_score = 0;
+      for (int j = 0; j < i; ++j) {
+        int par_index = topo_ord_constraint.at(j);
+        double extra_score = CalcuExtraScoreWithModifiedArc(par_index, var_index, dts, "add", "log K2");
+        if (extra_score > best_extra_score) {
+          if (this->AddArc(par_index, var_index)) {
+            best_par_index = j;
+            best_extra_score = extra_score;
+            this->DeleteArc(par_index, var_index);
+          }
+        }
+      }
+      if (best_par_index == -1) {
+        progress = false;
+      } else {
+        this->AddArc(best_par_index, var_index);
+        progress = (node->GetNumParents() < max_num_parents);
+      }
+    }
+
+  }
 }
 
 #pragma clang diagnostic pop

@@ -218,11 +218,11 @@ TEST(CustomNetworkTest, sampling_dog_net_to_csv_file_and_relearn_params) {
   net->StructLearnCompData(dts, true);
 }
 
-TEST(CustomNetworkTest, dog_net_struct_learn) {
+TEST(CustomNetworkTest, dog_net_struct_learn_ott) {
   Dataset *dts = new Dataset();
   dts->LoadCSVDataAutoDetectConfig("./dog_problem_dataset_by_gibbs_sampling.csv", true, 0);
   Network *net = new Network();
-  net->StructLearnCompData(dts, true);
+  net->StructLearnCompData(dts, true, "ott");
 //  net->LearnParamsKnowStructCompData(dts);
   ScoreFunction sf(net, dts);
   sf.PrintAllScore();
@@ -244,24 +244,6 @@ TEST(CustomNetworkTest, dog_net_struct_learn) {
 
   cout << "=====================================\n"
        << "Checking score with Weka" << endl;
-//  ================ Weka ======================
-//  ============================================
-//  === Classifier model (full training set) ===
-//
-//  Bayes Network Classifier
-//  not using ADTree
-//  #attributes=5 #classindex=0
-//  Network structure (nodes followed by parents)
-//  0(2): 4
-//  1(2): 2
-//  2(2): 3
-//  3(2):
-//  4(2): 2
-//  LogScore Bayes: -32367.607275120718
-//  LogScore BDeu: -32374.4788768857
-//  LogScore MDL: -32382.62930993226
-//  LogScore ENTROPY: -32338.06361594585
-//  LogScore AIC: -32347.06361594585
 
   net->ClearStructure();
   net->SetParentChild(4, 0);
@@ -277,24 +259,6 @@ TEST(CustomNetworkTest, dog_net_struct_learn) {
 
   cout << "=====================================\n"
        << "Checking score with Weka" << endl;
-//  ================ Weka ======================
-//  ============================================
-//  === Classifier model (full training set) ===
-//
-//  Bayes Network Classifier
-//  not using ADTree
-//  #attributes=5 #classindex=0
-//  Network structure (nodes followed by parents)
-//  0(2): 4
-//  1(2): 2 4
-//  2(2):
-//  3(2): 2
-//  4(2): 2
-//  LogScore Bayes: -32361.062678576272
-//  LogScore BDeu: -32372.64071711824
-//  LogScore MDL: -32384.24056664207
-//  LogScore ENTROPY: -32329.771385103122
-//  LogScore AIC: -32340.771385103122
 
   net->ClearStructure();
   net->SetParentChild(4, 0);
@@ -311,25 +275,6 @@ TEST(CustomNetworkTest, dog_net_struct_learn) {
 
   cout << "=====================================\n"
        << "Checking score with Weka" << endl;
-//  ================ Weka ======================
-//  ============================================
-//  === Classifier model (full training set) ===
-//
-//  Bayes Network Classifier
-//  not using ADTree
-//  #attributes=5 #classindex=0
-//  Network structure (nodes followed by parents)
-//  0(2): 4
-//  1(2): 3
-//  2(2): 3 4 1
-//  3(2):
-//  4(2): 3
-//  LogScore Bayes: -32377.00411628413
-//  LogScore BDeu: -32400.67873761178
-//  LogScore MDL: -32416.56758827791
-//  LogScore ENTROPY: -32342.291431633887
-//  LogScore AIC: -32357.291431633887
-
   net->ClearStructure();
   net->SetParentChild(4, 0);
   net->SetParentChild(3, 1);
@@ -346,10 +291,34 @@ TEST(CustomNetworkTest, dog_net_struct_learn) {
 
   cout << "=====================================\n"
        << "Checking score with Weka" << endl;
-//  ================ Weka ======================
-//  ============================================
-//  === Classifier model (full training set) ===
-//
+  net->ClearStructure();
+  net->SetParentChild(0, 1);
+  net->SetParentChild(0, 2);
+  net->SetParentChild(1, 2);
+  net->SetParentChild(2, 3);
+  net->SetParentChild(0, 4);
+  net->SetParentChild(1, 4);
+  net->SetParentChild(2, 4);
+  net->GetTopoOrd();
+  net->GenDiscParCombsForAllNodes();
+  net->PrintEachNodeParents();
+  ScoreFunction sf6(net, dts);
+  sf6.PrintAllScore();
+}
+
+TEST(CustomNetworkTest, dog_net_struct_learn_k2_weka) {
+  Dataset *dts = new Dataset();
+  dts->LoadCSVDataAutoDetectConfig("./dog_problem_dataset_by_gibbs_sampling.csv", true, 0);
+  Network *net = new Network();
+  net->StructLearnCompData(dts, true, "k2-weka", "dataset-ord");
+//  net->LearnParamsKnowStructCompData(dts);
+  ScoreFunction sf(net, dts);
+  sf.PrintAllScore();
+
+
+  cout << "=====================================\n"
+       << "Checking score with Weka" << endl;
+
 //  Bayes Network Classifier
 //  not using ADTree
 //  #attributes=5 #classindex=0
@@ -373,19 +342,21 @@ TEST(CustomNetworkTest, dog_net_struct_learn) {
   net->SetParentChild(0, 4);
   net->SetParentChild(1, 4);
   net->SetParentChild(2, 4);
+
   net->GetTopoOrd();
   net->GenDiscParCombsForAllNodes();
   net->PrintEachNodeParents();
-  ScoreFunction sf6(net, dts);
-  sf6.PrintAllScore();
+  ScoreFunction sf3(net, dts);
+  sf3.PrintAllScore();
+
 }
 
 TEST(CustomNetworkTest, DISABLED_a1a_struct_learn) {
-  // The program consumes too much time.
+  // The program takes too much time.
   Dataset *dts = new Dataset();
   dts->LoadCSVDataAutoDetectConfig("../../data/dataset/Phishing/Phishing_Training_Dataset_split_1_of_10.arff.csv");
   Network *net = new Network();
-  net->StructLearnCompData(dts, true);
+  net->StructLearnCompData(dts, true, "k2-weka", "dataset-ord");
 //  net->LearnParamsKnowStructCompData(dts);
   ScoreFunction sf(net, dts);
   sf.PrintAllScore();
