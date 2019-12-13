@@ -19,15 +19,16 @@ May be good for parallelize.
 
 ## Smoothing on Parameter Learning
 
-Greatly improves the performance. I have done experiments on multiple datasets to verify that.
+Greatly improves the performance.
+I have done experiments on multiple datasets to verify that.
 
 ## Store Counts of Data Occurrence Instead of Storing Probability Directly
 
-Store the counts for each value. When the model needs the probability,
-it can just divide the count by the sum of counts.
+Store the counts for each value. When the probability is needed,
+it can be obtained by dividing the count by the sum of counts.
 
-An advantage is that the model can update the parameter when there are more
-data coming in. It can just add the corresponding counts then the model is
+An advantage is that the model can update the parameter whenever there are more
+data coming in. It can just add the corresponding counts and then the model is
 updated. If the model stores the probability directly, it will be hard to
 update the parameter.
 
@@ -42,10 +43,11 @@ Two advantages:
 small causing underflow. Change them to log space and calculating the sum will
 preserve better accuracy.
 
-## local K2 algorithm
+## Local K2 Algorithm
 
 The algorithm check the variables preceding the target variable one by one. If
-adding a variable to the parent set of the target variable makes the score better,
-then the variable will be added, or else will not.
+adding a variable to the parent set of the target variable makes the score
+better, then the variable will be added, or else will not.
 
-The algorithm does not check **every** possible combination of the preceding variables.
+The algorithm does **NOT** check **EVERY**
+possible combination of the preceding variables.

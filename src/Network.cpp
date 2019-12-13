@@ -488,6 +488,10 @@ int** Network::ConvertDAGNetworkToAdjacencyMatrix() {
 bool Network::ContainCircle() {
   int **graph = ConvertDAGNetworkToAdjacencyMatrix();
   bool result = DirectedGraphContainsCircleByBFS(graph, num_nodes);
+  for (int i = 0; i < num_nodes; ++i) {
+    delete[] graph[i];
+  }
+  delete[] graph;
   return result;
 }
 
