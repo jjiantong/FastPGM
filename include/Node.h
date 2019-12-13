@@ -25,12 +25,15 @@ class Node {
   int node_index = -1;
   int num_parents_config = -1;
 
+  void AddDiscreteParent(Node *p);
+  void AddContinuousParent(Node *p);
+
  public:
 
   string node_name = "";
-  bool is_discrete;
+  bool is_discrete = true;
 
-  set<DiscreteConfig> set_discrete_parents_combinations;
+  set<DiscreteConfig> set_discrete_parents_combinations = set<DiscreteConfig>{ DiscreteConfig{} };  // Default: contain ONE empty element
 
   // =============== refactor like Weka ===============
   vector<int> vec_disc_parent_indexes;  // The order matters.

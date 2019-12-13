@@ -42,9 +42,9 @@ class ContinuousNode : public Node {
   ContinuousNode();
   explicit ContinuousNode(int index);
   ContinuousNode(int index, string name);
+  ContinuousNode(const ContinuousNode &n) = default;
   ContinuousNode(ContinuousNode &n) = default;
   void AddChild(Node *node_ptr) override;
-  void AddParent(Node *node_ptr) override;
   void RemoveParent(Node *node_ptr) override;
   int GetNumParams() override;
   void ClearParams() override;

@@ -29,35 +29,14 @@ void ContinuousNode::AddChild(Node *c) {
   }
 }
 
-void ContinuousNode::AddParent(Node *p) {
-
-  int p_idx = p->GetNodeIndex();
-  if (set_parent_indexes.find(p_idx) == set_parent_indexes.end()) {
-    set_parent_indexes.insert(p_idx);
-    vec_disc_parent_indexes.push_back(p_idx);
-    if (p->is_discrete) {
-      map_disc_parents_domain_size[p_idx] = ((DiscreteNode*)p)->GetDomainSize();
-    } else {
-      contin_par_indexes.push_back(p->GetNodeIndex());
-    }
-  } else {
-    fprintf(stdout, "Node #%d is already parent of Node #%d", p_idx, this->GetNodeIndex());
-  }
-}
-
 void ContinuousNode::RemoveParent(Node *p) {
-  int p_idx = p->GetNodeIndex();
-  if (set_parent_indexes.find(p_idx)==set_parent_indexes.end()) {
-    fprintf(stderr, "Node #%d does not have parent node #%d!", this->GetNodeIndex(), p_idx);
-    return;
-  }
+  Node::RemoveParent(p);
+
   if (!p->is_discrete) {
     auto it = contin_par_indexes.begin();
     while (*it!=p->GetNodeIndex()) { ++it; }
     contin_par_indexes.erase(it);
   }
-  set_parent_indexes.erase(p_idx);
-  vec_disc_parent_indexes.erase(std::find(vec_disc_parent_indexes.begin(), vec_disc_parent_indexes.end(), p_idx));
 }
 
 int ContinuousNode::GetNumParams() {

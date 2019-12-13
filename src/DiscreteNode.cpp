@@ -48,12 +48,27 @@ void DiscreteNode::AddParent(Node *p) {
                     "Discrete node must not have continuous parent!", __FUNCTION__);
     exit(1);
   }
-  int p_idx = p->GetNodeIndex();
-  if (set_parent_indexes.find(p_idx) == set_parent_indexes.end()) {
-    set_parent_indexes.insert(p_idx);
-    vec_disc_parent_indexes.push_back(p_idx);
-    map_disc_parents_domain_size[p_idx] = ((DiscreteNode*)p)->GetDomainSize();
-  }
+
+  Node::AddParent(p);
+//  int p_idx = p->GetNodeIndex();
+//  if (set_parent_indexes.find(p_idx) == set_parent_indexes.end()) {
+//    set_parent_indexes.insert(p_idx);
+//
+//    auto dp = (DiscreteNode *) p;
+//    vec_disc_parent_indexes.push_back(p_idx);
+//    map_disc_parents_domain_size[p_idx] = dp->GetDomainSize();
+//
+//    // Update possible parent configurations
+//    set<DiscreteConfig> new_par_combs;
+//    for (const auto &val : dp->vec_potential_vals) {
+//      DiscVarVal vv(p_idx, val);
+//      for (auto old_par_comb : set_discrete_parents_combinations) {
+//        old_par_comb.insert(vv);
+//        new_par_combs.insert(old_par_comb);
+//      }
+//    }
+//    this->set_discrete_parents_combinations = new_par_combs;
+//  }
 }
 
 int DiscreteNode::GetNumParams() {

@@ -1,9 +1,12 @@
+#include <utility>
+
 //
 // Created by Linjian Li on 2018/11/29.
 //
 
 #include "Node.h"
 #include "DiscreteNode.h"
+#include "ContinuousNode.h"
 
 Node::Node(int index) : Node(index, to_string(index)){
 
@@ -11,7 +14,7 @@ Node::Node(int index) : Node(index, to_string(index)){
 
 Node::Node(int index, string name) {
   SetNodeIndex(index);
-  node_name = name;
+  node_name = std::move(name);
 }
 
 int Node::GetNodeIndex() const {
@@ -100,12 +103,45 @@ void Node::AddChild(Node *c) {
 
 void Node::AddParent(Node *p) {
   int p_idx = p->GetNodeIndex();
-  if (set_parent_indexes.find(p_idx) == set_parent_indexes.end()) {
-    set_parent_indexes.insert(p_idx);
+  if (set_parent_indexes.find(p_idx) == set_parent_indexes.end()) {  // If p is not in the parent set.
     if (p->is_discrete) {
-      vec_disc_parent_indexes.push_back(p_idx);
-      map_disc_parents_domain_size[p_idx] = ((DiscreteNode *) p)->GetDomainSize();
+      AddDiscreteParent(p);
+    } else {
+      AddContinuousParent(p);
     }
+  }
+}
+
+
+void Node::AddDiscreteParent(Node *p) {
+  int p_idx = p->GetNodeIndex();
+  if (set_parent_indexes.find(p_idx) == set_parent_indexes.end()) {  // If p is not in the parent set.
+    set_parent_indexes.insert(p_idx);
+    auto dp = (DiscreteNode *) p;
+    vec_disc_parent_indexes.push_back(p_idx);
+    map_disc_parents_domain_size[p_idx] = dp->GetDomainSize();
+
+    // Update possible parent configurations
+    set<DiscreteConfig> new_par_combs;
+    for (const auto &val : dp->vec_potential_vals) {
+      DiscVarVal vv(p_idx, val);
+      for (auto old_par_comb : set_discrete_parents_combinations) {
+        old_par_comb.insert(vv);
+        new_par_combs.insert(old_par_comb);
+      }
+    }
+    this->set_discrete_parents_combinations = new_par_combs;
+  }
+}
+
+
+void Node::AddContinuousParent(Node *p) {
+  int p_idx = p->GetNodeIndex();
+  if (set_parent_indexes.find(p_idx) == set_parent_indexes.end()) {  // If p is not in the parent set.
+    set_parent_indexes.insert(p_idx);
+
+    auto cont_this = (ContinuousNode*) this;
+    cont_this->contin_par_indexes.push_back(p_idx);
   }
 }
 
@@ -126,10 +162,23 @@ void Node::RemoveParent(Node *p) {
     fprintf(stderr, "Node #%d does not have parent node #%d!", this->GetNodeIndex(), p_idx);
     return;
   }
-
   set_parent_indexes.erase(p_idx);
-  vec_disc_parent_indexes.erase(std::find(vec_disc_parent_indexes.begin(), vec_disc_parent_indexes.end(), p_idx));
-  map_disc_parents_domain_size.erase(p_idx);
+  if (p->is_discrete) {
+    vec_disc_parent_indexes.erase(std::find(vec_disc_parent_indexes.begin(), vec_disc_parent_indexes.end(), p_idx));
+    map_disc_parents_domain_size.erase(p_idx);
+
+    // Update possible parent configurations
+    auto dp = (DiscreteNode*) p;
+    set<DiscreteConfig> new_par_combs;
+    for (const auto &val : dp->vec_potential_vals) {
+      DiscVarVal vv(p_idx, val);
+      for (auto old_par_comb : set_discrete_parents_combinations) {
+        old_par_comb.erase(vv);
+        new_par_combs.insert(old_par_comb);
+      }
+    }
+    this->set_discrete_parents_combinations = new_par_combs;
+  }
 }
 
 

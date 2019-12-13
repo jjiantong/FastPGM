@@ -44,6 +44,7 @@ class DiscreteNode : public Node {
   DiscreteNode();
   explicit DiscreteNode(int index);
   DiscreteNode(int index, string name);
+  DiscreteNode(const DiscreteNode &n) = default;
   DiscreteNode(DiscreteNode &n) = default;
 
   void SetDomain(vector<string> str_domain);
