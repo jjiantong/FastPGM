@@ -41,7 +41,7 @@ class ExperimentOnCovertype : public ::testing::Test {
 };
 
 TEST_F(ExperimentOnCovertype, covertype_test_var_elim) {
-  double accuracy = network->TestNetReturnAccuracy(tester);
+  double accuracy = network->TestNetByVarElimReturnAccuracy(tester);
   EXPECT_GT(accuracy, 0.600);
 }
 
@@ -106,7 +106,7 @@ TEST_F(ExperimentOnPhishing, DISABLED_naive_bayes_var_elim) {
   net->root_node_index = 30;
   net->ConstructNaiveBayesNetwork(trainer);
   net->LearnParamsKnowStructCompData(trainer, 2, false);
-  double accuracy = net->TestNetReturnAccuracy(tester);
+  double accuracy = net->TestNetByVarElimReturnAccuracy(tester);
   EXPECT_GT(accuracy, 0.8360);
 }
 
@@ -120,7 +120,7 @@ TEST_F(ExperimentOnPhishing, DISABLED_naive_bayes_lik_wei) {
 }
 
 TEST_F(ExperimentOnPhishing, DISABLED_var_elim) {
-  double accuracy = network->TestNetReturnAccuracy(tester);
+  double accuracy = network->TestNetByVarElimReturnAccuracy(tester);
   EXPECT_GT(accuracy, 0.8250);
 }
 
@@ -171,7 +171,7 @@ class ExperimentOnA1a : public ::testing::Test {
 };
 
 TEST_F(ExperimentOnA1a, DISABLED_var_elim) {
-  double accuracy = network->TestNetReturnAccuracy(tester);
+  double accuracy = network->TestNetByVarElimReturnAccuracy(tester);
   EXPECT_GT(accuracy, 0.8230);
 }
 

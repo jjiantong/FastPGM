@@ -53,7 +53,7 @@ class NetworkTest : public ::testing::Test {
 
 
 TEST_F(NetworkTest, chow_liu_tree_var_elim_accuracy) { // The prefix "DISABLED" disable this test.
-  double accuracy = network->TestNetReturnAccuracy(tester);
+  double accuracy = network->TestNetByVarElimReturnAccuracy(tester);
   ScoreFunction sf(network, trainer);
   sf.PrintAllScore();
   EXPECT_GT(accuracy,0.67);

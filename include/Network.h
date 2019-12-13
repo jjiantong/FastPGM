@@ -99,14 +99,16 @@ class Network {
   Factor VarElimInferReturnPossib(DiscreteConfig evid, Node *target_node, vector<int> elim_order=vector<int>{});
 
   map<int, double> DistributionOfValueIndexGivenCompleteInstanceValueIndex(int target_var_index, DiscreteConfig evidence);
+
   int PredictUseSimpleBruteForce(DiscreteConfig E, int Y_index);
   vector<int> PredictUseSimpleBruteForce(vector<DiscreteConfig> evidences, int target_node_idx);
 
   int PredictUseVarElimInfer(DiscreteConfig evid, int target_node_idx, vector<int> elim_order=vector<int>{});
+  vector<int> PredictUseVarElimInfer(vector<DiscreteConfig> evidences, int target_node_idx, vector<vector<int>> elim_orders=vector<vector<int>>{});
 
-  double TestNetReturnAccuracy(Dataset *dts);
+  double TestNetByVarElimReturnAccuracy(Dataset *dts);
   double TestNetReturnAccuracyGivenAllCompleteInstances(Dataset *dts);
-  double TestNetByApproxInferReturnAccuracy(Dataset *dts, int num_samp);
+  double TestNetByApproxInferReturnAccuracy(Dataset *dts, int num_samp); // todo: refactor
   double TestAccuracyByLikelihoodWeighting(Dataset *dts, int num_samp);
 
   DiscreteConfig ProbLogicSampleNetwork();
@@ -114,6 +116,7 @@ class Network {
   vector<pair<DiscreteConfig, double>> DrawSamplesByLikelihoodWeighting(const DiscreteConfig &evidence, int num_samp);
   Factor CalcuMargWithLikelihoodWeightingSamples(const vector<pair<DiscreteConfig, double>> &samples, const int &node_index);
   int ApproxinferByLikelihoodWeighting(DiscreteConfig e, const int &node_index, const int &num_samp);
+  vector<int> ApproxinferByLikelihoodWeighting(vector<DiscreteConfig> evidences, const int &target_node_idx, const int &num_samp);
 
 
   int SampleNodeGivenMarkovBlanketReturnValIndex(Node *node_ptr, DiscreteConfig markov_blanket);
@@ -123,6 +126,8 @@ class Network {
 
   int ApproxInferByProbLogiRejectSamp(DiscreteConfig e, Node *node, vector<DiscreteConfig> &samples);
   int ApproxInferByProbLogiRejectSamp(DiscreteConfig e, int node_index, vector<DiscreteConfig> &samples);
+  vector<int> ApproxInferByProbLogiRejectSamp(vector<DiscreteConfig> evidences, int node_idx, vector<DiscreteConfig> &samples);
+
 
   double Accuracy(vector<int> ground_truth, vector<int> predictions);
 

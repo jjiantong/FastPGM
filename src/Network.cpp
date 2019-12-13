@@ -789,6 +789,41 @@ int Network::PredictUseVarElimInfer(DiscreteConfig evid, int target_node_idx, ve
   return label_predict;
 }
 
+vector<int> Network::PredictUseVarElimInfer(vector<DiscreteConfig> evidences, int target_node_idx, vector<vector<int>> elim_orders) {
+  int size = evidences.size();
+
+  cout << "Progress indicator: ";
+  int every_1_of_20 = size / 20,
+          progress = 0;
+
+  if (elim_orders.empty()) {
+    // Vector of size "size". Each element is an empty vector.
+    elim_orders = vector<vector<int>> (size, vector<int>{});
+  }
+
+  vector<int> results(size, 0);
+#pragma omp parallel for
+  for (int i = 0; i < size; ++i) {
+#pragma omp critical
+    { ++progress; }
+//    string progress_detail = to_string(progress) + '/' + to_string(size);
+//    fprintf(stdout, "%s\n", progress_detail.c_str());
+//    fflush(stdout);
+
+    if (progress % every_1_of_20 == 0) {
+      string progress_percentage = to_string((double)progress/size * 100) + "%...\n";
+      fprintf(stdout, "%s\n", progress_percentage.c_str());
+      fflush(stdout);
+    }
+
+    DiscreteConfig evidence = evidences.at(i);
+    vector<int> elim_ord = elim_orders.at(i);
+    int pred = PredictUseVarElimInfer(evidence, target_node_idx, elim_ord);
+    results.at(i) = pred;
+  }
+  return results;
+}
+
 
 int Network::PredictUseSimpleBruteForce(DiscreteConfig E, int Y_index) {
   map<int, double> distribution = DistributionOfValueIndexGivenCompleteInstanceValueIndex(Y_index, E);
@@ -828,7 +863,7 @@ vector<int> Network::PredictUseSimpleBruteForce(vector<DiscreteConfig> evidences
 }
 
 
-double Network::TestNetReturnAccuracy(Dataset *dts) {
+double Network::TestNetByVarElimReturnAccuracy(Dataset *dts) {
 
   cout << "==================================================" << '\n'
        << "Begin testing the trained network." << endl;
@@ -837,31 +872,16 @@ double Network::TestNetReturnAccuracy(Dataset *dts) {
   double diff;
   gettimeofday(&start,NULL);
 
-  cout << "Progress indicator: ";
-  int num_of_correct=0, num_of_wrong=0, m=dts->num_instance, m20= m / 20, progress=0;
+  int m = dts->num_instance;
 
   int class_var_index = dts->class_var_index;
 
 
-  // For each sample in test set
-#pragma omp parallel for
+  vector<int> ground_turths;
+  vector<DiscreteConfig> evidences;
+  evidences.reserve(m);
+  ground_turths.reserve(m);
   for (int i = 0; i < m; ++i) {
-
-#pragma omp critical
-    { ++progress; }
-//    string progress_detail = to_string(progress) + '/' + to_string(m);
-//    fprintf(stdout, "%s\n", progress_detail.c_str());
-//    fflush(stdout);
-
-    if (progress % m20 == 0) {
-      string progress_percentage = to_string((double)progress/m * 100) + "%...\n";
-      fprintf(stdout, "Progress: %s\n", progress_percentage.c_str());
-      double acc_so_far = num_of_correct / (double)(num_of_correct+num_of_wrong);
-      fprintf(stdout, "Accuracy so far: %f\n", acc_so_far);
-      fflush(stdout);
-    }
-
-    // For now, only support complete data.
     int e_num = num_nodes - 1, *e_index = new int[e_num], *e_value = new int[e_num];
     for (int j = 0; j < num_nodes; ++j) {
       if (j == class_var_index) {continue;}
@@ -869,21 +889,20 @@ double Network::TestNetReturnAccuracy(Dataset *dts) {
       e_value[j < class_var_index ? j : j - 1] = dts->dataset_all_vars[i][j];
     }
     DiscreteConfig E = ArrayToDiscreteConfig(e_index, e_value, e_num);
-    int label_predict = PredictUseVarElimInfer(E, class_var_index);
-//    string pred_true = to_string(label_predict) + ':' + to_string(dts->dataset_all_vars[i][class_var_index]);
-//    fprintf(stdout, "%s\n", pred_true.c_str());
-//    fflush(stdout);
-    if (label_predict == dts->dataset_all_vars[i][class_var_index]) {
-#pragma omp critical
-      { ++num_of_correct; }
-    } else {
-#pragma omp critical
-      { ++num_of_wrong; }
-    }
-
+    evidences.push_back(E);
+    int g = dts->dataset_all_vars[i][class_var_index];
+    ground_turths.push_back(g);
     delete[] e_index;
     delete[] e_value;
   }
+
+
+  vector<int> predictions = PredictUseVarElimInfer(evidences, class_var_index);
+
+  double accuracy = Accuracy(ground_turths, predictions);
+
+  cout << '\n' << "Accuracy: " << accuracy << endl;
+
 
   gettimeofday(&end,NULL);
   diff = (end.tv_sec-start.tv_sec) + ((double)(end.tv_usec-start.tv_usec))/1.0E6;
@@ -891,8 +910,6 @@ double Network::TestNetReturnAccuracy(Dataset *dts) {
   cout << "==================================================" << '\n'
        << "The time spent to test the accuracy is " << diff << " seconds" << endl;
 
-  double accuracy = num_of_correct / (double)(num_of_correct+num_of_wrong);
-  cout << '\n' << "Accuracy: " << accuracy << endl;
   return accuracy;
 }
 
@@ -906,31 +923,15 @@ double Network::TestNetReturnAccuracyGivenAllCompleteInstances(Dataset *dts) {
   double diff;
   gettimeofday(&start,NULL);
 
-  cout << "Progress indicator: ";
-  int num_of_correct=0, num_of_wrong=0, m=dts->num_instance, m20= m / 20, progress=0;
+  int m = dts->num_instance;
 
   int class_var_index = dts->class_var_index;
 
-
-  // For each sample in test set
-#pragma omp parallel for
+  vector<int> ground_turths;
+  vector<DiscreteConfig> evidences;
+  evidences.reserve(m);
+  ground_turths.reserve(m);
   for (int i = 0; i < m; ++i) {
-
-#pragma omp critical
-    { ++progress; }
-//    string progress_detail = to_string(progress) + '/' + to_string(m);
-//    fprintf(stdout, "%s\n", progress_detail.c_str());
-//    fflush(stdout);
-
-    if (progress % m20 == 0) {
-      string progress_percentage = to_string((double)progress/m * 100) + "%...\n";
-      fprintf(stdout, "Progress: %s\n", progress_percentage.c_str());
-      double acc_so_far = num_of_correct / (double)(num_of_correct+num_of_wrong);
-      fprintf(stdout, "Accuracy so far: %f\n", acc_so_far);
-      fflush(stdout);
-    }
-
-    // For now, only support complete data.
     int e_num = num_nodes - 1, *e_index = new int[e_num], *e_value = new int[e_num];
     for (int j = 0; j < num_nodes; ++j) {
       if (j == class_var_index) {continue;}
@@ -938,21 +939,18 @@ double Network::TestNetReturnAccuracyGivenAllCompleteInstances(Dataset *dts) {
       e_value[j < class_var_index ? j : j - 1] = dts->dataset_all_vars[i][j];
     }
     DiscreteConfig E = ArrayToDiscreteConfig(e_index, e_value, e_num);
-    int label_predict = PredictUseSimpleBruteForce(E, class_var_index);
-//    string pred_true = to_string(label_predict) + ':' + to_string(dts->dataset_all_vars[i][class_var_index]);
-//    fprintf(stdout, "%s\n", pred_true.c_str());
-//    fflush(stdout);
-    if (label_predict == dts->dataset_all_vars[i][class_var_index]) {
-#pragma omp critical
-      { ++num_of_correct; }
-    } else {
-#pragma omp critical
-      { ++num_of_wrong; }
-    }
-
+    evidences.push_back(E);
+    int g = dts->dataset_all_vars[i][class_var_index];
+    ground_turths.push_back(g);
     delete[] e_index;
     delete[] e_value;
   }
+
+  vector<int> predictions = PredictUseSimpleBruteForce(evidences, class_var_index);
+
+  double accuracy = Accuracy(ground_turths, predictions);
+
+  cout << '\n' << "Accuracy: " << accuracy << endl;
 
   gettimeofday(&end,NULL);
   diff = (end.tv_sec-start.tv_sec) + ((double)(end.tv_usec-start.tv_usec))/1.0E6;
@@ -960,8 +958,6 @@ double Network::TestNetReturnAccuracyGivenAllCompleteInstances(Dataset *dts) {
   cout << "==================================================" << '\n'
        << "The time spent to test the accuracy is " << diff << " seconds" << endl;
 
-  double accuracy = num_of_correct / (double)(num_of_correct+num_of_wrong);
-  cout << '\n' << "Accuracy: " << accuracy << endl;
   return accuracy;
 }
 
@@ -976,51 +972,37 @@ double Network::TestNetByApproxInferReturnAccuracy(Dataset *dts, int num_samp) {
   double diff;
   gettimeofday(&start,NULL);
 
-  cout << "Progress indicator: ";
-
-  int num_of_correct=0, num_of_wrong=0, m=dts->num_instance, m20= m / 20, progress=0;
+  int m = dts->num_instance;
 
   int class_var_index = dts->class_var_index;
 
   vector<DiscreteConfig> samples = this->DrawSamplesByProbLogiSamp(num_samp);
   cout << "Finish drawing samples." << endl;
 
-  #pragma omp parallel for
-  for (int i=0; i<m; ++i) {  // For each sample in test set
-
-    #pragma omp critical
-    { ++progress; }
-    string progress_detail = to_string(progress) + '/' + to_string(m);
-    fprintf(stdout, "%s\n", progress_detail.c_str());
-    fflush(stdout);
-
-    if (progress % m20 == 0) {
-      string progress_percentage = to_string((double)progress/m * 100) + "%...\n";
-      fprintf(stdout, "Progress: %s\n", progress_percentage.c_str());
-      double acc_so_far = num_of_correct / (double)(num_of_correct+num_of_wrong);
-      fprintf(stdout, "Accuracy so far: %f\n", acc_so_far);
-      fflush(stdout);
-    }
-
-    // For now, only support complete data.
-    int e_num=num_nodes-1, *e_index=new int[e_num], *e_value=new int[e_num];
-    for (int j=0; j<num_nodes; ++j) {
-      if (j == class_var_index) { continue; }
-      e_index[j < class_var_index ? j : j - 1] = j + 1;
+  vector<int> ground_turths;
+  vector<DiscreteConfig> evidences;
+  evidences.reserve(m);
+  ground_turths.reserve(m);
+  for (int i = 0; i < m; ++i) {
+    int e_num = num_nodes - 1, *e_index = new int[e_num], *e_value = new int[e_num];
+    for (int j = 0; j < num_nodes; ++j) {
+      if (j == class_var_index) {continue;}
+      e_index[j < class_var_index ? j : j - 1] = j;
       e_value[j < class_var_index ? j : j - 1] = dts->dataset_all_vars[i][j];
     }
     DiscreteConfig E = ArrayToDiscreteConfig(e_index, e_value, e_num);
-    int label_predict = ApproxInferByProbLogiRejectSamp(E, class_var_index, samples);
-//    string pred_true = to_string(label_predict) + ':' + to_string(dts->dataset_all_vars[i][class_var_index]);
-//    fprintf(stdout, "%s\n", pred_true.c_str());
-//    fflush(stdout);
-    if (label_predict == dts->dataset_all_vars[i][class_var_index]) {
-      ++num_of_correct;
-    } else {
-      ++num_of_wrong;
-    }
-
+    evidences.push_back(E);
+    int g = dts->dataset_all_vars[i][class_var_index];
+    ground_turths.push_back(g);
+    delete[] e_index;
+    delete[] e_value;
   }
+
+  vector<int> predictions = ApproxInferByProbLogiRejectSamp(evidences, class_var_index, samples);
+
+  double accuracy = Accuracy(ground_turths, predictions);
+
+  cout << '\n' << "Accuracy: " << accuracy << endl;
 
   gettimeofday(&end,NULL);
   diff = (end.tv_sec-start.tv_sec) + ((double)(end.tv_usec-start.tv_usec))/1.0E6;
@@ -1028,8 +1010,6 @@ double Network::TestNetByApproxInferReturnAccuracy(Dataset *dts, int num_samp) {
   cout << "==================================================" << '\n'
        << "The time spent to test the accuracy is " << diff << " seconds" << endl;
 
-  double accuracy = num_of_correct / (double)(num_of_correct+num_of_wrong);
-  cout << '\n' << "Accuracy: " << accuracy << endl;
   return accuracy;
 }
 
@@ -1041,54 +1021,35 @@ double Network::TestAccuracyByLikelihoodWeighting(Dataset *dts, int num_samp) {
   double diff;
   gettimeofday(&start,NULL);
 
-  cout << "Progress indicator: ";
-
-  int num_of_correct=0, num_of_wrong=0, m=dts->num_instance, m20= m / 20, progress=0;
+  int m = dts->num_instance;
 
   int class_var_index = dts->class_var_index;
 
-#pragma omp parallel for
-  for (int i=0; i<m; ++i) {  // For each sample in test set
-
-#pragma omp critical
-    { ++progress; }
-//    string progress_detail = to_string(progress) + '/' + to_string(m);
-//    fprintf(stdout, "%s\n", progress_detail.c_str());
-//    fflush(stdout);
-
-    if (progress % m20 == 0) {
-      string progress_percentage = to_string((double)progress/m * 100) + "%...\n";
-      fprintf(stdout, "Progress: %s\n", progress_percentage.c_str());
-      double acc_so_far = num_of_correct / (double)(num_of_correct+num_of_wrong);
-      fprintf(stdout, "Accuracy so far: %f\n", acc_so_far);
-      fflush(stdout);
-    }
-
-
-    // For now, only support complete data.
-    int e_num=num_nodes-1, *e_index=new int[e_num], *e_value=new int[e_num];
-    for (int j=0; j<num_nodes; ++j) {
-      if (j == class_var_index) { continue; }
+  vector<int> ground_turths;
+  vector<DiscreteConfig> evidences;
+  evidences.reserve(m);
+  ground_turths.reserve(m);
+  for (int i = 0; i < m; ++i) {
+    int e_num = num_nodes - 1, *e_index = new int[e_num], *e_value = new int[e_num];
+    for (int j = 0; j < num_nodes; ++j) {
+      if (j == class_var_index) {continue;}
       e_index[j < class_var_index ? j : j - 1] = j;
       e_value[j < class_var_index ? j : j - 1] = dts->dataset_all_vars[i][j];
     }
     DiscreteConfig E = ArrayToDiscreteConfig(e_index, e_value, e_num);
-    int label_predict = ApproxinferByLikelihoodWeighting(E, class_var_index, num_samp);
-//    string pred_true = to_string(label_predict) + ':' + to_string(dts->dataset_all_vars[i][class_var_index]);
-//    fprintf(stdout, "%s\n", pred_true.c_str());
-//    fflush(stdout);
-    if (label_predict == dts->dataset_all_vars[i][class_var_index]) {
-#pragma omp critical
-      { ++num_of_correct; }
-    } else {
-#pragma omp critical
-      { ++num_of_wrong; }
-    }
-
+    evidences.push_back(E);
+    int g = dts->dataset_all_vars[i][class_var_index];
+    ground_turths.push_back(g);
     delete[] e_index;
     delete[] e_value;
-
   }
+
+  vector<int> predictions = ApproxinferByLikelihoodWeighting(evidences, class_var_index, num_samp);
+
+  double accuracy = Accuracy(ground_turths, predictions);
+
+  cout << '\n' << "Accuracy: " << accuracy << endl;
+
 
   gettimeofday(&end,NULL);
   diff = (end.tv_sec-start.tv_sec) + ((double)(end.tv_usec-start.tv_usec))/1.0E6;
@@ -1096,8 +1057,6 @@ double Network::TestAccuracyByLikelihoodWeighting(Dataset *dts, int num_samp) {
   cout << "==================================================" << '\n'
        << "The time spent to test the accuracy is " << diff << " seconds" << endl;
 
-  double accuracy = num_of_correct / (double)(num_of_correct+num_of_wrong);
-  cout << '\n' << "Accuracy: " << accuracy << endl;
   return accuracy;
 }
 
@@ -1223,6 +1182,35 @@ int Network::ApproxinferByLikelihoodWeighting(DiscreteConfig e, const int &node_
   return (*c.begin()).second;
 }
 
+vector<int> Network::ApproxinferByLikelihoodWeighting(vector<DiscreteConfig> evidences,
+                                                      const int &target_node_idx, const int &num_samp) {
+  int size = evidences.size();
+
+  cout << "Progress indicator: ";
+  int every_1_of_20 = size / 20,
+          progress = 0;
+
+
+  vector<int> results(size, 0);
+#pragma omp parallel for
+  for (int i = 0; i < size; ++i) {
+#pragma omp critical
+    { ++progress; }
+//    string progress_detail = to_string(progress) + '/' + to_string(size);
+//    fprintf(stdout, "%s\n", progress_detail.c_str());
+//    fflush(stdout);
+
+    if (progress % every_1_of_20 == 0) {
+      string progress_percentage = to_string((double)progress/size * 100) + "%...\n";
+      fprintf(stdout, "%s\n", progress_percentage.c_str());
+      fflush(stdout);
+    }
+
+    int pred = ApproxinferByLikelihoodWeighting(evidences.at(i), target_node_idx, num_samp);
+    results.at(i) = pred;
+  }
+  return results;
+}
 
 vector<DiscreteConfig> Network::DrawSamplesByProbLogiSamp(int num_samp) {
   vector<DiscreteConfig> samples;
@@ -1382,6 +1370,35 @@ int Network::ApproxInferByProbLogiRejectSamp(DiscreteConfig e, Node *node, vecto
 
 int Network::ApproxInferByProbLogiRejectSamp(DiscreteConfig e, int node_index, vector<DiscreteConfig> &samples) {
   return ApproxInferByProbLogiRejectSamp(e, FindNodePtrByIndex(node_index), samples);
+}
+
+vector<int> Network::ApproxInferByProbLogiRejectSamp(vector<DiscreteConfig> evidences, int node_idx, vector<DiscreteConfig> &samples) {
+  int size = evidences.size();
+
+  cout << "Progress indicator: ";
+  int every_1_of_20 = size / 20,
+          progress = 0;
+
+
+  vector<int> results(size, 0);
+#pragma omp parallel for
+  for (int i = 0; i < size; ++i) {
+#pragma omp critical
+    { ++progress; }
+//    string progress_detail = to_string(progress) + '/' + to_string(size);
+//    fprintf(stdout, "%s\n", progress_detail.c_str());
+//    fflush(stdout);
+
+    if (progress % every_1_of_20 == 0) {
+      string progress_percentage = to_string((double)progress/size * 100) + "%...\n";
+      fprintf(stdout, "%s\n", progress_percentage.c_str());
+      fflush(stdout);
+    }
+
+    int pred = ApproxInferByProbLogiRejectSamp(evidences.at(i), node_idx, samples);
+    results.at(i) = pred;
+  }
+  return results;
 }
 
 
@@ -1617,7 +1634,6 @@ double Network::Accuracy(vector<int> ground_truth, vector<int> predictions) {
     }
   }
   double accuracy = num_of_correct / (double)(num_of_correct+num_of_wrong);
-  cout << '\n' << "Accuracy: " << accuracy << endl;
   return accuracy;
 }
 

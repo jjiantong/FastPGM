@@ -176,7 +176,7 @@ Input: E: evidence \
 
 Output: the index of predicted value of node Y
 
-## double TestNetReturnAccuracy(Dataset \*tester)
+## double TestNetByVarElimReturnAccuracy(Dataset \*tester)
 
 For each test instance in test set, conduct exact inference by variable elimination algorithm.
 
