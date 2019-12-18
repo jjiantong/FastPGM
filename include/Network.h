@@ -108,7 +108,7 @@ class Network {
 
   double TestNetByVarElimReturnAccuracy(Dataset *dts);
   double TestNetReturnAccuracyGivenAllCompleteInstances(Dataset *dts);
-  double TestNetByApproxInferReturnAccuracy(Dataset *dts, int num_samp); // todo: refactor
+  double TestNetByApproxInferReturnAccuracy(Dataset *dts, int num_samp);
   double TestAccuracyByLikelihoodWeighting(Dataset *dts, int num_samp);
 
   DiscreteConfig ProbLogicSampleNetwork();

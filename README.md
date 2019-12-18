@@ -9,17 +9,26 @@ Developed by Linjian Li, using Clion
 
 * Structural learning with complete data
   * Chow-Liu tree (Tree-Augmented Naive Bayes (TAN))
+  * K2 search algorithm (Like Weka)
+  * Dynamic programming method by Ott et al.
 * Gaussian Bayesian network
     * Conditional Gaussian Bayesian network
       * Discrete nodes must not have continuous parents
 * Exact inference
   * Variable elimination
     * Optimal elimination order for **tree shape** network
+    * Works on incomplete evidence
   * Junction tree algorithm (Some call it clique tree algorithm. But a clique tree is not necessary a junction tree.)
     * Belief propagation (a.k.a. message passing, sum-product)
+    * Works on incomplete evidence
   * Elimination tree algorithm
-    * for inference on Conditional Gaussian network
-    * based on the work of Cowell (2005)
+    * For inference on Conditional Gaussian network
+    * Based on the work of Cowell (2005)
+    * Have not been tested yet
+  * Simple brute force method
+    * Like Weka
+    * Fast
+    * ONLY works on complete evidence
 * Approximate inference
     * Probabilistic logic sampling
     * Rejection sampling
