@@ -37,6 +37,11 @@ Developed by Linjian Li, using Clion
     * Likelihood weighting sampling
 * Construct custom network from files
   * XMLBIF (which is also supported by Weka)
+* Network structure scoring
+  * K2
+  * BDeu
+  * AIC
+  * MDL/BIC
 
 
 ## supported problems
@@ -50,11 +55,8 @@ classification with discrete/continuous feature values
  * support graph structures beyond trees
    * Custom network
    * Structural learning algorithms
-     * Score-based (the asterisk means the scoring function has been implemented but not the search function)
-       * K2*
-       * BDeu*
-       * AIC*
-       * MDL*/BIC*
+     * Hill Climbing
+     * Tabu search
  * Soft evidence (help support incomplete data)
  * Incomplete data
  * Common network file format
