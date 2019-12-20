@@ -41,28 +41,28 @@ class ExperimentOnCovertype : public ::testing::Test {
 };
 
 TEST_F(ExperimentOnCovertype, covertype_test_var_elim) {
-  double accuracy = network->TestNetByVarElimReturnAccuracy(tester);
+  double accuracy = network->EvaluateVarElimAccuracy(tester);
   EXPECT_GT(accuracy, 0.600);
 }
 
 TEST_F(ExperimentOnCovertype, DISABLED_covertype_test_brute_force) {
-  double accuracy = network->TestNetReturnAccuracyGivenAllCompleteInstances(tester);
+  double accuracy = network->EvaluateAccuracyGivenAllCompleteInstances(tester);
   EXPECT_GT(accuracy, 0.600);
 }
 
 TEST_F(ExperimentOnCovertype, covertype_test_like_weigh) {
-  double accuracy = network->TestAccuracyByLikelihoodWeighting(tester, 50);
+  double accuracy = network->EvaluateLikelihoodWeightingAccuracy(tester, 50);
   EXPECT_GT(accuracy, 0.600);
 }
 
 TEST_F(ExperimentOnCovertype, covertype_test_approx) {
-  double accuracy = network->TestNetByApproxInferReturnAccuracy(tester,100000);
+  double accuracy = network->EvaluateApproxInferAccuracy(tester, 100000);
   EXPECT_GT(accuracy, 0.600);
 }
 
 TEST_F(ExperimentOnCovertype, covertype_test_jun_tree_accuracy) {
   auto *jt = new JunctionTree(network, false);
-  double accuracy = jt->TestNetReturnAccuracy(54,tester);
+  double accuracy = jt->EvaluateJTAccuracy(54, tester);
   delete jt;
   EXPECT_GT(accuracy,0.600);
 }
@@ -97,7 +97,7 @@ TEST_F(ExperimentOnPhishing, DISABLED_naive_bayes_brute_force) {
   net->root_node_index = 30;
   net->ConstructNaiveBayesNetwork(trainer);
   net->LearnParamsKnowStructCompData(trainer, true);
-  double accuracy = network->TestNetReturnAccuracyGivenAllCompleteInstances(tester);
+  double accuracy = network->EvaluateAccuracyGivenAllCompleteInstances(tester);
   EXPECT_GT(accuracy, 0.8270);
 }
 
@@ -106,7 +106,7 @@ TEST_F(ExperimentOnPhishing, DISABLED_naive_bayes_var_elim) {
   net->root_node_index = 30;
   net->ConstructNaiveBayesNetwork(trainer);
   net->LearnParamsKnowStructCompData(trainer, 2, false);
-  double accuracy = net->TestNetByVarElimReturnAccuracy(tester);
+  double accuracy = net->EvaluateVarElimAccuracy(tester);
   EXPECT_GT(accuracy, 0.8360);
 }
 
@@ -115,33 +115,33 @@ TEST_F(ExperimentOnPhishing, DISABLED_naive_bayes_lik_wei) {
   net->root_node_index = 30;
   net->ConstructNaiveBayesNetwork(trainer);
   net->LearnParamsKnowStructCompData(trainer, true);
-  double accuracy = network->TestAccuracyByLikelihoodWeighting(tester, 50);
+  double accuracy = network->EvaluateLikelihoodWeightingAccuracy(tester, 50);
   EXPECT_GT(accuracy, 0.8270);
 }
 
 TEST_F(ExperimentOnPhishing, DISABLED_var_elim) {
-  double accuracy = network->TestNetByVarElimReturnAccuracy(tester);
+  double accuracy = network->EvaluateVarElimAccuracy(tester);
   EXPECT_GT(accuracy, 0.8250);
 }
 
 TEST_F(ExperimentOnPhishing, DISABLED_brute_force) {
-  double accuracy = network->TestNetReturnAccuracyGivenAllCompleteInstances(tester);
+  double accuracy = network->EvaluateAccuracyGivenAllCompleteInstances(tester);
   EXPECT_GT(accuracy, 0.8250);
 }
 
 TEST_F(ExperimentOnPhishing, DISABLED_like_weigh) {
-  double accuracy = network->TestAccuracyByLikelihoodWeighting(tester, 50);
+  double accuracy = network->EvaluateLikelihoodWeightingAccuracy(tester, 50);
   EXPECT_GT(accuracy, 0.6);
 }
 
 TEST_F(ExperimentOnPhishing, DISABLED_approx) {
-  double accuracy = network->TestNetByApproxInferReturnAccuracy(tester,100000);
+  double accuracy = network->EvaluateApproxInferAccuracy(tester, 100000);
   EXPECT_GT(accuracy, 0.6500);
 }
 
 TEST_F(ExperimentOnPhishing, DISABLED_jun_tree_accuracy) {
   auto *jt = new JunctionTree(network, false);
-  double accuracy = jt->TestNetReturnAccuracy(30, tester);
+  double accuracy = jt->EvaluateJTAccuracy(30, tester);
   delete jt;
   EXPECT_GT(accuracy,0.80);
 }
@@ -171,29 +171,29 @@ class ExperimentOnA1a : public ::testing::Test {
 };
 
 TEST_F(ExperimentOnA1a, DISABLED_var_elim) {
-  double accuracy = network->TestNetByVarElimReturnAccuracy(tester);
+  double accuracy = network->EvaluateVarElimAccuracy(tester);
   EXPECT_GT(accuracy, 0.8230);
 }
 
 TEST_F(ExperimentOnA1a, DISABLED_brute_force) {
-  double accuracy = network->TestNetReturnAccuracyGivenAllCompleteInstances(tester);
+  double accuracy = network->EvaluateAccuracyGivenAllCompleteInstances(tester);
   EXPECT_GT(accuracy, 0.8230);
 }
 
 TEST_F(ExperimentOnA1a, DISABLED_like_weigh) {
-  double accuracy = network->TestAccuracyByLikelihoodWeighting(tester, 50);
+  double accuracy = network->EvaluateLikelihoodWeightingAccuracy(tester, 50);
   EXPECT_GT(accuracy, 0.8150);
 }
 
 TEST_F(ExperimentOnA1a, DISABLED_jun_tree_accuracy) {
   auto *jt = new JunctionTree(network, false);
-  double accuracy = jt->TestNetReturnAccuracy(0,tester);
+  double accuracy = jt->EvaluateJTAccuracy(0, tester);
   delete jt;
   EXPECT_GT(accuracy,0.8150);
 }
 
 TEST_F(ExperimentOnA1a, approx) {
-  double accuracy = network->TestNetByApproxInferReturnAccuracy(tester,100000);
+  double accuracy = network->EvaluateApproxInferAccuracy(tester, 100000);
   EXPECT_GT(accuracy, 0.650);
 }
 

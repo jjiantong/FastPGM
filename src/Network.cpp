@@ -863,7 +863,7 @@ vector<int> Network::PredictUseSimpleBruteForce(vector<DiscreteConfig> evidences
 }
 
 
-double Network::TestNetByVarElimReturnAccuracy(Dataset *dts) {
+double Network::EvaluateVarElimAccuracy(Dataset *dts) {
 
   cout << "==================================================" << '\n'
        << "Begin testing the trained network." << endl;
@@ -914,7 +914,7 @@ double Network::TestNetByVarElimReturnAccuracy(Dataset *dts) {
 }
 
 
-double Network::TestNetReturnAccuracyGivenAllCompleteInstances(Dataset *dts) {
+double Network::EvaluateAccuracyGivenAllCompleteInstances(Dataset *dts) {
 
   cout << "==================================================" << '\n'
        << "Begin testing the trained network." << endl;
@@ -962,7 +962,7 @@ double Network::TestNetReturnAccuracyGivenAllCompleteInstances(Dataset *dts) {
 }
 
 
-double Network::TestNetByApproxInferReturnAccuracy(Dataset *dts, int num_samp) {
+double Network::EvaluateApproxInferAccuracy(Dataset *dts, int num_samp) {
 
 
   cout << "==================================================" << '\n'
@@ -1013,7 +1013,7 @@ double Network::TestNetByApproxInferReturnAccuracy(Dataset *dts, int num_samp) {
   return accuracy;
 }
 
-double Network::TestAccuracyByLikelihoodWeighting(Dataset *dts, int num_samp) {
+double Network::EvaluateLikelihoodWeightingAccuracy(Dataset *dts, int num_samp) {
   cout << "==================================================" << '\n'
        << "Begin testing the trained network." << endl;
 

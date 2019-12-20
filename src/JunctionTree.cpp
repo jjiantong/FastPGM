@@ -643,7 +643,7 @@ int JunctionTree::InferenceUsingBeliefPropagation(int &query_index) {
   return label_predict;
 }
 
-double JunctionTree::TestNetReturnAccuracy(int class_var, Dataset *dts) {
+double JunctionTree::EvaluateJTAccuracy(int class_var, Dataset *dts) {
 
   cout << "==================================================" << '\n'
        << "Begin testing the trained network." << endl;
@@ -655,6 +655,10 @@ double JunctionTree::TestNetReturnAccuracy(int class_var, Dataset *dts) {
   cout << "Progress indicator: ";
 
   int num_of_correct=0, num_of_wrong=0, m=dts->num_instance, m20= m / 20, progress=0;
+
+//  vector<int> truths, predictions;
+//  truths.reserve(m);
+//  predictions.reserve(m);
 
   // If I use OpenMP to parallelize,
   // process may exit with code 137,

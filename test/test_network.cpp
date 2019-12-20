@@ -53,7 +53,7 @@ class NetworkTest : public ::testing::Test {
 
 
 TEST_F(NetworkTest, chow_liu_tree_var_elim_accuracy) { // The prefix "DISABLED" disable this test.
-  double accuracy = network->TestNetByVarElimReturnAccuracy(tester);
+  double accuracy = network->EvaluateVarElimAccuracy(tester);
   ScoreFunction sf(network, trainer);
   sf.PrintAllScore();
   EXPECT_GT(accuracy,0.67);
@@ -66,7 +66,7 @@ TEST_F(NetworkTest, chow_liu_tree_var_elim_accuracy) { // The prefix "DISABLED" 
 }
 
 TEST_F(NetworkTest, approx_inference_accuracy) {
-  double acc = network->TestNetByApproxInferReturnAccuracy(tester,100);
+  double acc = network->EvaluateApproxInferAccuracy(tester, 100);
   //EXPECT_GT(acc, 0.6);
 }
 
@@ -126,14 +126,14 @@ TEST_F(NetworkTest, jun_tree_accuracy) {
 
   ScoreFunction sf(network, trainer);
   sf.PrintAllScore();
-  double accuracy = jt->TestNetReturnAccuracy(0,tester);
+  double accuracy = jt->EvaluateJTAccuracy(0, tester);
   delete jt;
   EXPECT_GT(accuracy,0.7350);
 }
 
 
 TEST_F(NetworkTest, likelihood_weighting_accuracy) {
-  double accuracy = network->TestAccuracyByLikelihoodWeighting(tester, 50);
+  double accuracy = network->EvaluateLikelihoodWeightingAccuracy(tester, 50);
   EXPECT_GT(accuracy,0.6);
 }
 

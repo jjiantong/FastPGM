@@ -176,7 +176,7 @@ Input: E: evidence \
 
 Output: the index of predicted value of node Y
 
-## double TestNetByVarElimReturnAccuracy(Dataset \*tester)
+## double EvaluateVarElimAccuracy(Dataset \*tester)
 
 For each test instance in test set, conduct exact inference by variable elimination algorithm.
 
@@ -184,7 +184,7 @@ Input: tester: an instance of `Dataset` containing the test dataset
 
 Output: Accuracy on test set
 
-## double TestNetByApproxInferReturnAccuracy(Dataset \*tester, int num_samp)
+## double EvaluateApproxInferAccuracy(Dataset \*tester, int num_samp)
 
 Draw a set of samples by probabilistic sampling algorithm. Given the test set and the drwan samples, for each test instance in test set, conduct approximate inference by rejection sampling algorithm.
 

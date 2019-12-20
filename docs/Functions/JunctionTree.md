@@ -68,7 +68,7 @@ Calculate and return the marginal distribution of a discrete variable.
 
 Call `BeliefPropagationCalcuDiscreteVarMarginal` and find the argmax of the distribution.
 
-## TestNetByVarElimReturnAccuracy(int class_var, Dataset *dts)
+## EvaluateVarElimAccuracy(int class_var, Dataset *dts)
 
 For each testing instance in the test set, load the evidence into the junction tree, update it by belief propagation (a.k.a. message passing), calculate marginal distribution of the class variable, and make the prediction.
 

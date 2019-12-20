@@ -106,11 +106,6 @@ class Network {
   int PredictUseVarElimInfer(DiscreteConfig evid, int target_node_idx, vector<int> elim_order=vector<int>{});
   vector<int> PredictUseVarElimInfer(vector<DiscreteConfig> evidences, int target_node_idx, vector<vector<int>> elim_orders=vector<vector<int>>{});
 
-  double TestNetByVarElimReturnAccuracy(Dataset *dts);
-  double TestNetReturnAccuracyGivenAllCompleteInstances(Dataset *dts);
-  double TestNetByApproxInferReturnAccuracy(Dataset *dts, int num_samp);
-  double TestAccuracyByLikelihoodWeighting(Dataset *dts, int num_samp);
-
   DiscreteConfig ProbLogicSampleNetwork();
 
   vector<pair<DiscreteConfig, double>> DrawSamplesByLikelihoodWeighting(const DiscreteConfig &evidence, int num_samp);
@@ -128,6 +123,11 @@ class Network {
   int ApproxInferByProbLogiRejectSamp(DiscreteConfig e, int node_index, vector<DiscreteConfig> &samples);
   vector<int> ApproxInferByProbLogiRejectSamp(vector<DiscreteConfig> evidences, int node_idx, vector<DiscreteConfig> &samples);
 
+  // ========== Evaluation ==========
+  double EvaluateVarElimAccuracy(Dataset *dts);
+  double EvaluateAccuracyGivenAllCompleteInstances(Dataset *dts);
+  double EvaluateApproxInferAccuracy(Dataset *dts, int num_samp);
+  double EvaluateLikelihoodWeightingAccuracy(Dataset *dts, int num_samp);
 
   double Accuracy(vector<int> ground_truth, vector<int> predictions);
 
