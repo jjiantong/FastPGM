@@ -20,8 +20,8 @@ typedef set< pair<int, int> > DiscreteConfig;
 
 struct Value {
  private:
-  int int_ = INT32_MIN;
-  float float_ = -FLT_MAX;
+  int int_ = INT32_MIN;     //for discrete variable
+  float float_ = -FLT_MAX;  //for continuous variable
   bool use_int = true;
  public:
   bool UseInt() const { return use_int; }

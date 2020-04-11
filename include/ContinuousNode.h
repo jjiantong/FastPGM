@@ -18,7 +18,7 @@ using namespace std;
 
 typedef set< pair<int, int> > DiscreteConfig;
 
-class ContinuousNode : public Node {
+class ContinuousNode : public Node {//the parent nodes of ContinuousNode can be both discrete and continuous variables.
  public:
 
   // In conditional Gaussian Bayesian network,

@@ -17,7 +17,7 @@ using namespace std;
 
 //class Network;  // Forward declaration.
 
-class DiscreteNode : public Node {
+class DiscreteNode : public Node {//the parent nodes of DiscreteNode must be discrete variables.
  public:
   // The order matters.
   vector<string> vec_str_potential_vals;

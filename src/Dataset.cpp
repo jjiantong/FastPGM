@@ -9,7 +9,10 @@
 
 Dataset::Dataset() {}
 
-
+/**
+ * @brief: AutoDetect means to automatically find the possible values for each discrete varaible
+ * need to mannually specify which variable is continuous using "cont_vars".
+ */
 void Dataset::LoadLIBSVMDataAutoDetectConfig(string data_file_path, set<int> cont_vars) {
 
   class_var_index = 0;
@@ -36,16 +39,17 @@ void Dataset::LoadLIBSVMDataAutoDetectConfig(string data_file_path, set<int> con
     sample = TrimRight(sample);
     vector<string> parsed_sample = Split(sample, " ");
     int it = 0;   // The label is the first element.
-    if (cont_vars.find(0)==cont_vars.end()) {
+    if (cont_vars.find(0)==cont_vars.end()) {//check if the label is continuous
+      //this is classification task
       map_disc_vars_possible_values[class_var_index].insert(stoi(parsed_sample.at(it)));
       Value v;
       v.SetInt(stoi(parsed_sample.at(it)));
       dataset_y_vector.push_back(v);
-    } else {
+    } else {//the label is continuous (i.e., regression task)
       Value v;
       v.SetFloat(stof(parsed_sample.at(it)));
       dataset_y_vector.push_back(v);
-    }
+    }//end storing the label of the data set
 
     vector<VarVal> single_sample_vector;
     for (++it; it < parsed_sample.size(); ++it) {
@@ -55,7 +59,7 @@ void Dataset::LoadLIBSVMDataAutoDetectConfig(string data_file_path, set<int> con
       int index = stoi(parsed_feature_val[0]);
       max_index_occurred = index>max_index_occurred ? index : max_index_occurred;
       Value v;
-      if (cont_vars.find(index)==cont_vars.end()) {
+      if (cont_vars.find(index)==cont_vars.end()) {//same as the processing of label
         int value = stoi(parsed_feature_val[1]);
         v.SetInt(value);
         map_disc_vars_possible_values[index].insert(value);
@@ -72,7 +76,7 @@ void Dataset::LoadLIBSVMDataAutoDetectConfig(string data_file_path, set<int> con
 
   vector_dataset_all_vars = dataset_X_vector;
 
-  for (int i=0; i<vector_dataset_all_vars.size(); ++i) {
+  for (int i=0; i<vector_dataset_all_vars.size(); ++i) {//insert label to the beginning of each instance
     vector_dataset_all_vars.at(i).insert(
             vector_dataset_all_vars.at(i).begin(),
             VarVal(class_var_index,dataset_y_vector.at(i))
@@ -81,14 +85,15 @@ void Dataset::LoadLIBSVMDataAutoDetectConfig(string data_file_path, set<int> con
 
 
   num_instance = vector_dataset_all_vars.size();
-  num_vars = max_index_occurred + 1;
+  num_vars = max_index_occurred + 1;//the number of variables of the data set
   is_vars_discrete.reserve(num_vars);
   num_of_possible_values_of_disc_vars.reserve(num_vars);
 
   for (int i=0; i<num_vars; ++i) {
-    vec_var_names.push_back(to_string(i));
+    vec_var_names.push_back(to_string(i));//the name of a variable is the "id" of the variable.
   }
 
+  //discrete variable domain construction, whether a variable is continuous
   for (int i=0; i<num_vars; ++i) {
     if (i!=class_var_index) {
       if (cont_vars.find(i)==cont_vars.end()) {
@@ -100,7 +105,7 @@ void Dataset::LoadLIBSVMDataAutoDetectConfig(string data_file_path, set<int> con
     is_vars_discrete.push_back(cont_vars.find(i)==cont_vars.end()); // For now, we can only process discrete variables.
   }
 
-  if (cont_vars.empty()) {
+  if (cont_vars.empty()) {//the data set only contains discrete variables.
     ConvertLIBSVMVectorDatasetIntoIntArrayDataset();
   }
 
@@ -113,7 +118,7 @@ void Dataset::LoadLIBSVMDataAutoDetectConfig(string data_file_path, set<int> con
 }
 
 
-void Dataset::ConvertLIBSVMVectorDatasetIntoIntArrayDataset() {
+void Dataset::ConvertLIBSVMVectorDatasetIntoIntArrayDataset() {//storing the data set using int only
   // Initialize to be all zero.
   dataset_all_vars = new int *[num_instance];
 #pragma omp parallel for
@@ -126,8 +131,10 @@ void Dataset::ConvertLIBSVMVectorDatasetIntoIntArrayDataset() {
   }
 }
 
-
-void Dataset::ConvertCSVVectorDatasetIntoIntArrayDataset() {
+/**
+ * @brief: convert a data set with float and int, to a data set with int only
+ */
+void Dataset::ConvertCSVVectorDatasetIntoIntArrayDataset() {//need to redesign this function
   dataset_all_vars = new int *[num_instance];
 #pragma omp parallel for
   for (int s=0; s<num_instance; ++s) {
@@ -138,7 +145,9 @@ void Dataset::ConvertCSVVectorDatasetIntoIntArrayDataset() {
   }
 }
 
-
+/**
+ * @brief: similar to Load Data from LibSVM: cf. LoadLIBSVMDataAutoDetectConfig.
+ */
 void Dataset::LoadCSVDataAutoDetectConfig(string data_file_path, bool header, int cls_var_id, set<int> cont_vars) {
   this->class_var_index = cls_var_id;
   ifstream in_file;
@@ -215,23 +224,29 @@ void Dataset::LoadCSVDataAutoDetectConfig(string data_file_path, bool header, in
   in_file.close();
 }
 
-
-void Dataset::SamplesToLIBSVMFile(vector<DiscreteConfig> &samples, string &file) const {
+/**
+ * @brief: this function is to save the processed data into file, for ease debugging and also for approximate inference.
+ * This function is for conversion only; SamplesToLIBSVMFile(smps, file) does all the file saving.
+ */
+void Dataset::SamplesToLIBSVMFile(vector<DiscreteConfig> &samples, string &file) const {//a sample contains multiple instances
   vector<Configuration> smps;
   for (const auto &samp : samples) {
     Configuration cfg;
-    for (const auto &p : samp) {
+    for (const auto &p : samp) {//store the values of the instance into cfg
       VarVal vv;
       vv.first = p.first;
       vv.second.SetInt(p.second);
       cfg.insert(vv);
     }
-    smps.push_back(cfg);
+    smps.push_back(cfg);//
   }
   SamplesToLIBSVMFile(smps, file);
 }
 
-
+/**
+ * @brief: the instances in this sample are generated by the learned network.
+ * the file has exactly the same format as libsvm.
+ */
 void Dataset::SamplesToLIBSVMFile(vector<Configuration> &samples, string &file) const {
   FILE *f;
   f = fopen(file.c_str(), "w");
@@ -269,7 +284,9 @@ void Dataset::SamplesToLIBSVMFile(vector<Configuration> &samples, string &file) 
   fclose(f);
 }
 
-
+/**
+ * @brief: similar to SamplesToLIBSVMFile, but the file format is csv.
+ */
 void Dataset::SamplesToCSVFile(vector<DiscreteConfig> &samples, string &file, vector<string> header) const {
   vector<Configuration> smps;
   for (const auto &samp : samples) {
@@ -285,7 +302,9 @@ void Dataset::SamplesToCSVFile(vector<DiscreteConfig> &samples, string &file, ve
   SamplesToCSVFile(smps, file, header);
 }
 
-
+/**
+ * @brief: similar to SamplesToLIBSVMFile, but the file format is csv.
+ */
 void Dataset::SamplesToCSVFile(vector<Configuration> &samples, string &file, vector<string> header) const {
   // Detect configuration.
   auto &c = samples.front();

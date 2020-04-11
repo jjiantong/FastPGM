@@ -16,13 +16,13 @@ Network::Network(bool pure_disc) {
 }
 
 Network::Network(Network &net) {
-  // todo: test correctness
+  //need to test correctness
 
   network_name = net.network_name;
   num_nodes = net.num_nodes;
   pure_discrete = net.pure_discrete;
   vec_default_elim_ord = net.vec_default_elim_ord;
-  topo_ord = net.GetTopoOrd();
+  topo_ord = net.GetTopoOrd();//this sequence/order is used for variable elimination.
 
   map_idx_node_ptr = net.map_idx_node_ptr;
   for (int i = 0; i < num_nodes; ++i) {
@@ -40,7 +40,7 @@ Network::Network(Network &net) {
 
 }
 
-void Network::PrintEachNodeParents() {
+void Network::PrintEachNodeParents() {//print the parents of all the nodes
   for (const auto &id_node_ptr : map_idx_node_ptr) {
     auto node_ptr = id_node_ptr.second;
     cout << node_ptr->node_name << ":\t";
@@ -51,7 +51,7 @@ void Network::PrintEachNodeParents() {
   }
 }
 
-void Network::PrintEachNodeChildren() {
+void Network::PrintEachNodeChildren() {//print the child nodes of all the nodes
   for (const auto &id_node_ptr : map_idx_node_ptr) {
     auto node_ptr = id_node_ptr.second;
     cout << node_ptr->node_name << ":\t";
@@ -90,8 +90,8 @@ void Network::ConstructNaiveBayesNetwork(Dataset *dts) {
 #pragma omp parallel for
   for (int i = 0; i < num_nodes; ++i) {
     DiscreteNode *node_ptr = new DiscreteNode(i);  // For now, only support discrete node.
-    node_ptr->SetDomainSize(dts->num_of_possible_values_of_disc_vars[i]);
-    for (auto v : dts->map_disc_vars_possible_values[i]) {
+    node_ptr->SetDomainSize(dts->num_of_possible_values_of_disc_vars[i]);//set the cardinality of a discrete variable.
+    for (auto v : dts->map_disc_vars_possible_values[i]) {//TODO: double check
       node_ptr->vec_potential_vals.push_back(v);
     }
 #pragma omp critical
@@ -364,7 +364,7 @@ vector<int> Network::GetReverseTopoOrd() {
   return ord;
 }
 
-vector<int> Network::GenTopoOrd() {
+vector<int> Network::GenTopoOrd() {//TODO: double check
 
   if (this->pure_discrete) {
 
@@ -744,7 +744,7 @@ map<int, double> Network::DistributionOfValueIndexGivenCompleteInstanceValueInde
   map<int, double> result;
 
   DiscreteNode *target_node = (DiscreteNode*) FindNodePtrByIndex(target_var_index);
-  auto vec_complete_instance_values = SparseInstanceFillZeroToCompleteInstance(evidence);
+  auto vec_complete_instance_values = SparseInstanceFillZeroToDenseInstance(evidence);
 
   for (int i = 0; i < target_node->GetDomainSize(); ++i) {
     vec_complete_instance_values.at(target_var_index) = target_node->vec_potential_vals.at(i);
@@ -1570,7 +1570,7 @@ void Network::StructLearnByOtt(Dataset *dts, vector<int> topo_ord_constraint) {
 }
 
 
-vector<int> Network::SparseInstanceFillZeroToCompleteInstance(DiscreteConfig &sparse_instance) {
+vector<int> Network::SparseInstanceFillZeroToDenseInstance(DiscreteConfig &sparse_instance) {
   vector<int> complete_instance(this->num_nodes, 0);
   for (const auto p : sparse_instance) {
     complete_instance.at(p.first) = p.second;
