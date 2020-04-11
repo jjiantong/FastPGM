@@ -20,17 +20,17 @@
 
 using namespace std;
 
-typedef set< pair<int, int> > DiscreteConfig;
-
-class CustomNetwork : public Network {
+typedef set< pair<int, int> > DiscreteConfig;//discrete variables and their corresponding values.
+//DiscreteConfig is for storing the "condition" of a conditional probability.
+class CustomNetwork : public Network {//CustomNetwork may be a tree shape graph or a generic graph (containing undirected loop).
  public:
 
   CustomNetwork();
   explicit CustomNetwork(bool pure_disc);
 
-  vector<int> SimplifyDefaultElimOrd(DiscreteConfig evidence) override;
-
-  void GetNetFromXMLBIFFile(string file_path);
+  vector<int> SimplifyDefaultElimOrd(DiscreteConfig evidence) override;//hasn't implemented due to the complexity (e.g., undirected loop)
+//the simplification of the network is for variable elimination
+  void GetNetFromXMLBIFFile(string file_path);//construct the network using content from the xml file.
 
 };
 

@@ -282,7 +282,7 @@ double LogOfFactorial(int n) {
 }
 
 
-vector<vector<int>> NaryCount(vector<int> vec_range_each_digit) {
+vector<vector<int>> NaryCount(vector<int> vec_range_each_digit) {//checked on 11/Apr/2020
 
   int num_digits = vec_range_each_digit.size();
   int num_counts = 1;   // The number of all n-ary counts.

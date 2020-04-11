@@ -9,14 +9,14 @@
 CustomNetwork::CustomNetwork(): CustomNetwork(true) {}
 
 CustomNetwork::CustomNetwork(bool pure_disc) {
-  this->pure_discrete = pure_disc;
+  this->pure_discrete = pure_disc;//whether the network only contains discrete variable (Gaussian networks contain numeric variables)
 }
 
 vector<int> CustomNetwork::SimplifyDefaultElimOrd(DiscreteConfig evidence) {
   return vec_default_elim_ord;
 }
 
-void CustomNetwork::GetNetFromXMLBIFFile(string file_path) {
+void CustomNetwork::GetNetFromXMLBIFFile(string file_path) {//XMLBIF is the xml file format; BIF: Interchange Format for Bayesian Network.
   
   // Check if the file exists.
   FILE *test_f_ptr = fopen(file_path.c_str(),"r");
@@ -25,8 +25,9 @@ void CustomNetwork::GetNetFromXMLBIFFile(string file_path) {
     fprintf(stderr, "Unable to open file %s!", file_path.c_str());
     exit(1);
   }
-  
-  XMLBIFParser xbp(file_path);
+//TODO: Check XMLBIF Parser and the rest of this function
+
+ XMLBIFParser xbp(file_path);
   vector<Node*> connected_nodes = xbp.GetConnectedNodes();
   
   network_name = xbp.xml_network_name_ptr->GetText();
