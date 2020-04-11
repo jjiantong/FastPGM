@@ -11,47 +11,60 @@
 #include <string>
 #include <random>
 #include <chrono>
+#include<bits/stdc++.h>
 #include "gadget.h"
 
 using namespace std;
 
-typedef set< pair<int, int> > Combination;
 
 class Node {
 
  protected:
 
-  // Indexes for all nodes should start at 0.
-  int node_index;
+  // Indexes for all nodes in a network should be consecutive integers starting at 0.
+  int node_index = -1;
+  int num_parents_config = -1;
+
+  void AddDiscreteParent(Node *p);
+  void AddContinuousParent(Node *p);
 
  public:
 
-  string node_name;
-  bool is_discrete;
-  int num_potential_vals;
+  string node_name = "";
+  bool is_discrete = true;
 
-  // The domain of a variable has an order if it is specified by an XMLBIF file.
-  vector<string> vec_str_potential_vals;
-  vector<int> vec_potential_vals;
+  set<DiscreteConfig> set_discrete_parents_combinations = set<DiscreteConfig>{ DiscreteConfig{} };  // Default: contain ONE empty element
 
-  int *potential_vals;
+  // =============== refactor like Weka ===============
+  vector<int> vec_disc_parent_indexes;  // The order matters.
+  set<int> set_parent_indexes;
+  map<int, int> map_disc_parents_domain_size;  // Key: parent index. Value: parent's domain size.
 
-  set<Node*> set_parents_ptrs;
-  set<Node*> set_children_ptrs;
-  set<Combination> set_parents_combinations;
-  map<int, map<Combination, double> >  map_cond_prob_table;
-  map<int, double>  map_marg_prob_table;
+  set<int> set_children_indexes;
 
-  Node();
+  int GetNumParentsConfig();
+  DiscreteConfig GetDiscParConfigGivenAllVarValue(DiscreteConfig &all_var_val);
+  DiscreteConfig GetDiscParConfigGivenAllVarValue(vector<int> &all_var_val);
+  // ==================================================
+
+  Node() = default;
+  explicit Node(int index);
+  Node(int index, string name);
   int GetNodeIndex() const;
   void SetNodeIndex(int index);
-  void AddChild(Node *node_ptr);
-  void AddParent(Node *node_ptr);
+  bool HasParents() const;
+  int GetNumParents() const;
+  int GetNumDiscParents() const;
+  int GetNumChildren() const;
+  virtual void AddChild(Node *node_ptr);
+  virtual void AddParent(Node *node_ptr);
   void RemoveChild(Node *node_ptr);
-  void RemoveParent(Node *node_ptr);
-  void GenParCombs();
-
-  int SampleNodeGivenParents(Combination evidence);
+  virtual void RemoveParent(Node *node_ptr);
+  void GenDiscParCombs(set<Node*> set_parent_ptrs);
+  void ClearParents();
+  void ClearChildren();
+  virtual int GetNumParams() = 0;
+  virtual void ClearParams() = 0;
 };
 
 

@@ -4,10 +4,22 @@
 
 #include "Separator.h"
 
-Separator::Separator(set<Node*> set_node_ptr) {
+Separator::Separator() {
   is_separator = true;
-  weight = clique_size = set_node_ptr.size();
-  if (weight!=0) {InitializeClique(set_node_ptr);}
+  weight = -1;
+}
+
+Separator::Separator(set<Node*> set_node_ptr): Clique(set_node_ptr, -1) {
+  is_separator = true;
+  weight = clique_size;
+}
+
+
+Separator* Separator::CopyWithoutPtr() {
+  auto s = new Separator(*this);
+  s->set_neighbours_ptr.clear();
+  s->ptr_upstream_clique = nullptr;
+  return s;
 }
 
 
@@ -18,10 +30,8 @@ void Separator::UpdateUseMessage(Factor f) {
 }
 
 Factor Separator::ConstructMessage() {
-  // todo: implement
-  Factor f;
-  f.SetMembers(related_variables,set_combinations,map_potentials);
-  for (auto &comb : set_combinations) {
+  Factor f(related_variables, set_disc_configs, map_potentials);
+  for (auto &comb : set_disc_configs) {
     if (map_old_potentials[comb]==0) {
       f.map_potentials[comb] = 1;
     } else {

@@ -5,13 +5,13 @@
 #ifndef BAYESIANNETWORK_XMLBIFPARSER_H
 #define BAYESIANNETWORK_XMLBIFPARSER_H
 
-#include <stdio.h>
+#include <cstdio>
 #include "tinyxml2.h"
 #include "Node.h"
+#include "DiscreteNode.h"
+#include "ContinuousNode.h"
 
 using namespace tinyxml2;
-
-typedef set< pair<int, int> > Combination;
 
 class XMLBIFParser {
 
@@ -24,8 +24,8 @@ class XMLBIFParser {
   vector<XMLElement*> vec_xml_probs_ptr;
 
   XMLBIFParser() = default;
-  XMLBIFParser(string& file);
-  void LoadFile(string& file);
+  XMLBIFParser(string &file);
+  void LoadFile(string &file);
 
   vector<Node*> GetUnconnectedNodes() const;
   void AssignProbsToNodes(vector<XMLElement*> vec_xml_elems_ptr, vector<Node*> vec_nodes_ptr);

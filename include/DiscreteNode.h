@@ -15,18 +15,51 @@
 
 using namespace std;
 
-typedef set< pair<int, int> > Combination;
+//class Network;  // Forward declaration.
 
 class DiscreteNode : public Node {
  public:
-  bool is_discrete = true;
-  int num_potential_vals;
-  int* potential_vals;
-  set<Combination> set_parents_combinations;
-  map<int, map<Combination, double> >  map_cond_prob_table;
-  map<int, double>  map_marg_prob_table;
+  // The order matters.
+  vector<string> vec_str_potential_vals;
+  vector<int> vec_potential_vals;
 
-  void GenParCombs();
+  // =============== refactor like Weka ===============
+  // Keep the count instead of probability.
+  map< int, map<DiscreteConfig, int> > map_cond_prob_table_statistics;  // Keys: query variable, parents config. Value: count under condition.
+                                                             // If the node has no parents, then the second dimension, parents_config, will only use the key 0.
+  map<DiscreteConfig, int> map_total_count_under_parents_config;   // Key: parents config. Value: total count.
+
+  void SetLaplaceSmooth(double alpha);
+  double GetLaplaceSmooth();
+
+  void AddInstanceOfVarVal(DiscreteConfig instance_of_var_val);
+  void AddCount(int query_val, DiscreteConfig &parents_config, int count);
+  double GetProbability(int query_val, DiscreteConfig &parents_config);
+//  int GetIndexOfValue(int val);
+
+  bool cpt_initialized = false;
+  void InitializeCPT();
+  // ==================================================
+
+  DiscreteNode();
+  explicit DiscreteNode(int index);
+  DiscreteNode(int index, string name);
+  DiscreteNode(const DiscreteNode &n) = default;
+  DiscreteNode(DiscreteNode &n) = default;
+
+  void SetDomain(vector<string> str_domain);
+  void SetDomain(vector<int> int_domain);
+  int GetDomainSize() const;
+  void SetDomainSize(int size);
+  void AddParent(Node *node_ptr) override;
+  int GetNumParams() override;
+  void ClearParams() override;
+  void PrintProbabilityTable();
+  int SampleNodeGivenParents(DiscreteConfig &evidence);
+
+ private:
+  int num_potential_vals;
+  double laplace_smooth = 1;
 };
 
 

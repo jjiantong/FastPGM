@@ -13,36 +13,56 @@
 
 
 class JunctionTree {
+  //==================================================
  public:
   Network *network;
   set<Clique*> set_clique_ptr_container;
   set<Separator*> set_separator_ptr_container;
 
-  map<Clique*,Clique> map_cliques_backup;
-  map<Separator*,Separator> map_separators_backup;
+  vector<int> elimination_ordering;
+  map<int, Clique*> map_elim_var_to_clique;
+
 
   JunctionTree() = default;
-  JunctionTree(Network*);
+  explicit JunctionTree(Network *net);
+  JunctionTree(Network *net, bool elim_redundant_cliques);
+  JunctionTree(Network *net, string elim_ord_strategy, bool elim_redundant_cliques);
+  JunctionTree(Network *net, string elim_ord_strategy, bool elim_redundant_cliques, vector<int> custom_elim_ord);
+  explicit JunctionTree(JunctionTree*);
+  virtual ~JunctionTree() = default;
 
-  int** ConvertDAGNetworkToAdjacencyMatrix(Network*);
-  void Moralize(int**, int&);
-  vector<int> MinNeighbourElimOrd(int**, int&);
-  void Triangulate(Network*, int**, int&, vector<int>, set<Clique*>&);
-  void ElimRedundantCliques();
-  void FormJunctionTree(set<Clique*>&);
-  void AssignPotentials();
-  void BackUpJunctionTree();
   void ResetJunctionTree();
-  void LoadEvidence(Combination);
-  void MessagePassingUpdateJT();
+  virtual void LoadDiscreteEvidence(const DiscreteConfig &E);
+  void LoadEvidenceAndMessagePassingUpdateJT(const DiscreteConfig &E);
 
   void PrintAllCliquesPotentials() const;
   void PrintAllSeparatorsPotentials() const;
 
-  Factor BeliefPropagationReturnPossib(set<int>&);
-  int InferenceUsingBeliefPropagation(set<int>&);
+  Factor BeliefPropagationCalcuDiscreteVarMarginal(int query_index);
+  int InferenceUsingBeliefPropagation(int &query_index);
 
-  double TestNetReturnAccuracy(int,Trainer*);
+  double EvaluateJTAccuracy(int class_var, Dataset *dts);
+
+  //==================================================
+ protected:
+  map<Clique*,Clique> map_cliques_backup;
+  map<Separator*,Separator> map_separators_backup;
+
+  void Triangulate(Network *net,
+                   int **adjac_matrix,
+                   int &num_nodes,
+                   vector<int> elim_ord,
+                   set<Clique*> &cliques);
+  void ElimRedundantCliques();
+  void FormListShapeJunctionTree(set<Clique*> &cliques);
+  void FormJunctionTree(set<Clique*> &cliques);
+  void NumberTheCliquesAndSeparators();
+  void AssignPotentials();
+  void BackUpJunctionTree();
+  virtual void MessagePassingUpdateJT();
+  static vector<int> MinNeighbourElimOrd(int **adjac_matrix, int &num_nodes);
+  static void Moralize(int **direc_adjac_matrix, int &num_nodes);
+  void GenMapElimVarToClique();
 
 };
 
