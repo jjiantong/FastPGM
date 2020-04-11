@@ -38,6 +38,9 @@ int Node::GetNumChildren() const {
   return set_children_indexes.size();
 }
 
+/*
+ * @brief: get the total number of parent combinations
+ */
 int Node::GetNumParentsConfig() {
   if (num_parents_config < 0) {
     num_parents_config = 1;
@@ -50,8 +53,10 @@ int Node::GetNumParentsConfig() {
   return num_parents_config;
 }
 
+/**
+ * @brief: get parents given a set of [variable id, variable value].
+ */
 DiscreteConfig Node::GetDiscParConfigGivenAllVarValue(DiscreteConfig &all_var_val) {
-  // This version is 2x SLOWER than the version that accept DiscreteConfig as argument.
   DiscreteConfig par_var_val;
 
   if (!HasParents()) {
@@ -112,12 +117,14 @@ void Node::AddParent(Node *p) {
   }
 }
 
-
+/**
+ * @brief: add a parent to the node
+ */
 void Node::AddDiscreteParent(Node *p) {
   int p_idx = p->GetNodeIndex();
   if (set_parent_indexes.find(p_idx) == set_parent_indexes.end()) {  // If p is not in the parent set.
     set_parent_indexes.insert(p_idx);
-    auto dp = (DiscreteNode *) p;
+    auto dp = (DiscreteNode *) p;//dp stands for "discrete parent"
     vec_disc_parent_indexes.push_back(p_idx);
     map_disc_parents_domain_size[p_idx] = dp->GetDomainSize();
 
@@ -126,7 +133,7 @@ void Node::AddDiscreteParent(Node *p) {
     for (const auto &val : dp->vec_potential_vals) {
       DiscVarVal vv(p_idx, val);
       for (auto old_par_comb : set_discrete_parents_combinations) {
-        old_par_comb.insert(vv);
+        old_par_comb.insert(vv);//insert the new parent with a potential value to the old configuration
         new_par_combs.insert(old_par_comb);
       }
     }

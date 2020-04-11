@@ -16,7 +16,7 @@
 #include <cfloat>
 
 using namespace std;
-typedef set< pair<int, int> > DiscreteConfig;
+typedef set< pair<int, int> > DiscreteConfig;//[variable id, variable value]
 
 struct Value {
  private:

@@ -91,7 +91,7 @@ void Network::ConstructNaiveBayesNetwork(Dataset *dts) {
   for (int i = 0; i < num_nodes; ++i) {
     DiscreteNode *node_ptr = new DiscreteNode(i);  // For now, only support discrete node.
     node_ptr->SetDomainSize(dts->num_of_possible_values_of_disc_vars[i]);//set the cardinality of a discrete variable.
-    for (auto v : dts->map_disc_vars_possible_values[i]) {//TODO: double check
+    for (auto v : dts->map_disc_vars_possible_values[i]) {
       node_ptr->vec_potential_vals.push_back(v);
     }
 #pragma omp critical
@@ -108,7 +108,7 @@ void Network::ConstructNaiveBayesNetwork(Dataset *dts) {
   }
 
   // Generate configurations of parents.
-  GenDiscParCombsForAllNodes();
+  GenDiscParCombsForAllNodes();//TODO: double-check
 
   // Generate topological ordering and default elimination ordering.
   vector<int> topo = GetTopoOrd();

@@ -20,16 +20,18 @@ using namespace std;
 class DiscreteNode : public Node {//the parent nodes of DiscreteNode must be discrete variables.
  public:
   // The order matters.
-  vector<string> vec_str_potential_vals;
+  vector<string> vec_str_potential_vals;//the values of some variables are strings (e.g., gender = "male" or "female"); can be improved.
   vector<int> vec_potential_vals;
 
   // =============== refactor like Weka ===============
   // Keep the count instead of probability.
-  map< int, map<DiscreteConfig, int> > map_cond_prob_table_statistics;  // Keys: query variable, parents config. Value: count under condition.
-                                                             // If the node has no parents, then the second dimension, parents_config, will only use the key 0.
-  map<DiscreteConfig, int> map_total_count_under_parents_config;   // Key: parents config. Value: total count.
+  map<int, map<DiscreteConfig, int> > map_cond_prob_table_statistics;  // Key: query variable (child) index; Value: (parents config, count under condition).
+  // If the node has no parent, then the second dimension, DiscreteConfig (i.e., parents_config) is empty.
 
-  void SetLaplaceSmooth(double alpha);
+  map<DiscreteConfig, int> map_total_count_under_parents_config;//Key: parents config. Value: total count.
+  //map_cond_prob_table_statistics and map_total_count_under_parents_config together can be used to compute the probability.
+
+  void SetLaplaceSmooth(double alpha);//for smoothness when computing probability
   double GetLaplaceSmooth();
 
   void AddInstanceOfVarVal(DiscreteConfig instance_of_var_val);
@@ -37,7 +39,7 @@ class DiscreteNode : public Node {//the parent nodes of DiscreteNode must be dis
   double GetProbability(int query_val, DiscreteConfig &parents_config);
 //  int GetIndexOfValue(int val);
 
-  bool cpt_initialized = false;
+  bool cpt_initialized = false;//cpt stands for "conditional probability table"
   void InitializeCPT();
   // ==================================================
 

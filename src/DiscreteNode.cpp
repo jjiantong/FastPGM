@@ -16,15 +16,18 @@ DiscreteNode::DiscreteNode(int index, string name) {
   SetNodeIndex(index);
   node_name = std::move(name);
 
-  num_potential_vals = -1;
+  num_potential_vals = -1;//may be 0 is better?
 }
 
+/**
+ * @brief: the values of the variables are represented using "string" in this function.
+ */
 void DiscreteNode::SetDomain(vector<string> str_domain) {
   SetDomainSize(str_domain.size());
-  vec_str_potential_vals = str_domain;
+  vec_str_potential_vals = str_domain;//potential values in string form
 
   for (int i = 0; i < GetDomainSize(); ++i) {
-    vec_potential_vals.push_back(i);
+    vec_potential_vals.push_back(i);//potential values in "int" form
   }
 }
 
@@ -71,18 +74,27 @@ void DiscreteNode::AddParent(Node *p) {
 //  }
 }
 
+/**
+ * @brief: obtain the number of probability values in the conditional probability table
+ */
 int DiscreteNode::GetNumParams() {
-  int scale = this->GetNumParentsConfig();
+  int scale = this->GetNumParentsConfig();//the size of all parent combination (i.e., # of columns of the table)
   return this->GetDomainSize() * scale;
 }
 
+/**
+ * @brief: clear the cells of the conditional probability table
+ */
 void DiscreteNode::ClearParams() {
   map_cond_prob_table_statistics.clear();
   map_total_count_under_parents_config.clear();
+
+  //TODO: potential bugs; may need to add the following line
+  //cpt_initialized = false;
 }
 
 
-void DiscreteNode::PrintProbabilityTable() {
+void DiscreteNode::PrintProbabilityTable() {//checked
   cout << GetNodeIndex() << ":\t";
 
   if (this->HasParents()) {    // If this node has parents
@@ -111,28 +123,33 @@ void DiscreteNode::PrintProbabilityTable() {
   }
 }
 
+/**
+ * @brief: helper of generating instances from the network for approximate inference
+ */
 int DiscreteNode::SampleNodeGivenParents(DiscreteConfig &evidence) {
-  // The evidence should contain all parents of this node.
+  //Important: The evidence should contain all parents of this node. This condition can be met by generating an instance from the roots (without parents).
   // The evidence about other nodes (including children) are IGNORED!!!
-  DiscreteConfig par_evi;
+  DiscreteConfig par_evi;//for storing the parents of the current node
   for (auto &e : evidence) {
     if (set_parent_indexes.find(e.first) != set_parent_indexes.end()) {
       par_evi.insert(e);
     }
   }
 
-  DiscreteConfig par_config;
+  DiscreteConfig par_config;//not used
 
+  //every potential value of this node has a weight
   vector<int> weights;
   for (int i = 0; i < GetDomainSize(); ++i) {
-    int w = (int) (GetProbability(vec_potential_vals.at(i), par_evi) * 10000);
+    int query_value = vec_potential_vals.at(i);//potential value of the current node
+    int w = (int) (GetProbability(query_value, par_evi) * 10000);//convert the probability into int for calling API
     weights.push_back(w);
   }
 
   unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
   default_random_engine rand_gen(seed);
   discrete_distribution<int> this_distribution(weights.begin(),weights.end());
-  return vec_potential_vals.at(this_distribution(rand_gen));
+  return vec_potential_vals.at(this_distribution(rand_gen));//get the final value
 }
 
 
@@ -144,19 +161,24 @@ double DiscreteNode::GetLaplaceSmooth() {
   return this->laplace_smooth;
 }
 
-
+/**
+ * @brief: upldate counter when meeting new training instances
+ */
 void DiscreteNode::AddInstanceOfVarVal(DiscreteConfig instance_of_var_val) {
   DiscreteConfig parents_config = GetDiscParConfigGivenAllVarValue(instance_of_var_val);
-  AddCount(
-          DiscreteConfigToMap(instance_of_var_val).at(GetNodeIndex()),
-          parents_config,
-          1);
+  //GetNodeIndex() is the query variable id; store the new instance in a map
+  std::map<int, int> discreteConfigMap = DiscreteConfigToMap(instance_of_var_val);
+  int query_value = discreteConfigMap.at(GetNodeIndex());
+  //update probability table of the node with the query value
+  AddCount(query_value, parents_config, 1);
 }
 
-
+/**
+ * @brief: initialize the conditional probability table
+ */
 void DiscreteNode::InitializeCPT() {
 
-  if (!HasParents()) {
+  if (!HasParents()) {//the node doesn't have a parent
     DiscreteConfig par_config;
     map_total_count_under_parents_config[par_config] = 0;
     for (int i = 0; i < GetDomainSize(); ++i) {
@@ -174,16 +196,22 @@ void DiscreteNode::InitializeCPT() {
   cpt_initialized = true;
 }
 
-
+/**
+ * @brief: update the maps of a node given the variable of the new instance
+ */
 void DiscreteNode::AddCount(int query_val, DiscreteConfig &parents_config, int count) {
   if (!cpt_initialized) { InitializeCPT(); }
   map_total_count_under_parents_config[parents_config] += count;
   map_cond_prob_table_statistics[query_val][parents_config] += count;
 }
 
+/**
+ * @brief: use the counters in the probability table to compute the probabilities
+ * parent configuration must be full for looking up the prbability in the table
+ */
 double DiscreteNode:: GetProbability(int query_val, DiscreteConfig &parents_config) {
 
-  // If the given instance contains the value that has not been seen before,
+  // If the given instance contains the parent configuration or query value that has not been seen before,
   // return the smallest probability divided by the domain size and number of parents configurations.
   bool unseen_value = (set_discrete_parents_combinations.find(parents_config) == set_discrete_parents_combinations.end()
                        ||
@@ -199,7 +227,7 @@ double DiscreteNode:: GetProbability(int query_val, DiscreteConfig &parents_conf
         }
       }
     }
-    double prob = min_prob / (GetDomainSize() * GetNumParentsConfig());
+    double prob = min_prob / (GetDomainSize() * GetNumParentsConfig());//the computation is based on a forgotten paper or weka.
     return prob;
   }
 

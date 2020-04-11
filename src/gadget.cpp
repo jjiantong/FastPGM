@@ -39,6 +39,9 @@ DiscreteConfig ArrayToDiscreteConfig(int *nodes_indexes, int *observations, int 
   return result;
 }
 
+/**
+ * @brief: convert an instance into a map for fast query
+ */
 map<int, int> DiscreteConfigToMap(DiscreteConfig &disc_cfg) {
   map<int, int> result;
   for (const auto var_val : disc_cfg) {

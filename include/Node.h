@@ -38,7 +38,7 @@ class Node {
   // =============== refactor like Weka ===============
   vector<int> vec_disc_parent_indexes;  // The order matters.
   set<int> set_parent_indexes;
-  map<int, int> map_disc_parents_domain_size;  // Key: parent index. Value: parent's domain size.
+  map<int, int> map_disc_parents_domain_size;  //Key: parent index. Value: parent's domain size.
 
   set<int> set_children_indexes;
 
