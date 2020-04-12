@@ -18,6 +18,9 @@
 using namespace std;
 typedef set< pair<int, int> > DiscreteConfig;//[variable id, variable value]
 
+/**
+ * @brief: to support both discrete can continuous variables
+ */
 struct Value {
  private:
   int int_ = INT32_MIN;     //for discrete variable
@@ -29,6 +32,8 @@ struct Value {
   void SetFloat(float f) { float_ = f; int_ = INT32_MIN; use_int = false; }
   int GetInt() const { if (!use_int) exit(1); return int_; }
   float GetFloat() const { if (use_int) exit(1); return float_; }
+
+  //define the "<" operator; this operator is needed for set/map.
   bool operator <(const Value v) const {
     if (this->UseInt() && v.UseInt()) {
       return this->GetInt() < v.GetInt();
@@ -43,9 +48,12 @@ struct Value {
 
 };
 
-typedef pair<int, Value> VarVal;
-typedef pair<int, int> DiscVarVal;
+typedef pair<int, Value> VarVal; //variable/node id, value of the variable/node
+typedef pair<int, int> DiscVarVal;//similar to VarVal, but for discrete varaible
 
+/** this configuration is for both discrete and continuous.
+ *  the set contains the observed values of each variable.
+ * **/
 typedef set<VarVal> Configuration;
 
 /**
@@ -77,7 +85,10 @@ template <typename T> set<set<T>> GenAllCombinationsFromSets(set<set<T>> *set_of
   return result;
 };
 
-template <typename T> set<set<T>> GenPowerSet(set<T> &src_set) {
+/**
+ * @brief: generate a power set (i.e., all the subsets of a given set) for a given set;
+ */
+template <typename T> set<set<T>> GenPowerSet(set<T> &src_set) {//TODO: need to double check correctness
   // Avoid recursion.
   set<set<T>> power_set;
   set<T> empty;
@@ -106,7 +117,7 @@ bool Conflict(const DiscreteConfig *cfg1, const DiscreteConfig *cfg2);
 bool OccurInCorrectOrder(int a, int b, vector<int> vec);
 bool DAGObeyOrdering(int **graph, int num_nodes, vector<int> ord);
 bool DirectedGraphContainsCircleByBFS(int **graph, int num_nodes);
-int* WidthFirstTraversalWithAdjacencyMatrix(int **graph, int num_nodes, int start);
+int* BreadthFirstTraversalWithAdjacencyMatrix(int **graph, int num_nodes, int start);
 vector<int> TopoSortOfDAGZeroInDegreeFirst(int **graph, int num_nodes);
 
 string TrimRight(string);

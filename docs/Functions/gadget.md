@@ -183,7 +183,7 @@ Else, return `false`.
 Time complexity: O( n^2 )
 
 
-## int\* WidthFirstTraversalWithAdjacencyMatrix(int \*\*graph, int num_nodes, int start)
+## int\* BreadthFirstTraversalWithAdjacencyMatrix(int \*\*graph, int num_nodes, int start)
 
 Input: graph: 2-d array representation of the adjacency matrix of the graph
        num_nodes: number of nodes in the graph

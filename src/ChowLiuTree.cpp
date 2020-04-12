@@ -190,7 +190,7 @@ void ChowLiuTree::StructLearnChowLiuTreeCompData(Dataset *dts, bool print_struct
     graphAdjacencyMatrix[maxI][maxJ] = graphAdjacencyMatrix[maxJ][maxI] = 1;
   }
   // Add arrows in tree, set parents and children
-  int* topologicalSortedPermutation = WidthFirstTraversalWithAdjacencyMatrix(graphAdjacencyMatrix, n, root_node_index);
+  int* topologicalSortedPermutation = BreadthFirstTraversalWithAdjacencyMatrix(graphAdjacencyMatrix, n, root_node_index);
 
 
   // !!! See the comments for "default_elim_ord" in the "ChowLiuTree.h" file.

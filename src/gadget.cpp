@@ -4,7 +4,10 @@
 
 #include "gadget.h"
 
-
+/**
+ * @brief: find the maximum probability of a variable which has multiple potential values.
+ * This function is used in inference.
+ */
 int ArgMax(map<int, double> &x) {
   int argmax = (x.begin())->first;
   double max = (x.begin())->second;
@@ -17,6 +20,10 @@ int ArgMax(map<int, double> &x) {
   return argmax;
 }
 
+/**
+ * @brief: get probabilities; normalise the weights of a variable which has multiple potential values.
+ * the input is the same as "ArgMax".
+ */
 map<int, double> Normalize(map<int, double> &x) {
   double denominator = 0;
   for (const auto &key_value : x) {
@@ -28,6 +35,12 @@ map<int, double> Normalize(map<int, double> &x) {
   return x;
 }
 
+/**
+ * @brief: build a (partial/full) configuration given the variables and their observation.
+ * @param nodes_indexes: id of the variable
+ * @param observations: value of the variable
+ * @param num_of_observations: the length of the two arrays
+ */
 DiscreteConfig ArrayToDiscreteConfig(int *nodes_indexes, int *observations, int num_of_observations) {
   DiscreteConfig result;
   pair<int, int> p;
@@ -40,7 +53,7 @@ DiscreteConfig ArrayToDiscreteConfig(int *nodes_indexes, int *observations, int 
 }
 
 /**
- * @brief: convert an instance into a map for fast query
+ * @brief: convert a configuration (e.g., a config can be derived from an instance) into a map for fast query
  */
 map<int, int> DiscreteConfigToMap(DiscreteConfig &disc_cfg) {
   map<int, int> result;
@@ -53,7 +66,9 @@ map<int, int> DiscreteConfigToMap(DiscreteConfig &disc_cfg) {
   return result;
 }
 
-
+/**
+ * @brief: for inference; refer to docs in GitHub
+ */
 set<DiscreteConfig> ExpandConfgFromTwoConfgs(const set<DiscreteConfig> *one, const set<DiscreteConfig> *two) {
   set<int> set_all_vars;
   for (const auto &p : *one->begin()) {
@@ -83,7 +98,10 @@ set<DiscreteConfig> ExpandConfgFromTwoConfgs(const set<DiscreteConfig> *one, con
   return GenAllCombinationsFromSets(&set_of_sets);
 }
 
-
+/**
+ * @brief: check of the first config is the subset of the second config;
+ * used in inference
+ */
 bool FirstIsSubsetOfSecond(const DiscreteConfig *first, const DiscreteConfig *second) {
   for (const auto &f : *first) {
     if (second->find(f)==second->end()) return false;
@@ -91,7 +109,9 @@ bool FirstIsSubsetOfSecond(const DiscreteConfig *first, const DiscreteConfig *se
   return true;
 }
 
-
+/**
+ * @brief: the opposite of Conflict
+ */
 bool FirstCompatibleSecond(const DiscreteConfig *first, const DiscreteConfig *second) {
   for (const auto &f : *first) {
     for (const auto &s : *second) {
@@ -101,7 +121,10 @@ bool FirstCompatibleSecond(const DiscreteConfig *first, const DiscreteConfig *se
   return true;
 }
 
-
+/**
+ * @brief: check if two configurations have a conflict of any shared variable.
+ * @return:  false (if they have different values on the same variable) true (else)
+ */
 bool Conflict(const DiscreteConfig *cfg1, const DiscreteConfig *cfg2) {
   for (const auto &f : *cfg1) {
     for (const auto &s : *cfg2) {
@@ -113,6 +136,12 @@ bool Conflict(const DiscreteConfig *cfg1, const DiscreteConfig *cfg2) {
   return false;
 }
 
+/**
+ * @brief: this function is used in structure learning; the structure of a network can be constrained based on an order.
+ * @param: a: the id of a variable
+ * @param: b: the id of another variable
+ * @return: If a occurs before b in vec, return true. Otherwise, return false.
+ */
 bool OccurInCorrectOrder(int a, int b, vector<int> vec) {
   bool have_met_a = false, have_met_b = false;
   for (const auto &elem : vec) {
@@ -127,6 +156,13 @@ bool OccurInCorrectOrder(int a, int b, vector<int> vec) {
   return false;
 }
 
+/**
+ * @brief: for structure learning
+ * @param graph: a set of nodes/variables
+ * @param num_nodes: the size of the graph
+ * @param ord: a valid order from topological ordering
+ * @return: If ord is one of the topological orderings of the graph, return true. Else, return false.
+ */
 bool DAGObeyOrdering(int **graph, int num_nodes, vector<int> ord) {
   if (num_nodes!=ord.size()) {
     fprintf(stderr, "Error in function [%s]. Number of nodes is not equal to the size of ordering.", __FUNCTION__);
@@ -149,7 +185,10 @@ bool DAGObeyOrdering(int **graph, int num_nodes, vector<int> ord) {
   return true;
 }
 
-
+/**
+ * @brief: for structure learning; check whether a directed graph has a cycle.
+ * This function uses BFS, but other graph traversal algorithms can work as well
+ */
 bool DirectedGraphContainsCircleByBFS(int **graph, int num_nodes) {
   int visited_count = 0;
   queue<int> que;
@@ -181,8 +220,11 @@ bool DirectedGraphContainsCircleByBFS(int **graph, int num_nodes) {
   return (visited_count != num_nodes);
 }
 
-
-int* WidthFirstTraversalWithAdjacencyMatrix(int **graph, int num_nodes, int start) {
+/**
+ * @brief: obtain a sequence given a graph
+ * @return an array containing the node indexes in the order of breadth first traversal
+ */
+int* BreadthFirstTraversalWithAdjacencyMatrix(int **graph, int num_nodes, int start) {
   int *result = new int[num_nodes];
   int itResult = 0;
   queue<int> que;
