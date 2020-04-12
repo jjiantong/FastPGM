@@ -16,7 +16,7 @@
 
 using namespace std;
 
-typedef set< pair<int, int> > DiscreteConfig;
+typedef set<pair<int, int> > DiscreteConfig;//to keep track of the discrete parent configuration of this node
 
 class ContinuousNode : public Node {//the parent nodes of ContinuousNode can be both discrete and continuous variables.
  public:
@@ -24,20 +24,24 @@ class ContinuousNode : public Node {//the parent nodes of ContinuousNode can be 
   // In conditional Gaussian Bayesian network,
   // discrete nodes will not have continuous parents
 
-  // The ordering of continuous parents is important.
+  //TODO: Understand "The ordering of continuous parents is important."
   vector<int> contin_par_indexes;
 
   // Conditional mean given discrete parents.
-  map<DiscreteConfig, double> map_mu;
-  double marginal_mu;
+  map<DiscreteConfig, double> map_mu;//each configuration of discrete parents corresponds to a mu.
+  double marginal_mu;//TODO: double check how to compute; possibly the average of all the mu of all the configurations
 
-  // Conditional linear coefficients for continuous parents given discrete parents.
+    // Conditional linear coefficients for continuous parents given discrete parents.
+  /**
+   * each configuration of discrete parents corresponds to a coefficient of a continuous variable.
+   * the size of vector<double> is the number of continuous variables
+   */
   map<DiscreteConfig, vector<double>> map_coefficients;
-  vector<double> marginal_coefficients;
+  vector<double> marginal_coefficients;//TODO: double check how to compute marginal_coefficient.
 
   // Conditional variance given discrete parents.
-  map<DiscreteConfig, double> map_variance;
-  double marginal_variance;
+  map<DiscreteConfig, double> map_variance;//similar to "map_mu"
+  double marginal_variance;//similar to marginal_variance
 
   ContinuousNode();
   explicit ContinuousNode(int index);
