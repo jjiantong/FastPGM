@@ -48,6 +48,9 @@ typedef pair<int, int> DiscVarVal;
 
 typedef set<VarVal> Configuration;
 
+/**
+ * @brief: generate all the combinations given the set of parents
+ */
 template <typename T> set<set<T>> GenAllCombinationsFromSets(set<set<T>> *set_of_sets) {//checked 11/Apr/2020
   if (set_of_sets->empty()) { return set<set<T>>(); }//this func uses recursion, because the number of sets is unknown sometimes.
   auto its = set_of_sets->begin();

@@ -54,7 +54,8 @@ int Node::GetNumParentsConfig() {
 }
 
 /**
- * @brief: get parents given a set of [variable id, variable value].
+ * @brief: similar to GetDiscParConfigGivenAllVarValue(vector<int> &all_var_val).
+ * get parents given a set of [variable id, variable value].
  */
 DiscreteConfig Node::GetDiscParConfigGivenAllVarValue(DiscreteConfig &all_var_val) {
   DiscreteConfig par_var_val;
@@ -66,13 +67,19 @@ DiscreteConfig Node::GetDiscParConfigGivenAllVarValue(DiscreteConfig &all_var_va
   assert(all_var_val.size() >= GetNumDiscParents());
 
   for (auto const var_val : all_var_val) {
-    if (std::find(vec_disc_parent_indexes.begin(), vec_disc_parent_indexes.end(), var_val.first) != vec_disc_parent_indexes.end()) {
+    auto node_id = var_val.first;
+    if (std::find(vec_disc_parent_indexes.begin(), vec_disc_parent_indexes.end(), node_id) != vec_disc_parent_indexes.end()) {
+      //this node is one of the parent of the current node
       par_var_val.insert(var_val);
     }
   }
   return par_var_val;
 }
 
+/**
+ * @brief: get the parent configuration (i.e., condition) of current node;
+ * @param: all_var_val contains the values of each node of the Bayesian network
+ */
 DiscreteConfig Node::GetDiscParConfigGivenAllVarValue(vector<int> &all_var_val) {
   // This version is 2x FASTER than the version that accept DiscreteConfig as argument.
   DiscreteConfig par_var_val;
@@ -84,7 +91,8 @@ DiscreteConfig Node::GetDiscParConfigGivenAllVarValue(vector<int> &all_var_val) 
   assert(all_var_val.size() >= GetNumDiscParents());
 
   for (auto const par : vec_disc_parent_indexes) {
-    par_var_val.insert(DiscVarVal(par, all_var_val.at(par)));
+    int parent_value = all_var_val.at(par);
+    par_var_val.insert(DiscVarVal(par, parent_value));
   }
   return par_var_val;
 }
@@ -97,15 +105,20 @@ void Node::SetNodeIndex(int i) {
   node_index = i;
 }
 
-
+/**
+ * @brief: add a discrete child node
+ */
 void Node::AddChild(Node *c) {
+  //Reduce redundancy: combine this function with "AddChild" in ContinuousNode
   int c_idx = c->GetNodeIndex();
   if (set_children_indexes.find(c_idx) == set_children_indexes.end()) {
     set_children_indexes.insert(c_idx);
   }
 }
 
-
+/**
+ * @brief: add a generic parent node
+ */
 void Node::AddParent(Node *p) {
   int p_idx = p->GetNodeIndex();
   if (set_parent_indexes.find(p_idx) == set_parent_indexes.end()) {  // If p is not in the parent set.
@@ -121,7 +134,7 @@ void Node::AddParent(Node *p) {
  * @brief: add a parent to the node
  */
 void Node::AddDiscreteParent(Node *p) {
-  int p_idx = p->GetNodeIndex();
+  int p_idx = p->GetNodeIndex();//get the id of the parent
   if (set_parent_indexes.find(p_idx) == set_parent_indexes.end()) {  // If p is not in the parent set.
     set_parent_indexes.insert(p_idx);
     auto dp = (DiscreteNode *) p;//dp stands for "discrete parent"
@@ -139,9 +152,12 @@ void Node::AddDiscreteParent(Node *p) {
     }
     this->set_discrete_parents_combinations = new_par_combs;
   }
+  //if the parent is already in the set_parent_indexes, nothing needs to be done.
 }
 
-
+/**
+ * @brief: similar to AddDiscreteParent
+ */
 void Node::AddContinuousParent(Node *p) {
   int p_idx = p->GetNodeIndex();
   if (set_parent_indexes.find(p_idx) == set_parent_indexes.end()) {  // If p is not in the parent set.
@@ -152,8 +168,11 @@ void Node::AddContinuousParent(Node *p) {
   }
 }
 
-
+/**
+ * @brief: remove a child node; this function is used for network structure learning.
+ */
 void Node::RemoveChild(Node *c) {
+  /** Important: need to use with RemoveParent **/
   int c_idx = c->GetNodeIndex();
   if (set_children_indexes.find(c_idx) == set_children_indexes.end()) {
     fprintf(stderr, "Node #%d does not have parent node #%d!", this->GetNodeIndex(), c_idx);
@@ -164,6 +183,7 @@ void Node::RemoveChild(Node *c) {
 
 
 void Node::RemoveParent(Node *p) {
+  /** Important: need to use with RemoveChild **/
   int p_idx = p->GetNodeIndex();
   if (set_parent_indexes.find(p_idx)==set_parent_indexes.end()) {
     fprintf(stderr, "Node #%d does not have parent node #%d!", this->GetNodeIndex(), p_idx);
@@ -177,6 +197,7 @@ void Node::RemoveParent(Node *p) {
     // Update possible parent configurations
     auto dp = (DiscreteNode*) p;
     set<DiscreteConfig> new_par_combs;
+    //TODO: potential bug here; may need to switch the two loops
     for (const auto &val : dp->vec_potential_vals) {
       DiscVarVal vv(p_idx, val);
       for (auto old_par_comb : set_discrete_parents_combinations) {
@@ -188,7 +209,10 @@ void Node::RemoveParent(Node *p) {
   }
 }
 
-
+/**
+ * @brief: generate all the possible parent configurations
+ * @param: set_parent_ptrs: the set of parents of the current node.
+ */
 void Node::GenDiscParCombs(set<Node*> set_parent_ptrs) {
   set_discrete_parents_combinations.clear();
 
@@ -200,28 +224,31 @@ void Node::GenDiscParCombs(set<Node*> set_parent_ptrs) {
   }
 
   // Preprocess. Construct set of sets.
-  set<DiscreteConfig> set_of_sets;
+  set<DiscreteConfig> all_config_of_each_parent;
 
   for (auto par_ptr : set_parent_ptrs) {
-    if (!par_ptr->is_discrete) { continue; }
-    DiscreteConfig cb;
-    pair<int, int> ele;
-    DiscreteNode *d_par_ptr = (DiscreteNode*)(par_ptr);
+    if (!par_ptr->is_discrete) { continue; }//not parent configuration for continuous nodes
+    DiscreteConfig all_config_of_a_parent;
+    pair<int, int> varId_val;
+    DiscreteNode *d_par_ptr = (DiscreteNode*)(par_ptr);//convert a generic node to a discrete node
 
     for (int i=0; i<d_par_ptr->GetDomainSize(); ++i) {
-      ele.first = par_ptr->node_index;
-      ele.second = ((DiscreteNode*)par_ptr)->vec_potential_vals.at(i);
-      cb.insert(ele);
+      varId_val.first = par_ptr->node_index;
+      varId_val.second = ((DiscreteNode*)par_ptr)->vec_potential_vals.at(i);
+      all_config_of_a_parent.insert(varId_val);
     }
-    set_of_sets.insert(cb);
+    all_config_of_each_parent.insert(all_config_of_a_parent);
   }
 
   // Generate
-  set_discrete_parents_combinations = GenAllCombinationsFromSets(&set_of_sets);
-
+  set_discrete_parents_combinations = GenAllCombinationsFromSets(&all_config_of_each_parent);
 }
 
+/**
+ * @brief: possibly only used in structure learning
+ */
 void Node::ClearParents() {
+  //TODO: double check whether need to set "num_parents_config"
   set_discrete_parents_combinations.clear();
 
   vec_disc_parent_indexes.clear();
