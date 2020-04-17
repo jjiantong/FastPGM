@@ -244,7 +244,11 @@ int* BreadthFirstTraversalWithAdjacencyMatrix(int **graph, int num_nodes, int st
   return result;
 }
 
-
+/**
+ * @brief: obtain the node indexes with topological ordering (the first is the node with in-degree = 0)
+ * @param graph: 2-d array representation of the adjacency matrix of the graph
+ * @param num_nodes: number of the nodes in the graph
+ */
 vector<int> TopoSortOfDAGZeroInDegreeFirst(int **graph, int num_nodes) {
   vector<int> result;
   queue<int> que;
@@ -276,6 +280,9 @@ vector<int> TopoSortOfDAGZeroInDegreeFirst(int **graph, int num_nodes) {
 }
 
 
+/**
+ * @brief: trim all \t, \n, \r and whitespace characters on the right of a string.
+ */
 string TrimRight(string s) {
   while (!s.empty() && s[s.size()-1]<33) { // ASCII. \t=09, \n=10, \r=13, space=32.
     s.erase(s.size()-1);
@@ -283,7 +290,9 @@ string TrimRight(string s) {
   return s;
 }
 
-
+/**
+ * @brief: trim all \t, \n, \r and whitespace characters on the left of a string.
+ */
 string TrimLeft(string s) {
   while (!s.empty() && s[0]<33) { // ASCII. \t=09, \n=10, \r=13, space=32.
     s.erase(0);
@@ -291,12 +300,16 @@ string TrimLeft(string s) {
   return s;
 }
 
-
+/**
+ * @brief: trim all \t, \n, \r and whitespace characters on the left or right of a string.
+ */
 string Trim(string &s) {
   return TrimLeft( TrimRight(s) );
 }
 
-
+/**
+ * @brief: split string s into a vector of strings by the delimiter
+ */
 vector<string> Split(string &s, string delimiter) {
   vector<string> result;
   size_t begin = 0, end = 0;
@@ -308,6 +321,9 @@ vector<string> Split(string &s, string delimiter) {
   return result;
 }
 
+/**
+ * @brief: get the factorial for integer n
+ */
 int FactorialForSmallInteger(int n) {
   if (n < 0) { return -1; }
   int result = 1;
@@ -317,6 +333,9 @@ int FactorialForSmallInteger(int n) {
   return result;
 }
 
+/**
+ * @brief: to avoid overflow; get the log of the factorial for integer n
+ */
 double LogOfFactorial(int n) {
   if (n < 0) { return -1; }
   double result = 0;
@@ -326,7 +345,9 @@ double LogOfFactorial(int n) {
   return result;
 }
 
-
+/**
+ * @brief: given the range of each digit, obtain all possible configs (N-ary count)
+ */
 vector<vector<int>> NaryCount(vector<int> vec_range_each_digit) {//checked on 11/Apr/2020
 
   int num_digits = vec_range_each_digit.size();
@@ -368,6 +389,9 @@ vector<vector<int>> NaryCount(vector<int> vec_range_each_digit) {//checked on 11
   return result_counts;
 }
 
+/**
+ * @brief: obtain the (n+1)th possible config (N-ary count)
+ */
 vector<int> TheNthNaryCount(vector<int> vec_range_each_digit, int n) {
   // Like decimal to binary.
   // Faster than generating all count first and find the n-th one.
