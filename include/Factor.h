@@ -19,11 +19,14 @@ using namespace std;
 
 class Network;  // Forward declaration.
 
-class Factor {
+/**
+ * @brief: this class contains the weights/potentials of each discrete config; the discrete config does not have parent-child relationships.
+ */
+class Factor {//this is used only for discrete nodes;
  public:
-  set<int> related_variables;
-  set<DiscreteConfig> set_combinations;
-  map<DiscreteConfig, double> map_potentials;
+  set<int> related_variables;//the variables involved in this factor
+  set<DiscreteConfig> set_disc_config;//all the configurations of the related variables
+  map<DiscreteConfig, double> map_potentials;//the weight/potential of each discrete config
 
   Factor() = default;
   Factor(DiscreteNode *disc_node, Network *net);

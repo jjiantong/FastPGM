@@ -28,13 +28,14 @@ using namespace std;
 // Forward Declaration
 class ScoreFunction;
 
-
+//TODO: devide into 3 or more classes (e.g. network, learning and inference)
 class Network {//this class is used by both the customized networks and networks learning from data.
 
  public:
   string network_name;//a name for each bayesian network (usually an xml file contains a name for the network).
   int num_nodes = 0;
   bool pure_discrete;
+  /** the default value to infer is the first (i.e. root) variable **/
   vector<int> vec_default_elim_ord;//the elimination order is obtained by reverse topological sort.
 
   map<int, Node*> map_idx_node_ptr;  // Key: node index. Value: node pointer. This map is a helper for FindNodePtrByIndex.

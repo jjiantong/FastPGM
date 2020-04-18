@@ -112,7 +112,7 @@ TEST_F(NetworkTest, var_elim_and_jun_tree) {
   Factor f2 = jt->BeliefPropagationCalcuDiscreteVarMarginal(0);
   f2.PrintPotentials();
 
-  for (auto &c : f1.set_combinations) {
+  for (auto &c : f1.set_disc_config) {
     double diff_abs = abs(f1.map_potentials[c] - f2.map_potentials[c]);
     // Use EQ may fail in some cases where they should pass.
     EXPECT_LE(diff_abs,1.0E-10);

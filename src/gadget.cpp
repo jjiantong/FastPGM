@@ -189,7 +189,7 @@ bool DAGObeyOrdering(int **graph, int num_nodes, vector<int> ord) {
  * @brief: for structure learning; check whether a directed graph has a cycle.
  * This function uses BFS, but other graph traversal algorithms can work as well
  */
-bool DirectedGraphContainsCircleByBFS(int **graph, int num_nodes) {
+bool DirectedGraphContainsCircleByBFS(int **graph, int num_nodes) {//TODO: double check correctness
   int visited_count = 0;
   queue<int> que;
 

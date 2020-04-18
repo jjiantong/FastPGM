@@ -6,11 +6,15 @@
 #include "Network.h"
 
 
+/**
+ * @brief: construct a factor given a node; the factor consists of the node and all the existing related_variables.
+ */
 Factor::Factor(DiscreteNode *disc_node, Network *net) {
   int node_index = disc_node->GetNodeIndex();
 
-  related_variables.insert(node_index);
+  related_variables.insert(node_index);//related_variables is empty initially, because this is a constructor.
 
+  //construct the configuration of this node
   set<pair<int,int>> set_pair_temp;
   for (int i = 0; i < disc_node->GetDomainSize(); ++i) {
     DiscreteConfig comb_temp;
@@ -22,74 +26,67 @@ Factor::Factor(DiscreteNode *disc_node, Network *net) {
 
   // If this disc_node has no parents.
   if (!disc_node->HasParents()) {
-
-
     for (auto &p : set_pair_temp) {
       DiscreteConfig c, empty_par_config;
       c.insert(p);
-      set_combinations.insert(c);
+      set_disc_config.insert(c);
       map_potentials[c] = disc_node->GetProbability(p.second, empty_par_config);
     }
-
-
-  } else {
-
-
-    // If this disc_node has parents, the outer loop is for the disc_node, and the inner loop is for the parents.
+  } else {// If this disc_node has parents, the outer loop is for the disc_node, and the inner loop is for the parents.
     related_variables.insert(disc_node->set_parent_indexes.begin(), disc_node->set_parent_indexes.end());
-    for (auto &p : set_pair_temp) {
-      for (const auto & comb : disc_node->set_discrete_parents_combinations) {
+    for (auto &p : set_pair_temp) {//for each possible value of this node; (A, 0)
+      for (const auto & comb : disc_node->set_discrete_parents_combinations) {//for each parent; (B, 0)
         DiscreteConfig c = comb;
-        auto c_old = c;
-        c.insert(p);
-        set_combinations.insert(c);
-
+        auto c_old = c;//an existing (parent) configuration
+        c.insert(p);//a new configuration with the value of current node added.
+        set_disc_config.insert(c);
+        //TODO: add assert(par_config == c_old); the following line of code is not needed.
         DiscreteConfig par_config = disc_node->GetDiscParConfigGivenAllVarValue(c_old);
-
-        map_potentials[c] = disc_node->GetProbability(
-                p.second,
-                par_config);
+        map_potentials[c] = disc_node->GetProbability(p.second, par_config);//(AB, 00)
       }
     }
-
-
-  }
+  }//end has parents
 }
 
-
+/**
+ * @brief: constructor
+ */
 Factor::Factor(set<int> &rv,
                set<DiscreteConfig> &sc,
                map<DiscreteConfig, double> &mp) {
   this->related_variables = rv;
-  this->set_combinations = sc;
+  this->set_disc_config = sc;
   this->map_potentials = mp;
 }
 
-
+/**
+ * @brief: cartesian product on two factors; if two factors have shared variables,
+ *                         then the conflict ones (i.e. one variable has more than one value) in the results need to be removed.
+ */
 Factor Factor::MultiplyWithFactor(Factor second_factor) {
   Factor newFactor;
 
   newFactor.related_variables.insert(this->related_variables.begin(),this->related_variables.end());
   newFactor.related_variables.insert(second_factor.related_variables.begin(),second_factor.related_variables.end());
 
+  //find common variables from two sets
+  //TODO: remove set intersection; not used.
   set<int> common_related_variables;
   set_intersection(this->related_variables.begin(),this->related_variables.end(),
             second_factor.related_variables.begin(),second_factor.related_variables.end(),
             std::inserter(common_related_variables,common_related_variables.begin()));
 
-  for (auto first: set_combinations) {
-    for (auto second : second_factor.set_combinations) {
+  for (auto first: set_disc_config) {
+    for (auto second : second_factor.set_disc_config) {
 
-      // solve the bug about common variables
       // If two combinations have different values on common variables,
-      // which means that they conflict,
-      // then these two combinations can not form a legal entry.
-      if (!FirstCompatibleSecond(&first, &second)) continue;
+      // which means that they conflict, then these two combinations can not form a legal entry.
+      if (!FirstCompatibleSecond(&first, &second)) continue;//TODO: use "Conflict" function.
 
       DiscreteConfig new_comb;
       new_comb.insert(first.begin(),first.end());
       new_comb.insert(second.begin(),second.end());
-      newFactor.set_combinations.insert(new_comb);
+      newFactor.set_disc_config.insert(new_comb);
       newFactor.map_potentials[new_comb] = this->map_potentials[first] * second_factor.map_potentials[second];
     }
   }
@@ -97,25 +94,33 @@ Factor Factor::MultiplyWithFactor(Factor second_factor) {
   return newFactor;
 }
 
+/**
+ * @brief: factor out a node by id
+ */
 Factor Factor::SumOverVar(int index) {
   Factor newFactor;
   this->related_variables.erase(index);
-  newFactor.related_variables = this->related_variables;
-  for (auto comb : set_combinations) {
+  newFactor.related_variables = this->related_variables;//new set of related variables
+  for (auto config : set_disc_config) {//
+
+    //check if this configuration needs to be sum over
     pair<int, int> pair_to_be_erased;
-    for (auto p : comb) {
-      if (p.first==index) {
+    for (auto p : config) {
+      if (p.first==index) {//this configuration contains the value of the variable which needs to be sum over.
         pair_to_be_erased = p;
         break;
       }
     }
-    double temp = this->map_potentials[comb];
-    comb.erase(pair_to_be_erased);
-    if (newFactor.set_combinations.find(comb)!=newFactor.set_combinations.end()) {
-      newFactor.map_potentials[comb] += temp;
+
+    double temp = this->map_potentials[config];
+    config.erase(pair_to_be_erased);
+
+    //update potential for new factor; similar to marginalise a variable.
+    if (newFactor.set_disc_config.find(config)!=newFactor.set_disc_config.end()) {
+      newFactor.map_potentials[config] += temp;
     } else {
-      newFactor.set_combinations.insert(comb);
-      newFactor.map_potentials[comb] = temp;
+      newFactor.set_disc_config.insert(config);
+      newFactor.map_potentials[config] = temp;
     }
   }
   return newFactor;
@@ -125,13 +130,15 @@ Factor Factor::SumOverVar(DiscreteNode *node) {
   return SumOverVar(node->GetNodeIndex());
 }
 
-
+/**
+ * @brief: convert weight/potential into probability
+ */
 void Factor::Normalize() {
   double denominator = 0;
-  for (auto &comb : set_combinations) {
+  for (auto &comb : set_disc_config) {
     denominator += map_potentials[comb];
   }
-  for (auto &comb : set_combinations) {
+  for (auto &comb : set_disc_config) {
     map_potentials[comb] /= denominator;
   }
 }

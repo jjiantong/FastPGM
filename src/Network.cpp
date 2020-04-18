@@ -24,6 +24,7 @@ Network::Network(Network &net) {
   vec_default_elim_ord = net.vec_default_elim_ord;
   topo_ord = net.GetTopoOrd();//this sequence/order is used for variable elimination.
 
+  //copy the map for mapping id to node ptr
   map_idx_node_ptr = net.map_idx_node_ptr;
   for (int i = 0; i < num_nodes; ++i) {
     auto old_node = map_idx_node_ptr.at(i);
@@ -40,6 +41,7 @@ Network::Network(Network &net) {
 
 }
 
+//TODO: double-check correctness
 void Network::PrintEachNodeParents() {//print the parents of all the nodes
   for (const auto &id_node_ptr : map_idx_node_ptr) {
     auto node_ptr = id_node_ptr.second;
@@ -51,6 +53,7 @@ void Network::PrintEachNodeParents() {//print the parents of all the nodes
   }
 }
 
+//TODO: double-check correctness
 void Network::PrintEachNodeChildren() {//print the child nodes of all the nodes
   for (const auto &id_node_ptr : map_idx_node_ptr) {
     auto node_ptr = id_node_ptr.second;
@@ -62,6 +65,9 @@ void Network::PrintEachNodeChildren() {//print the child nodes of all the nodes
   }
 }
 
+/**
+ * @brief: find node ptr by id
+ */
 Node* Network::FindNodePtrByIndex(const int &index) const {
   if (index < 0 || index >= num_nodes) {  // The node indexes are consecutive integers start at 0.
     fprintf(stderr, "Error in function %s! \nInvalid index [%d]!", __FUNCTION__, index);
@@ -70,7 +76,9 @@ Node* Network::FindNodePtrByIndex(const int &index) const {
   return map_idx_node_ptr.at(index);
 }
 
-
+/**
+ * @brief: find node ptr by name
+ */
 Node* Network::FindNodePtrByName(const string &name) const {
   Node* node_ptr = nullptr;
   for (const auto i_n_ptr : map_idx_node_ptr) {
@@ -83,7 +91,10 @@ Node* Network::FindNodePtrByName(const string &name) const {
   return node_ptr;
 }
 
-
+/**
+ * @brief: construct NB given a data set
+ * @param dts
+ */
 void Network::ConstructNaiveBayesNetwork(Dataset *dts) {
   num_nodes = dts->num_vars;
   // Assign an index for each node.
@@ -92,7 +103,7 @@ void Network::ConstructNaiveBayesNetwork(Dataset *dts) {
     DiscreteNode *node_ptr = new DiscreteNode(i);  // For now, only support discrete node.
     node_ptr->SetDomainSize(dts->num_of_possible_values_of_disc_vars[i]);//set the cardinality of a discrete variable.
     for (auto v : dts->map_disc_vars_possible_values[i]) {
-      node_ptr->vec_potential_vals.push_back(v);
+      node_ptr->vec_potential_vals.push_back(v);//TODO: keep name convention consistent (i.e. possible vs potential)
     }
 #pragma omp critical
     {
@@ -112,10 +123,12 @@ void Network::ConstructNaiveBayesNetwork(Dataset *dts) {
 
   // Generate topological ordering and default elimination ordering.
   vector<int> topo = GetTopoOrd();
-  vec_default_elim_ord.reserve(num_nodes - 1);
+  vec_default_elim_ord.reserve(num_nodes - 1);//-1, because the last one is the value (which must be kept) to be inferred.
   for (int i = 0; i < num_nodes-1; ++i) {
     vec_default_elim_ord.push_back(topo.at(num_nodes-1-i));
   }
+
+  //check for correctness (i.e. reserved size == number of variables).
   int vec_size = vec_default_elim_ord.size();
   int vec_capacity = vec_default_elim_ord.capacity();
   if (vec_size != vec_capacity) {
@@ -123,9 +136,16 @@ void Network::ConstructNaiveBayesNetwork(Dataset *dts) {
   }
 }
 
-
+/**
+ * @brief: learn structure from a data set without missing values
+ * @param dts:                  data set
+ * @param print_struct:         whether want to print structure while learning
+ * @param algo:                 specify a network structure learning algorithm
+ * @param topo_ord_constraint:  a constraint to limit the learned network structure (i.e. the # of possible structures is often huge)
+ * @param max_num_parents:      a node can only has max_num_parents (to limit the # of possible networks)
+ */
 void Network::StructLearnCompData(Dataset *dts, bool print_struct, string algo, string topo_ord_constraint, int max_num_parents) {
-  fprintf(stderr, "Not be completely implemented yet!");
+  fprintf(stderr, "Not be completely implemented yet!");//TODO: most of the functionalities have been implemented; "algo" hasn't been used.
 
   cout << "==================================================" << '\n'
        << "Begin structural learning with complete data......" << endl;
@@ -139,11 +159,15 @@ void Network::StructLearnCompData(Dataset *dts, bool print_struct, string algo, 
 #pragma omp parallel for
   for (int i = 0; i < num_nodes; ++i) {
     DiscreteNode *node_ptr = new DiscreteNode(i);  // For now, only support discrete node.
+
+    //give this node a name
     if (dts->vec_var_names.size() == num_nodes) {
       node_ptr->node_name = dts->vec_var_names.at(i);
     } else {
-      node_ptr->node_name = to_string(i);
+      node_ptr->node_name = to_string(i);//use id as name
     }
+
+    //set the potential values for this node
     node_ptr->SetDomainSize(dts->num_of_possible_values_of_disc_vars[i]);
     for (auto v : dts->map_disc_vars_possible_values[i]) {
       node_ptr->vec_potential_vals.push_back(v);
@@ -154,6 +178,7 @@ void Network::StructLearnCompData(Dataset *dts, bool print_struct, string algo, 
     }
   }
 
+  //assign an order of the nodes; the order will be used in structure learning
   vector<int> ord;
   ord.reserve(num_nodes);
   for (int i = 0; i < num_nodes; ++i) {
@@ -161,19 +186,20 @@ void Network::StructLearnCompData(Dataset *dts, bool print_struct, string algo, 
   }
 
   cout << "topo_ord_constraint: " << topo_ord_constraint << endl;
-
+  //choose an order to serve as a constraint during learning
   if (topo_ord_constraint == "dataset-ord") {
     // Do nothing.
   } else if (topo_ord_constraint == "random") {
     std::srand(unsigned(std::time(0)));
     std::random_shuffle(ord.begin(), ord.end());
   } else if (topo_ord_constraint == "best") {
-    ord = vector<int> {};
+    ord = vector<int> {};//no order is provided (i.e. no constraint)
   } else {
     fprintf(stderr, "Error in function [%s]!\nInvalid topological ordering restriction!", __FUNCTION__);
     exit(1);
   }
 
+  //choose an algorithm for the learning
   if (algo == "ott") {
     StructLearnByOtt(dts, ord);
   } else if (algo == "k2-weka") {
@@ -186,7 +212,7 @@ void Network::StructLearnCompData(Dataset *dts, bool print_struct, string algo, 
 
   gettimeofday(&end,NULL);
   diff = (end.tv_sec-start.tv_sec) + ((double)(end.tv_usec-start.tv_usec))/1.0E6;
-  setlocale(LC_NUMERIC, "");
+  setlocale(LC_NUMERIC, "");//formatting the output
   cout << "==================================================" << '\n'
        << "The time spent to learn the structure is " << diff << " seconds" << endl;
 
@@ -209,24 +235,30 @@ void Network::StructLearnCompData(Dataset *dts, bool print_struct, string algo, 
 
 }
 
-
+/**
+ * @brief: add a node to the map
+ */
 void Network::AddNode(Node *node_ptr) {
   map_idx_node_ptr[node_ptr->GetNodeIndex()] = node_ptr;
   ++num_nodes;
 }
 
-
+/**
+ * @brief: remove a node based on id; not used yet.
+ */
 void Network::RemoveNode(int node_index) {
   map_idx_node_ptr.erase(node_index);
   --num_nodes;
 }
 
-
+/**
+ * @brief: add an edge/arc to the network
+ */
 bool Network::AddArc(int p_index, int c_index) {
     // If NOT form a circle, return true. Otherwise, return false and delete the added arc.
   SetParentChild(p_index, c_index);
   bool contain_circle = ContainCircle();
-  if (contain_circle) {
+  if (contain_circle) {//this edge/arc shouldn't be added, because it leads to loops in the network.
     DeleteArc(p_index, c_index);
   }
   return !contain_circle;
@@ -236,13 +268,18 @@ void Network::DeleteArc(int p_index, int c_index) {
   RemoveParentChild(p_index, c_index);
 }
 
+/**
+ * @brief: swap a parent and child relationship
+ */
 bool Network::ReverseArc(int p_index, int c_index) {
   // If not form a circle, return true. Otherwise, return false.
   DeleteArc(p_index, c_index);
   return AddArc(c_index, p_index);
 }
 
-
+/**
+ * @brief: this function is based on WEKA: calcScoreWithExtraParent(iAttribute, iAttribute2);
+ */
 double Network::CalcuExtraScoreWithModifiedArc(int p_index, int c_index,
                                                Dataset *dts,
                                                string modification,
@@ -291,13 +328,19 @@ double Network::CalcuExtraScoreWithModifiedArc(int p_index, int c_index,
   return delta;
 }
 
-
+/**
+ * @brief: set up the parent and child relationship
+ */
 void Network::SetParentChild(int p_index, int c_index) {
   Node *p = FindNodePtrByIndex(p_index), *c = FindNodePtrByIndex(c_index);
   SetParentChild(p,c);
 }
 
-
+/**
+ * @brief: set parent and child relationship.
+ * @param p: parent
+ * @param c: child
+ */
 void Network::SetParentChild(Node *p, Node *c) {
   if (map_idx_node_ptr.find(p->GetNodeIndex()) == map_idx_node_ptr.end()
       ||
@@ -305,16 +348,22 @@ void Network::SetParentChild(Node *p, Node *c) {
     fprintf(stderr, "Error in function [%s].\nThe nodes [%d] and [%d] do not belong to this network!",
             __FUNCTION__, p->GetNodeIndex(), c->GetNodeIndex());
     exit(1);
-  }
+  }//end checking whether the nodes belong to the network
   p->AddChild(c);
   c->AddParent(p);
 }
 
+/**
+ * @brief: remove parent child relationship
+ */
 void Network::RemoveParentChild(int p_index, int c_index) {
   Node *p = FindNodePtrByIndex(p_index), *c = FindNodePtrByIndex(c_index);
   RemoveParentChild(p,c);
 }
 
+/**
+ * @brief: remove parent child relationship using pointers
+ */
 void Network::RemoveParentChild(Node *p, Node *c) {
   if (map_idx_node_ptr.find(p->GetNodeIndex()) == map_idx_node_ptr.end()
       ||
@@ -326,6 +375,10 @@ void Network::RemoveParentChild(Node *p, Node *c) {
   c->RemoveParent(p);
 }
 
+/**
+ * @brief: find parents given a node id; used to generate discrete configurations
+ * @return a set of pointers to the parents of a node
+ */
 set<Node*> Network::GetParentPtrsOfNode(int node_index) {
   set<Node*> set_par_ptrs;
   Node *node = map_idx_node_ptr.at(node_index);
@@ -335,6 +388,9 @@ set<Node*> Network::GetParentPtrsOfNode(int node_index) {
   return set_par_ptrs;
 }
 
+/**
+ * @brief: find the children given a node id
+ */
 set<Node*> Network::GetChildrenPtrsOfNode(int node_index) {
   set<Node*> set_chi_ptrs;
   Node *node = map_idx_node_ptr.at(node_index);
@@ -344,6 +400,9 @@ set<Node*> Network::GetChildrenPtrsOfNode(int node_index) {
   return set_chi_ptrs;
 }
 
+/**
+ * @brief: generate all the configurations of the parents for each node
+ */
 void Network::GenDiscParCombsForAllNodes() {
   for (auto id_np : this->map_idx_node_ptr) {
     auto np = id_np.second;
@@ -351,6 +410,9 @@ void Network::GenDiscParCombsForAllNodes() {
   }
 }
 
+/**
+ * @brief: obtain topological order
+ */
 vector<int> Network::GetTopoOrd() {
   if (topo_ord.empty()) {
     this->GenTopoOrd();
@@ -358,13 +420,16 @@ vector<int> Network::GetTopoOrd() {
   return topo_ord;
 }
 
+/**
+ * @brief: obtain reverse topological order
+ */
 vector<int> Network::GetReverseTopoOrd() {
   auto ord = this->GetTopoOrd();
   reverse(ord.begin(), ord.end());
   return ord;
 }
 
-vector<int> Network::GenTopoOrd() {//TODO: double check
+vector<int> Network::GenTopoOrd() {//TODO: double-check correctness
 
   if (this->pure_discrete) {
 
@@ -466,8 +531,10 @@ vector<int> Network::GenTopoOrd() {//TODO: double check
   return topo_ord;
 }
 
-
-int** Network::ConvertDAGNetworkToAdjacencyMatrix() {
+/**
+ * @brief: convert network to a dense matrix
+ */
+int** Network::ConvertDAGNetworkToAdjacencyMatrix() {//TODO: double check correctness
   int **adjac_matrix = new int* [num_nodes];
   for (int i=0; i<num_nodes; ++i) {
     adjac_matrix[i] = new int[num_nodes]();
@@ -484,7 +551,9 @@ int** Network::ConvertDAGNetworkToAdjacencyMatrix() {
   return adjac_matrix;
 }
 
-
+/**
+ * @brief: check if network has loops.
+ */
 bool Network::ContainCircle() {
   int **graph = ConvertDAGNetworkToAdjacencyMatrix();
   bool result = DirectedGraphContainsCircleByBFS(graph, num_nodes);
@@ -495,7 +564,9 @@ bool Network::ContainCircle() {
   return result;
 }
 
-
+/**
+ * @brief: learn the weights or probability tables
+ */
 void Network::LearnParamsKnowStructCompData(const Dataset *dts, int alpha, bool print_params){
   cout << "==================================================" << '\n'
        << "Begin learning parameters with known structure and complete data." << '\n'
@@ -510,7 +581,7 @@ void Network::LearnParamsKnowStructCompData(const Dataset *dts, int alpha, bool 
   int max_work_per_thread = (dts->num_vars + num_cores - 1) / num_cores;
   #pragma omp parallel
   {
-    // For every node.
+    // a thread for one or more nodes
     for (int i = max_work_per_thread*omp_get_thread_num();
          i < max_work_per_thread*(omp_get_thread_num()+1) && i < dts->num_vars;
          ++i) {
@@ -520,11 +591,12 @@ void Network::LearnParamsKnowStructCompData(const Dataset *dts, int alpha, bool 
 
       for (int s = 0; s < dts->num_instance; ++s) {
         vector<int> values = vector<int>(dts->dataset_all_vars[s], dts->dataset_all_vars[s]+dts->num_vars);
+        //convert an instance to discrete configuration
         DiscreteConfig instance;
         for (int j = 0; j < values.size(); ++j) {
           instance.insert(pair<int, int>(j, values.at(j)));
         }
-        this_node->AddInstanceOfVarVal(instance);
+        this_node->AddInstanceOfVarVal(instance);//an instance affects all the nodes in the network, because the instance here is dense.
       }
 
     }
@@ -548,7 +620,10 @@ void Network::LearnParamsKnowStructCompData(const Dataset *dts, int alpha, bool 
 
 }
 
-
+/**
+ * @brief: get the number of parameters of the network, based on prabability tables
+ *         (and other parameters in continuous variables)
+ */
 int Network::GetNumParams() const {
   int result = 0;
   for (const auto &i_n : map_idx_node_ptr) {
@@ -557,7 +632,11 @@ int Network::GetNumParams() const {
   return result;
 }
 
-
+/**
+ * @brief: clear structure; mainly for reuse some content for fast testing
+ *
+ * Important: may have bugs!
+ */
 void Network::ClearStructure() {
   for (auto &i_n_p : this->map_idx_node_ptr) {
     i_n_p.second->ClearParams();
@@ -566,20 +645,28 @@ void Network::ClearStructure() {
   }
 }
 
-
+/**
+ * @brief: clear structure; mainly for reuse some content for fast testing
+ *
+ * Important: may have bugs!
+ */
 void Network::ClearParams() {
   for (auto &i_n_p : this->map_idx_node_ptr) {
     i_n_p.second->ClearParams();
   }
 }
 
-
-vector<int> Network::SimplifyDefaultElimOrd(DiscreteConfig evidence) {
+/**
+ * @brief: this is a virtual function;
+ */
+vector<int> Network::SimplifyDefaultElimOrd(DiscreteConfig evidence) {//TODO: use C++ pure virtual function
   fprintf(stderr, "Function [%s] not implemented yet!", __FUNCTION__);
   exit(1);
 }
 
-
+/**
+ * @brief: Factor is a class; convert a node into a set of factors; used in Junction Tree
+ */
 vector<Factor> Network::ConstructFactors(vector<int> Z, Node *Y) {
   vector<Factor> factors_list;
   factors_list.push_back(Factor(dynamic_cast<DiscreteNode*>(Y), this));
@@ -611,7 +698,7 @@ void Network::LoadEvidenceIntoFactors(vector<Factor> *factors_list,
         // If this factor is related to this node
         if (f.related_variables.find(e.first) != f.related_variables.end()) {
           // Update each row of map_potentials
-          for (const auto &comb : f.set_combinations) {
+          for (const auto &comb : f.set_disc_config) {
             // If this entry is not compatible to the evidence.
             if (comb.find(e) == comb.end()) {
               f.map_potentials[comb] = 0;
@@ -779,7 +866,7 @@ int Network::PredictUseVarElimInfer(DiscreteConfig evid, int target_node_idx, ve
   Factor F = VarElimInferReturnPossib(evid, Y, elim_order);
   double max_prob = 0;
   DiscreteConfig comb_predict;
-  for (auto &comb : F.set_combinations) {
+  for (auto &comb : F.set_disc_config) {
     if (F.map_potentials[comb] > max_prob) {
       max_prob = F.map_potentials[comb];
       comb_predict = comb;
@@ -1534,8 +1621,12 @@ vector<int> Network::M(set<Node*> &set_nodes,
 
 }
 
-
-void Network::StructLearnByOtt(Dataset *dts, vector<int> topo_ord_constraint) {
+/**
+ * @brief: learn the structure with Ott's algorithm.
+     * Ott, Sascha, Seiya Imoto, and Satoru Miyano. "Finding optimal models for small gene networks."
+     * In Biocomputing 2004, pp. 557-567. 2003.
+ */
+void Network::StructLearnByOtt(Dataset *dts, vector<int> topo_ord_constraint) {//TODO: double check correctness
 
   map<Node*, map<set<Node*>, double>> dynamic_program_for_F;
   map<pair<set<Node*>, vector<int>>,   pair<double, vector<pair<Node*, set<Node*>>>>> dynamic_program_for_Q;
@@ -1569,7 +1660,9 @@ void Network::StructLearnByOtt(Dataset *dts, vector<int> topo_ord_constraint) {
   GenDiscParCombsForAllNodes();
 }
 
-
+/**
+ * @brief: convert sparse to dense
+ */
 vector<int> Network::SparseInstanceFillZeroToDenseInstance(DiscreteConfig &sparse_instance) {
   vector<int> complete_instance(this->num_nodes, 0);
   for (const auto p : sparse_instance) {
@@ -1578,7 +1671,15 @@ vector<int> Network::SparseInstanceFillZeroToDenseInstance(DiscreteConfig &spars
   return complete_instance;
 }
 
-
+/**
+ * @brief: learning network structure using Weka's algorithm
+ * https://github.com/Waikato/weka-3.8
+ *      under: weka/src/main/java/weka/classifiers/bayes/net/search/global/K2.java
+ *      or weka/src/main/java/weka/classifiers/bayes/net/search/local/K2.java
+ *
+ * @key idea: the key idea is to add a parent to a node based on topo_ord_constraint,
+ *            if adding the node as a parent results in increment of the score--there are different scoring functions.
+ */
 void Network::StructLearnLikeK2Weka(Dataset *dts, vector<int> topo_ord_constraint, int max_num_parents) {
   // todo: test the correctness
   if (topo_ord_constraint.empty() || topo_ord_constraint.size() != num_nodes) {
@@ -1600,7 +1701,7 @@ void Network::StructLearnLikeK2Weka(Dataset *dts, vector<int> topo_ord_constrain
       double best_extra_score = 0;
       for (int j = 0; j < i; ++j) {
         int par_index = topo_ord_constraint.at(j);
-        double extra_score = CalcuExtraScoreWithModifiedArc(par_index, var_index, dts, "add", "log K2");
+        double extra_score = CalcuExtraScoreWithModifiedArc(par_index, var_index, dts, "add", "log K2");//use K2 as scoring function
         if (extra_score > best_extra_score) {
           if (this->AddArc(par_index, var_index)) {
             best_par_index = j;

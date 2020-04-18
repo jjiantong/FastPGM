@@ -56,6 +56,7 @@ int Node::GetNumParentsConfig() {
 /**
  * @brief: similar to GetDiscParConfigGivenAllVarValue(vector<int> &all_var_val).
  * get parents given a set of [variable id, variable value].
+ * This function is similar to a filter; it filters out the variables and values which are not the parents of the current node.
  */
 DiscreteConfig Node::GetDiscParConfigGivenAllVarValue(DiscreteConfig &all_var_val) {
   DiscreteConfig par_var_val;

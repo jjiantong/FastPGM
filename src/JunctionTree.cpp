@@ -633,7 +633,7 @@ int JunctionTree::InferenceUsingBeliefPropagation(int &query_index) {
   Factor f = BeliefPropagationCalcuDiscreteVarMarginal(query_index);
   double max_prob = 0;
   DiscreteConfig comb_predict;
-  for (auto &comb : f.set_combinations) {
+  for (auto &comb : f.set_disc_config) {
     if (f.map_potentials[comb] > max_prob) {
       max_prob = f.map_potentials[comb];
       comb_predict = comb;
