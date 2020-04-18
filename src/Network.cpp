@@ -665,7 +665,10 @@ vector<int> Network::SimplifyDefaultElimOrd(DiscreteConfig evidence) {//TODO: us
 }
 
 /**
- * @brief: Factor is a class; convert a node into a set of factors; used in Junction Tree
+ * @brief: Factor is a class; construct a set of factors using a node and an elimination order; used in Junction Tree
+ * @param Z: a set of nodes identified by IDs; Z is the elimination order.
+ * @param Y: a node
+ * @return: a set of Factors, where each factor corresponds to a node
  */
 vector<Factor> Network::ConstructFactors(vector<int> Z, Node *Y) {
   vector<Factor> factors_list;
@@ -677,13 +680,17 @@ vector<Factor> Network::ConstructFactors(vector<int> Z, Node *Y) {
   return factors_list;
 }
 
-
+/**
+ * @brief: update the prababilities/weights of all the factors related to the nodes between the target node and node with the evidence/observation
+ * @param factors_list: a list factors related to the nodes between the target node and the node with evidence/observation
+ * @param E: a new observation
+ * @param all_related_vars: all the related variables between the target node and the node with the evidence/observation
+ */
 void Network::LoadEvidenceIntoFactors(vector<Factor> *factors_list,
                                       DiscreteConfig E, set<int> all_related_vars) {
 
   // I do not know why this function cannot use omp to parallel.
   // If I set number of threads more than 1, the accuracy will decrease!
-
 //  int num_cores = omp_get_num_procs();
 //  omp_set_num_threads(num_cores);
 //  int max_work_per_thread = (factors_list->size()+num_cores-1)/num_cores;
@@ -692,11 +699,15 @@ void Network::LoadEvidenceIntoFactors(vector<Factor> *factors_list,
 //    for (int i = omp_get_thread_num() * max_work_per_thread;
 //         i < (omp_get_thread_num()+1) * max_work_per_thread && i < factors_list->size();
 //         ++i) {
+
     for (int i = 0; i < factors_list->size(); ++i) {
       Factor &f = factors_list->at(i);   // For each factor. "std::vector::at" returns reference.
       for (const auto &e : E) {  // For each node's observation in E
         // If this factor is related to this node
         if (f.related_variables.find(e.first) != f.related_variables.end()) {
+          /** For example:  X --> Y (evidence/obs) --> Z --> A (target node) --> B --> C --> E --> F (evidence/observation) --> G
+           * Only the factors of Z and G are true in the above if statement, because Z and G have configurations containing evidence.
+           * **/
           // Update each row of map_potentials
           for (const auto &comb : f.set_disc_config) {
             // If this entry is not compatible to the evidence.
@@ -704,13 +715,16 @@ void Network::LoadEvidenceIntoFactors(vector<Factor> *factors_list,
               f.map_potentials[comb] = 0;
             }
           }
-        }
+        }//end if the factor is related to the node
       }
 
       //--------------------------------------------------------------------------------
+      // Fix bug Step 2/2.
       // This block is to fix the bug occurring when the target node
       // is not the root and the variable elimination order do not start at root.
-      // For example:  A --> B --> C
+      // For example:  X--> Y (evidence/obs) --> Z --> A (target node) --> B --> C --> E --> F (evidence/observation; not important) --> G
+      //
+      // For example: A --> B --> C (old example)
       // When given the markov blanket of node "C", which is "{B}",
       // there is no need to calculate the other nodes, which is "{A}".
       // However, when using this function,
@@ -720,7 +734,7 @@ void Network::LoadEvidenceIntoFactors(vector<Factor> *factors_list,
       set<int> related_vars_of_f = f.related_variables;
       for (auto &v : related_vars_of_f) {
         if (all_related_vars.find(v) == all_related_vars.end()) {
-          f = f.SumOverVar(v);
+          f = f.SumOverVar(v);//X and G will be sum over, i.e. eliminate X and G given the evidence/observations
         }
       }
       //--------------------------------------------------------------------------------
@@ -729,11 +743,14 @@ void Network::LoadEvidenceIntoFactors(vector<Factor> *factors_list,
   }   // end of: #pragma omp parallel
 }
 
-
+/**
+ * @brief: gradually eliminate variables until only one (i.e. the target node) left
+ */
 Factor Network::SumProductVarElim(vector<Factor> factors_list, vector<int> elim_order) {
   for (int i = 0; i < elim_order.size(); ++i) {
     vector<Factor> tempFactorsList;
     Node* nodePtr = FindNodePtrByIndex(elim_order.at(i));
+
     // Move every factor that is related to the node elim_order[i] from factors_list to tempFactorsList.
     /*
      * Note: This for loop does not contain "++it" in the parentheses.
@@ -756,15 +773,20 @@ Factor Network::SumProductVarElim(vector<Factor> factors_list, vector<int> elim_
         ++it;
       }
     }
+
+    //merge all the factors in tempFactorsList into one factor
     while(tempFactorsList.size()>1) {
       Factor temp1, temp2, product;
       temp1 = tempFactorsList.back();
       tempFactorsList.pop_back();
       temp2 = tempFactorsList.back();
       tempFactorsList.pop_back();
+
       product = temp1.MultiplyWithFactor(temp2);
       tempFactorsList.push_back(product);
     }
+
+    //reduce one variable identified by nodePtr by sum over.
     Factor newFactor = tempFactorsList.back().SumOverVar(dynamic_cast<DiscreteNode*>(nodePtr));
     factors_list.push_back(newFactor);
   }
@@ -776,7 +798,7 @@ Factor Network::SumProductVarElim(vector<Factor> factors_list, vector<int> elim_
    *   about the same node which is the query node Y.
    *   When it happens, we need to multiply these several factors.
    */
-  while (factors_list.size()>1) {
+  while (factors_list.size()>1) {//TODO: reuse the code of the while loop above
     Factor temp1, temp2, product;
     temp1 = factors_list.back();
     factors_list.pop_back();
@@ -785,11 +807,18 @@ Factor Network::SumProductVarElim(vector<Factor> factors_list, vector<int> elim_
     product = temp1.MultiplyWithFactor(temp2);
     factors_list.push_back(product);
   }
+
   // After all the processing shown above, the only remaining factor is the factor about Y.
   return factors_list.back();
 }
 
-
+/**
+ * @brief: infer the marginal probability of the target node, given the evidence
+ * @param evid: the given evidence
+ * @param target_node: the node whose probability needs to be updated given the evidence/observation.
+ * @param elim_order: elimination order
+ * @return the factor which contains the marginal probability table of the target node
+ */
 Factor Network::VarElimInferReturnPossib(DiscreteConfig evid, Node *target_node, vector<int> elim_order) {
   // elim_order is the array of variable elimination order.
   // evid is the evidences.
@@ -798,13 +827,19 @@ Factor Network::VarElimInferReturnPossib(DiscreteConfig evid, Node *target_node,
     elim_order = SimplifyDefaultElimOrd(evid);
   }
 
+  /**
+   * the factor list corresponds to all the nodes which are between the target node and the observation/evidence.
+   * **/
   vector<Factor> factorsList = ConstructFactors(elim_order, target_node);
 
   //--------------------------------------------------------------------------------
+  // // Fix bug Step 1/2.
   // This block is to fix the bug occurring when the target node
   // is not the root and the variable elimination order do not start at root.
-  // For example:  A --> B --> C
-  // When given the markov blanket, which is "{B}", of node "C",
+  // For example:  X--> Y (evidence/obs) --> Z --> A (target node) --> B --> C --> E --> F (evidence/observation; not important) --> G
+  //
+  // For example: A --> B --> C (old example)
+  // When given the markov blanket of node "C", which is "{B}",
   // there is no need to calculate the other nodes, which is "{A}".
   // However, when using this function,
   // the parent of parent of this node, which is "A",
@@ -814,59 +849,79 @@ Factor Network::VarElimInferReturnPossib(DiscreteConfig evid, Node *target_node,
   for (int i = 0; i < elim_order.size(); ++i) { all_related_vars.insert(elim_order.at(i)); }
   //--------------------------------------------------------------------------------
 
-
+  //load evidence function below returns a factorsList with fewer configurations.
   LoadEvidenceIntoFactors(&factorsList, evid, all_related_vars);
-  Factor F = SumProductVarElim(factorsList, elim_order);
-  F.Normalize();
-  return F;
+
+  //compute the probability table of the target node
+  Factor target_node_factor = SumProductVarElim(factorsList, elim_order);
+  target_node_factor.Normalize();
+
+  return target_node_factor;
 }
 
-
-map<int, double> Network::DistributionOfValueIndexGivenCompleteInstanceValueIndex(int target_var_index, DiscreteConfig evidence) {
+/**
+ * @brief: for inference given a target variable id and an (full) evidence/observation.
+ * @param evidence: full evidence/observation (i.e. a dense instance)
+ * @return map: key is the possible value of the target node; value is the probability of the target node with a specific value
+ */
+map<int, double> Network::GetMarginalProbabilities(int target_var_index, DiscreteConfig evidence) {
   if (!this->pure_discrete) {
     fprintf(stderr, "Function [%s] only works on pure discrete networks!", __FUNCTION__);
     exit(1);
   }
+  /**
+   * Example: X --> Y, and X is the target node; X = {0, 1}, Y={0,1}.
+   */
 
   map<int, double> result;
 
   DiscreteNode *target_node = (DiscreteNode*) FindNodePtrByIndex(target_var_index);
   auto vec_complete_instance_values = SparseInstanceFillZeroToDenseInstance(evidence);
 
-  for (int i = 0; i < target_node->GetDomainSize(); ++i) {
+  //compute the probability of each possible value of the target node
+  for (int i = 0; i < target_node->GetDomainSize(); ++i) {//e.g. X=0
     vec_complete_instance_values.at(target_var_index) = target_node->vec_potential_vals.at(i);
     evidence.insert(DiscVarVal(target_var_index, target_node->vec_potential_vals.at(i)));
+
     result[i] = 0;
     for (int j = 0; j < num_nodes; ++j) {
-      DiscreteNode *node_j = (DiscreteNode*) FindNodePtrByIndex(j);
-      DiscreteConfig par_config = node_j->GetDiscParConfigGivenAllVarValue(vec_complete_instance_values);
+      DiscreteNode *node_j = (DiscreteNode*) FindNodePtrByIndex(j);//e.g. Y
+      DiscreteConfig par_config = node_j->GetDiscParConfigGivenAllVarValue(vec_complete_instance_values);// e.g. X
 
       double temp_prob = 0;
-      if (j == target_var_index) {
+      if (j == target_var_index) {//e.g. false
         temp_prob = target_node->GetProbability(target_node->vec_potential_vals.at(i), par_config);
-      } else {
-        temp_prob = node_j->GetProbability(vec_complete_instance_values.at(j), par_config);
+      } else {//Y=1 given X = 0
+        int observe_value = vec_complete_instance_values.at(j);
+        temp_prob = node_j->GetProbability(observe_value, par_config);
       }
       result[i] += log(temp_prob);
     }
+
+    //remove the value of the target node
     evidence.erase(DiscVarVal(target_var_index, target_node->vec_potential_vals.at(i)));
-  }
+  }//end for each possible value of the target node
+
   for (int i = 0; i < target_node->GetDomainSize(); ++i) {
-    result[i] = exp(result[i]);
+    result[i] = exp(result[i]);//the result[i] is computed in log scale
   }
   result = Normalize(result);
   return result;
 }
 
 
-
-
+/**
+ * @brief: predict label given (partial or full observation) evidence
+ * @return label of the target variable
+ */
 int Network::PredictUseVarElimInfer(DiscreteConfig evid, int target_node_idx, vector<int> elim_order) {
   Node *Y = FindNodePtrByIndex(target_node_idx);
   Factor F = VarElimInferReturnPossib(evid, Y, elim_order);
+
+  //find the configuration with the maximum probability
   double max_prob = 0;
   DiscreteConfig comb_predict;
-  for (auto &comb : F.set_disc_config) {
+  for (auto &comb : F.set_disc_config) {//Y = "male" or "female"
     if (F.map_potentials[comb] > max_prob) {
       max_prob = F.map_potentials[comb];
       comb_predict = comb;
@@ -876,6 +931,10 @@ int Network::PredictUseVarElimInfer(DiscreteConfig evid, int target_node_idx, ve
   return label_predict;
 }
 
+/**
+ * @brief: predict the labels given different evidences
+ * @param elim_orders: elimination order which may be different given different evidences due to the simplification of elimination order
+ */
 vector<int> Network::PredictUseVarElimInfer(vector<DiscreteConfig> evidences, int target_node_idx, vector<vector<int>> elim_orders) {
   int size = evidences.size();
 
@@ -911,15 +970,23 @@ vector<int> Network::PredictUseVarElimInfer(vector<DiscreteConfig> evidences, in
   return results;
 }
 
-
-int Network::PredictUseSimpleBruteForce(DiscreteConfig E, int Y_index) {
-  map<int, double> distribution = DistributionOfValueIndexGivenCompleteInstanceValueIndex(Y_index, E);
+/**
+ * @brief: predict label given evidence E and target variable id
+ * @return label of the target variable
+ */
+int Network::PredictLabelBruteForce(DiscreteConfig E, int Y_index) {
+  map<int, double> distribution = GetMarginalProbabilities(Y_index, E);
   int label_index = ArgMax(distribution);
-  int label_pridict = ((DiscreteNode*)FindNodePtrByIndex(Y_index))->vec_potential_vals.at(label_index);
+
+  //convert index of the target value to label
+  DiscreteNode* tempNode = ((DiscreteNode*)FindNodePtrByIndex(Y_index));
+  int label_pridict = tempNode->vec_potential_vals.at(label_index);
   return label_pridict;
 }
 
-
+/**
+ * @brief: predict the label of different evidences
+ */
 vector<int> Network::PredictUseSimpleBruteForce(vector<DiscreteConfig> evidences, int target_node_idx) {
   int size = evidences.size();
 
@@ -943,7 +1010,7 @@ vector<int> Network::PredictUseSimpleBruteForce(vector<DiscreteConfig> evidences
       fflush(stdout);
     }
 
-    int pred = PredictUseSimpleBruteForce(evidences.at(i), target_node_idx);
+    int pred = PredictLabelBruteForce(evidences.at(i), target_node_idx);
     results.at(i) = pred;
   }
   return results;
@@ -1147,9 +1214,11 @@ double Network::EvaluateLikelihoodWeightingAccuracy(Dataset *dts, int num_samp) 
   return accuracy;
 }
 
-
-
-DiscreteConfig Network::ProbLogicSampleNetwork() {
+/**
+ * @brief: for approximate inference; this function generate an instance using the network
+ * @return an instance
+ */
+DiscreteConfig Network::GenerateInstanceByProbLogicSampleNetwork() {
   // Probabilistic logic sampling is a method
   // proposed by Max Henrion at 1988.
 
@@ -1163,6 +1232,11 @@ DiscreteConfig Network::ProbLogicSampleNetwork() {
   return instance;
 }
 
+/**
+ * @brief: for approximate inference; this function generate an instance using the network.
+ * @param evidence: this parameter is optional.
+ * @return an instance and a weight based on likelihood
+ */
 pair<DiscreteConfig, double> Network::DrawOneLikelihoodWeightingSample(const DiscreteConfig &evidence) {
   DiscreteConfig instance;
   double weight = 1;
@@ -1193,7 +1267,9 @@ pair<DiscreteConfig, double> Network::DrawOneLikelihoodWeightingSample(const Dis
   return pair<DiscreteConfig, double>(instance, weight);
 }
 
-
+/**
+ * @brief: draw multiple instances for approximate inference
+ */
 vector<pair<DiscreteConfig, double>> Network::DrawSamplesByLikelihoodWeighting(const DiscreteConfig &evidence,
                                                                                int num_samp) {
   vector<pair<DiscreteConfig, double>> results;
@@ -1206,14 +1282,18 @@ vector<pair<DiscreteConfig, double>> Network::DrawSamplesByLikelihoodWeighting(c
   return results;
 }
 
+/**
+ * @brief: perform inference based on the drawn sample with weights.
+ * @param node_index: target node which needs to compute marginal probabilities
+ */
 Factor Network::CalcuMargWithLikelihoodWeightingSamples(const vector<pair<DiscreteConfig, double>> &samples,
                                                         const int &node_index) {
   map<int, double> value_weight;
-  DiscreteNode *n_p = dynamic_cast<DiscreteNode*>(this->FindNodePtrByIndex(node_index));
+  DiscreteNode *target_node = dynamic_cast<DiscreteNode*>(this->FindNodePtrByIndex(node_index));
 
   // Initialize the map.
-  for (int i=0; i<n_p->GetDomainSize(); ++i) {
-    value_weight[n_p->vec_potential_vals.at(i)] = 0;
+  for (int i=0; i<target_node->GetDomainSize(); ++i) {
+    value_weight[target_node->vec_potential_vals.at(i)] = 0;
   }
 
   // Calculate the sum of weight for each value. Un-normalized.
@@ -1239,9 +1319,9 @@ Factor Network::CalcuMargWithLikelihoodWeightingSamples(const vector<pair<Discre
   set<int> rv;
   rv.insert(node_index);
   set<DiscreteConfig> sc;
-  for (int i=0; i<n_p->GetDomainSize(); ++i) {
+  for (int i=0; i<target_node->GetDomainSize(); ++i) {
     DiscreteConfig c;
-    c.insert(pair<int, int>(node_index, n_p->vec_potential_vals.at(i)));
+    c.insert(pair<int, int>(node_index, target_node->vec_potential_vals.at(i)));
     sc.insert(c);
   }
   map<DiscreteConfig, double> mp;
@@ -1253,7 +1333,13 @@ Factor Network::CalcuMargWithLikelihoodWeightingSamples(const vector<pair<Discre
   return f;
 }
 
-
+/**
+ * @brief: predice a label given a (part/full) evidence
+ * @param e: evidence
+ * @param node_index: target node index
+ * @param num_samp: sample size
+ * @return label
+ */
 int Network::ApproxinferByLikelihoodWeighting(DiscreteConfig e, const int &node_index, const int &num_samp) {
   vector<pair<DiscreteConfig, double>> samples_weight = this->DrawSamplesByLikelihoodWeighting(e, num_samp);
   Factor f = CalcuMargWithLikelihoodWeightingSamples(samples_weight, node_index);
@@ -1269,6 +1355,10 @@ int Network::ApproxinferByLikelihoodWeighting(DiscreteConfig e, const int &node_
   return (*c.begin()).second;
 }
 
+/**
+ * @brief: approximate inference given different evidences
+ * @return a vector of labels for each evidence
+ */
 vector<int> Network::ApproxinferByLikelihoodWeighting(vector<DiscreteConfig> evidences,
                                                       const int &target_node_idx, const int &num_samp) {
   int size = evidences.size();
@@ -1299,19 +1389,24 @@ vector<int> Network::ApproxinferByLikelihoodWeighting(vector<DiscreteConfig> evi
   return results;
 }
 
+/**
+ * @brief: draw multiple instances
+ */
 vector<DiscreteConfig> Network::DrawSamplesByProbLogiSamp(int num_samp) {
   vector<DiscreteConfig> samples;
   samples.reserve(num_samp);
   #pragma omp parallel for
   for (int i=0; i<num_samp; ++i) {
-    DiscreteConfig samp = this->ProbLogicSampleNetwork();
+    DiscreteConfig samp = this->GenerateInstanceByProbLogicSampleNetwork();
     #pragma omp critical
     { samples.push_back(samp); }
   }
   return samples;
 }
 
-
+/**
+ * @brief: get the Markov Blanket of a node
+ */
 set<int> Network::GetMarkovBlanketIndexesOfNode(Node *node_ptr) {
   set<int> markov_blanket_node_index;
 
@@ -1328,26 +1423,29 @@ set<int> Network::GetMarkovBlanketIndexesOfNode(Node *node_ptr) {
     }
   }
 
-
   markov_blanket_node_index.erase(node_ptr->GetNodeIndex());
 
   return markov_blanket_node_index;
 }
 
-
+/**
+ * @brief: draw multiple instances
+ * @param num_samp: the number of instances to draw
+ * @param num_burn_in: a terminology in MCMC and Gibbs sampling; the number of instances drawn at the beginning to be ignored
+ * @return a set of instances
+ */
 vector<DiscreteConfig> Network::DrawSamplesByGibbsSamp(int num_samp, int num_burn_in) {
 
   vector<DiscreteConfig> samples;
   samples.reserve(num_samp);
 
-  DiscreteConfig single_sample = this->ProbLogicSampleNetwork();
+  DiscreteConfig single_sample = this->GenerateInstanceByProbLogicSampleNetwork();
 
   auto it_idx_node = this->map_idx_node_ptr.begin();
 
-
   // Need burning in.
 //  #pragma omp parallel for
-  for (int i=1; i<num_burn_in+num_samp; ++i) {
+  for (int i=1; i<num_burn_in+num_samp; ++i) {//draw instances
 
     Node *node_ptr = (*(it_idx_node++)).second;
     if (it_idx_node == map_idx_node_ptr.end()) {
@@ -1356,18 +1454,18 @@ vector<DiscreteConfig> Network::DrawSamplesByGibbsSamp(int num_samp, int num_bur
 
     set<int> markov_blanket_node_index = GetMarkovBlanketIndexesOfNode(node_ptr);
 
+    //check if the variable is in the Markov Blanket
     DiscreteConfig markov_blanket;
     for (auto &p : single_sample) {
-      if (markov_blanket_node_index.find(p.first)
-          !=
-          markov_blanket_node_index.end()) {
+      if (markov_blanket_node_index.find(p.first) != markov_blanket_node_index.end()) {
         markov_blanket.insert(p);
       }
     }
 
-    int value_index =
-            SampleNodeGivenMarkovBlanketReturnValIndex(node_ptr,markov_blanket);
+    //obtain a value of a variable given the Markov Blanket
+    int value_index = SampleNodeGivenMarkovBlanketReturnValIndex(node_ptr,markov_blanket);
 
+    //replace the value of the previous instance with the new value
     for (auto p : single_sample) {
       if (p.first == node_ptr->GetNodeIndex()) {
         single_sample.erase(p);
@@ -1385,8 +1483,14 @@ vector<DiscreteConfig> Network::DrawSamplesByGibbsSamp(int num_samp, int num_bur
   return samples;
 }
 
-
+/**
+ * @brief: obtain a value index given the Markov Blanket
+ * @param node_ptr: target node
+ * @param markov_blanket includes (i) direct parents, (ii) direct children and (iii) direct parents of direct children of the target node
+ * @return value index of the target node
+ */
 int Network::SampleNodeGivenMarkovBlanketReturnValIndex(Node *node_ptr, DiscreteConfig markov_blanket) {
+  //use the Markov blanket to serve as the elimination order
   int num_elim_ord = markov_blanket.size();
   vector<int> var_elim_ord;
   var_elim_ord.reserve(markov_blanket.size());
@@ -1394,14 +1498,16 @@ int Network::SampleNodeGivenMarkovBlanketReturnValIndex(Node *node_ptr, Discrete
     var_elim_ord.push_back(n_v.first);
   }
 
+  //obtain the marginal probabilities of the target node
   Factor f = VarElimInferReturnPossib(markov_blanket, node_ptr, var_elim_ord);
 
+  //use the marginal probabilitiest of the target node for sampling
   vector<int> weights;
-  for (int i=0; i<dynamic_cast<DiscreteNode*>(node_ptr)->GetDomainSize(); ++i) {
+  for (int i=0; i<dynamic_cast<DiscreteNode*>(node_ptr)->GetDomainSize(); ++i) {//for each possible value of the target node
     DiscreteConfig temp;
     temp.insert(pair<int,int>(node_ptr->GetNodeIndex(),
                               dynamic_cast<DiscreteNode*>(node_ptr)->vec_potential_vals.at(i)));
-    weights.push_back(f.map_potentials[temp]*10000);
+    weights.push_back(f.map_potentials[temp]*10000);//the marginal probability is converted into int
   }
 
   unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();

@@ -167,7 +167,7 @@ TEST_F(NetworkTest, sampling_node) {
 }
 
 TEST_F(NetworkTest, DISABLED_sampling_network) {
-  DiscreteConfig samp = network->ProbLogicSampleNetwork();
+  DiscreteConfig samp = network->GenerateInstanceByProbLogicSampleNetwork();
 }
 
 TEST(CustomNetworkTest, sampling_dog_net_to_csv_file_and_relearn_params) {

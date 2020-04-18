@@ -99,15 +99,15 @@ class Network {//this class is used by both the customized networks and networks
   Factor SumProductVarElim(vector<Factor> factors_list, vector<int> elim_order);
   Factor VarElimInferReturnPossib(DiscreteConfig evid, Node *target_node, vector<int> elim_order=vector<int>{});
 
-  map<int, double> DistributionOfValueIndexGivenCompleteInstanceValueIndex(int target_var_index, DiscreteConfig evidence);
+  map<int, double> GetMarginalProbabilities(int target_var_index, DiscreteConfig evidence);
 
-  int PredictUseSimpleBruteForce(DiscreteConfig E, int Y_index);
+  int PredictLabelBruteForce(DiscreteConfig E, int Y_index);
   vector<int> PredictUseSimpleBruteForce(vector<DiscreteConfig> evidences, int target_node_idx);
 
   int PredictUseVarElimInfer(DiscreteConfig evid, int target_node_idx, vector<int> elim_order=vector<int>{});
   vector<int> PredictUseVarElimInfer(vector<DiscreteConfig> evidences, int target_node_idx, vector<vector<int>> elim_orders=vector<vector<int>>{});
 
-  DiscreteConfig ProbLogicSampleNetwork();
+  DiscreteConfig GenerateInstanceByProbLogicSampleNetwork();
 
   vector<pair<DiscreteConfig, double>> DrawSamplesByLikelihoodWeighting(const DiscreteConfig &evidence, int num_samp);
   Factor CalcuMargWithLikelihoodWeightingSamples(const vector<pair<DiscreteConfig, double>> &samples, const int &node_index);
