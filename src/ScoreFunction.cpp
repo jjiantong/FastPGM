@@ -9,7 +9,11 @@ ScoreFunction::ScoreFunction(Network *net, Dataset *dts) {
   this->dataset = dts;
 }
 
-
+/**
+ * Calculate the score fo a node in the network.
+ * The calculation process is related to the node itself, its parents and the dataset.
+ * The score for the whole network against the provided dataset is just the sum of each node.
+ */
 double ScoreFunction::ScoreForNode(Node *node_ptr, string metric) {
   // Convert the string to lowercase
   transform(metric.begin(), metric.end(), metric.begin(), ::tolower);
