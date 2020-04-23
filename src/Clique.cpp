@@ -100,7 +100,10 @@ Factor Clique::Collect() {
   return ConstructMessage();
 }
 
-
+/**
+ * Distribute the infomation it knows to the downstream cliques.
+ * The reload version without parameter. Called on the selected root.
+ */
 void Clique::Distribute() {
   Factor f = ConstructMessage();
   for (auto &sep : set_neighbours_ptr) {
@@ -108,7 +111,10 @@ void Clique::Distribute() {
   }
 }
 
-
+/**
+ * Distribute the infomation it knows to the downstream cliques.
+ * The reload version with parameter. Called by recursion.
+ */
 void Clique::Distribute(Factor f) {
   // If the next clique connected by this separator is a continuous clique,
   // then the program should not distribute information to it.
