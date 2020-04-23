@@ -187,6 +187,9 @@ void JunctionTree::GenMapElimVarToClique() {
   }
 }
 
+/**
+ * Generate the elimination order by minimum number of neighbours.
+ */
 vector<int> JunctionTree::MinNeighbourElimOrd(int **adjac_matrix, int &num_nodes) {
   vector< pair<int,int> > to_be_sorted;
   for (int i=0; i<num_nodes; ++i) {
@@ -506,6 +509,11 @@ void JunctionTree::AssignPotentials() {
   }
 }
 
+/**
+ * The inference process will modify the junction tree itself.
+ * So, we need to backup the tree and restore it after an inference.
+ * Otherwise, we need to re-construct the tree each time we want to make inference.
+ */
 void JunctionTree::BackUpJunctionTree() {
   for (const auto &c : set_clique_ptr_container) {
     map_cliques_backup[c] = *c;
@@ -515,6 +523,11 @@ void JunctionTree::BackUpJunctionTree() {
   }
 }
 
+/**
+ * The inference process will modify the junction tree itself.
+ * So, we need to backup the tree and restore it after an inference.
+ * Otherwise, we need to re-construct the tree each time we want to make inference.
+ */
 void JunctionTree::ResetJunctionTree() {
   for (auto &c : set_clique_ptr_container) {
     *c = map_cliques_backup[c];
@@ -566,6 +579,12 @@ void JunctionTree::LoadDiscreteEvidence(const DiscreteConfig &E) {
   }
 }
 
+/**
+ * 
+ * Message passing is just COLLECT and DISTRIBUTE (these two words is used by paper and text book).
+ * The order between COLLECT and DISTRIBUTE does not matter, but they must not interleave.
+ * After message passing, any clique (junction tree node) contains the right distribution of the related variables.
+ */
 void JunctionTree::MessagePassingUpdateJT() {
   // Arbitrarily select a clique as the root.
   auto iter = set_clique_ptr_container.begin();
