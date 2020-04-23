@@ -12,6 +12,9 @@ ChowLiuTree::ChowLiuTree(bool pure_disc) {
   this->pure_discrete = pure_disc;
 }
 
+/**
+ * Compute mutual information between two variables on provided dataset.
+ */
 double ChowLiuTree::ComputeMutualInformation(Node *Xi, Node *Xj, const Dataset *dts) {
   // Find the indexes of these two features in training set.
   int xi=Xi->GetNodeIndex(), xj=Xj->GetNodeIndex();
@@ -82,8 +85,11 @@ double ChowLiuTree::ComputeMutualInformation(Node *Xi, Node *Xj, const Dataset *
   return mutualInformation;
 }
 
-
+/**
+ * Just an API. Call another function.
+ */
 void ChowLiuTree::StructLearnCompData(Dataset *dts, bool print_struct, string algo, string topo_ord_constraint, int max_num_parents) {
+  // record time
   struct timeval start, end;
   double diff;
   gettimeofday(&start,NULL);
@@ -92,6 +98,7 @@ void ChowLiuTree::StructLearnCompData(Dataset *dts, bool print_struct, string al
 
   StructLearnChowLiuTreeCompData(dts, print_struct);
 
+  // print time
   gettimeofday(&end,NULL);
   diff = (end.tv_sec-start.tv_sec) + ((double)(end.tv_usec-start.tv_usec))/1.0E6;
   setlocale(LC_NUMERIC, "");
@@ -266,12 +273,16 @@ void ChowLiuTree::StructLearnChowLiuTreeCompData(Dataset *dts, bool print_struct
   delete[] topologicalSortedPermutation;
 }
 
-
+/**
+ * Just an API. Call another function.
+ */
 vector<int> ChowLiuTree::SimplifyDefaultElimOrd(DiscreteConfig evidence) {
   return SimplifyTreeDefaultElimOrd(evidence);
 }
 
-
+/**
+ * Two key words: barren, m-separated.
+ */
 vector<int> ChowLiuTree::SimplifyTreeDefaultElimOrd(DiscreteConfig evidence) {
 
   // todo: delete the next line
@@ -342,7 +353,10 @@ vector<int> ChowLiuTree::SimplifyTreeDefaultElimOrd(DiscreteConfig evidence) {
   return vec_simplified_order;
 }
 
-
+/**
+ * Recursive.
+ * Help to simplify the elimination order.
+ */
 void ChowLiuTree::DepthFirstTraversalUntillMeetObserved(DiscreteConfig evidence, int start, set<int>& visited, set<int>& to_be_removed) {
 
   // todo: delete the next line
@@ -374,7 +388,10 @@ void ChowLiuTree::DepthFirstTraversalUntillMeetObserved(DiscreteConfig evidence,
 
 }
 
-
+/**
+ * Recursive.
+ * Help to simplify the elimination order.
+ */
 void ChowLiuTree::DepthFirstTraversalToRemoveMSeparatedNodes(int start, set<int>& visited, set<int>& to_be_removed) {
   visited.insert(start);
   Node* ptr_curr_node = FindNodePtrByIndex(start);
