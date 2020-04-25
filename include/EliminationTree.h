@@ -9,6 +9,9 @@
 #include "gadget.h"
 #include <cmath>
 
+/**
+ * @brief: this class is used for regression problem. JunctionTree class is for classification problems.
+ */
 class EliminationTree : public JunctionTree {
   // Data structures needed for elimination tree
   // (like junction tree) of gaussian Bayesian network.

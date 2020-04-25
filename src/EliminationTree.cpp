@@ -201,7 +201,9 @@ void EliminationTree::MessagePassingUpdateJT() {
   strong_root->Distribute();
 }
 
-
+/**
+ * @brief: predict the target value
+ */
 CGRegression EliminationTree::CalMarginalOfContinuousVar(int var_index) {
   // Described in
   // [Local Propagation in Conditional Gaussian Bayesian Networks (Cowell, 2005)]
