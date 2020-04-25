@@ -139,9 +139,13 @@ class Network {//this class is used by both the customized networks and networks
   pair<DiscreteConfig, double> DrawOneLikelihoodWeightingSample(const DiscreteConfig &evidence);
   set<int> GetMarkovBlanketIndexesOfNode(Node *node_ptr);
 
-  // ==================================================
-  // Functions for structure learning.
-  // Based on the work of Ott et al. (2003) FINDING OPTIMAL MODELS FOR SMALL GENE NETWORKS
+  /**
+   * Functions for structure learning.
+   * Based on the work of Ott et al. (2003) FINDING OPTIMAL MODELS FOR SMALL GENE NETWORKS
+   * http://psb.stanford.edu/psb-online/proceedings/psb04/ott.pdf
+   *
+   * This learning process has 4 functions, i.e., F, Q, M and StructLearnByOtt
+   */
   pair<double, set<Node*>> F(Node *node,
                              set<Node*> &candidate_parents,
                              Dataset *dts,
@@ -158,14 +162,12 @@ class Network {//this class is used by both the customized networks and networks
                 map<pair<set<Node*>, vector<int>>,   pair<double, vector<pair<Node*, set<Node*>>>>> dynamic_program_for_Q,
                 map<set<Node*>, vector<int>> dynamic_program_for_M);
   void StructLearnByOtt(Dataset *dts, vector<int> topo_ord_constraint={});
-  // ==================================================
 
-  // ==================================================
-  // Functions for structure learning like K2 of Weka
+
+  /**
+   * Function for structure learning like K2 of Weka
+   */
   void StructLearnLikeK2Weka(Dataset *dts, vector<int> topo_ord_constraint={}, int max_num_parents=INT_MAX);
-  // ==================================================
-
-
 };
 
 

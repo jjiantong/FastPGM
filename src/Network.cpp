@@ -1016,7 +1016,10 @@ vector<int> Network::PredictUseSimpleBruteForce(vector<DiscreteConfig> evidences
   return results;
 }
 
-
+/**
+ * @brief: compute the accuracy for a classification problem.
+ * @param dts: data set; this is a classification problem.
+ */
 double Network::EvaluateVarElimAccuracy(Dataset *dts) {
 
   cout << "==================================================" << '\n'
@@ -1030,18 +1033,21 @@ double Network::EvaluateVarElimAccuracy(Dataset *dts) {
 
   int class_var_index = dts->class_var_index;
 
-
+    //construct the test data set with labels
   vector<int> ground_turths;
   vector<DiscreteConfig> evidences;
   evidences.reserve(m);
   ground_turths.reserve(m);
-  for (int i = 0; i < m; ++i) {
+  for (int i = 0; i < m; ++i) {//for each instance in the data set
+
+      //construct a test data set by removing the class variable
     int e_num = num_nodes - 1, *e_index = new int[e_num], *e_value = new int[e_num];
     for (int j = 0; j < num_nodes; ++j) {
-      if (j == class_var_index) {continue;}
+      if (j == class_var_index) {continue;}//skip the class variable
       e_index[j < class_var_index ? j : j - 1] = j;
       e_value[j < class_var_index ? j : j - 1] = dts->dataset_all_vars[i][j];
     }
+
     DiscreteConfig E = ArrayToDiscreteConfig(e_index, e_value, e_num);
     evidences.push_back(E);
     int g = dts->dataset_all_vars[i][class_var_index];
@@ -1050,7 +1056,7 @@ double Network::EvaluateVarElimAccuracy(Dataset *dts) {
     delete[] e_value;
   }
 
-
+    //predict the labels of the test instances
   vector<int> predictions = PredictUseVarElimInfer(evidences, class_var_index);
 
   double accuracy = Accuracy(ground_turths, predictions);
@@ -1067,7 +1073,7 @@ double Network::EvaluateVarElimAccuracy(Dataset *dts) {
   return accuracy;
 }
 
-
+//TODO: combine with the EvaluateVarElimAccuracy(Dataset *dts) function
 double Network::EvaluateAccuracyGivenAllCompleteInstances(Dataset *dts) {
 
   cout << "==================================================" << '\n'
@@ -1115,7 +1121,7 @@ double Network::EvaluateAccuracyGivenAllCompleteInstances(Dataset *dts) {
   return accuracy;
 }
 
-
+//TODO: merge into EvaluateVarElimAccuracy(Dataset *dts)
 double Network::EvaluateApproxInferAccuracy(Dataset *dts, int num_samp) {
 
 
@@ -1167,6 +1173,7 @@ double Network::EvaluateApproxInferAccuracy(Dataset *dts, int num_samp) {
   return accuracy;
 }
 
+//TODO: merge with EvaluateVarElimAccuracy(Dataset *dts)
 double Network::EvaluateLikelihoodWeightingAccuracy(Dataset *dts, int num_samp) {
   cout << "==================================================" << '\n'
        << "Begin testing the trained network." << endl;
@@ -1516,21 +1523,32 @@ int Network::SampleNodeGivenMarkovBlanketReturnValIndex(Node *node_ptr, Discrete
   return this_distribution(rand_gen);
 }
 
-
+/**
+ * @brief: given a set of instances, evidence; the same sample with different evidence can lead to different probabilities
+ * @param e
+ * @param node: target node
+ * @param samples: input
+ * @return label of the target node
+ */
 int Network::ApproxInferByProbLogiRejectSamp(DiscreteConfig e, Node *node, vector<DiscreteConfig> &samples) {
+
+    //obtain the possible discrete configuration of the target node
   DiscreteConfig possb_values;
   for (int i=0; i<dynamic_cast<DiscreteNode*>(node)->GetDomainSize(); ++i) {
     possb_values.insert(pair<int,int>(node->GetNodeIndex(),
                                       dynamic_cast<DiscreteNode*>(node)->vec_potential_vals.at(i)));
   }
 
-  int *count_each_value = new int[this->num_nodes]();
+  //compute the statistics of the instances which are consistent to the target node.
+  int num_possible_value = possb_values.size();
+  assert(dynamic_cast<DiscreteNode*>(node)->GetDomainSize() == num_possible_value);
+  int *count_each_value = new int[num_possible_value]();
   int num_valid_sample = 0;
   for (const auto &samp : samples) {
-    if(!Conflict(&e, &samp)) {
+    if(!Conflict(&e, &samp)) {//an instance is consistent to the evidence
       ++num_valid_sample;
       for (const auto &pv : possb_values) {
-        if (samp.find(pv)!=samp.end()) {
+        if (samp.find(pv)!=samp.end()) {//an instance is consistent to the target node
           ++count_each_value[pv.second];
           break;
         }
@@ -1546,7 +1564,7 @@ int Network::ApproxInferByProbLogiRejectSamp(DiscreteConfig e, Node *node, vecto
     return dynamic_cast<DiscreteNode*>(node)->vec_potential_vals.at(this_distribution(rand_gen));
   }
 
-  // Find the argmax.
+  // Find the argmax.; the label which appears most frequently in the input set of instances.
   int lable_index_predict = -1;
   int max_occurred = 0;
   for (int i=0; i<dynamic_cast<DiscreteNode*>(node)->GetDomainSize(); ++i) {
@@ -1560,11 +1578,15 @@ int Network::ApproxInferByProbLogiRejectSamp(DiscreteConfig e, Node *node, vecto
   return dynamic_cast<DiscreteNode*>(node)->vec_potential_vals.at(lable_index_predict);
 }
 
-
+//refer to the same function with node_ptr as input
 int Network::ApproxInferByProbLogiRejectSamp(DiscreteConfig e, int node_index, vector<DiscreteConfig> &samples) {
   return ApproxInferByProbLogiRejectSamp(e, FindNodePtrByIndex(node_index), samples);
 }
 
+/**
+ *  @brief: reuse the samples for inference, while the evidence/observation may be different.
+ *  drawing a new set of instances is often expensive. This function makes use of reusing the pre-drawn instances.
+ */
 vector<int> Network::ApproxInferByProbLogiRejectSamp(vector<DiscreteConfig> evidences, int node_idx, vector<DiscreteConfig> &samples) {
   int size = evidences.size();
 
@@ -1595,7 +1617,9 @@ vector<int> Network::ApproxInferByProbLogiRejectSamp(vector<DiscreteConfig> evid
 }
 
 
-
+/**
+ * @brief: learning the network structure
+ */
 pair<double, set<Node*>> Network::F(Node *node,
         set<Node*> &candidate_parents,
         Dataset *dts,
@@ -1827,6 +1851,7 @@ void Network::StructLearnLikeK2Weka(Dataset *dts, vector<int> topo_ord_constrain
   }
 }
 
+//TODO: move to other class
 double Network::Accuracy(vector<int> ground_truth, vector<int> predictions) {
   int size = ground_truth.size(),
       num_of_correct = 0,
