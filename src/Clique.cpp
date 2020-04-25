@@ -30,8 +30,8 @@ Clique::Clique(set<Node*> set_node_ptr, int elim_var_index) {
   // In the paper, all continuous cliques' activeflags are initially set to true.
   activeflag = !pure_discrete;
 
+  //initialize related variables
   set<DiscreteConfig> set_of_sets;
-
   for (auto &n : set_node_ptr) {
     related_variables.insert(n->GetNodeIndex());
     if (n->is_discrete) {
@@ -51,7 +51,9 @@ Clique::Clique(set<Node*> set_node_ptr, int elim_var_index) {
   ptr_upstream_clique = nullptr;
 }
 
-
+/**
+ * @brief: potential is similar to weight, and can be used to compute probability.
+ */
 void Clique::PreInitializePotentials() {
   if (pure_discrete) {
     for (auto &c : set_disc_configs) {
@@ -62,7 +64,9 @@ void Clique::PreInitializePotentials() {
   }
 }
 
-
+/**
+ * @brief: copy the clique by ignoring the pointer members
+ */
 Clique* Clique::CopyWithoutPtr() {
   auto c = new Clique(*this);
   c->set_neighbours_ptr.clear();
@@ -76,16 +80,19 @@ Factor Clique::Collect() {
 
   for (auto &ptr_separator : set_neighbours_ptr) {
 
-    // The message passes from downstream to upstream.
-    // Also, when it reaches a leaf, the only neighbour is the upstream,
-    // which can be viewed as the base case of recursive function.
+    /** The message passes from downstream to upstream.
+     * Also, when it reaches a leaf, the only neighbour is the upstream,
+     * which can be viewed as the base case of recursive function.
+     */
     if (ptr_separator==ptr_upstream_clique) {continue;}
 
     ptr_separator->ptr_upstream_clique = this;  // Let the callee know the caller.
 
-    // If the next clique connected by this separator is a continuous clique,
-    // then the program should not collect from it. All information needed from
-    // the continuous clique has been pushed to the boundary when entering the evidence.
+    /** This is for continuous nodes
+     * If the next clique connected by this separator is a continuous clique,
+     * then the program should not collect from it. All information needed from
+     * the continuous clique has been pushed to the boundary when entering the evidence.
+     */
     bool reach_boundary = false;
     for (const auto &next_clq_ptr : ptr_separator->set_neighbours_ptr) {
         reach_boundary = (next_clq_ptr->ptr_upstream_clique!=ptr_separator && !next_clq_ptr->pure_discrete);
@@ -101,7 +108,7 @@ Factor Clique::Collect() {
 }
 
 /**
- * Distribute the infomation it knows to the downstream cliques.
+ * Distribute the information it knows to the downstream cliques.
  * The reload version without parameter. Called on the selected root.
  */
 void Clique::Distribute() {
@@ -112,7 +119,7 @@ void Clique::Distribute() {
 }
 
 /**
- * Distribute the infomation it knows to the downstream cliques.
+ * Distribute the information it knows to the downstream cliques.
  * The reload version with parameter. Called by recursion.
  */
 void Clique::Distribute(Factor f) {
@@ -144,6 +151,9 @@ void Clique::Distribute(Factor f) {
   }
 }
 
+/**
+ * @brief: sum over external variables which are the results of factor multiplication.
+ */
 Factor Clique::SumOutExternalVars(Factor f) {
   Factor factor_of_this_clique(this->related_variables,
                                    this->set_disc_configs,
@@ -161,14 +171,16 @@ Factor Clique::SumOutExternalVars(Factor f) {
   return f;
 }
 
-
+/**
+ * @brief: multiple a clique with a factor
+ */
 void Clique::MultiplyWithFactorSumOverExternalVars(Factor f) {
   Factor factor_of_this_clique(related_variables, set_disc_configs, map_potentials);
 
   f = SumOutExternalVars(f);
 
   factor_of_this_clique = factor_of_this_clique.MultiplyWithFactor(f);
-
+//TODO: may need to perform sum over for "factor_of_this_clique"
   map_potentials = factor_of_this_clique.map_potentials;
 }
 
@@ -177,6 +189,9 @@ void Clique::UpdateUseMessage(Factor f) {
   MultiplyWithFactorSumOverExternalVars(f);
 }
 
+/**
+ * @brief: construct a factor of this clique and return
+ */
 Factor Clique::ConstructMessage() {
   Factor message_factor(related_variables, set_disc_configs, map_potentials);
   return message_factor;

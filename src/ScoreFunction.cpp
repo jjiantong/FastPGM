@@ -10,7 +10,7 @@ ScoreFunction::ScoreFunction(Network *net, Dataset *dts) {
 }
 
 /**
- * Calculate the score fo a node in the network.
+ * Calculate the score for a node in the network.
  * The calculation process is related to the node itself, its parents and the dataset.
  * The score for the whole network against the provided dataset is just the sum of each node.
  */
@@ -35,18 +35,19 @@ double ScoreFunction::ScoreForNode(Node *node_ptr, string metric) {
   }
 }
 
-
+/**
+ * @brief: compute the score of a node using log likelihood (i.e., whether the probability table of a node is similar to the data).
+ */
 double ScoreFunction::LogLikelihoodForNode(Node *node_ptr) {
   // todo: check the correctness
 
   // Use the notation like the papers (e.g. r_i, q_i, N_ij, N_ijk).
   const int index = node_ptr->GetNodeIndex();
+  assert(node_ptr->is_discrete == true);
   auto d_node_ptr = dynamic_cast<DiscreteNode*>(node_ptr);
   const int &r_i = d_node_ptr->GetDomainSize();
   double log_likelihood = 0;
   if (node_ptr->HasParents()) {
-
-
     // For every "j".
     for (const auto &par_comb : node_ptr->set_discrete_parents_combinations) {
 
@@ -54,7 +55,6 @@ double ScoreFunction::LogLikelihoodForNode(Node *node_ptr) {
       int n_ij = 0;
 
       for (int s=0; s < dataset->num_instance; ++s) {
-
         // Check parents.
         bool parents_compatible = true;
         for (const auto &p : par_comb) {
@@ -122,7 +122,9 @@ double ScoreFunction::LogLikelihood() {
   return log_likelihood;
 }
 
-
+/**
+ * @brief:  cf Bayesian Network Review pdf
+ */
 double ScoreFunction::LogK2ForNode(Node *node_ptr) {
   const int &node_index = node_ptr->GetNodeIndex();
   auto d_node_ptr = dynamic_cast<DiscreteNode*>(node_ptr);

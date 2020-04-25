@@ -30,7 +30,6 @@ class ScoreFunction;
 
 //TODO: devide into 3 or more classes (e.g. network, learning and inference)
 class Network {//this class is used by both the customized networks and networks learning from data.
-
  public:
   string network_name;//a name for each bayesian network (usually an xml file contains a name for the network).
   int num_nodes = 0;
