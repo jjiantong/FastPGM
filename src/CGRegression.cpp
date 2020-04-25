@@ -4,12 +4,19 @@
 
 #include "CGRegression.h"
 
+/**
+ * @brief:
+ * @param node_ptr
+ * @param set_parent_ptrs
+ */
 CGRegression::CGRegression(Node *node_ptr, set<Node*> set_parent_ptrs) {
   if (node_ptr->is_discrete) {
     fprintf(stderr, "The node is not continuous!");
     exit(1);
   }
   ContinuousNode *c_n_p = dynamic_cast<ContinuousNode*>(node_ptr);
+
+  //construct head and tails
   head_var_index = node_ptr->GetNodeIndex();
   for (const auto &par : set_parent_ptrs) {
     set_all_tail_index.insert(par->GetNodeIndex());
@@ -17,7 +24,10 @@ CGRegression::CGRegression(Node *node_ptr, set<Node*> set_parent_ptrs) {
       vec_contin_tail_indexes.push_back(par->GetNodeIndex());
     }
   }
+
   set_discrete_tails_combinations = node_ptr->set_discrete_parents_combinations;
+
+  //this part is from continuous node
   map_mu = c_n_p->map_mu;
   marginal_mu = c_n_p->marginal_mu;
   map_coefficients = c_n_p->map_coefficients;
@@ -45,6 +55,10 @@ string CGRegression::GetExpression() {
   return expression;
 }
 
+/**
+ * @brief: similar to Factor; cannot remember the details.
+ */
+//TODO: compare with paper
 void CGRegression::Substitute(pair<int, double> var_value) {
   bool state = false;
   int coeff_index_for_var = 0;
