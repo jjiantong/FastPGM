@@ -7,13 +7,16 @@
 
 #include "Clique.h"
 
+/**
+ * @brief: Separator is used like an edge, and the other none separator cliques are nodes in a network.
+ */
 class Separator : public Clique {
  protected:
   Separator(const Separator&) = default;
 
  public:
-  int weight;
-  map<DiscreteConfig, double> map_old_potentials;
+  int weight;//the number of nodes in this separator
+  map<DiscreteConfig, double> map_old_potentials;//this member is used when constructing message in separator
 
   Separator();
   explicit Separator(set<Node*>);

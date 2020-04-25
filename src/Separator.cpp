@@ -29,6 +29,9 @@ void Separator::UpdateUseMessage(Factor f) {
   map_potentials = f.map_potentials;
 }
 
+/**
+ * @brief: this is a standard process for constructing the message of the separator cliques.
+ */
 Factor Separator::ConstructMessage() {
   Factor f(related_variables, set_disc_configs, map_potentials);
   for (auto &comb : set_disc_configs) {

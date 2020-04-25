@@ -42,8 +42,10 @@ JunctionTree::JunctionTree(Network *net, string elim_ord_strategy, bool elim_red
     exit(1);
   }
 
+  //construct a clique for each node in the network
   Triangulate(network, undirec_adjac_matrix, network->num_nodes, elimination_ordering, set_clique_ptr_container);
 
+  //construct map from main variable to a clique
   GenMapElimVarToClique();
 
   if (elim_redundant_cliques) {
@@ -51,9 +53,10 @@ JunctionTree::JunctionTree(Network *net, string elim_ord_strategy, bool elim_red
     ElimRedundantCliques();
   }
 
-//  FormJunctionTree(set_clique_ptr_container);
-  FormListShapeJunctionTree(set_clique_ptr_container);
+//  FormJunctionTree(set_clique_ptr_container);//for discrete nodes
+  FormListShapeJunctionTree(set_clique_ptr_container);//for continuous nodes
 
+  //assign id to each clique
   NumberTheCliquesAndSeparators();
 
   AssignPotentials();
@@ -142,8 +145,11 @@ JunctionTree::JunctionTree(JunctionTree *jt) {
 }
 
 
-
+/**
+ * @brief: connect all the parents of a node
+ */
 void JunctionTree::Moralize(int **direc_adjac_matrix, int &num_nodes) {
+  //TODO: double-check correctness
 
   // Find the parents that have common child(ren).
   set<pair<int,int>> to_marry;
@@ -181,6 +187,9 @@ void JunctionTree::Moralize(int **direc_adjac_matrix, int &num_nodes) {
   }
 }
 
+/**
+ * @brief: construct a map for ease of look up the clique
+ */
 void JunctionTree::GenMapElimVarToClique() {
   for (const auto &c : set_clique_ptr_container) {
     map_elim_var_to_clique[c->elimination_variable_index] = c;
@@ -188,9 +197,11 @@ void JunctionTree::GenMapElimVarToClique() {
 }
 
 /**
- * Generate the elimination order by minimum number of neighbours.
+ * @brief: Generate the elimination order by the number of neighbours.
+ * The node with the minimum number of neighbours is eliminated first.
  */
 vector<int> JunctionTree::MinNeighbourElimOrd(int **adjac_matrix, int &num_nodes) {
+  //TODO: double-check correctness
   vector< pair<int,int> > to_be_sorted;
   for (int i=0; i<num_nodes; ++i) {
     pair<int,int> p;
@@ -212,12 +223,15 @@ vector<int> JunctionTree::MinNeighbourElimOrd(int **adjac_matrix, int &num_nodes
 }
 
 
-
+/**
+ * @brief: generate a clique for each node based on the elim_ord.
+ */
 void JunctionTree::Triangulate(Network *net,
                                int **adjac_matrix,
                                int &num_nodes,
                                vector<int> elim_ord,
                                set<Clique*> &cliques) {
+  //TODO: double check correctness
   if (elim_ord.size()==0) {return;}
   set<int> set_neighbours;
   set<Node*> set_node_ptrs_to_form_a_clique;
@@ -255,7 +269,10 @@ void JunctionTree::Triangulate(Network *net,
   Triangulate(net, adjac_matrix, num_nodes, elim_ord, cliques);
 }
 
-
+/**
+ * @brief: remove the redundant cliques; if a clique is fully contained by another clique, then the clique can be removed.
+ */
+ //TODO: fix bugs
 void JunctionTree::ElimRedundantCliques() {
   fprintf(stderr, "This operation, [%s], will cause lots of trouble and I can not solve them yet!\n"
                   "So, I just forbid the program to conduct this operation.", __FUNCTION__);
@@ -289,7 +306,12 @@ void JunctionTree::ElimRedundantCliques() {
   }
 }
 
+/**
+ * @brief: the Junction Tree here looks like a linked list.
+ * This is used for continuous varaibles, based on a tutorial or some unpulished work.
+ */
 void JunctionTree::FormListShapeJunctionTree(set<Clique*> &cliques) {
+  //TODO: double-check correctness
   // This method is described in
   // [Local Propagation in Conditional Gaussian Bayesian Networks (Cowell, 2005)]
   // section 3.2.
@@ -336,8 +358,11 @@ void JunctionTree::FormListShapeJunctionTree(set<Clique*> &cliques) {
   }
 }
 
+/**
+ * @brief: construct a tree where each node is a clique and each edge is a separator.
+ */
 void JunctionTree::FormJunctionTree(set<Clique*> &cliques) {
-
+//TODO: double-check correctness
   // First, generate all possible separators.
   set<pair<Clique*,Clique*>> mark;
   set<Separator*> all_possible_seps;
@@ -423,7 +448,9 @@ void JunctionTree::FormJunctionTree(set<Clique*> &cliques) {
   }
 }
 
-
+/**
+ * @brief: assign an id to each clique and separator
+ */
 void JunctionTree::NumberTheCliquesAndSeparators() {
   int i = 0;
   for (auto c : set_clique_ptr_container) {
@@ -435,9 +462,11 @@ void JunctionTree::NumberTheCliquesAndSeparators() {
   }
 }
 
-
+/**
+ * @brief: each clique has a potential; the potentials of continuous and discrete cliques are computed differently
+ */
 void JunctionTree::AssignPotentials() {
-
+//TODO: double-check correctness
   // todo: test the correctness of the continuous part (discrete part works correctly)
 
   // For purely discrete cliques, the potentials have been initialized to 1 on creation,
@@ -562,6 +591,10 @@ void JunctionTree::LoadEvidenceAndMessagePassingUpdateJT(const DiscreteConfig &E
 //    }
 //  }
 //}
+
+/**
+ * @brief: when inferencing, an evidence is given. The evidence needs to be loaded and propagate in the network.
+ */
 void JunctionTree::LoadDiscreteEvidence(const DiscreteConfig &E) {
   if (E.empty()) { return; }
   for (auto &e : E) {  // For each node's observation in E
@@ -569,7 +602,7 @@ void JunctionTree::LoadDiscreteEvidence(const DiscreteConfig &E) {
       Clique *clique_ptr = map_elim_var_to_clique[e.first];
       for (auto &comb : clique_ptr->set_disc_configs) {  // Update each row of map_potentials
         if (comb.find(e) == comb.end()) {
-          clique_ptr->map_potentials[comb] = 0;
+          clique_ptr->map_potentials[comb] = 0;//conflict with the evidence; set the potential to 0.
         }
       }
     } else {
@@ -609,6 +642,9 @@ void JunctionTree::PrintAllSeparatorsPotentials() const {
   cout << "==================================================" << endl;
 }
 
+/**
+ * @brief: compute the marginal distribution for a query variable
+ **/
 Factor JunctionTree::BeliefPropagationCalcuDiscreteVarMarginal(int query_index) {
 
   // The input is a set of query_indexes of variables.
@@ -647,7 +683,9 @@ Factor JunctionTree::BeliefPropagationCalcuDiscreteVarMarginal(int query_index) 
 
 }
 
-
+/**
+ * @brief: predict the lable for a given variable.
+ */
 int JunctionTree::InferenceUsingBeliefPropagation(int &query_index) {
   Factor f = BeliefPropagationCalcuDiscreteVarMarginal(query_index);
   double max_prob = 0;
@@ -662,6 +700,9 @@ int JunctionTree::InferenceUsingBeliefPropagation(int &query_index) {
   return label_predict;
 }
 
+/**
+ * @brief: test the Junction Tree given a data set
+ */
 double JunctionTree::EvaluateJTAccuracy(int class_var, Dataset *dts) {
 
   cout << "==================================================" << '\n'
@@ -719,8 +760,12 @@ double JunctionTree::EvaluateJTAccuracy(int class_var, Dataset *dts) {
 //    jt->MessagePassingUpdateJT();
 //    int label_predict = jt->InferenceUsingBeliefPropagation(query);
 //    delete jt;
+
+    //update a clique using the evidence
     LoadDiscreteEvidence(E);
+    //update the whole Junction Tree
     MessagePassingUpdateJT();
+
     int label_predict = InferenceUsingBeliefPropagation(class_var);
 //    string pred_true = to_string(label_predict) + ':' + to_string(dts->dataset_all_vars[i][class_var_index]);
 //    fprintf(stdout, "%s\n", pred_true.c_str());

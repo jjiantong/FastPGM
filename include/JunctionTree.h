@@ -11,16 +11,18 @@
 #include "Separator.h"
 #include "Network.h"
 
-
+/**
+ * @brief: this class is for exact inference. The other two methods include brute force and variable elimination.
+ */
 class JunctionTree {
   //==================================================
  public:
-  Network *network;
-  set<Clique*> set_clique_ptr_container;
-  set<Separator*> set_separator_ptr_container;
+  Network *network;//the learned network which can be used for inference
+  set<Clique*> set_clique_ptr_container;//store all the cliques in this Junction Tree
+  set<Separator*> set_separator_ptr_container;//all the separators in the Junction tree
 
-  vector<int> elimination_ordering;
-  map<int, Clique*> map_elim_var_to_clique;
+  vector<int> elimination_ordering;//
+  map<int, Clique*> map_elim_var_to_clique;//key: main variable of a clique; value: the clique
 
 
   JunctionTree() = default;
