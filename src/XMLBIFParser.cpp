@@ -31,6 +31,9 @@ XMLBIFParser::XMLBIFParser(string &file) {
   LoadFile(file);
 }
 
+/**
+ * @brief: get all the variables (without parent info)
+ */
 vector<Node*> XMLBIFParser::GetUnconnectedNodes() const {
   if (!xml_network_ptr) {
     fprintf(stderr, "Error in function %s! nullptr!", __FUNCTION__);
@@ -71,6 +74,9 @@ vector<Node*> XMLBIFParser::GetUnconnectedNodes() const {
   return vec_node_ptrs;
 }
 
+/**
+ * @brief: read the probabilities and construct parent-child relationship.
+ */
 void XMLBIFParser::AssignProbsToNodes(vector<XMLElement*> vec_xml_elems_ptr, vector<Node*> vec_nodes_ptr) {
   for (auto &xpp : vec_xml_elems_ptr) { // Parse each "PROBABILITY" element.
 
@@ -185,6 +191,10 @@ void XMLBIFParser::AssignProbsToNodes(vector<XMLElement*> vec_xml_elems_ptr, vec
   }
 }
 
+/**
+ * @brief: first read all the nodes; then read probabilities and construct parent-child relationships.
+ * @return
+ */
 vector<Node*> XMLBIFParser::GetConnectedNodes() {
   vector<Node*> unconnected_nodes = GetUnconnectedNodes();
   AssignProbsToNodes(vec_xml_probs_ptr, unconnected_nodes);

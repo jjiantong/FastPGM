@@ -28,8 +28,12 @@ class CustomNetwork : public Network {//CustomNetwork may be a tree shape graph 
   CustomNetwork();
   explicit CustomNetwork(bool pure_disc);
 
-  vector<int> SimplifyDefaultElimOrd(DiscreteConfig evidence) override;//hasn't implemented due to the complexity (e.g., undirected loop)
-//the simplification of the network is for variable elimination
+  /**
+   * hasn't implemented due to the complexity (e.g., undirected loop)
+   * the simplification of the network is for variable elimination
+   */
+  vector<int> SimplifyDefaultElimOrd(DiscreteConfig evidence) override;
+
   void GetNetFromXMLBIFFile(string file_path);//construct the network using content from the xml file.
 
 };
