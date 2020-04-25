@@ -13,12 +13,15 @@ ChowLiuTree::ChowLiuTree(bool pure_disc) {
 }
 
 /**
- * Compute mutual information between two variables on provided dataset.
+ * @brief: Compute mutual information between two variables (i.e., Xi and Xj) on the provided data set.
+ * This function is purely based on the fomular of mutual information.
  */
+//TODO: may be moved to other classes
 double ChowLiuTree::ComputeMutualInformation(Node *Xi, Node *Xj, const Dataset *dts) {
   // Find the indexes of these two features in training set.
   int xi=Xi->GetNodeIndex(), xj=Xj->GetNodeIndex();
 
+  assert(Xi->is_discrete == true && Xj->is_discrete == true);
   auto dXi = dynamic_cast<DiscreteNode*>(Xi);
   auto dXj = dynamic_cast<DiscreteNode*>(Xj);
 
@@ -106,21 +109,22 @@ void ChowLiuTree::StructLearnCompData(Dataset *dts, bool print_struct, string al
        << "The time spent to construct Chow-Liu tree is " << diff << " seconds" << endl;
 }
 
-
+/**
+ * @brief: construct a Bayesian network which is a tree, based on the data set
+ */
 void ChowLiuTree::StructLearnChowLiuTreeCompData(Dataset *dts, bool print_struct) {
   cout << "==================================================" << '\n'
        << "Begin structural learning. \nConstructing Chow-Liu tree with complete data......" << endl;
+  assert(pure_discrete == true);//It seems Chow Liu Tree only supports discrete networks.
 
   num_nodes = dts->num_vars;
   root_node_index = dts->class_var_index;
   // Assign an index for each node.
   #pragma omp parallel for
   for (int i = 0; i < num_nodes; ++i) {
-
+    //construct a node in the network
     DiscreteNode *node_ptr = new DiscreteNode(i);  // For now, only support discrete node.
-
     node_ptr->SetDomainSize(dts->num_of_possible_values_of_disc_vars[i]);
-
     for (auto v : dts->map_disc_vars_possible_values[i]) {
       node_ptr->vec_potential_vals.push_back(v);
     }
@@ -141,14 +145,17 @@ void ChowLiuTree::StructLearnChowLiuTreeCompData(Dataset *dts, bool print_struct
     mutualInfoTab[i] = new double[n]();
   }
 
-  // Update the mutual information table.
+  // Initialize the mutual information table.
   #pragma omp parallel for
   for (int i=0; i<n; ++i) {
     for (int j=0; j<i; ++j) {
       if (i==j) {
         mutualInfoTab[i][j] = -1;
       } else {
-        // To calculate the mutual information, we need to find the nodes which correspond to the indexes i and j.
+
+        /** To calculate the mutual information, we need to find the nodes which correspond to the indexes i and j.
+         * */
+         //TODO: simplify the process of geting Xi and Xj; e.g., Xi=map_idx_node_ptr[i].
         Node* Xi = nullptr;
         Node* Xj = nullptr;
         for (auto id_node_ptr : map_idx_node_ptr) {
@@ -160,6 +167,7 @@ void ChowLiuTree::StructLearnChowLiuTreeCompData(Dataset *dts, bool print_struct
           }
           if (Xi!=nullptr && Xj!=nullptr) { break; }
         }
+
         // Mutual information table is symmetric.
         mutualInfoTab[i][j] = ComputeMutualInformation(Xi, Xj, dts);
         mutualInfoTab[j][i] = ComputeMutualInformation(Xi, Xj, dts);
@@ -170,7 +178,9 @@ void ChowLiuTree::StructLearnChowLiuTreeCompData(Dataset *dts, bool print_struct
   cout << "==================================================" << '\n'
        << "Constructing maximum spanning tree using mutual information table and Prim's algorithm......" << endl;
 
-  // Use Prim's algorithm to generate a spanning tree.
+  /** Use Prim's algorithm (easy to find on Google) to generate a spanning tree.
+   * Two nodes with the maximum mutual information are connected.
+   */
   int** graphAdjacencyMatrix = new int* [n];
   for (int i=0; i<n; ++i) {
     graphAdjacencyMatrix[i] = new int[n]();
@@ -194,13 +204,14 @@ void ChowLiuTree::StructLearnChowLiuTreeCompData(Dataset *dts, bool print_struct
       }
     }
     markSet.insert(maxJ);
-    graphAdjacencyMatrix[maxI][maxJ] = graphAdjacencyMatrix[maxJ][maxI] = 1;
+    graphAdjacencyMatrix[maxI][maxJ] = graphAdjacencyMatrix[maxJ][maxI] = 1;//this forms an undirected edge.
   }
-  // Add arrows in tree, set parents and children
+
+  // obtain a topological order for constructing parent-child relationships, and generating an elimination order.
   int* topologicalSortedPermutation = BreadthFirstTraversalWithAdjacencyMatrix(graphAdjacencyMatrix, n, root_node_index);
 
 
-  // !!! See the comments for "default_elim_ord" in the "ChowLiuTree.h" file.
+  //TODO: see the comments for "default_elim_ord" in the "ChowLiuTree.h" file; may need to remove either "default_elim_ord" or "vec_default_elim_ord".
   vec_default_elim_ord.reserve(n-1);
   for (int i=1; i<n; ++i) {
     vec_default_elim_ord.push_back(topologicalSortedPermutation[n-i]);
@@ -210,13 +221,15 @@ void ChowLiuTree::StructLearnChowLiuTreeCompData(Dataset *dts, bool print_struct
 
   cout << "==================================================" << '\n'
        << "Setting children and parents......" << endl;
+  // Add arrows in tree to form an directed edge in the network; set parents and children
   #pragma omp parallel for
   for (int i = 0; i < n; ++i) {
-    for (int j = 0; j < i; ++j) {  // graphAdjacencyMatrix is symmetric, so loop while j<i instead of j<n
+    for (int j = 0; j < i; ++j) {// graphAdjacencyMatrix is symmetric, so loop while j<i instead of j<n
       if (i == j) continue;
       if (graphAdjacencyMatrix[i][j] == 1){
 
-        // Determine the topological position of i and j.
+        // Determine the topological position of i and j; determine which one should appear first (e.g., i > j or j > i).
+        //TODO: use "OccurInCorrectOrder" in gadget.h
         int topoIndexI = -1, topoIndexJ = -1;
         for (int k=0; k<n; ++k) {
           if (topologicalSortedPermutation[k] == i && topoIndexI == -1) {
@@ -281,10 +294,11 @@ vector<int> ChowLiuTree::SimplifyDefaultElimOrd(DiscreteConfig evidence) {
 }
 
 /**
- * Two key words: barren, m-separated.
+ * @brief: given an evidence, the default elimination order can be simplified by removing two types of nodes (i.e., barren and m-separated).
+ * The implementation is based on "A simple approach to Bayesian network computations" by Zhang and Poole, 1994.
  */
 vector<int> ChowLiuTree::SimplifyTreeDefaultElimOrd(DiscreteConfig evidence) {
-
+//TODO: compare with the paper and double-check correctness
   // todo: delete the next line
 //  fprintf(stderr, "Start [%s]\n", __FUNCTION__);
 
@@ -358,7 +372,7 @@ vector<int> ChowLiuTree::SimplifyTreeDefaultElimOrd(DiscreteConfig evidence) {
  * Help to simplify the elimination order.
  */
 void ChowLiuTree::DepthFirstTraversalUntillMeetObserved(DiscreteConfig evidence, int start, set<int>& visited, set<int>& to_be_removed) {
-
+//TODO: compare with the algorithm in the paper
   // todo: delete the next line
 //  fprintf(stderr, "Start [%s]\n", __FUNCTION__);
 
@@ -393,6 +407,7 @@ void ChowLiuTree::DepthFirstTraversalUntillMeetObserved(DiscreteConfig evidence,
  * Help to simplify the elimination order.
  */
 void ChowLiuTree::DepthFirstTraversalToRemoveMSeparatedNodes(int start, set<int>& visited, set<int>& to_be_removed) {
+  //TODO: compare with the algorithm in the paper
   visited.insert(start);
   Node* ptr_curr_node = FindNodePtrByIndex(start);
   for (auto ptr_child : GetChildrenPtrsOfNode(ptr_curr_node->GetNodeIndex())) {
