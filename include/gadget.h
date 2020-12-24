@@ -19,7 +19,7 @@ using namespace std;
 typedef set< pair<int, int> > DiscreteConfig;//[variable id, variable value]
 
 /**
- * @brief: to support both discrete can continuous variables
+ * @brief: to support both discrete and continuous variables
  */
 struct Value {
  private:
@@ -48,6 +48,7 @@ struct Value {
 
 };
 
+// TODO: merge?
 typedef pair<int, Value> VarVal; //variable/node id, value of the variable/node
 typedef pair<int, int> DiscVarVal;//similar to VarVal, but for discrete varaible
 

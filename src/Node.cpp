@@ -132,11 +132,13 @@ void Node::AddParent(Node *p) {
 }
 
 /**
- * @brief: add a parent to the node
+ * @brief: add a parent p to the node
  */
 void Node::AddDiscreteParent(Node *p) {
-  int p_idx = p->GetNodeIndex();//get the id of the parent
-  if (set_parent_indexes.find(p_idx) == set_parent_indexes.end()) {  // If p is not in the parent set.
+  int p_idx = p->GetNodeIndex();//get the id of the parent p
+  if (set_parent_indexes.find(p_idx) == set_parent_indexes.end()) {
+    // If p is not in the parent set.
+    // update "set_parent_indexes", "vec_disc_parent_indexes", "map_disc_parents_domain_size"
     set_parent_indexes.insert(p_idx);
     auto dp = (DiscreteNode *) p;//dp stands for "discrete parent"
     vec_disc_parent_indexes.push_back(p_idx);
@@ -145,12 +147,17 @@ void Node::AddDiscreteParent(Node *p) {
     // Update possible parent configurations
     set<DiscreteConfig> new_par_combs;
     for (const auto &val : dp->vec_potential_vals) {
-      DiscVarVal vv(p_idx, val);
+      DiscVarVal vv(p_idx, val); // get [idx of p, each value of p]
       for (auto old_par_comb : set_discrete_parents_combinations) {
+        // set_discrete_parents_combinations: set< set< pair<int, int> > >
+        // new_par_combs: set< set< pair<int, int> > >
+        // old_par_comb: set< pair<int, int> >
+        // vv: pair<int, int>
+        // add each vv(corresponding to each potential value of p) to each old_par_comb
         old_par_comb.insert(vv);//insert the new parent with a potential value to the old configuration
         new_par_combs.insert(old_par_comb);
-      }
-    }
+      } // finish adding one vv to all old_par_comb
+    } // finish adding all potential vv to all old_par_comb
     this->set_discrete_parents_combinations = new_par_combs;
   }
   //if the parent is already in the set_parent_indexes, nothing needs to be done.
@@ -162,8 +169,9 @@ void Node::AddDiscreteParent(Node *p) {
 void Node::AddContinuousParent(Node *p) {
   int p_idx = p->GetNodeIndex();
   if (set_parent_indexes.find(p_idx) == set_parent_indexes.end()) {  // If p is not in the parent set.
+    // update "set_parent_indexes", "contin_par_indexes"
     set_parent_indexes.insert(p_idx);
-
+    // TODO: this
     auto cont_this = (ContinuousNode*) this;
     cont_this->contin_par_indexes.push_back(p_idx);
   }
