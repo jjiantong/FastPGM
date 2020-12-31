@@ -54,6 +54,7 @@ DiscreteConfig ArrayToDiscreteConfig(int *nodes_indexes, int *observations, int 
 
 /**
  * @brief: convert a configuration (e.g., a config can be derived from an instance) into a map for fast query
+ * set<pair<int, int>> --> map<int, int>
  */
 map<int, int> DiscreteConfigToMap(DiscreteConfig &disc_cfg) {
   map<int, int> result;

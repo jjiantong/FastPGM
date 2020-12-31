@@ -25,11 +25,14 @@ class DiscreteNode : public Node {//the parent nodes of DiscreteNode must be dis
 
   // =============== refactor like Weka ===============
   // Keep the count instead of probability.
-  map<int, map<DiscreteConfig, int> > map_cond_prob_table_statistics;  // Key: query variable (child) index; Value: (parents config, count under condition).
-  // If the node has no parent, then the second dimension, DiscreteConfig (i.e., parents_config) is empty.
 
-  map<DiscreteConfig, int> map_total_count_under_parents_config;//Key: parents config. Value: total count.
+  // Key: query variable (child) value; Value: (parents config, count under condition).
+  // If the node has no parent, then the second dimension, DiscreteConfig (i.e., parents_config) is empty.
+  map<int, map<DiscreteConfig, int> > map_cond_prob_table_statistics;
+
+  //Key: parents config. Value: total count.
   //map_cond_prob_table_statistics and map_total_count_under_parents_config together can be used to compute the probability.
+  map<DiscreteConfig, int> map_total_count_under_parents_config;
 
   void SetLaplaceSmooth(double alpha);//for smoothness when computing probability
   double GetLaplaceSmooth();

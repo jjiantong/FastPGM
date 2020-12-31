@@ -38,7 +38,7 @@ int Node::GetNumChildren() const {
   return set_children_indexes.size();
 }
 
-/*
+/**
  * @brief: get the total number of parent combinations
  */
 int Node::GetNumParentsConfig() {
@@ -56,7 +56,7 @@ int Node::GetNumParentsConfig() {
 /**
  * @brief: similar to GetDiscParConfigGivenAllVarValue(vector<int> &all_var_val).
  * get parents given a set of [variable id, variable value].
- * This function is similar to a filter; it filters out the variables and values which are not the parents of the current node.
+ * This function is similar to a filter - filters out the variables and values which are not the parents of the current node.
  */
 DiscreteConfig Node::GetDiscParConfigGivenAllVarValue(DiscreteConfig &all_var_val) {
   DiscreteConfig par_var_val;
@@ -68,9 +68,10 @@ DiscreteConfig Node::GetDiscParConfigGivenAllVarValue(DiscreteConfig &all_var_va
   assert(all_var_val.size() >= GetNumDiscParents());
 
   for (auto const var_val : all_var_val) {
-    auto node_id = var_val.first;
+    auto node_id = var_val.first; // get the index
+    // inefficiency: search (from parents) once for each node received by the argument "all_var_val"
     if (std::find(vec_disc_parent_indexes.begin(), vec_disc_parent_indexes.end(), node_id) != vec_disc_parent_indexes.end()) {
-      //this node is one of the parent of the current node
+      // this node is one of the parent of the current node
       par_var_val.insert(var_val);
     }
   }
@@ -91,8 +92,8 @@ DiscreteConfig Node::GetDiscParConfigGivenAllVarValue(vector<int> &all_var_val) 
 
   assert(all_var_val.size() >= GetNumDiscParents());
 
-  for (auto const par : vec_disc_parent_indexes) {
-    int parent_value = all_var_val.at(par);
+  for (auto const par : vec_disc_parent_indexes) { // for all parents(index)
+    int parent_value = all_var_val.at(par); // get the value according to the index
     par_var_val.insert(DiscVarVal(par, parent_value));
   }
   return par_var_val;
@@ -107,22 +108,25 @@ void Node::SetNodeIndex(int i) {
 }
 
 /**
- * @brief: add a discrete child node
+ * @brief: add a discrete child node c
+ * update:  "set_children_indexes"
  */
 void Node::AddChild(Node *c) {
-  //Reduce redundancy: combine this function with "AddChild" in ContinuousNode
+  //TODO: Reduce redundancy: combine this function with "AddChild" in ContinuousNode
   int c_idx = c->GetNodeIndex();
   if (set_children_indexes.find(c_idx) == set_children_indexes.end()) {
+    // c is not a child of the current node
     set_children_indexes.insert(c_idx);
   }
 }
 
 /**
- * @brief: add a generic parent node
+ * @brief: add a generic parent node p
  */
 void Node::AddParent(Node *p) {
   int p_idx = p->GetNodeIndex();
-  if (set_parent_indexes.find(p_idx) == set_parent_indexes.end()) {  // If p is not in the parent set.
+  if (set_parent_indexes.find(p_idx) == set_parent_indexes.end()) {
+    // p is not in the parent set.
     if (p->is_discrete) {
       AddDiscreteParent(p);
     } else {
@@ -133,6 +137,10 @@ void Node::AddParent(Node *p) {
 
 /**
  * @brief: add a parent p to the node
+ * update:  "set_parent_indexes",
+ *          "vec_disc_parent_indexes",
+ *          "map_disc_parents_domain_size",
+ *          "set_discrete_parents_combinations"
  */
 void Node::AddDiscreteParent(Node *p) {
   int p_idx = p->GetNodeIndex();//get the id of the parent p
@@ -165,6 +173,8 @@ void Node::AddDiscreteParent(Node *p) {
 
 /**
  * @brief: similar to AddDiscreteParent
+ * update:  "set_parent_indexes",
+ *          "contin_par_indexes"
  */
 void Node::AddContinuousParent(Node *p) {
   int p_idx = p->GetNodeIndex();
@@ -178,10 +188,11 @@ void Node::AddContinuousParent(Node *p) {
 }
 
 /**
- * @brief: remove a child node; this function is used for network structure learning.
+ * @brief: remove a child node c; this function is used for network structure learning.
+ * @attention: this function needs to use with RemoveParent
+ * update:  "set_children_indexes"
  */
 void Node::RemoveChild(Node *c) {
-  /** Important: need to use with RemoveParent **/
   int c_idx = c->GetNodeIndex();
   if (set_children_indexes.find(c_idx) == set_children_indexes.end()) {
     fprintf(stderr, "Node #%d does not have parent node #%d!", this->GetNodeIndex(), c_idx);
@@ -190,15 +201,23 @@ void Node::RemoveChild(Node *c) {
   set_children_indexes.erase(c_idx);
 }
 
-
+/**
+ * @brief: remove a parent node p
+ * @attention: this function needs to use with RemoveChild
+ * update:  "set_parent_indexes",
+ *          "vec_disc_parent_indexes",
+ *          "map_disc_parents_domain_size",
+ *          "set_discrete_parents_combinations"
+ *          "contin_par_indexes"
+ */
 void Node::RemoveParent(Node *p) {
-  /** Important: need to use with RemoveChild **/
   int p_idx = p->GetNodeIndex();
   if (set_parent_indexes.find(p_idx)==set_parent_indexes.end()) {
     fprintf(stderr, "Node #%d does not have parent node #%d!", this->GetNodeIndex(), p_idx);
     return;
   }
   set_parent_indexes.erase(p_idx);
+
   if (p->is_discrete) {
     vec_disc_parent_indexes.erase(std::find(vec_disc_parent_indexes.begin(), vec_disc_parent_indexes.end(), p_idx));
     map_disc_parents_domain_size.erase(p_idx);
@@ -207,19 +226,42 @@ void Node::RemoveParent(Node *p) {
     auto dp = (DiscreteNode*) p;
     set<DiscreteConfig> new_par_combs;
     //TODO: potential bug here; may need to switch the two loops
+    //TODO: erase each vv(corresponding to each potential value of p) to each old_par_comb is wrong!
+    //TODO: because each old_par_comb contains only one vv
+    //TODO: and this will finally insert # of potential values times more combs to new_par_combs
+    //TODO: just erase one config corresponding to p_idx for each old_par_comb will also insert more combs
+    //TODO: maybe choose combs from set_discrete_parents_combinations that have one specific [p_idx, one of the value]
+    //TODO: then erase [p_idx, one of the value] and insert to new_par_combs
     for (const auto &val : dp->vec_potential_vals) {
-      DiscVarVal vv(p_idx, val);
+      DiscVarVal vv(p_idx, val); // get [idx of p, each value of p]
       for (auto old_par_comb : set_discrete_parents_combinations) {
         old_par_comb.erase(vv);
         new_par_combs.insert(old_par_comb);
       }
     }
     this->set_discrete_parents_combinations = new_par_combs;
+
+//    // comparison: add parent:
+//    // Update possible parent configurations
+//    set<DiscreteConfig> new_par_combs;
+//    for (const auto &val : dp->vec_potential_vals) {
+//      DiscVarVal vv(p_idx, val); // get [idx of p, each value of p]
+//      for (auto old_par_comb : set_discrete_parents_combinations) {
+//        // set_discrete_parents_combinations: set< set< pair<int, int> > >
+//        // new_par_combs: set< set< pair<int, int> > >
+//        // old_par_comb: set< pair<int, int> >
+//        // vv: pair<int, int>
+//        // add each vv(corresponding to each potential value of p) to each old_par_comb
+//        old_par_comb.insert(vv);//insert the new parent with a potential value to the old configuration
+//        new_par_combs.insert(old_par_comb);
+//      } // finish adding one vv to all old_par_comb
+//    } // finish adding all potential vv to all old_par_comb
+//    this->set_discrete_parents_combinations = new_par_combs;
   }
 }
 
 /**
- * @brief: generate all the possible parent configurations
+ * @brief: generate all the possible parent configurations ("set_discrete_parents_combinations")
  * @param: set_parent_ptrs: the set of parents of the current node.
  */
 void Node::GenDiscParCombs(set<Node*> set_parent_ptrs) {
@@ -236,12 +278,15 @@ void Node::GenDiscParCombs(set<Node*> set_parent_ptrs) {
   set<DiscreteConfig> all_config_of_each_parent;
 
   for (auto par_ptr : set_parent_ptrs) {
-    if (!par_ptr->is_discrete) { continue; }//not parent configuration for continuous nodes
+    if (!par_ptr->is_discrete) { //no parent configuration for continuous nodes
+      continue;
+    }
+
     DiscreteConfig all_config_of_a_parent;
     pair<int, int> varId_val;
     DiscreteNode *d_par_ptr = (DiscreteNode*)(par_ptr);//convert a generic node to a discrete node
 
-    for (int i=0; i<d_par_ptr->GetDomainSize(); ++i) {
+    for (int i = 0; i < d_par_ptr->GetDomainSize(); ++i) {
       varId_val.first = par_ptr->node_index;
       varId_val.second = ((DiscreteNode*)par_ptr)->vec_potential_vals.at(i);
       all_config_of_a_parent.insert(varId_val);
@@ -255,9 +300,14 @@ void Node::GenDiscParCombs(set<Node*> set_parent_ptrs) {
 
 /**
  * @brief: possibly only used in structure learning
+ * clear:   "set_parent_indexes",
+ *          "vec_disc_parent_indexes",
+ *          "map_disc_parents_domain_size",
+ *          "set_discrete_parents_combinations"
  */
 void Node::ClearParents() {
   //TODO: double check whether need to set "num_parents_config"
+  //TODO: this function clear discrete parents but not continuous parents
   set_discrete_parents_combinations.clear();
 
   vec_disc_parent_indexes.clear();

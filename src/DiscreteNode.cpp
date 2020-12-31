@@ -162,12 +162,15 @@ double DiscreteNode::GetLaplaceSmooth() {
 }
 
 /**
- * @brief: upldate counter when meeting new training instances
+ * @brief: update counter when meeting new training instances
+ * @param instance_of_var_val contains the values of all variables for the new instance
  */
 void DiscreteNode::AddInstanceOfVarVal(DiscreteConfig instance_of_var_val) {
+  // filter out the variables and values which are not the parents of the current node.
   DiscreteConfig parents_config = GetDiscParConfigGivenAllVarValue(instance_of_var_val);
-  //GetNodeIndex() is the query variable id; store the new instance in a map
+  // store the new instance in a map
   std::map<int, int> discreteConfigMap = DiscreteConfigToMap(instance_of_var_val);
+  // GetNodeIndex() get the id of the current node, the current node is the query variable
   int query_value = discreteConfigMap.at(GetNodeIndex());
   //update probability table of the node with the query value
   AddCount(query_value, parents_config, 1);
@@ -200,25 +203,31 @@ void DiscreteNode::InitializeCPT() {
  * @brief: update the maps of a node given the variable of the new instance
  */
 void DiscreteNode::AddCount(int query_val, DiscreteConfig &parents_config, int count) {
-  if (!cpt_initialized) { InitializeCPT(); }
+  if (!cpt_initialized) {
+    InitializeCPT();
+  }
   map_total_count_under_parents_config[parents_config] += count;
   map_cond_prob_table_statistics[query_val][parents_config] += count;
 }
 
 /**
  * @brief: use the counters in the probability table to compute the probabilities
- * parent configuration must be full for looking up the prbability in the table
+ * parent configuration must be full for looking up the probability in the table
  */
+// TODO: check the algorithm for the case of unseen values (based on a forgotten paper of weka)
 double DiscreteNode:: GetProbability(int query_val, DiscreteConfig &parents_config) {
 
   // If the given instance contains the parent configuration or query value that has not been seen before,
   // return the smallest probability divided by the domain size and number of parents configurations.
-  bool unseen_value = (set_discrete_parents_combinations.find(parents_config) == set_discrete_parents_combinations.end()
-                       ||
+  bool unseen_value = (set_discrete_parents_combinations.find(parents_config) == set_discrete_parents_combinations.end() ||
                        std::find(vec_potential_vals.begin(), vec_potential_vals.end(), query_val) == vec_potential_vals.end());
   if (unseen_value) {
     fprintf(stdout, "In function [%s]: the given instance contains the value that has not been seen before.\n", __FUNCTION__);
     double min_prob = 1;
+    // traverse all potential values of child & all configurations of parents and compute all the probabilities
+    // however, 1. getting probability for the same seen value will do the same computation
+    // more importantly, 2. each time getting probabilities for the unseen value will get probabilities of all the seen values...
+    // TODO: can we compute the probabilities of all the seen values once and store them?
     for (int val : vec_potential_vals) {
       for (DiscreteConfig par_cfg : set_discrete_parents_combinations) {
         double temp = GetProbability(val, par_cfg);
@@ -227,7 +236,7 @@ double DiscreteNode:: GetProbability(int query_val, DiscreteConfig &parents_conf
         }
       }
     }
-    double prob = min_prob / (GetDomainSize() * GetNumParentsConfig());//the computation is based on a forgotten paper or weka.
+    double prob = min_prob / (GetDomainSize() * GetNumParentsConfig());
     return prob;
   }
 

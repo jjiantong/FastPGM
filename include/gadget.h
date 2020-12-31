@@ -60,25 +60,31 @@ typedef set<VarVal> Configuration;
 /**
  * @brief: generate all the combinations given the set of parents
  */
-template <typename T> set<set<T>> GenAllCombinationsFromSets(set<set<T>> *set_of_sets) {//checked 11/Apr/2020
-  if (set_of_sets->empty()) { return set<set<T>>(); }//this func uses recursion, because the number of sets is unknown sometimes.
-  auto its = set_of_sets->begin();
+template <typename T>
+set<set<T>> GenAllCombinationsFromSets(set<set<T>> *set_of_sets) {//checked 11/Apr/2020
+  if (set_of_sets->empty()) {
+    return set<set<T>>(); //this func uses recursion, because the number of sets is unknown sometimes.
+  }
+
+  auto its = set_of_sets->begin(); // get the set of all possible values of the first parent
   set<T> to_be_inserted = *its;
   set<set<T>> result, temp_result;
+
   // Base Case
   if (set_of_sets->size()==1) {
-    for (T p : to_be_inserted){
+    for (T p : to_be_inserted){ // for each possible value of the parent
       set<T> c;
       c.insert(p);
       result.insert(c);
     }
     return result;
   }
+
   // Recursive Case (the size of set_of_sets is greater than 1)
   set_of_sets->erase(its);
-  temp_result = GenAllCombinationsFromSets(set_of_sets);
-  for (T p : to_be_inserted){
-    for (set<T> c : temp_result) {
+  temp_result = GenAllCombinationsFromSets(set_of_sets); // get the result except for the first parent
+  for (T p : to_be_inserted){ // for each possible value of the first parent
+    for (set<T> c : temp_result) { // for each of the current parent combinations
       c.insert(p);
       result.insert(c);
     }
