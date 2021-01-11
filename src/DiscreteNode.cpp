@@ -76,6 +76,7 @@ void DiscreteNode::AddParent(Node *p) {
 
 /**
  * @brief: obtain the number of probability values in the conditional probability table
+ * i.e., (# of potential values of the child) * (# of parent configurations)
  */
 int DiscreteNode::GetNumParams() {
   int scale = this->GetNumParentsConfig();//the size of all parent combination (i.e., # of columns of the table)
@@ -99,10 +100,10 @@ void DiscreteNode::PrintProbabilityTable() {//checked
 
   if (this->HasParents()) {    // If this node has parents
 
-    for(int i = 0; i<GetDomainSize(); ++i) {    // For each head variable of CPT
+    for(int i = 0; i<GetDomainSize(); ++i) {    // For each head variable of CPT (i.e., value of child)
       int query = vec_potential_vals.at(i);
       auto it = set_discrete_parents_combinations.begin();
-      for (int j = 0; j < GetNumParentsConfig(); ++j){  // For tail variables of CPT
+      for (int j = 0; j < GetNumParentsConfig(); ++j){  // For tail variables of CPT (i.e., parent configuration)
         DiscreteConfig parcfg = *it;
         string condition = "parent_config_" + to_string(j);
         cout << "P(" << query << '|' << condition << ")=" << GetProbability(query, parcfg) << '\t';
@@ -114,7 +115,7 @@ void DiscreteNode::PrintProbabilityTable() {//checked
   } else {
 
     DiscreteConfig parcfg;
-    for(int i = 0; i < GetDomainSize(); ++i) {    // For each row of MPT
+    for(int i = 0; i < GetDomainSize(); ++i) {    // For each row of CPT
       int query = vec_potential_vals.at(i);
       cout << "P(" << query << ")=" << GetProbability(query, parcfg) << '\t';
     }

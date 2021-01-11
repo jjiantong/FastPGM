@@ -120,6 +120,23 @@ void Node::AddChild(Node *c) {
   }
 }
 
+///**
+// * @brief: add child; can be merged with AddChild in the base class.
+// */
+//void ContinuousNode::AddChild(Node *c) {
+//    if (c->is_discrete) {
+//        fprintf(stderr, "Error in function %s! \n"
+//                        "Continuous node must not have discrete child!", __FUNCTION__);
+//        exit(1);
+//    }
+//    int c_idx = c->GetNodeIndex();
+//    if (set_children_indexes.find(c_idx) == set_children_indexes.end()) {
+//        set_children_indexes.insert(c_idx);
+//    } else {
+//        fprintf(stdout, "Node #%d is already child of Node #%d", c_idx, this->GetNodeIndex());
+//    }
+//}
+
 /**
  * @brief: add a generic parent node p
  */
@@ -211,6 +228,7 @@ void Node::RemoveChild(Node *c) {
  *          "contin_par_indexes"
  */
 void Node::RemoveParent(Node *p) {
+    //TODO: combine with "RemoveParent" in ContinuousNode.cpp??
   int p_idx = p->GetNodeIndex();
   if (set_parent_indexes.find(p_idx)==set_parent_indexes.end()) {
     fprintf(stderr, "Node #%d does not have parent node #%d!", this->GetNodeIndex(), p_idx);
@@ -259,6 +277,20 @@ void Node::RemoveParent(Node *p) {
 //    this->set_discrete_parents_combinations = new_par_combs;
   }
 }
+
+///**
+// * @brief: remove parent; possibly only used in structure learning
+// */
+//void ContinuousNode::RemoveParent(Node *p) {
+//    Node::RemoveParent(p);
+//
+//    if (!p->is_discrete) {
+//        //remove the parent from the vector based on parent id
+//        auto it = contin_par_indexes.begin();
+//        while (*it!=p->GetNodeIndex()) { ++it; }
+//        contin_par_indexes.erase(it);
+//    }
+//}
 
 /**
  * @brief: generate all the possible parent configurations ("set_discrete_parents_combinations")

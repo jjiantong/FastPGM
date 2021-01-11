@@ -33,7 +33,7 @@ void ContinuousNode::AddChild(Node *c) {
 }
 
 /**
- * @brief: remove parent; possibly only used in structure learning
+ * @brief: remove parent; possibly only used in structure learning. merge?
  */
 void ContinuousNode::RemoveParent(Node *p) {
   Node::RemoveParent(p);

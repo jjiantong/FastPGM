@@ -18,6 +18,7 @@ using namespace std;
 
 typedef set<pair<int, int> > DiscreteConfig;//to keep track of the discrete parent configuration of this node
 
+//TODO: learn more about continuous variables..
 class ContinuousNode : public Node {//the parent nodes of ContinuousNode can be both discrete and continuous variables.
  public:
 

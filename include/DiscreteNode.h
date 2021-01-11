@@ -20,6 +20,7 @@ using namespace std;
 class DiscreteNode : public Node {//the parent nodes of DiscreteNode must be discrete variables.
  public:
   // The order matters.
+  // TODO: can be improved
   vector<string> vec_str_potential_vals;//the values of some variables are strings (e.g., gender = "male" or "female"); can be improved.
   vector<int> vec_potential_vals;
 
