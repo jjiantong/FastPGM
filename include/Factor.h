@@ -20,7 +20,8 @@ using namespace std;
 class Network;  // Forward declaration.
 
 /**
- * @brief: this class contains the weights/potentials of each discrete config; the discrete config does not have parent-child relationships.
+ * @brief: this class contains the weights/potentials of each discrete config;
+ * the discrete config does not have parent-child relationships.
  */
 class Factor {//this is used only for discrete nodes;
  public:

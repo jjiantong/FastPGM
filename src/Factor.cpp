@@ -60,8 +60,8 @@ Factor::Factor(set<int> &rv,
 }
 
 /**
- * @brief: cartesian product on two factors; if two factors have shared variables,
- *                         then the conflict ones (i.e. one variable has more than one value) in the results need to be removed.
+ * @brief: cartesian product on two factors (product of factors)
+ * if two factors have shared variables, the conflict ones (i.e. one variable has more than one value) in the results need to be removed.
  */
 Factor Factor::MultiplyWithFactor(Factor second_factor) {
   Factor newFactor;
@@ -95,13 +95,13 @@ Factor Factor::MultiplyWithFactor(Factor second_factor) {
 }
 
 /**
- * @brief: factor out a node by id
+ * @brief: factor out a node by id; i.e., factor marginalization
  */
 Factor Factor::SumOverVar(int index) {
   Factor newFactor;
   this->related_variables.erase(index);
   newFactor.related_variables = this->related_variables;//new set of related variables
-  for (auto config : set_disc_config) {//
+  for (auto config : set_disc_config) { // check each of the configurations
 
     //check if this configuration needs to be sum over
     pair<int, int> pair_to_be_erased;
@@ -112,13 +112,17 @@ Factor Factor::SumOverVar(int index) {
       }
     }
 
+    // probability/potential of this config, which will be added in order to marginalize a variable.
     double temp = this->map_potentials[config];
     config.erase(pair_to_be_erased);
 
     //update potential for new factor; similar to marginalise a variable.
+    // this (result) config is existed: add the new probability/potential
     if (newFactor.set_disc_config.find(config)!=newFactor.set_disc_config.end()) {
       newFactor.map_potentials[config] += temp;
-    } else {
+    }
+    // cannot find this config: insert and initialize
+    else {
       newFactor.set_disc_config.insert(config);
       newFactor.map_potentials[config] = temp;
     }
@@ -135,9 +139,13 @@ Factor Factor::SumOverVar(DiscreteNode *node) {
  */
 void Factor::Normalize() {
   double denominator = 0;
+
+  // compute the denominator for each of the configurations
   for (auto &comb : set_disc_config) {
     denominator += map_potentials[comb];
   }
+
+  // normalize for each of the configurations
   for (auto &comb : set_disc_config) {
     map_potentials[comb] /= denominator;
   }

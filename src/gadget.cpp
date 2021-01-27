@@ -113,6 +113,7 @@ bool FirstIsSubsetOfSecond(const DiscreteConfig *first, const DiscreteConfig *se
 /**
  * @brief: the opposite of Conflict
  */
+ //TODO: remove one function
 bool FirstCompatibleSecond(const DiscreteConfig *first, const DiscreteConfig *second) {
   for (const auto &f : *first) {
     for (const auto &s : *second) {
