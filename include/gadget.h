@@ -20,6 +20,7 @@ typedef set< pair<int, int> > DiscreteConfig;//[variable id, variable value]
 
 /**
  * @brief: to support both discrete and continuous variables
+ * a value whose type is int or float
  */
 struct Value {
  private:
@@ -34,6 +35,7 @@ struct Value {
   float GetFloat() const { if (use_int) exit(1); return float_; }
 
   //define the "<" operator; this operator is needed for set/map.
+  //TODO: find the usage
   bool operator <(const Value v) const {
     if (this->UseInt() && v.UseInt()) {
       return this->GetInt() < v.GetInt();

@@ -319,7 +319,7 @@ vector<string> Split(string &s, string delimiter) {
     result.push_back(s.substr(begin, end-begin));
     begin = (++end);
   }
-  result.push_back(s.substr(begin, s.size()-begin));
+  result.push_back(s.substr(begin, s.size()-begin)); // the last one
   return result;
 }
 

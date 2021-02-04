@@ -38,7 +38,7 @@ class Network {//this class is used by both the customized networks and networks
   vector<int> vec_default_elim_ord;//the elimination order is obtained by reverse topological sort.
 
   map<int, Node*> map_idx_node_ptr;  // Key: node index. Value: node pointer. This map is a helper for FindNodePtrByIndex.
-  vector<int> SparseInstanceFillZeroToDenseInstance(DiscreteConfig &sparse_instance);
+  vector<int> SparseInstanceFillZeroToDenseInstance(DiscreteConfig &sparse_instance); //TODO: change a name?
 
   Network();
   explicit Network(bool pure_disc);

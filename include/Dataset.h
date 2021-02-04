@@ -25,12 +25,12 @@ class Dataset {
   int num_vars;
   int class_var_index = -1;  // "-1" for no specified class variable; used to specify which attribute/variable is class label.
 
-  map<int,set<int>> map_disc_vars_possible_values;//[key,value]: key is the variable id; value is a set of the possible values of the variable.
+  map<int,set<int>> map_disc_vars_possible_values;//key is the variable id; value is a set of the possible values of the variable.
   vector<int> num_of_possible_values_of_disc_vars;
   vector<bool> is_vars_discrete;
   vector<string> vec_var_names;
 
-  int **dataset_all_vars;//a matrix storing the whole data set (the matrix is used; need to be replaced to improve quality)
+  int **dataset_all_vars;//a matrix storing the whole data set. TODO: the matrix is used; need to be replaced to improve quality
   vector<vector<VarVal>> vector_dataset_all_vars;//a matrix storing the whole data set
 
 

@@ -11,7 +11,7 @@ Dataset::Dataset() {}
 
 /**
  * @brief: AutoDetect means to automatically find the possible values for each discrete varaible
- * need to mannually specify which variable is continuous using "cont_vars".
+ * need to manually specify which variable is continuous using "cont_vars". //TODO: check cont_vars
  */
 void Dataset::LoadLIBSVMDataAutoDetectConfig(string data_file_path, set<int> cont_vars) {
 
@@ -32,20 +32,26 @@ void Dataset::LoadLIBSVMDataAutoDetectConfig(string data_file_path, set<int> con
   // Load data.
   vector<Value> dataset_y_vector;
   vector<vector<VarVal>> dataset_X_vector;
+
   getline(in_file, sample);
   while (!in_file.eof()) {
     // There is a whitespace at the end of each line of
     // libSVM dataset format, which will cause a bug if we do not trim it.
     sample = TrimRight(sample);
     vector<string> parsed_sample = Split(sample, " ");
-    int it = 0;   // The label is the first element.
-    if (cont_vars.find(0)==cont_vars.end()) {//check if the label is continuous
-      //this is classification task
+    int it = 0;   // id of the label is 0
+
+    // check if the label is continuous
+    // TODO: why label? -- all the variables contain continuous variables or not
+    if (cont_vars.find(0)==cont_vars.end()) {
+      //the label is not continuous (i.e., classification task)
+      // insert the value of label of one sample into "map_disc_vars_possible_values"
       map_disc_vars_possible_values[class_var_index].insert(stoi(parsed_sample.at(it)));
       Value v;
       v.SetInt(stoi(parsed_sample.at(it)));
       dataset_y_vector.push_back(v);
-    } else {//the label is continuous (i.e., regression task)
+    } else {
+      //the label is continuous (i.e., regression task)
       Value v;
       v.SetFloat(stof(parsed_sample.at(it)));
       dataset_y_vector.push_back(v);
