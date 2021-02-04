@@ -67,13 +67,40 @@ classification with discrete/continuous feature values
 
 
 # How to use
-Create a directory called ```bin``` under the root directory. In Linux, you can use the following command.
 
-```bash
-mkdir bin
+Clone the repo.
+```
+git clone https://github.com/jjiantong/Bayesian-network
+cd Bayesian-network/lib
+#under the directory of lib
+git submodule init ARFF && git submodule update
+git submodule init googletest && git submodule update
+git submodule init tinyxml2 && git submodule update
 ```
 
-Then, go into ```bin``` directory and issue ```cmake ..``` to generate the make file.
+Build the project. 
+
+Create a directory ```build``` under the root directory. Generate the make file and compile.
+```
+mkdir build
+cd build
+cmake ..
+make
+```
+
+On Mac OS, the default compiler (clang) needs to be changed to g++.
+```
+mkdir build
+cd build
+cmake -DCMAKE_CXX_COMPILER=g++-9 ..
+make
+```
+
+Run the test.
+```
+cd test
+./test_exe
+```
 
 
 # Performance
