@@ -31,7 +31,7 @@ class Dataset {
   vector<string> vec_var_names;
 
   int **dataset_all_vars;//a matrix storing the whole data set. TODO: the matrix is used; need to be replaced to improve quality
-  vector<vector<VarVal>> vector_dataset_all_vars;//a matrix storing the whole data set
+  vector<vector<VarVal>> vector_dataset_all_vars;//a matrix storing the whole data set, label + features
 
 
   Dataset();

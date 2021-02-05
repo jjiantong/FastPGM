@@ -10,8 +10,11 @@
 Dataset::Dataset() {}
 
 /**
- * @brief: AutoDetect means to automatically find the possible values for each discrete varaible
- * need to manually specify which variable is continuous using "cont_vars". //TODO: check cont_vars
+ * @brief: AutoDetect means to automatically find the possible values for each discrete variable
+ * 1, read the data file and store with the representation of std::vector.
+ * 2, convert the vector representation into array (does not erase the vector representation).
+ * @param: data_file_path: path to the LIBSVM data file (like a1a)
+ * @param: cont_vars: indexes for continuous variables; need to manually specify which variable is continuous
  */
 void Dataset::LoadLIBSVMDataAutoDetectConfig(string data_file_path, set<int> cont_vars) {
 
@@ -33,6 +36,7 @@ void Dataset::LoadLIBSVMDataAutoDetectConfig(string data_file_path, set<int> con
   vector<Value> dataset_y_vector;
   vector<vector<VarVal>> dataset_X_vector;
 
+  // 1, read the data file and store with the representation of std::vector.
   getline(in_file, sample);
   while (!in_file.eof()) {
     // There is a whitespace at the end of each line of
@@ -41,17 +45,19 @@ void Dataset::LoadLIBSVMDataAutoDetectConfig(string data_file_path, set<int> con
     vector<string> parsed_sample = Split(sample, " ");
     int it = 0;   // id of the label is 0
 
-    // check if the label is continuous
-    // TODO: why label? -- all the variables contain continuous variables or not
+    // check whether the label is continuous
     if (cont_vars.find(0)==cont_vars.end()) {
       //the label is not continuous (i.e., classification task)
       // insert the value of label of one sample into "map_disc_vars_possible_values"
+      // "parsed_sample.at(it)" is the value of label
       map_disc_vars_possible_values[class_var_index].insert(stoi(parsed_sample.at(it)));
+      // insert the value of label of one sample into "dataset_y_vector"
       Value v;
       v.SetInt(stoi(parsed_sample.at(it)));
       dataset_y_vector.push_back(v);
     } else {
       //the label is continuous (i.e., regression task)
+      // insert the value of label of one sample into "dataset_y_vector"
       Value v;
       v.SetFloat(stof(parsed_sample.at(it)));
       dataset_y_vector.push_back(v);
@@ -61,11 +67,12 @@ void Dataset::LoadLIBSVMDataAutoDetectConfig(string data_file_path, set<int> con
     for (++it; it < parsed_sample.size(); ++it) {
       // Each element is in the form of "feature_index:feature_value".
       string feature_val = parsed_sample.at(it);
+      // split the feature index and the feature value using ":"
       vector<string> parsed_feature_val = Split(feature_val, ":");
       int index = stoi(parsed_feature_val[0]);
       max_index_occurred = index>max_index_occurred ? index : max_index_occurred;
       Value v;
-      if (cont_vars.find(index)==cont_vars.end()) {//same as the processing of label
+      if (cont_vars.find(index)==cont_vars.end()) {//same as the processing of label TODO: maintain consistent, change the former code
         int value = stoi(parsed_feature_val[1]);
         v.SetInt(value);
         map_disc_vars_possible_values[index].insert(value);
@@ -80,18 +87,19 @@ void Dataset::LoadLIBSVMDataAutoDetectConfig(string data_file_path, set<int> con
     getline(in_file, sample);
   }
 
+  // vector_dataset_all_vars: vector<vector<VarVal>>; label + feature
   vector_dataset_all_vars = dataset_X_vector;
-
-  for (int i=0; i<vector_dataset_all_vars.size(); ++i) {//insert label to the beginning of each instance
+  //insert label to the beginning of each instance
+  for (int i=0; i<vector_dataset_all_vars.size(); ++i) {
     vector_dataset_all_vars.at(i).insert(
             vector_dataset_all_vars.at(i).begin(),
             VarVal(class_var_index,dataset_y_vector.at(i))
     );
   }
 
-
   num_instance = vector_dataset_all_vars.size();
   num_vars = max_index_occurred + 1;//the number of variables of the data set
+
   is_vars_discrete.reserve(num_vars);
   num_of_possible_values_of_disc_vars.reserve(num_vars);
 
@@ -101,6 +109,7 @@ void Dataset::LoadLIBSVMDataAutoDetectConfig(string data_file_path, set<int> con
 
   //discrete variable domain construction, whether a variable is continuous
   for (int i=0; i<num_vars; ++i) {
+    // for features
     if (i!=class_var_index) {
       if (cont_vars.find(i)==cont_vars.end()) {
         // Because features of LIBSVM format do not record the value of 0, we need to add it in.
@@ -108,9 +117,11 @@ void Dataset::LoadLIBSVMDataAutoDetectConfig(string data_file_path, set<int> con
       }
     }
     num_of_possible_values_of_disc_vars.push_back(map_disc_vars_possible_values[i].size());
-    is_vars_discrete.push_back(cont_vars.find(i)==cont_vars.end()); // For now, we can only process discrete variables.
+    is_vars_discrete.push_back(cont_vars.find(i)==cont_vars.end()); // TODO: For now, we can only process discrete variables.
   }
 
+  // 2, convert vector "vector_dataset_all_vars" into array "dataset_all_vars" (does not erase "vector_dataset_all_vars").
+  // TODO: check the two representations. remove?
   if (cont_vars.empty()) {//the data set only contains discrete variables.
     ConvertLIBSVMVectorDatasetIntoIntArrayDataset();
   }
@@ -123,15 +134,19 @@ void Dataset::LoadLIBSVMDataAutoDetectConfig(string data_file_path, set<int> con
 
 }
 
-
+/*!
+ * @brief: convert from vector ("vector_dataset_all_vars") to array ("dataset_all_vars")
+ * this function is used if the data set only contains discrete variables
+ */
 void Dataset::ConvertLIBSVMVectorDatasetIntoIntArrayDataset() {//storing the data set using int only
-  // Initialize to be all zero.
+  // Initialize to be all zero. (dataset_all_vars: int **)
   dataset_all_vars = new int *[num_instance];
 #pragma omp parallel for
   for (int s=0; s<num_instance; ++s) {
     dataset_all_vars[s] = new int[num_vars]();
     vector<VarVal> vec_instance = vector_dataset_all_vars.at(s);
     for (const VarVal &vv : vec_instance) {  // For each non-zero-value feature of this sample.
+      //change the related value if it is non-zero value in the vector representation.
       dataset_all_vars[s][vv.first] = vv.second.GetInt();
     }
   }
@@ -233,13 +248,15 @@ void Dataset::LoadCSVDataAutoDetectConfig(string data_file_path, bool header, in
 /**
  * @brief: this function is to save the processed data into file, for ease debugging and also for approximate inference.
  * This function is for conversion only; SamplesToLIBSVMFile(smps, file) does all the file saving.
+ * DiscreteConfig: set< pair<int, int> >
  */
-void Dataset::SamplesToLIBSVMFile(vector<DiscreteConfig> &samples, string &file) const {//a sample contains multiple instances
+void Dataset::SamplesToLIBSVMFile(vector<DiscreteConfig> &samples, string &file) const {
   vector<Configuration> smps;
-  for (const auto &samp : samples) {
+  for (const auto &samp : samples) { // for each DiscreteConfig samp
     Configuration cfg;
-    for (const auto &p : samp) {//store the values of the instance into cfg
-      VarVal vv;
+    // for each <int, int> pair, store into cfg (pair<int, Value>)
+    for (const auto &p : samp) {
+      VarVal vv; // VarVal: pair<int, Value>
       vv.first = p.first;
       vv.second.SetInt(p.second);
       cfg.insert(vv);
@@ -252,14 +269,16 @@ void Dataset::SamplesToLIBSVMFile(vector<DiscreteConfig> &samples, string &file)
 /**
  * @brief: the instances in this sample are generated by the learned network.
  * the file has exactly the same format as libsvm.
+ * Configuration: set< pair<int, Value> >
  */
 void Dataset::SamplesToLIBSVMFile(vector<Configuration> &samples, string &file) const {
   FILE *f;
   f = fopen(file.c_str(), "w");
-  for (auto &smp : samples) {
+
+  for (auto &smp : samples) { // for each Configuration smp
     string string_to_write = "";
 
-    for (auto &var_val : smp) {
+    for (auto &var_val : smp) { // for each <int, Value> pair var_val
       // The following codes should not use "+=", because the order matters.
       int var = var_val.first;
       Value val = var_val.second;
@@ -267,17 +286,20 @@ void Dataset::SamplesToLIBSVMFile(vector<Configuration> &samples, string &file) 
         string label;
         if (val.UseInt()) {
           label = to_string(val.GetInt());
-        } else {
+        }
+        else {
           label = to_string(val.GetFloat());
         }
         string_to_write = label + " " + string_to_write;
-      } else {
+      }
+      else {
         string feature_value = "";
         if (val.UseInt()) {
-          if (val.GetInt() != 0) {
+          if (val.GetInt() != 0) { // Because features of LIBSVM format do not record the value of 0
             feature_value = to_string(var) + ":" + to_string(val.GetInt()) + " ";
           }
-        } else {
+        }
+        else {
           if (val.GetFloat() != 0) {
             feature_value = to_string(var) + ":" + to_string(val.GetFloat()) + " ";
           }
