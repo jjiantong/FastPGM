@@ -251,11 +251,15 @@ int* BreadthFirstTraversalWithAdjacencyMatrix(int **graph, int num_nodes, int st
  * @param graph: 2-d array representation of the adjacency matrix of the graph
  * @param num_nodes: number of the nodes in the graph
  */
+// TODO: potential bug here: may push one node multiple times; is does not check whether a node has been pushed or not.
+// TODO: maybe not need to use the directed adjacency matrix
+// just use in-degree array and "set_children_indexes" to generate the ordering
 vector<int> TopoSortOfDAGZeroInDegreeFirst(int **graph, int num_nodes) {
   vector<int> result;
   queue<int> que;
 
   // Calculate the in-degrees of all nodes.
+  // TODO: move this computation to "GenTopoOrd"
   int *in_degrees = new int[num_nodes](); // The parentheses at end will initialize the array to be all zeros.
   for (int i = 0; i < num_nodes; ++i) {
     for (int j = 0; j < num_nodes; ++j) {
@@ -264,14 +268,21 @@ vector<int> TopoSortOfDAGZeroInDegreeFirst(int **graph, int num_nodes) {
   }
 
   for (int i = 0; i < num_nodes; ++i) {
-    if (in_degrees[i] == 0) { que.push(i); }
+    // the first is the node with in-degree = 0
+    if (in_degrees[i] == 0) {
+      que.push(i);
+    }
   }
 
   while (!que.empty()) {
     for (int j = 0; j < num_nodes; ++j) {
+      // in-degree of each child of the output node -1
       if (graph[que.front()][j] == 1) {
         --in_degrees[j];
-        if (in_degrees[j] == 0) { que.push(j); }
+        // then check whether the in-degree of this child node is 0 after -1
+        if (in_degrees[j] == 0) {
+          que.push(j);
+        }
       }
     }
     result.push_back(que.front());

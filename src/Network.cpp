@@ -42,9 +42,13 @@ Network::Network(Network &net) {
 }
 
 //TODO: double-check correctness
-void Network::PrintEachNodeParents() {//print the parents of all the nodes
-  for (const auto &id_node_ptr : map_idx_node_ptr) {
-    auto node_ptr = id_node_ptr.second;
+/*!
+ * @brief: print the parents of all the nodes.
+ * each line corresponds to a node and its parents.
+ */
+void Network::PrintEachNodeParents() {
+  for (const auto &id_node_ptr : map_idx_node_ptr) { // for each <int, Node*> pair
+    auto node_ptr = id_node_ptr.second; // get the Node*
     cout << node_ptr->node_name << ":\t";
     for (const auto &par_node_ptr : GetParentPtrsOfNode(node_ptr->GetNodeIndex())) {
       cout << par_node_ptr->node_name << '\t';
@@ -92,16 +96,23 @@ Node* Network::FindNodePtrByName(const string &name) const {
 }
 
 /**
- * @brief: construct NB given a data set
- * @param dts
+ * @brief: construct a Naive Bayesian Network with the class variable as the root and all the other variables as leaves.
+ * structure of Naive Bayes: label is the root node; all feature variables are the children of the root node.
+ * time complexity: O( number of feature variables * number of possible labels of class variable)
+ * (not consider the time spent on generating topological ordering)
  */
 void Network::ConstructNaiveBayesNetwork(Dataset *dts) {
+
+  // common part with "StructLearnCompData" TODO
   num_nodes = dts->num_vars;
+
   // Assign an index for each node.
 #pragma omp parallel for
   for (int i = 0; i < num_nodes; ++i) {
     DiscreteNode *node_ptr = new DiscreteNode(i);  // For now, only support discrete node.
-    node_ptr->SetDomainSize(dts->num_of_possible_values_of_disc_vars[i]);//set the cardinality of a discrete variable.
+
+    //set the potential values for this node
+    node_ptr->SetDomainSize(dts->num_of_possible_values_of_disc_vars[i]);
     for (auto v : dts->map_disc_vars_possible_values[i]) {
       node_ptr->vec_potential_vals.push_back(v);//TODO: keep name convention consistent (i.e. possible vs potential)
     }
@@ -113,18 +124,28 @@ void Network::ConstructNaiveBayesNetwork(Dataset *dts) {
 
   // Set parents and children.
   Node *class_node_ptr = FindNodePtrByIndex(dts->class_var_index);
-  for (auto &i_n : map_idx_node_ptr) {
-    if (i_n.second == class_node_ptr) { continue; }
+  for (auto &i_n : map_idx_node_ptr) { // for each id-node_ptr pair i_n
+    if (i_n.second == class_node_ptr) { // TODO: directly "if (xxx != xxx)"
+      continue;
+    }
+    // all feature variables are the children of the root node (i.e., the label)
     SetParentChild(class_node_ptr, i_n.second);
   }
 
-  // Generate configurations of parents.
-  GenDiscParCombsForAllNodes();//TODO: double-check
+  // Generate parent configurations for all nodes in the network.
+  // TODO: for Naive Bayesian Network, it may not need to call "GenDiscParCombsForAllNodes"
+  // because "GenDiscParCombsForAllNodes" needs "GetParentPtrsOfNode" -> "GenDiscParCombs",
+  // where "GenAllCombinationsFromSets" is expensive.
+  // while we can directly generate configurations of the root node,
+  // it is exactly the parent configurations of all nodes except for the root;
+  // and the parent configurations of the root is ONE empty parent configuration (cf. "GenDiscParCombs" in class Node)
+  GenDiscParCombsForAllNodes();
 
   // Generate topological ordering and default elimination ordering.
   vector<int> topo = GetTopoOrd();
+
   vec_default_elim_ord.reserve(num_nodes - 1);//-1, because the last one is the value (which must be kept) to be inferred.
-  for (int i = 0; i < num_nodes-1; ++i) {
+  for (int i = 0; i < num_nodes-1; ++i) { // TODO: for num_nodes-1 -> 0, at(i)
     vec_default_elim_ord.push_back(topo.at(num_nodes-1-i));
   }
 
@@ -152,14 +173,17 @@ void Network::StructLearnCompData(Dataset *dts, bool print_struct, string algo, 
 
   struct timeval start, end;
   double diff;
+
   gettimeofday(&start,NULL);
 
+  // common part with "ConstructNaiveBayesNetwork" TODO
   num_nodes = dts->num_vars;
   // Assign an index for each node.
 #pragma omp parallel for
   for (int i = 0; i < num_nodes; ++i) {
     DiscreteNode *node_ptr = new DiscreteNode(i);  // For now, only support discrete node.
 
+    // TODO: extra part. double-check the usage of "node_name"
     //give this node a name
     if (dts->vec_var_names.size() == num_nodes) {
       node_ptr->node_name = dts->vec_var_names.at(i);
@@ -170,7 +194,7 @@ void Network::StructLearnCompData(Dataset *dts, bool print_struct, string algo, 
     //set the potential values for this node
     node_ptr->SetDomainSize(dts->num_of_possible_values_of_disc_vars[i]);
     for (auto v : dts->map_disc_vars_possible_values[i]) {
-      node_ptr->vec_potential_vals.push_back(v);
+      node_ptr->vec_potential_vals.push_back(v); //TODO: keep name convention consistent (i.e. possible vs potential)
     }
 #pragma omp critical
     {
@@ -189,12 +213,15 @@ void Network::StructLearnCompData(Dataset *dts, bool print_struct, string algo, 
   //choose an order to serve as a constraint during learning
   if (topo_ord_constraint == "dataset-ord") {
     // Do nothing.
-  } else if (topo_ord_constraint == "random") {
+  }
+  else if (topo_ord_constraint == "random") {
     std::srand(unsigned(std::time(0)));
     std::random_shuffle(ord.begin(), ord.end());
-  } else if (topo_ord_constraint == "best") {
+  }
+  else if (topo_ord_constraint == "best") {
     ord = vector<int> {};//no order is provided (i.e. no constraint)
-  } else {
+  }
+  else {
     fprintf(stderr, "Error in function [%s]!\nInvalid topological ordering restriction!", __FUNCTION__);
     exit(1);
   }
@@ -202,7 +229,8 @@ void Network::StructLearnCompData(Dataset *dts, bool print_struct, string algo, 
   //choose an algorithm for the learning
   if (algo == "ott") {
     StructLearnByOtt(dts, ord);
-  } else if (algo == "k2-weka") {
+  }
+  else if (algo == "k2-weka") {
     StructLearnLikeK2Weka(dts, ord, max_num_parents);
   }
 
@@ -340,6 +368,7 @@ void Network::SetParentChild(int p_index, int c_index) {
  * @brief: set parent and child relationship.
  * @param p: parent
  * @param c: child
+ * add c to p as a child, and add p to c as a parent
  */
 void Network::SetParentChild(Node *p, Node *c) {
   if (map_idx_node_ptr.find(p->GetNodeIndex()) == map_idx_node_ptr.end()
@@ -381,8 +410,8 @@ void Network::RemoveParentChild(Node *p, Node *c) {
  */
 set<Node*> Network::GetParentPtrsOfNode(int node_index) {
   set<Node*> set_par_ptrs;
-  Node *node = map_idx_node_ptr.at(node_index);
-  for (const auto &idx : node->set_parent_indexes) {
+  Node *node = map_idx_node_ptr.at(node_index); // TODO: function "FindNodePtrByIndex"
+  for (const auto &idx : node->set_parent_indexes) { // "set_parent_indexes" contains both discrete and continuous parents
     set_par_ptrs.insert(map_idx_node_ptr.at(idx));
   }
   return set_par_ptrs;
@@ -393,7 +422,7 @@ set<Node*> Network::GetParentPtrsOfNode(int node_index) {
  */
 set<Node*> Network::GetChildrenPtrsOfNode(int node_index) {
   set<Node*> set_chi_ptrs;
-  Node *node = map_idx_node_ptr.at(node_index);
+  Node *node = map_idx_node_ptr.at(node_index); // TODO: function "FindNodePtrByIndex"
   for (const auto &idx : node->set_children_indexes) {
     set_chi_ptrs.insert(map_idx_node_ptr.at(idx));
   }
@@ -404,7 +433,7 @@ set<Node*> Network::GetChildrenPtrsOfNode(int node_index) {
  * @brief: generate all the configurations of the parents for each node
  */
 void Network::GenDiscParCombsForAllNodes() {
-  for (auto id_np : this->map_idx_node_ptr) {
+  for (auto id_np : this->map_idx_node_ptr) { // for each node (id-node_ptr pair) in the network
     auto np = id_np.second;
     np->GenDiscParCombs(GetParentPtrsOfNode(np->GetNodeIndex()));
   }
@@ -412,6 +441,7 @@ void Network::GenDiscParCombsForAllNodes() {
 
 /**
  * @brief: obtain topological order
+ * @return a vector<int>, the elements is the indexes of the nodes
  */
 vector<int> Network::GetTopoOrd() {
   if (topo_ord.empty()) {
@@ -429,17 +459,33 @@ vector<int> Network::GetReverseTopoOrd() {
   return ord;
 }
 
+/*!
+ * @brief: generate the topological order
+ * @return a vector<int>, the elements is the indexes of the nodes
+ * generate 1. a directed adjacency matrix and 2. an in-degree array to generate the topological order
+ */
+// TODO: maybe not need to generate a directed adjacency matrix
+// just use in-degree array and "set_children_indexes" to generate the ordering
+// TODO: potential bug in "TopoSortOfDAGZeroInDegreeFirst" -> "TopoSortOfDAGZeroInDegreeFirst"
 vector<int> Network::GenTopoOrd() {//TODO: double-check correctness
 
   if (this->pure_discrete) {
 
-    // First, convert the network to a directed adjacency matrix.
+    // convert the network to a directed adjacency matrix (n*n)
+    // direct: p->c (i.e., graph[p][c] = 1)
+    // TODO: another function for directed adjacency matrix?
+    // TODO: adjacency matrix or adjacency list? more memory for adjacency matrix
     int **graph = new int*[num_nodes];
-    #pragma omp for
-    for (int i=0; i<num_nodes; ++i) {graph[i] = new int[num_nodes]();}
-    for (auto &i_n_p : map_idx_node_ptr) {
+#pragma omp for
+    for (int i=0; i<num_nodes; ++i) {
+      graph[i] = new int[num_nodes]();
+    }
+
+    // TODO: calculate the in-degrees here instead of in "TopoSortOfDAGZeroInDegreeFirst"
+    for (auto &i_n_p : map_idx_node_ptr) { // for each node
       auto n_p = i_n_p.second;
       for (auto &c_p : GetChildrenPtrsOfNode(n_p->GetNodeIndex())) {
+        // TODO: each time assigning 1, add 1 to the in-degree of "c_p->GetNodeIndex()"
         graph[n_p->GetNodeIndex()][c_p->GetNodeIndex()] = 1;
       }
     }
@@ -449,7 +495,8 @@ vector<int> Network::GenTopoOrd() {//TODO: double-check correctness
     for (int i=0; i<num_nodes; ++i) { delete[] graph[i]; }
     delete[] graph;
 
-  } else {  
+  }
+  else { // TODO: double-check
 
     // If the network is not pure discrete, then it is conditional Gaussian.
     // Discrete nodes should not have continuous parents.
