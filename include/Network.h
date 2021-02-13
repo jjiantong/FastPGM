@@ -73,7 +73,7 @@ class Network {//this class is used by both the customized networks and networks
                                         string modification, string score_metric);
 
   void SetParentChild(int p_index, int c_index);
-  void SetParentChild(Node *par, Node *chi);
+  void SetParentChild(Node *par, Node *chi); // checked
 
   void RemoveParentChild(int p_index, int c_index);
   void RemoveParentChild(Node *par, Node *chi);
@@ -81,7 +81,7 @@ class Network {//this class is used by both the customized networks and networks
   set<Node*> GetParentPtrsOfNode(int node_index);
   set<Node*> GetChildrenPtrsOfNode(int node_index);
 
-  void GenDiscParCombsForAllNodes();
+  void GenDiscParCombsForAllNodes(); // checked
 
   vector<int> GetTopoOrd();
   vector<int> GetReverseTopoOrd();

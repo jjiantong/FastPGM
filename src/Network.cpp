@@ -206,7 +206,7 @@ void Network::StructLearnCompData(Dataset *dts, bool print_struct, string algo, 
   vector<int> ord;
   ord.reserve(num_nodes);
   for (int i = 0; i < num_nodes; ++i) {
-    ord.push_back(i);   // Because the nodes are created the same order as in the dataset.
+    ord.push_back(i);   // the nodes are created the same order as in the dataset.
   }
 
   cout << "topo_ord_constraint: " << topo_ord_constraint << endl;
@@ -281,61 +281,69 @@ void Network::RemoveNode(int node_index) {
 
 /**
  * @brief: add an edge/arc to the network
+ * @return true if not form a circle; false if form a circle (also delete the added arc)
  */
-bool Network::AddArc(int p_index, int c_index) {
-    // If NOT form a circle, return true. Otherwise, return false and delete the added arc.
-  SetParentChild(p_index, c_index);
+bool Network::AddArc(int p_index, int c_index) { //checked
+  SetParentChild(p_index, c_index); // set parent and child relationship
   bool contain_circle = ContainCircle();
-  if (contain_circle) {//this edge/arc shouldn't be added, because it leads to loops in the network.
+
+  // the edge/arc shouldn't be added, because it leads to loops in the network.
+  if (contain_circle) {
     DeleteArc(p_index, c_index);
   }
   return !contain_circle;
 }
 
-void Network::DeleteArc(int p_index, int c_index) {
+void Network::DeleteArc(int p_index, int c_index) { //checked
   RemoveParentChild(p_index, c_index);
 }
 
 /**
  * @brief: swap a parent and child relationship
+ * @return true if not form a circle; false if form a circle (also delete the added arc)
  */
-bool Network::ReverseArc(int p_index, int c_index) {
-  // If not form a circle, return true. Otherwise, return false.
+bool Network::ReverseArc(int p_index, int c_index) { //checked
   DeleteArc(p_index, c_index);
   return AddArc(c_index, p_index);
 }
 
 /**
- * @brief: this function is based on WEKA: calcScoreWithExtraParent(iAttribute, iAttribute2);
+ * @brief: calculate delta score when modified the arcs
+ * this function is based on WEKA: calcScoreWithExtraParent(iAttribute, iAttribute2);
+ * @param modification: includes "add", "delete", and "reverse".
  */
 double Network::CalcuExtraScoreWithModifiedArc(int p_index, int c_index,
                                                Dataset *dts,
                                                string modification,
-                                               string score_metric) {
+                                               string score_metric) { //checked
   // todo: test correctness
-  Network new_net(*this);
+  Network new_net(*this); // modify on new_net rather than the original "this"
 
   // Convert the string to lowercase
   transform(modification.begin(), modification.end(), modification.begin(), ::tolower);
 
   Node *node = new_net.FindNodePtrByIndex(c_index);
 
+  // do the modification
   if (modification == "add") {
     if (node->set_parent_indexes.find(p_index)!=node->set_parent_indexes.end()) {
       return 0; // The parent already exists.
     }
     new_net.AddArc(p_index, c_index);
-  } else if (modification == "delete") {
+  }
+  else if (modification == "delete") {
     if (node->set_parent_indexes.find(p_index)==node->set_parent_indexes.end()) {
       return 0; // The parent does not exist.
     }
     new_net.DeleteArc(p_index, c_index);
-  } else if (modification == "reverse") {
+  }
+  else if (modification == "reverse") {
     if (node->set_parent_indexes.find(p_index)==node->set_parent_indexes.end()) {
       return 0; // The parent does not exist.
     }
     new_net.ReverseArc(p_index, c_index);
-  } else {
+  }
+  else {
     fprintf(stderr, "Fucntion [%s]: Invalid modification string \"%s\"!",
             __FUNCTION__, modification.c_str());
     exit(1);
@@ -358,19 +366,22 @@ double Network::CalcuExtraScoreWithModifiedArc(int p_index, int c_index,
 
 /**
  * @brief: set up the parent and child relationship
+ * @param p_index: parent index
+ * @param c_index: child index
  */
-void Network::SetParentChild(int p_index, int c_index) {
+void Network::SetParentChild(int p_index, int c_index) { //checked
+  // convert the index format into node ptr format
   Node *p = FindNodePtrByIndex(p_index), *c = FindNodePtrByIndex(c_index);
   SetParentChild(p,c);
 }
 
 /**
  * @brief: set parent and child relationship.
- * @param p: parent
- * @param c: child
+ * @param p: parent node ptr
+ * @param c: child node ptr
  * add c to p as a child, and add p to c as a parent
  */
-void Network::SetParentChild(Node *p, Node *c) {
+void Network::SetParentChild(Node *p, Node *c) { //checked
   if (map_idx_node_ptr.find(p->GetNodeIndex()) == map_idx_node_ptr.end()
       ||
       map_idx_node_ptr.find(c->GetNodeIndex())==map_idx_node_ptr.end()) {
@@ -384,22 +395,29 @@ void Network::SetParentChild(Node *p, Node *c) {
 
 /**
  * @brief: remove parent child relationship
+ * @param p_index: parent index
+ * @param c_index: child index
+ * remove c to p as a child, and remove p to c as a parent
  */
-void Network::RemoveParentChild(int p_index, int c_index) {
+void Network::RemoveParentChild(int p_index, int c_index) { //checked
+  // convert the index format into node ptr format
   Node *p = FindNodePtrByIndex(p_index), *c = FindNodePtrByIndex(c_index);
   RemoveParentChild(p,c);
 }
 
 /**
  * @brief: remove parent child relationship using pointers
+ * @param p: parent node ptr
+ * @param c: child node ptr
  */
-void Network::RemoveParentChild(Node *p, Node *c) {
+void Network::RemoveParentChild(Node *p, Node *c) { //checked
   if (map_idx_node_ptr.find(p->GetNodeIndex()) == map_idx_node_ptr.end()
       ||
       map_idx_node_ptr.find(c->GetNodeIndex())==map_idx_node_ptr.end()) {
-    fprintf(stderr, "The nodes do not belong to this network!");
+    fprintf(stderr, "Error in function [%s].\nThe nodes [%d] and [%d] do not belong to this network!",
+            __FUNCTION__, p->GetNodeIndex(), c->GetNodeIndex());
     exit(1);
-  }
+  }//end checking whether the nodes belong to the network
   p->RemoveChild(c);
   c->RemoveParent(p);
 }
@@ -408,7 +426,7 @@ void Network::RemoveParentChild(Node *p, Node *c) {
  * @brief: find parents given a node id; used to generate discrete configurations
  * @return a set of pointers to the parents of a node
  */
-set<Node*> Network::GetParentPtrsOfNode(int node_index) {
+set<Node*> Network::GetParentPtrsOfNode(int node_index) { //checked
   set<Node*> set_par_ptrs;
   Node *node = map_idx_node_ptr.at(node_index); // TODO: function "FindNodePtrByIndex"
   for (const auto &idx : node->set_parent_indexes) { // "set_parent_indexes" contains both discrete and continuous parents
@@ -432,7 +450,7 @@ set<Node*> Network::GetChildrenPtrsOfNode(int node_index) {
 /**
  * @brief: generate all the configurations of the parents for each node
  */
-void Network::GenDiscParCombsForAllNodes() {
+void Network::GenDiscParCombsForAllNodes() { //checked
   for (auto id_np : this->map_idx_node_ptr) { // for each node (id-node_ptr pair) in the network
     auto np = id_np.second;
     np->GenDiscParCombs(GetParentPtrsOfNode(np->GetNodeIndex()));
@@ -443,7 +461,7 @@ void Network::GenDiscParCombsForAllNodes() {
  * @brief: obtain topological order
  * @return a vector<int>, the elements is the indexes of the nodes
  */
-vector<int> Network::GetTopoOrd() {
+vector<int> Network::GetTopoOrd() { //checked
   if (topo_ord.empty()) {
     this->GenTopoOrd();
   }
@@ -467,13 +485,13 @@ vector<int> Network::GetReverseTopoOrd() {
 // TODO: maybe not need to generate a directed adjacency matrix
 // just use in-degree array and "set_children_indexes" to generate the ordering
 // TODO: potential bug in "TopoSortOfDAGZeroInDegreeFirst" -> "TopoSortOfDAGZeroInDegreeFirst"
-vector<int> Network::GenTopoOrd() {//TODO: double-check correctness
+vector<int> Network::GenTopoOrd() { //checked
 
   if (this->pure_discrete) {
 
     // convert the network to a directed adjacency matrix (n*n)
     // direct: p->c (i.e., graph[p][c] = 1)
-    // TODO: another function for directed adjacency matrix?
+    // TODO: use function "ConvertDAGNetworkToAdjacencyMatrix"
     // TODO: adjacency matrix or adjacency list? more memory for adjacency matrix
     int **graph = new int*[num_nodes];
 #pragma omp for
@@ -492,11 +510,13 @@ vector<int> Network::GenTopoOrd() {//TODO: double-check correctness
 
     topo_ord = TopoSortOfDAGZeroInDegreeFirst(graph, num_nodes);
 
-    for (int i=0; i<num_nodes; ++i) { delete[] graph[i]; }
+    for (int i=0; i<num_nodes; ++i) {
+      delete[] graph[i];
+    }
     delete[] graph;
 
   }
-  else { // TODO: double-check
+  else { // TODO: double-check, not check for the continuous cases
 
     // If the network is not pure discrete, then it is conditional Gaussian.
     // Discrete nodes should not have continuous parents.
@@ -579,31 +599,35 @@ vector<int> Network::GenTopoOrd() {//TODO: double-check correctness
 }
 
 /**
- * @brief: convert network to a dense matrix
+ * @brief: convert network to a dense directed adjacency matrix (n*n)
  */
-int** Network::ConvertDAGNetworkToAdjacencyMatrix() {//TODO: double check correctness
-  int **adjac_matrix = new int* [num_nodes];
+int** Network::ConvertDAGNetworkToAdjacencyMatrix() { //checked
+  int **matrix = new int* [num_nodes];
   for (int i=0; i<num_nodes; ++i) {
-    adjac_matrix[i] = new int[num_nodes]();
+    matrix[i] = new int[num_nodes]();
   }
-  for (auto &id_node_ptr : map_idx_node_ptr) {
+
+  // TODO: calculate the in-degrees here
+  // TODO: instead of in "TopoSortOfDAGZeroInDegreeFirst" and "DirectedGraphContainsCircleByBFS"
+  // direct: node_ptr->child_ptr (i.e., graph[node_ptr][child_ptr] = 1)
+  for (auto &id_node_ptr : map_idx_node_ptr) { // for each node
     auto node_ptr = id_node_ptr.second;
-    int from, from2, to;
-    from = node_ptr->GetNodeIndex();
+
     for (auto &child_ptr : GetChildrenPtrsOfNode(node_ptr->GetNodeIndex())) {
-      to = child_ptr->GetNodeIndex();
-      adjac_matrix[from][to] = 1;
+      // TODO: each time assigning 1, add 1 to the in-degree of "child_ptr->GetNodeIndex()"
+      matrix[node_ptr->GetNodeIndex()][child_ptr->GetNodeIndex()] = 1;
     }
   }
-  return adjac_matrix;
+  return matrix;
 }
 
 /**
  * @brief: check if network has loops.
  */
-bool Network::ContainCircle() {
+bool Network::ContainCircle() { //checked
   int **graph = ConvertDAGNetworkToAdjacencyMatrix();
   bool result = DirectedGraphContainsCircleByBFS(graph, num_nodes);
+
   for (int i = 0; i < num_nodes; ++i) {
     delete[] graph[i];
   }
@@ -1852,34 +1876,45 @@ vector<int> Network::SparseInstanceFillZeroToDenseInstance(DiscreteConfig &spars
  * @brief: learning network structure using Weka's algorithm
  * https://github.com/Waikato/weka-3.8
  *      under: weka/src/main/java/weka/classifiers/bayes/net/search/global/K2.java
- *      or weka/src/main/java/weka/classifiers/bayes/net/search/local/K2.java
+ *      or     weka/src/main/java/weka/classifiers/bayes/net/search/local/K2.java
  *
  * @key idea: the key idea is to add a parent to a node based on topo_ord_constraint,
- *            if adding the node as a parent results in increment of the score--there are different scoring functions.
+ *            if adding the node as a parent results in increment of the score
+ *            -- there are different scoring functions.
  */
-void Network::StructLearnLikeK2Weka(Dataset *dts, vector<int> topo_ord_constraint, int max_num_parents) {
+void Network::StructLearnLikeK2Weka(Dataset *dts, vector<int> topo_ord_constraint, int max_num_parents) { //checked
   // todo: test the correctness
+  // if "topo_ord_constraint" = "best"; no order is provided (i.e. no constraint)
   if (topo_ord_constraint.empty() || topo_ord_constraint.size() != num_nodes) {
     topo_ord_constraint.reserve(num_nodes);
     for (int i = 0; i < num_nodes; ++i) {
-      topo_ord_constraint.push_back(i);
+      topo_ord_constraint.push_back(i); // provide a order constraint: 1, 2, ..., num_nodes-1
     }
   }
-  GenDiscParCombsForAllNodes();
+  GenDiscParCombsForAllNodes(); // generate all possible parent configurations ("set_discrete_parents_combinations") for all nodes
+
 //#pragma omp parallel for
   for (int i = 0; i < num_nodes; ++i) {
 
     int var_index = topo_ord_constraint.at(i);
-    DiscreteNode *node = (DiscreteNode*) this->map_idx_node_ptr.at(var_index);
+    DiscreteNode *node = (DiscreteNode*) this->map_idx_node_ptr.at(var_index); // TODO: function "FindNodePtrByIndex"？
 
-    bool progress = (node->GetNumParents() < max_num_parents);
-    while (progress) {
+    bool ok_to_proceed = (node->GetNumParents() < max_num_parents);
+    while (ok_to_proceed) {
       int best_par_index = -1;
       double best_extra_score = 0;
-      for (int j = 0; j < i; ++j) {
+
+      for (int j = 0; j < i; ++j) { // j < i: traverse all pre nodes, satisfy the ordering constraint
         int par_index = topo_ord_constraint.at(j);
+
+        // TODO: this function calculates old score and new score and returns the delta score as "extra_score"
+        // TODO: why not
+        // TODO:      1. directly compute the new score and compare the i scores to find the maximum, rather than compare the delta scores
+        // TODO:      2. compute the old score before calling this function, because the i old scores seem to be the same
         double extra_score = CalcuExtraScoreWithModifiedArc(par_index, var_index, dts, "add", "log K2");//use K2 as scoring function
-        if (extra_score > best_extra_score) {
+        if (extra_score > best_extra_score) { // find the max g() as the "best_extra_score" iteratively
+          // TODO: may not need to addarc and deletearc
+          // TODO: because if "AddArc" function returns false, then current "extra_score" equals to 0 and cannot be the "best_extra_score"
           if (this->AddArc(par_index, var_index)) {
             best_par_index = j;
             best_extra_score = extra_score;
@@ -1887,11 +1922,14 @@ void Network::StructLearnLikeK2Weka(Dataset *dts, vector<int> topo_ord_constrain
           }
         }
       }
+      // if the maximum new score is less than or equal to the old score, stop
       if (best_par_index == -1) {
-        progress = false;
-      } else {
+        ok_to_proceed = false;
+      }
+      // if the maximum new score is better than the old score, add this arc and continue
+      else {
         this->AddArc(best_par_index, var_index);
-        progress = (node->GetNumParents() < max_num_parents);
+        ok_to_proceed = (node->GetNumParents() < max_num_parents);
       }
     }
 

@@ -189,29 +189,38 @@ bool DAGObeyOrdering(int **graph, int num_nodes, vector<int> ord) {
 
 /**
  * @brief: for structure learning; check whether a directed graph has a cycle.
- * This function uses BFS, but other graph traversal algorithms can work as well
+ * (This function uses BFS, but other graph traversal algorithms can work as well)
+ * use topological ordering: if there are left nodes after topological ordering, then return true
  */
-bool DirectedGraphContainsCircleByBFS(int **graph, int num_nodes) {//TODO: double check correctness
+ // TODO: can be merge with "TopoSortOfDAGZeroInDegreeFirst"
+bool DirectedGraphContainsCircleByBFS(int **graph, int num_nodes) {
   int visited_count = 0;
   queue<int> que;
 
   // Calculate the in-degrees of all nodes.
+  // TODO: calculate the in-degrees in "ConvertDAGNetworkToAdjacencyMatrix"
   int *in_degrees = new int[num_nodes](); // The parentheses at end will initialize the array to be all zeros.
   for (int i = 0; i < num_nodes; ++i) {
     for (int j = 0; j < num_nodes; ++j) {
-      if (graph[i][j] == 1) { ++in_degrees[j]; }
+      if (graph[i][j] == 1) {
+          ++in_degrees[j];
+      }
     }
   }
 
   for (int i = 0; i < num_nodes; ++i) {
-    if (in_degrees[i] == 0) { que.push(i); }
+    if (in_degrees[i] == 0) {
+        que.push(i);
+    }
   }
 
   while (!que.empty()) {
     for (int j = 0; j < num_nodes; ++j) {
       if (graph[que.front()][j] == 1) {
         --in_degrees[j];
-        if (in_degrees[j] == 0) { que.push(j); }
+        if (in_degrees[j] == 0) {
+            que.push(j);
+        }
       }
     }
     que.pop();
@@ -219,8 +228,9 @@ bool DirectedGraphContainsCircleByBFS(int **graph, int num_nodes) {//TODO: doubl
   }
 
   delete[] in_degrees;
-  return (visited_count != num_nodes);
+  return (visited_count != num_nodes); // check whether all nodes have been visited
 }
+
 
 /**
  * @brief: obtain a sequence given a graph
@@ -251,8 +261,7 @@ int* BreadthFirstTraversalWithAdjacencyMatrix(int **graph, int num_nodes, int st
  * @param graph: 2-d array representation of the adjacency matrix of the graph
  * @param num_nodes: number of the nodes in the graph
  */
-// TODO: potential bug here: may push one node multiple times; is does not check whether a node has been pushed or not.
-// TODO: maybe not need to use the directed adjacency matrix
+// TODO: may not need to use the directed adjacency matrix
 // just use in-degree array and "set_children_indexes" to generate the ordering
 vector<int> TopoSortOfDAGZeroInDegreeFirst(int **graph, int num_nodes) {
   vector<int> result;
