@@ -160,7 +160,7 @@ class Network {//this class is used by both the customized networks and networks
                 map<Node*, map<set<Node*>, double>> &dynamic_program_for_F,
                 map<pair<set<Node*>, vector<int>>,   pair<double, vector<pair<Node*, set<Node*>>>>> dynamic_program_for_Q,
                 map<set<Node*>, vector<int>> dynamic_program_for_M);
-  void StructLearnByOtt(Dataset *dts, vector<int> topo_ord_constraint={});
+  void StructLearnByOtt(Dataset *dts, vector<int> topo_ord_constraint={}); // TODO: understanding of Ott's algorithm
 
 
   /**
