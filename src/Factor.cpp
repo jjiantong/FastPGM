@@ -32,7 +32,8 @@ Factor::Factor(DiscreteNode *disc_node, Network *net) {
       set_disc_config.insert(c);
       map_potentials[c] = disc_node->GetProbability(p.second, empty_par_config);
     }
-  } else {// If this disc_node has parents, the outer loop is for the disc_node, and the inner loop is for the parents.
+  }
+  else {// If this disc_node has parents, the outer loop is for the disc_node, and the inner loop is for the parents.
     related_variables.insert(disc_node->set_parent_indexes.begin(), disc_node->set_parent_indexes.end());
     for (auto &p : set_pair_temp) {//for each possible value of this node; (A, 0)
       for (const auto & comb : disc_node->set_discrete_parents_combinations) {//for each parent; (B, 0)
@@ -96,6 +97,7 @@ Factor Factor::MultiplyWithFactor(Factor second_factor) {
 
 /**
  * @brief: factor out a node by id; i.e., factor marginalization
+ * eliminate variable "id" by summation of the factor over "id"
  */
 Factor Factor::SumOverVar(int index) {
   Factor newFactor;
@@ -130,6 +132,10 @@ Factor Factor::SumOverVar(int index) {
   return newFactor;
 }
 
+/**
+ * @brief: factor out a node by node; i.e., factor marginalization
+ * eliminate variable "node" by summation of the factor over "node"
+ */
 Factor Factor::SumOverVar(DiscreteNode *node) {
   return SumOverVar(node->GetNodeIndex());
 }

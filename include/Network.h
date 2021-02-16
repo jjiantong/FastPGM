@@ -56,6 +56,7 @@ class Network {//this class is used by both the customized networks and networks
                                    string algo="k2-weka", string topo_ord_constraint="dataset-ord",
                                    int max_num_parents=INT_MAX);
 
+  // TODO: understanding: I think this function just gets each node's conditional probability table
   void LearnParamsKnowStructCompData(const Dataset *dts, int alpha=1, bool print_params=true);
 
   int GetNumParams() const;
@@ -81,7 +82,7 @@ class Network {//this class is used by both the customized networks and networks
   set<Node*> GetParentPtrsOfNode(int node_index);
   set<Node*> GetChildrenPtrsOfNode(int node_index);
 
-  void GenDiscParCombsForAllNodes(); // checked
+  void GenDiscParCombsForAllNodes();
 
   vector<int> GetTopoOrd();
   vector<int> GetReverseTopoOrd();

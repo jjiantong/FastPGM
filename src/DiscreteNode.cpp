@@ -202,6 +202,8 @@ void DiscreteNode::InitializeCPT() {
 
 /**
  * @brief: update the maps of a node given the variable of the new instance
+ * map_total_count_under_parents_config: count for specific parent configuration
+ * map_cond_prob_table_statistics: count for query variable (child) given parents configuration
  */
 void DiscreteNode::AddCount(int query_val, DiscreteConfig &parents_config, int count) {
   if (!cpt_initialized) {

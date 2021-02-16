@@ -266,7 +266,7 @@ void Network::StructLearnCompData(Dataset *dts, bool print_struct, string algo, 
 /**
  * @brief: add a node to the map
  */
-void Network::AddNode(Node *node_ptr) { //checked
+void Network::AddNode(Node *node_ptr) {
   map_idx_node_ptr[node_ptr->GetNodeIndex()] = node_ptr;
   ++num_nodes;
 }
@@ -283,7 +283,7 @@ void Network::RemoveNode(int node_index) {
  * @brief: add an edge/arc to the network
  * @return true if not form a circle; false if form a circle (also delete the added arc)
  */
-bool Network::AddArc(int p_index, int c_index) { //checked
+bool Network::AddArc(int p_index, int c_index) {
   SetParentChild(p_index, c_index); // set parent and child relationship
   bool contain_circle = ContainCircle();
 
@@ -294,7 +294,7 @@ bool Network::AddArc(int p_index, int c_index) { //checked
   return !contain_circle;
 }
 
-void Network::DeleteArc(int p_index, int c_index) { //checked
+void Network::DeleteArc(int p_index, int c_index) {
   RemoveParentChild(p_index, c_index);
 }
 
@@ -302,7 +302,7 @@ void Network::DeleteArc(int p_index, int c_index) { //checked
  * @brief: swap a parent and child relationship
  * @return true if not form a circle; false if form a circle (also delete the added arc)
  */
-bool Network::ReverseArc(int p_index, int c_index) { //checked
+bool Network::ReverseArc(int p_index, int c_index) {
   DeleteArc(p_index, c_index);
   return AddArc(c_index, p_index);
 }
@@ -315,7 +315,7 @@ bool Network::ReverseArc(int p_index, int c_index) { //checked
 double Network::CalcuExtraScoreWithModifiedArc(int p_index, int c_index,
                                                Dataset *dts,
                                                string modification,
-                                               string score_metric) { //checked
+                                               string score_metric) {
   // todo: test correctness
   Network new_net(*this); // modify on new_net rather than the original "this"
 
@@ -369,7 +369,7 @@ double Network::CalcuExtraScoreWithModifiedArc(int p_index, int c_index,
  * @param p_index: parent index
  * @param c_index: child index
  */
-void Network::SetParentChild(int p_index, int c_index) { //checked
+void Network::SetParentChild(int p_index, int c_index) {
   // convert the index format into node ptr format
   Node *p = FindNodePtrByIndex(p_index), *c = FindNodePtrByIndex(c_index);
   SetParentChild(p,c);
@@ -381,7 +381,7 @@ void Network::SetParentChild(int p_index, int c_index) { //checked
  * @param c: child node ptr
  * add c to p as a child, and add p to c as a parent
  */
-void Network::SetParentChild(Node *p, Node *c) { //checked
+void Network::SetParentChild(Node *p, Node *c) {
   if (map_idx_node_ptr.find(p->GetNodeIndex()) == map_idx_node_ptr.end()
       ||
       map_idx_node_ptr.find(c->GetNodeIndex())==map_idx_node_ptr.end()) {
@@ -399,7 +399,7 @@ void Network::SetParentChild(Node *p, Node *c) { //checked
  * @param c_index: child index
  * remove c to p as a child, and remove p to c as a parent
  */
-void Network::RemoveParentChild(int p_index, int c_index) { //checked
+void Network::RemoveParentChild(int p_index, int c_index) {
   // convert the index format into node ptr format
   Node *p = FindNodePtrByIndex(p_index), *c = FindNodePtrByIndex(c_index);
   RemoveParentChild(p,c);
@@ -410,7 +410,7 @@ void Network::RemoveParentChild(int p_index, int c_index) { //checked
  * @param p: parent node ptr
  * @param c: child node ptr
  */
-void Network::RemoveParentChild(Node *p, Node *c) { //checked
+void Network::RemoveParentChild(Node *p, Node *c) {
   if (map_idx_node_ptr.find(p->GetNodeIndex()) == map_idx_node_ptr.end()
       ||
       map_idx_node_ptr.find(c->GetNodeIndex())==map_idx_node_ptr.end()) {
@@ -426,7 +426,7 @@ void Network::RemoveParentChild(Node *p, Node *c) { //checked
  * @brief: find parents given a node id; used to generate discrete configurations
  * @return a set of pointers to the parents of a node
  */
-set<Node*> Network::GetParentPtrsOfNode(int node_index) { //checked
+set<Node*> Network::GetParentPtrsOfNode(int node_index) {
   set<Node*> set_par_ptrs;
   Node *node = map_idx_node_ptr.at(node_index); // TODO: function "FindNodePtrByIndex"
   for (const auto &idx : node->set_parent_indexes) { // "set_parent_indexes" contains both discrete and continuous parents
@@ -450,7 +450,7 @@ set<Node*> Network::GetChildrenPtrsOfNode(int node_index) {
 /**
  * @brief: generate all the configurations of the parents for each node
  */
-void Network::GenDiscParCombsForAllNodes() { //checked
+void Network::GenDiscParCombsForAllNodes() {
   for (auto id_np : this->map_idx_node_ptr) { // for each node (id-node_ptr pair) in the network
     auto np = id_np.second;
     np->GenDiscParCombs(GetParentPtrsOfNode(np->GetNodeIndex()));
@@ -461,7 +461,7 @@ void Network::GenDiscParCombsForAllNodes() { //checked
  * @brief: obtain topological order
  * @return a vector<int>, the elements is the indexes of the nodes
  */
-vector<int> Network::GetTopoOrd() { //checked
+vector<int> Network::GetTopoOrd() {
   if (topo_ord.empty()) {
     this->GenTopoOrd();
   }
@@ -601,7 +601,7 @@ vector<int> Network::GenTopoOrd() { //checked
 /**
  * @brief: convert network to a dense directed adjacency matrix (n*n)
  */
-int** Network::ConvertDAGNetworkToAdjacencyMatrix() { //checked
+int** Network::ConvertDAGNetworkToAdjacencyMatrix() {
   int **matrix = new int* [num_nodes];
   for (int i=0; i<num_nodes; ++i) {
     matrix[i] = new int[num_nodes]();
@@ -624,7 +624,7 @@ int** Network::ConvertDAGNetworkToAdjacencyMatrix() { //checked
 /**
  * @brief: check if network has loops.
  */
-bool Network::ContainCircle() { //checked
+bool Network::ContainCircle() {
   int **graph = ConvertDAGNetworkToAdjacencyMatrix();
   bool result = DirectedGraphContainsCircleByBFS(graph, num_nodes);
 
@@ -636,7 +636,8 @@ bool Network::ContainCircle() { //checked
 }
 
 /**
- * @brief: learn the weights or probability tables
+ * @brief: learn the weights or probability tables TODO:?
+ * @brief: get each node's conditional probability table
  */
 void Network::LearnParamsKnowStructCompData(const Dataset *dts, int alpha, bool print_params){
   cout << "==================================================" << '\n'
@@ -644,7 +645,7 @@ void Network::LearnParamsKnowStructCompData(const Dataset *dts, int alpha, bool 
        << "Laplace smoothing param: alpha = " << alpha << endl;
 
   struct timeval start, end;
-  double diff;
+  double diff;// j is a node index and also an array index
   gettimeofday(&start,NULL);
 
   int num_cores = omp_get_num_procs();
@@ -652,24 +653,27 @@ void Network::LearnParamsKnowStructCompData(const Dataset *dts, int alpha, bool 
   int max_work_per_thread = (dts->num_vars + num_cores - 1) / num_cores;
   #pragma omp parallel
   {
+    int thread_id = omp_get_thread_num();
+
     // a thread for one or more nodes
-    for (int i = max_work_per_thread*omp_get_thread_num();
-         i < max_work_per_thread*(omp_get_thread_num()+1) && i < dts->num_vars;
+    for (int i = max_work_per_thread * thread_id;
+         i < max_work_per_thread * (thread_id + 1) && i < dts->num_vars;
          ++i) {
 //    for (int i=0; i<dts->num_vars; ++i) {
+      // for each variable/node, update probability table of (node | parent configurations)
       DiscreteNode *this_node = dynamic_cast<DiscreteNode*>(FindNodePtrByIndex(i));   // todo: support continuous node
       this_node->SetLaplaceSmooth(alpha);
 
-      for (int s = 0; s < dts->num_instance; ++s) {
-        vector<int> values = vector<int>(dts->dataset_all_vars[s], dts->dataset_all_vars[s]+dts->num_vars);
+      for (int s = 0; s < dts->num_instance; ++s) { // for each instance
+        // create the vector "values" by copying the array "dts->dataset_all_vars[s]"
+        vector<int> values = vector<int>(dts->dataset_all_vars[s], dts->dataset_all_vars[s] + dts->num_vars);
         //convert an instance to discrete configuration
-        DiscreteConfig instance;
-        for (int j = 0; j < values.size(); ++j) {
+        DiscreteConfig instance; //set<pair<int, int> >
+        for (int j = 0; j < values.size(); ++j) { // for each variable of this instance
           instance.insert(pair<int, int>(j, values.at(j)));
         }
         this_node->AddInstanceOfVarVal(instance);//an instance affects all the nodes in the network, because the instance here is dense.
       }
-
     }
   }   // end of: #pragma omp parallel
   cout << "==================================================" << '\n'
@@ -692,13 +696,13 @@ void Network::LearnParamsKnowStructCompData(const Dataset *dts, int alpha, bool 
 }
 
 /**
- * @brief: get the number of parameters of the network, based on prabability tables
+ * @brief: get the number of parameters of the network, based on probability tables
  *         (and other parameters in continuous variables)
  */
 int Network::GetNumParams() const {
   int result = 0;
-  for (const auto &i_n : map_idx_node_ptr) {
-    result += i_n.second->GetNumParams();
+  for (const auto &i_n : map_idx_node_ptr) { // TODO: function "FindNodePtrByIndex"
+    result += i_n.second->GetNumParams(); // TODO: Node::GetNumParams is a virtual function
   }
   return result;
 }
@@ -706,7 +710,7 @@ int Network::GetNumParams() const {
 /**
  * @brief: clear structure; mainly for reuse some content for fast testing
  *
- * Important: may have bugs!
+ * Important: may have bugs! TODO
  */
 void Network::ClearStructure() {
   for (auto &i_n_p : this->map_idx_node_ptr) {
@@ -719,16 +723,17 @@ void Network::ClearStructure() {
 /**
  * @brief: clear structure; mainly for reuse some content for fast testing
  *
- * Important: may have bugs!
+ * Important: may have bugs! TODO
  */
 void Network::ClearParams() {
-  for (auto &i_n_p : this->map_idx_node_ptr) {
-    i_n_p.second->ClearParams();
+  for (auto &i_n_p : this->map_idx_node_ptr) { // TODO: function "FindNodePtrByIndex"
+    i_n_p.second->ClearParams(); // TODO: Node::ClearParams is a virtual function
   }
 }
 
 /**
  * @brief: this is a virtual function;
+ * The performance of variable elimination relies heavily on the elimination ordering
  */
 vector<int> Network::SimplifyDefaultElimOrd(DiscreteConfig evidence) {//TODO: use C++ pure virtual function
   fprintf(stderr, "Function [%s] not implemented yet!", __FUNCTION__);
@@ -739,7 +744,7 @@ vector<int> Network::SimplifyDefaultElimOrd(DiscreteConfig evidence) {//TODO: us
  * @brief: Factor is a class; construct a set of factors using a node and an elimination order; used in Junction Tree
  * @param Z: a set of nodes identified by IDs; Z is the elimination order.
  * @param Y: a node
- * @return: a set of Factors, where each factor corresponds to a node
+ * @return: a set of Factors, where each factor corresponds to a node; first Y (target node), then nodes ordered by Z
  */
 vector<Factor> Network::ConstructFactors(vector<int> Z, Node *Y) {
   vector<Factor> factors_list;
@@ -752,7 +757,7 @@ vector<Factor> Network::ConstructFactors(vector<int> Z, Node *Y) {
 }
 
 /**
- * @brief: update the prababilities/weights of all the factors related to the nodes between the target node and node with the evidence/observation
+ * @brief: update the probabilities/weights of all the factors related to the nodes between the target node and node with the evidence/observation
  * @param factors_list: a list factors related to the nodes between the target node and the node with evidence/observation
  * @param E: a new observation
  * @param all_related_vars: all the related variables between the target node and the node with the evidence/observation
@@ -760,6 +765,7 @@ vector<Factor> Network::ConstructFactors(vector<int> Z, Node *Y) {
 void Network::LoadEvidenceIntoFactors(vector<Factor> *factors_list,
                                       DiscreteConfig E, set<int> all_related_vars) {
 
+  // TODO: check openmp
   // I do not know why this function cannot use omp to parallel.
   // If I set number of threads more than 1, the accuracy will decrease!
 //  int num_cores = omp_get_num_procs();
@@ -774,14 +780,14 @@ void Network::LoadEvidenceIntoFactors(vector<Factor> *factors_list,
     for (int i = 0; i < factors_list->size(); ++i) {
       Factor &f = factors_list->at(i);   // For each factor. "std::vector::at" returns reference.
       for (const auto &e : E) {  // For each node's observation in E
-        // If this factor is related to this node
+        // If this factor is related to this node with observation
         if (f.related_variables.find(e.first) != f.related_variables.end()) {
           /** For example:  X --> Y (evidence/obs) --> Z --> A (target node) --> B --> C --> E --> F (evidence/observation) --> G
            * Only the factors of Z and G are true in the above if statement, because Z and G have configurations containing evidence.
            * **/
           // Update each row of map_potentials
           for (const auto &comb : f.set_disc_config) {
-            // If this entry is not compatible to the evidence.
+            // If this entry is not compatible to the evidence -> reduction
             if (comb.find(e) == comb.end()) {
               f.map_potentials[comb] = 0;
             }
@@ -801,9 +807,11 @@ void Network::LoadEvidenceIntoFactors(vector<Factor> *factors_list,
       // However, when using this function,
       // the parent of parent of this node, which is "A",
       // still appears in the constructed factor of the parent which is "B".
-      // todo: check correctness
+      // my understanding:
+      // maybe some variables are not in the elimination order, but they are also existed in some related factors,
+      // so what we need to do is to eliminate these variables before the main variable elimination (VE) process.
       set<int> related_vars_of_f = f.related_variables;
-      for (auto &v : related_vars_of_f) {
+      for (auto &v : related_vars_of_f) { // for each related variables of the factor f
         if (all_related_vars.find(v) == all_related_vars.end()) {
           f = f.SumOverVar(v);//X and G will be sum over, i.e. eliminate X and G given the evidence/observations
         }
@@ -815,41 +823,38 @@ void Network::LoadEvidenceIntoFactors(vector<Factor> *factors_list,
 }
 
 /**
- * @brief: gradually eliminate variables until only one (i.e. the target node) left
+ * @brief: variable elimination (VE): gradually eliminate variables until only one (i.e. the target node) left
  */
 Factor Network::SumProductVarElim(vector<Factor> factors_list, vector<int> elim_order) {
-  for (int i = 0; i < elim_order.size(); ++i) {
+  for (int i = 0; i < elim_order.size(); ++i) { // consider each node i according to the elimination order
     vector<Factor> tempFactorsList;
     Node* nodePtr = FindNodePtrByIndex(elim_order.at(i));
 
     // Move every factor that is related to the node elim_order[i] from factors_list to tempFactorsList.
     /*
      * Note: This for loop does not contain "++it" in the parentheses.
-     *      Because if we do so, it may cause some logic faults which,
-     *      however, may or may not cause runtime error, causing the program hard to debug.
-     *      For example:
-     *        When "it" reaches the second to last element, and this element is related to the node.
-     *        Then this element will be erase from factors_list,
-     *        and then "++it" which will move "it" to the end.
-     *        Then the for loop will end because "it" has reached the end.
-     *        However, at this time, the last element has been ignored,
-     *        even if it is related to the node.
+     *      When finding "elim_order[i]" during the traverse, the iterator "it" points to this vector.
+     *      We use "erase" to delete this element from "factors_list" via iterator "it";
+     *      the function "erase" returns an iterator pointing to the next element of the delete element.
      */
-    for (auto it=factors_list.begin(); it!=factors_list.end(); /* no ++it */) {
+    for (auto it = factors_list.begin(); it != factors_list.end(); /* no ++it */) {
+      // if the factor "it" is related to the node "elim_order[i]" (i.e., the node to be eliminated now)
       if ((*it).related_variables.find(nodePtr->GetNodeIndex())!=(*it).related_variables.end()) {
         tempFactorsList.push_back(*it);
         factors_list.erase(it);
         continue;
-      } else {
+      }
+      else {
         ++it;
       }
     }
 
     //merge all the factors in tempFactorsList into one factor
     while(tempFactorsList.size()>1) {
+      // every time merge two factors into one
       Factor temp1, temp2, product;
-      temp1 = tempFactorsList.back();
-      tempFactorsList.pop_back();
+      temp1 = tempFactorsList.back(); // get the last element
+      tempFactorsList.pop_back();  // remove the last element
       temp2 = tempFactorsList.back();
       tempFactorsList.pop_back();
 
@@ -857,10 +862,10 @@ Factor Network::SumProductVarElim(vector<Factor> factors_list, vector<int> elim_
       tempFactorsList.push_back(product);
     }
 
-    //reduce one variable identified by nodePtr by sum over.
+    // eliminate variable "nodePtr" by summation of the factor "tempFactorsList.back()" over "nodePtr"
     Factor newFactor = tempFactorsList.back().SumOverVar(dynamic_cast<DiscreteNode*>(nodePtr));
     factors_list.push_back(newFactor);
-  }
+  } // finish eliminating variables and only one variable left
 
   /*
    *   If we are calculating a node's posterior probability given evidence about its children,
@@ -891,8 +896,6 @@ Factor Network::SumProductVarElim(vector<Factor> factors_list, vector<int> elim_
  * @return the factor which contains the marginal probability table of the target node
  */
 Factor Network::VarElimInferReturnPossib(DiscreteConfig evid, Node *target_node, vector<int> elim_order) {
-  // elim_order is the array of variable elimination order.
-  // evid is the evidences.
 
   if (elim_order.empty()) {
     elim_order = SimplifyDefaultElimOrd(evid);
@@ -915,9 +918,14 @@ Factor Network::VarElimInferReturnPossib(DiscreteConfig evid, Node *target_node,
   // However, when using this function,
   // the parent of parent of this node, which is "A",
   // still appears in the constructed factor of the parent which is "B".
+  // my understanding:
+  // maybe some variables are not in the elimination order, but they are also existed in some related factors,
+  // so what we need to do is to eliminate these variables before the main variable elimination (VE) process.
   set<int> all_related_vars;
   all_related_vars.insert(target_node->GetNodeIndex());
-  for (int i = 0; i < elim_order.size(); ++i) { all_related_vars.insert(elim_order.at(i)); }
+  for (int i = 0; i < elim_order.size(); ++i) {
+    all_related_vars.insert(elim_order.at(i));
+  }
   //--------------------------------------------------------------------------------
 
   //load evidence function below returns a factorsList with fewer configurations.
