@@ -70,7 +70,7 @@ void Dataset::LoadLIBSVMDataAutoDetectConfig(string data_file_path, set<int> con
       // split the feature index and the feature value using ":"
       vector<string> parsed_feature_val = Split(feature_val, ":");
       int index = stoi(parsed_feature_val[0]);
-      max_index_occurred = index>max_index_occurred ? index : max_index_occurred;
+      max_index_occurred = index > max_index_occurred ? index : max_index_occurred;
       Value v;
       if (cont_vars.find(index)==cont_vars.end()) {//same as the processing of label TODO: maintain consistent, change the former code
         int value = stoi(parsed_feature_val[1]);

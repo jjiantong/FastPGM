@@ -126,30 +126,37 @@ void DiscreteNode::PrintProbabilityTable() {//checked
 
 /**
  * @brief: helper of generating instances from the network for approximate inference
+ * the purpose seems to be randomly selecting one possible value from all possible values of the current node
+ * @param evidence should contain all parents of this node
+ * this condition can be met by generating an instance from the roots (without parents), i.e., following the topological order
+ * the evidence about other nodes (including children) are IGNORED!!!
  */
 int DiscreteNode::SampleNodeGivenParents(DiscreteConfig &evidence) {
-  //Important: The evidence should contain all parents of this node. This condition can be met by generating an instance from the roots (without parents).
-  // The evidence about other nodes (including children) are IGNORED!!!
-  DiscreteConfig par_evi;//for storing the parents of the current node
+  // filter evidence about the parents of the current node from all the evidence "evidence"
+  // TODO: function "DiscreteConfig Node::GetDiscParConfigGivenAllVarValue(DiscreteConfig &all_var_val)"
+  DiscreteConfig par_evi; // for storing the parents of the current node
   for (auto &e : evidence) {
+    // if evidence e is about a parent node
     if (set_parent_indexes.find(e.first) != set_parent_indexes.end()) {
       par_evi.insert(e);
     }
   }
 
-  DiscreteConfig par_config;//not used
-
-  //every potential value of this node has a weight
+  // TODO: why we use "weight" rather than directly use "value" or index to randomly pick one possible value?
+  // every potential value of this node has a weight (type int)
   vector<int> weights;
   for (int i = 0; i < GetDomainSize(); ++i) {
     int query_value = vec_potential_vals.at(i);//potential value of the current node
-    int w = (int) (GetProbability(query_value, par_evi) * 10000);//convert the probability into int for calling API
+    // get the probability P(node=query_value|par_evi) and convert it into int for calling API
+    int w = (int) (GetProbability(query_value, par_evi) * 10000);
     weights.push_back(w);
   }
 
   unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
   default_random_engine rand_gen(seed);
+  // understand: "this distribution" contains indexes of "weights"/"vec_potential_vals"
   discrete_distribution<int> this_distribution(weights.begin(),weights.end());
+  // understand: randomly pick one index and output the value
   return vec_potential_vals.at(this_distribution(rand_gen));//get the final value
 }
 
@@ -243,9 +250,9 @@ double DiscreteNode:: GetProbability(int query_val, DiscreteConfig &parents_conf
     return prob;
   }
 
-  int frequency_count =  map_cond_prob_table_statistics.at(query_val).at(parents_config);
-  int total = map_total_count_under_parents_config[parents_config];
-  double prob = (frequency_count + laplace_smooth) / (total + laplace_smooth * GetDomainSize());
+  int frequency_count =  map_cond_prob_table_statistics.at(query_val).at(parents_config); // P(AB)
+  int total = map_total_count_under_parents_config[parents_config]; // P(B)
+  double prob = (frequency_count + laplace_smooth) / (total + laplace_smooth * GetDomainSize()); // P(A|B) = P(AB) / P(B)
   return prob;
 }
 

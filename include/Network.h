@@ -108,16 +108,15 @@ class Network {//this class is used by both the customized networks and networks
   vector<int> PredictUseVarElimInfer(vector<DiscreteConfig> evidences, int target_node_idx, vector<vector<int>> elim_orders=vector<vector<int>>{});
 
   DiscreteConfig GenerateInstanceByProbLogicSampleNetwork();
+  vector<DiscreteConfig> DrawSamplesByProbLogiSamp(int num_samp);
 
   vector<pair<DiscreteConfig, double>> DrawSamplesByLikelihoodWeighting(const DiscreteConfig &evidence, int num_samp);
   Factor CalcuMargWithLikelihoodWeightingSamples(const vector<pair<DiscreteConfig, double>> &samples, const int &node_index);
   int ApproxinferByLikelihoodWeighting(DiscreteConfig e, const int &node_index, const int &num_samp);
   vector<int> ApproxinferByLikelihoodWeighting(vector<DiscreteConfig> evidences, const int &target_node_idx, const int &num_samp);
 
-
   int SampleNodeGivenMarkovBlanketReturnValIndex(Node *node_ptr, DiscreteConfig markov_blanket);
 
-  vector<DiscreteConfig> DrawSamplesByProbLogiSamp(int num_samp);
   vector<DiscreteConfig> DrawSamplesByGibbsSamp(int num_samp, int num_burn_in);
 
   int ApproxInferByProbLogiRejectSamp(DiscreteConfig e, Node *node, vector<DiscreteConfig> &samples);
@@ -141,9 +140,6 @@ class Network {//this class is used by both the customized networks and networks
 
   /**
    * Functions for structure learning.
-   * Based on the work of Ott et al. (2003) FINDING OPTIMAL MODELS FOR SMALL GENE NETWORKS
-   * http://psb.stanford.edu/psb-online/proceedings/psb04/ott.pdf
-   *
    * This learning process has 4 functions, i.e., F, Q, M and StructLearnByOtt
    */
   pair<double, set<Node*>> F(Node *node,
