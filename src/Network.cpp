@@ -1213,6 +1213,7 @@ double Network::EvaluateAccuracyGivenAllCompleteInstances(Dataset *dts) {
     // construct the ground truth
     int g = dts->dataset_all_vars[i][class_var_index];
     ground_truths.push_back(g);
+
     delete[] e_index;
     delete[] e_value;
   }
@@ -1247,32 +1248,45 @@ double Network::EvaluateApproxInferAccuracy(Dataset *dts, int num_samp) {
 
   int class_var_index = dts->class_var_index;
 
+  // draw "num_samp" samples TODO: difference
+  // TODO: for the function below, the step of drawing samples is inside the step of approximate inference
+  // TODO: it is better to use the same way
   vector<DiscreteConfig> samples = this->DrawSamplesByProbLogiSamp(num_samp);
   cout << "Finish drawing samples." << endl;
 
-  vector<int> ground_turths;
+  // construct the test data set with labels
+  vector<int> ground_truths;
   vector<DiscreteConfig> evidences;
   evidences.reserve(m);
-  ground_turths.reserve(m);
-  for (int i = 0; i < m; ++i) {
-    int e_num = num_nodes - 1, *e_index = new int[e_num], *e_value = new int[e_num];
+  ground_truths.reserve(m);
+
+  for (int i = 0; i < m; ++i) { // for each instance in the data set
+    // construct a test data set by removing the class variable
+    int e_num = num_nodes - 1;
+    int *e_index = new int[e_num];
+    int *e_value = new int[e_num];
     for (int j = 0; j < num_nodes; ++j) {
-      if (j == class_var_index) {continue;}
+      if (j == class_var_index) {
+        continue; // skip the class variable
+      }
       e_index[j < class_var_index ? j : j - 1] = j;
       e_value[j < class_var_index ? j : j - 1] = dts->dataset_all_vars[i][j];
     }
+    // convert to DiscreteConfig and construct the test set
     DiscreteConfig E = ArrayToDiscreteConfig(e_index, e_value, e_num);
     evidences.push_back(E);
+
+    // construct the ground truth
     int g = dts->dataset_all_vars[i][class_var_index];
-    ground_turths.push_back(g);
+    ground_truths.push_back(g);
+
     delete[] e_index;
     delete[] e_value;
   }
 
+  // predict the labels of the test instances TODO: difference in function
   vector<int> predictions = ApproxInferByProbLogiRejectSamp(evidences, class_var_index, samples);
-
-  double accuracy = Accuracy(ground_turths, predictions);
-
+  double accuracy = Accuracy(ground_truths, predictions);
   cout << '\n' << "Accuracy: " << accuracy << endl;
 
   gettimeofday(&end,NULL);
@@ -1297,29 +1311,39 @@ double Network::EvaluateLikelihoodWeightingAccuracy(Dataset *dts, int num_samp) 
 
   int class_var_index = dts->class_var_index;
 
-  vector<int> ground_turths;
+  // construct the test data set with labels
+  vector<int> ground_truths;
   vector<DiscreteConfig> evidences;
   evidences.reserve(m);
-  ground_turths.reserve(m);
-  for (int i = 0; i < m; ++i) {
-    int e_num = num_nodes - 1, *e_index = new int[e_num], *e_value = new int[e_num];
+  ground_truths.reserve(m);
+
+  for (int i = 0; i < m; ++i) { // for each instance in the data set
+    // construct a test data set by removing the class variable
+    int e_num = num_nodes - 1;
+    int *e_index = new int[e_num];
+    int *e_value = new int[e_num];
     for (int j = 0; j < num_nodes; ++j) {
-      if (j == class_var_index) {continue;}
+      if (j == class_var_index) {
+        continue; // skip the class variable
+      }
       e_index[j < class_var_index ? j : j - 1] = j;
       e_value[j < class_var_index ? j : j - 1] = dts->dataset_all_vars[i][j];
     }
+    // convert to DiscreteConfig and construct the test set
     DiscreteConfig E = ArrayToDiscreteConfig(e_index, e_value, e_num);
     evidences.push_back(E);
+
+    // construct the ground truth
     int g = dts->dataset_all_vars[i][class_var_index];
-    ground_turths.push_back(g);
+    ground_truths.push_back(g);
+
     delete[] e_index;
     delete[] e_value;
   }
 
+  // predict the labels of the test instances TODO: difference
   vector<int> predictions = ApproxinferByLikelihoodWeighting(evidences, class_var_index, num_samp);
-
-  double accuracy = Accuracy(ground_turths, predictions);
-
+  double accuracy = Accuracy(ground_truths, predictions);
   cout << '\n' << "Accuracy: " << accuracy << endl;
 
 
@@ -1877,7 +1901,7 @@ vector<int> Network::M(set<Node*> &set_nodes,
         Dataset *dts,
         map<Node*, map<set<Node*>, double>> &dynamic_program_for_F,
         map<pair<set<Node*>, vector<int>>,   pair<double, vector<pair<Node*, set<Node*>>>>> dynamic_program_for_Q,
-        map<set<Node*>, vector<int>> dynamic_program_for_M) { 
+        map<set<Node*>, vector<int>> dynamic_program_for_M) {
 
   if (set_nodes.empty()) { // M(∅) = ∅
     return vector<int> {};
