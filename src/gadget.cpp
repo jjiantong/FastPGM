@@ -147,11 +147,12 @@ bool Conflict(const DiscreteConfig *cfg1, const DiscreteConfig *cfg2) {
 bool OccurInCorrectOrder(int a, int b, vector<int> vec) {
   bool have_met_a = false, have_met_b = false;
   for (const auto &elem : vec) {
-    have_met_a = (have_met_a || (elem==a));
-    have_met_b = (have_met_b || (elem==b));
+    have_met_a = (have_met_a || (elem == a));
+    have_met_b = (have_met_b || (elem == b));
     if (have_met_b && !have_met_a) {
       return false;
-    } else if (have_met_b && have_met_a) {
+    }
+    else if (have_met_b && have_met_a) {
       return true;
     }
   }
@@ -241,6 +242,7 @@ int* BreadthFirstTraversalWithAdjacencyMatrix(int **graph, int num_nodes, int st
   int itResult = 0;
   queue<int> que;
   set<int> markSet;
+
   que.push(start);
   while (!que.empty()) {
     int pos = que.front();
