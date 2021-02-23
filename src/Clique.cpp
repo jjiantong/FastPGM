@@ -74,21 +74,32 @@ Clique* Clique::CopyWithoutPtr() {
   return c;
 }
 
-
+/*!
+ * @brief: a step of msg passing
+ * msg passes from downstream to upstream
+ * first collect the msgs from its downstream neighbors;
+ * then update the msg by multiplying its initial potential with all msgs received from its downstream neighbors
+ * (initial potential of a cluster/node is constructed via the product of factors that assigned to it)
+ * @return a msg, which is a factor
+ */
 Factor Clique::Collect() {
-  // First collect from its downstream, then update itself.
 
   for (auto &ptr_separator : set_neighbours_ptr) {
 
-    /** The message passes from downstream to upstream.
-     * Also, when it reaches a leaf, the only neighbour is the upstream,
+    /** when it reaches a leaf, the only neighbour is the upstream,
      * which can be viewed as the base case of recursive function.
      */
-    if (ptr_separator==ptr_upstream_clique) {continue;}
+    // all neighbor cliques contain the upstream clique and downstream clique(s)
+    // if the current neighbor "ptr_separator" is the upstream clique, not collect from it
+    // otherwise, collect the msg from "ptr_separator" and update the msg
+    if (ptr_separator == ptr_upstream_clique) {
+      continue;
+    }
 
+    // the current neighbor "ptr_separator" is a downstream clique
     ptr_separator->ptr_upstream_clique = this;  // Let the callee know the caller.
 
-    /** This is for continuous nodes
+    /** This is for continuous nodes TODO: double-check
      * If the next clique connected by this separator is a continuous clique,
      * then the program should not collect from it. All information needed from
      * the continuous clique has been pushed to the boundary when entering the evidence.
@@ -99,7 +110,11 @@ Factor Clique::Collect() {
     }
     if (reach_boundary) { continue; }
 
-    Factor f = ptr_separator->Collect();  // Collect from downstream.
+    // collect the msg f from downstream
+    Factor f = ptr_separator->Collect();
+    // update the msg by multiplying the current factor with f
+    // the current factor is the initial potential, or
+    // the product of the initial potential and factors received from other downstream neighbors
     UpdateUseMessage(f);  // Update itself.
   }
 
@@ -108,9 +123,10 @@ Factor Clique::Collect() {
 }
 
 /**
- * Distribute the information it knows to the downstream cliques.
+ * Distribute the information it knows to the downstream cliques. // TODO: to all neighbors include downstream and upstream cliques?
  * The reload version without parameter. Called on the selected root.
  */
+ // TODO: double-check
 void Clique::Distribute() {
   Factor f = ConstructMessage();
   for (auto &sep : set_neighbours_ptr) {
@@ -119,20 +135,23 @@ void Clique::Distribute() {
 }
 
 /**
- * Distribute the information it knows to the downstream cliques.
+ * @brief: a step of msg passing in clique trees
+ * distribute the information it knows to the downstream cliques; the msg passes from upstream to downstream
+ * first update the msg; then distribute the msgs to its downstream neighbors;
+ * @param f is in fact a factor received from its upstream clique
+ * @return a msg, which is a factor
  * The reload version with parameter. Called by recursion.
  */
 void Clique::Distribute(Factor f) {
   // If the next clique connected by this separator is a continuous clique,
-  // then the program should not distribute information to it.
+  // then the program should not distribute information to it.// TODO: double-check
   bool reach_boundary = false;
   for (const auto &next_clq_ptr : set_neighbours_ptr) {
     reach_boundary = !next_clq_ptr->pure_discrete;
   }
   if (reach_boundary) { return; }
 
-  // First update itself, then distribute to its downstream.
-
+  // update the msg by multiplying the current factor with f
   UpdateUseMessage(f);  // Update itself.
 
   // Prepare message for the downstream.
@@ -140,12 +159,16 @@ void Clique::Distribute(Factor f) {
 
   for (auto &ptr_separator : set_neighbours_ptr) {
 
-    // The message passes from upstream to downstream.
-    // Also, when it reaches a leaf, the only neighbour is the upstream,
-    // which can be viewed as the base case of recursive function.
-    if (ptr_separator == ptr_upstream_clique) {continue;}
+    // all neighbor cliques contain the upstream clique and downstream clique(s)
+    // if the current neighbor "ptr_separator" is the upstream clique, not distribute to it
+    // otherwise, distribute the msg to "ptr_separator"
+    if (ptr_separator == ptr_upstream_clique) {
+      continue;
+    }
 
+    // the current neighbor "ptr_separator" is a downstream clique
     ptr_separator->ptr_upstream_clique = this;  // Let the callee know the caller.
+    // distribute the msg to downstream
     ptr_separator->Distribute(distribute_factor); // Distribute to downstream.
 
   }
@@ -159,6 +182,7 @@ Factor Clique::SumOutExternalVars(Factor f) {
                                    this->set_disc_configs,
                                    this->map_potentials);
 
+  // get the variables that in "f" but not in "factor_of_this_clique"
   set<int> set_external_vars;
   set_difference(f.related_variables.begin(), f.related_variables.end(),
                  factor_of_this_clique.related_variables.begin(), factor_of_this_clique.related_variables.end(),
@@ -172,15 +196,16 @@ Factor Clique::SumOutExternalVars(Factor f) {
 }
 
 /**
- * @brief: multiple a clique with a factor
+ * @brief: multiply a clique with a factor
  */
 void Clique::MultiplyWithFactorSumOverExternalVars(Factor f) {
-  Factor factor_of_this_clique(related_variables, set_disc_configs, map_potentials);
-
+  // sum over the irrelevant variables of the clique
   f = SumOutExternalVars(f);
 
-  factor_of_this_clique = factor_of_this_clique.MultiplyWithFactor(f);
+  Factor factor_of_this_clique(related_variables, set_disc_configs, map_potentials); // the factor of the clique
+  factor_of_this_clique = factor_of_this_clique.MultiplyWithFactor(f); // multiply two factors
 //TODO: may need to perform sum over for "factor_of_this_clique"
+  // TODO: double-check: "related_variables" is not changed, "set_disc_configs" is also not changed?
   map_potentials = factor_of_this_clique.map_potentials;
 }
 

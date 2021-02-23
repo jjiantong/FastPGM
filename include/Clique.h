@@ -16,9 +16,6 @@
 
 typedef set< pair<int, int> > DiscreteConfig;
 
-/**
- *
- */
 class Clique {
 
  public:
@@ -27,10 +24,13 @@ class Clique {
   int clique_id;
   int clique_size;//the number of nodes in this clique
   bool pure_discrete;
-  set<int> related_variables;
-  set<DiscreteConfig> set_disc_configs;
-  map<DiscreteConfig, double> map_potentials;
-  set<Clique*> set_neighbours_ptr;
+
+  // the following three members are the same with the class "Factor"
+  set<int> related_variables; //the variables involved in this clique
+  set<DiscreteConfig> set_disc_configs; //all the configurations of the related variables
+  map<DiscreteConfig, double> map_potentials; //the potential of each discrete config
+
+  set<Clique*> set_neighbours_ptr; // neighbor cliques
 
   /**
    * In junction tree algorithm,
