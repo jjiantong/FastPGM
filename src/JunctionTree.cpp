@@ -22,28 +22,31 @@ JunctionTree::JunctionTree(Network *net, string elim_ord_strategy, bool elim_red
 
   int **direc_adjac_matrix = network->ConvertDAGNetworkToAdjacencyMatrix();
   Moralize(direc_adjac_matrix, network->num_nodes);
-  int **undirec_adjac_matrix = direc_adjac_matrix;  // Change a name because it has been moralized.
+  int **moral_graph_adjac_matrix = direc_adjac_matrix;
 
   // There are different ways of determining elimination ordering.
   if (elim_ord_strategy == "min-nei") {
-    elimination_ordering = MinNeighbourElimOrd(undirec_adjac_matrix, network->num_nodes);
-  } else if (elim_ord_strategy == "rev-topo") {
+    elimination_ordering = MinNeighbourElimOrd(moral_graph_adjac_matrix, network->num_nodes);
+  }
+  else if (elim_ord_strategy == "rev-topo") {
     elimination_ordering = network->GetReverseTopoOrd();
-  } else if (elim_ord_strategy == "custom") {
-    if (custom_elim_ord.size()!=net->num_nodes) {
+  }
+  else if (elim_ord_strategy == "custom") {
+    if (custom_elim_ord.size() != net->num_nodes) {
       fprintf(stderr, "Error in function [%s]\nSize of custom elimination"
                       "ordering and size of the network is not the same!", __FUNCTION__);
       exit(1);
     }
     elimination_ordering = custom_elim_ord;
-  } else {
+  }
+  else {
     fprintf(stderr, "The elimination ordering strategy should be one of the following:\n"
                     "{ min-nei, rev-topo, custom }.");
     exit(1);
   }
 
   //construct a clique for each node in the network
-  Triangulate(network, undirec_adjac_matrix, network->num_nodes, elimination_ordering, set_clique_ptr_container);
+  Triangulate(network, moral_graph_adjac_matrix, network->num_nodes, elimination_ordering, set_clique_ptr_container);
 
   //construct map from main variable to a clique
   GenMapElimVarToClique();
@@ -146,23 +149,32 @@ JunctionTree::JunctionTree(JunctionTree *jt) {
 
 
 /**
- * @brief: connect all the parents of a node
+ * @brief: moralization -> moral graph
+ * 1. connect all the parents of each node (connect all the v-structure)
+ * 2. directed graph -> undirected graph
  */
-void JunctionTree::Moralize(int **direc_adjac_matrix, int &num_nodes) {
+void JunctionTree::Moralize(int **direc_adjac_matrix, int &num_nodes) { //checked
   //TODO: double-check correctness
+  // TODO: can we just get parents of each node and marry them?
 
   // Find the parents that have common child(ren).
-  set<pair<int,int>> to_marry;
+  // if node x has more than 1 parent, ex., i, j and k,
+  // then we will find every one of them, and all of the
+  // (i, j) (i, k) (j, i) (j, k) (k, i) (k, j) will be inserted into "to_marry"
+  set<pair<int, int>> to_marry;
   #pragma omp parallel for collapse(2)
-  for (int i=0; i<num_nodes; ++i) {
-    for (int j=0; j<num_nodes; ++j) {
-      if (i==j) { continue; }
-      if (direc_adjac_matrix[i][j]==1) {
+  for (int i = 0; i < num_nodes; ++i) {
+    for (int j = 0; j < num_nodes; ++j) {
+      if (i == j) {
+        continue;
+      }
+      if (direc_adjac_matrix[i][j] == 1) {
         // "i" is a parent of "j"
         // The next step is to find other parents, "k", of "j"
-        for (int k=0; k<num_nodes; ++k) {
-          if (direc_adjac_matrix[k][j]==1) {
-            to_marry.insert(pair<int,int>(i,k));
+        for (int k = 0; k < num_nodes; ++k) {
+          // TODO: what if k = i?
+          if (direc_adjac_matrix[k][j] == 1) {
+            to_marry.insert(pair<int, int>(i, k));
           }
         }
       }
@@ -171,10 +183,12 @@ void JunctionTree::Moralize(int **direc_adjac_matrix, int &num_nodes) {
 
   // Making the adjacency matrix undirected.
   #pragma omp parallel for collapse(2)
-  for (int i=0; i<num_nodes; ++i) {
-    for (int j=0; j<num_nodes; ++j) {
-      if (i==j) { continue; }
-      if (direc_adjac_matrix[i][j]==1 || direc_adjac_matrix[j][i]==1) {
+  for (int i = 0; i < num_nodes; ++i) {
+    for (int j = 0; j < num_nodes; ++j) {
+      if (i==j) {
+        continue;
+      }
+      if (direc_adjac_matrix[i][j] == 1 || direc_adjac_matrix[j][i] == 1) {
         direc_adjac_matrix[i][j] = 1;
         direc_adjac_matrix[j][i] = 1;
       }
@@ -190,7 +204,7 @@ void JunctionTree::Moralize(int **direc_adjac_matrix, int &num_nodes) {
 /**
  * @brief: construct a map for ease of look up the clique
  */
-void JunctionTree::GenMapElimVarToClique() {
+void JunctionTree::GenMapElimVarToClique() { //checked
   for (const auto &c : set_clique_ptr_container) {
     map_elim_var_to_clique[c->elimination_variable_index] = c;
   }
@@ -200,20 +214,27 @@ void JunctionTree::GenMapElimVarToClique() {
  * @brief: Generate the elimination order by the number of neighbours.
  * The node with the minimum number of neighbours is eliminated first.
  */
-vector<int> JunctionTree::MinNeighbourElimOrd(int **adjac_matrix, int &num_nodes) {
+vector<int> JunctionTree::MinNeighbourElimOrd(int **adjac_matrix, int &num_nodes) { //checked
   //TODO: double-check correctness
   vector< pair<int,int> > to_be_sorted;
-  for (int i=0; i<num_nodes; ++i) {
-    pair<int,int> p;
+
+  // get the number of neighbors for each node
+  for (int i = 0; i < num_nodes; ++i) { // for each node
+    pair<int,int> p; // key: node id; value: number of neighbors
     p.first = i;
     p.second = 0;
-    for (int j=0; j<num_nodes; ++j) {
-      if (adjac_matrix[i][j]==1) {++p.second;}
+    for (int j = 0; j < num_nodes; ++j) {
+      if (adjac_matrix[i][j]==1) { // j is i's neighbor
+        ++p.second;
+      }
     }
     to_be_sorted.push_back(p);
   }
+
+  // sort by the number of neighbors from smallest to largest
   sort(to_be_sorted.begin(), to_be_sorted.end(), [](pair<int,int> a, pair<int,int> b){return a.second < b.second;});  // Using lambda expression.
   vector< pair<int,int> > &sorted = to_be_sorted;
+
   vector<int> result;
   result.reserve(sorted.size());
   for (auto &p : sorted) {
@@ -224,46 +245,57 @@ vector<int> JunctionTree::MinNeighbourElimOrd(int **adjac_matrix, int &num_nodes
 
 
 /**
- * @brief: generate a clique for each node based on the elim_ord.
+ * @brief: triangulation -> induced graph
+ * definition: no loops of length > 3 without a "bridge"/"chord"
+ * one way to construct a induced graph: select a node based on the "elim_ord", connect all its neighbors, and remove this node;
+ * the selected node should try to minimize the added edges, so the "elim_ord" may according to the number or neighbors
+ * (if we connect two nodes if they appeared in the same factor in a run of the VE algorithm, we can exactly get a induced graph)
+ * in this function, the purpose is to generate a clique while constructing the induced graph
  */
 void JunctionTree::Triangulate(Network *net,
                                int **adjac_matrix,
                                int &num_nodes,
                                vector<int> elim_ord,
-                               set<Clique*> &cliques) {
+                               set<Clique*> &cliques) { //checked
   //TODO: double check correctness
-  if (elim_ord.size()==0) {return;}
+  if (elim_ord.size() == 0) {
+    return;
+  }
+
   set<int> set_neighbours;
   set<Node*> set_node_ptrs_to_form_a_clique;
   int first_node_in_elim_ord = elim_ord.front();
+
+  // insert the first node in the elimination order into "set_node_ptrs_to_form_a_clique"
   set_node_ptrs_to_form_a_clique.insert(net->FindNodePtrByIndex(first_node_in_elim_ord));
-  for (int j=0; j<num_nodes; ++j) {
-    if (adjac_matrix[first_node_in_elim_ord][j]==1) {
+  // insert all its neighbors into "set_neighbours"
+  for (int j = 0; j < num_nodes; ++j) {
+    if (adjac_matrix[first_node_in_elim_ord][j] == 1) {
       set_neighbours.insert(j);
     }
   }
 
-  // Form a clique.
-  for (auto &nei : set_neighbours) {
-    for (auto &index2 : set_neighbours) {
-      if (nei!=index2) {
+  // Form a clique that contains
+  for (auto &neighbor : set_neighbours) {
+    for (auto &neighbor2 : set_neighbours) {
+      if (neighbor != neighbor2) {
         // Connect its neighbours to each other.
-        adjac_matrix[nei][index2] = 1;
-        adjac_matrix[index2][nei] = 1;
+        adjac_matrix[neighbor][neighbor2] = 1;
+        adjac_matrix[neighbor2][neighbor] = 1;
       }
     }
-    set_node_ptrs_to_form_a_clique.insert(net->FindNodePtrByIndex(nei));
+    set_node_ptrs_to_form_a_clique.insert(net->FindNodePtrByIndex(neighbor));
   }
 
+  // add the first node in the elimination order and all its neighbors into one clique
   cliques.insert(new Clique(set_node_ptrs_to_form_a_clique, first_node_in_elim_ord));
 
-  
   // Remove the first node in elimination ordering, which has already form a clique.
   elim_ord.erase(elim_ord.begin());
   // The node has been removed, so the edges connected to it should be removed too.
-  for (auto &nei : set_neighbours) {
-    adjac_matrix[first_node_in_elim_ord][nei] = 0;
-    adjac_matrix[nei][first_node_in_elim_ord] = 0;
+  for (auto &neighbor: set_neighbours) {
+    adjac_matrix[first_node_in_elim_ord][neighbor] = 0;
+    adjac_matrix[neighbor][first_node_in_elim_ord] = 0;
   }
 
   Triangulate(net, adjac_matrix, num_nodes, elim_ord, cliques);
@@ -272,8 +304,8 @@ void JunctionTree::Triangulate(Network *net,
 /**
  * @brief: remove the redundant cliques; if a clique is fully contained by another clique, then the clique can be removed.
  */
- //TODO: fix bugs
-void JunctionTree::ElimRedundantCliques() {
+ //TODO: fix bugs, but no use...
+void JunctionTree::ElimRedundantCliques() { //checked
   fprintf(stderr, "This operation, [%s], will cause lots of trouble and I can not solve them yet!\n"
                   "So, I just forbid the program to conduct this operation.", __FUNCTION__);
   return;
@@ -308,10 +340,10 @@ void JunctionTree::ElimRedundantCliques() {
 
 /**
  * @brief: the Junction Tree here looks like a linked list.
- * This is used for continuous varaibles, based on a tutorial or some unpulished work.
+ * This is used for continuous variables, based on a tutorial or some unpulished work.
  */
-void JunctionTree::FormListShapeJunctionTree(set<Clique*> &cliques) {
-  //TODO: double-check correctness
+void JunctionTree::FormListShapeJunctionTree(set<Clique*> &cliques) { //checked
+  //TODO: double-check correctness (continuous)
   // This method is described in
   // [Local Propagation in Conditional Gaussian Bayesian Networks (Cowell, 2005)]
   // section 3.2.
@@ -360,6 +392,7 @@ void JunctionTree::FormListShapeJunctionTree(set<Clique*> &cliques) {
 
 /**
  * @brief: construct a tree where each node is a clique and each edge is a separator.
+ * use Prim algorithm; the weights of edges is represented by the weights of the separators
  */
 void JunctionTree::FormJunctionTree(set<Clique*> &cliques) {
 //TODO: double-check correctness
@@ -451,7 +484,7 @@ void JunctionTree::FormJunctionTree(set<Clique*> &cliques) {
 /**
  * @brief: assign an id to each clique and separator
  */
-void JunctionTree::NumberTheCliquesAndSeparators() {
+void JunctionTree::NumberTheCliquesAndSeparators() {//checked
   int i = 0;
   for (auto c : set_clique_ptr_container) {
     c->clique_id = i++;
@@ -463,10 +496,10 @@ void JunctionTree::NumberTheCliquesAndSeparators() {
 }
 
 /**
- * @brief: each clique has a potential; the potentials of continuous and discrete cliques are computed differently
+ * @brief: each clique has a potential;
+ * the potentials of continuous and discrete cliques are computed differently
  */
-void JunctionTree::AssignPotentials() {
-//TODO: double-check correctness
+void JunctionTree::AssignPotentials() { //checked
   // todo: test the correctness of the continuous part (discrete part works correctly)
 
   // For purely discrete cliques, the potentials have been initialized to 1 on creation,
@@ -475,37 +508,51 @@ void JunctionTree::AssignPotentials() {
   // so we need to assign the CG regressions to these cliques. The method is described in
   // [Local Propagation in Conditional Gaussian Bayesian Networks (Cowell, 2005)], section 5.2.
 
-  // First, extract the information of nodes.
-  // Convert the probabilities of discrete nodes to factors, which make the "multiply" operation easier.
+  // 1, extract the information of nodes.
+  // generate all the factors of the network, which are the probabilities of discrete nodes given their parents
   // Extract the CG regressions of continuous nodes.
   vector<Factor> factors; // Can not use std::set, because Factor does not have definition on operator "<".
   vector<CGRegression> cgrs;
-  for (auto &id_node_ptr : network->map_idx_node_ptr) {
+
+  for (auto &id_node_ptr : network->map_idx_node_ptr) { // for each node of the network
     auto node_ptr = id_node_ptr.second;
     if (node_ptr->is_discrete) {
+      // add the factor that consists of this node and its parents
       factors.push_back(Factor(dynamic_cast<DiscreteNode*>(node_ptr), this->network));
-    } else {  // If the node is continuous.
+    }
+    else {  // If the node is continuous.
       cgrs.push_back(CGRegression(node_ptr, network->GetParentPtrsOfNode(node_ptr->GetNodeIndex())));
     }
   }
 
-  // Second, assign these factors and CG regressions to some appropriate cliques.
-  // Each factor and CG regression should be use only once.
+  // 2, (part of) BP algorithm
+  //    2.1 assign each factors and CG regressions to a clique
+  //    each factor and CG regression should be use only once
 
   // For potentials from discrete nodes, they should be assigned to purely discrete cliques.
-  for (auto &f : factors) {
-    for (auto &clique_ptr : set_clique_ptr_container) {
+  for (auto &f : factors) { // for each factor of the network
+    for (auto &clique_ptr : set_clique_ptr_container) { // for each clique of the graph
 
-      if (f.related_variables.empty() || clique_ptr->related_variables.empty()) { break; }
+      if (f.related_variables.empty() || clique_ptr->related_variables.empty()) {
+        break;
+      }
 
-      if (!clique_ptr->pure_discrete) { continue; }
+      if (!clique_ptr->pure_discrete) {
+        continue;
+      }
 
+      // get the variables that in the factor but not in the clique
       set<int> diff;
       set_difference(f.related_variables.begin(), f.related_variables.end(),
                      clique_ptr->related_variables.begin(), clique_ptr->related_variables.end(),
                      inserter(diff, diff.begin()));
-      // If diff.empty(), that means that the set of related variables of the clique is a superset of the factor's.
+      // If "diff" is empty, i.e., all the variables in the factor are in the clique,
+      // which means that the clique can accommodate the scope of the factor - satisfy the family preservation property of cluster graph
+      // (clique tree is a special case of cluster graph)
+      // so we can assign this factor to this clique
       if (diff.empty()) {
+        // 2.2 construct the initial potential of this clique,
+        // which is the product of factors that assigned to it
         clique_ptr->MultiplyWithFactorSumOverExternalVars(f);
         break;  // Ensure that each factor is used only once.
       }
@@ -543,7 +590,7 @@ void JunctionTree::AssignPotentials() {
  * So, we need to backup the tree and restore it after an inference.
  * Otherwise, we need to re-construct the tree each time we want to make inference.
  */
-void JunctionTree::BackUpJunctionTree() {
+void JunctionTree::BackUpJunctionTree() {//checked
   for (const auto &c : set_clique_ptr_container) {
     map_cliques_backup[c] = *c;
   }
@@ -593,10 +640,13 @@ void JunctionTree::LoadEvidenceAndMessagePassingUpdateJT(const DiscreteConfig &E
 //}
 
 /**
- * @brief: when inferencing, an evidence is given. The evidence needs to be loaded and propagate in the network.
+ * @brief: when inferring, an evidence is given. The evidence needs to be loaded and propagate in the network.
  */
 void JunctionTree::LoadDiscreteEvidence(const DiscreteConfig &E) {
-  if (E.empty()) { return; }
+  if (E.empty()) {
+    return;
+  }
+
   for (auto &e : E) {  // For each node's observation in E
     if (network->FindNodePtrByIndex(e.first)->is_discrete) {
       Clique *clique_ptr = map_elim_var_to_clique[e.first];
@@ -605,7 +655,8 @@ void JunctionTree::LoadDiscreteEvidence(const DiscreteConfig &E) {
           clique_ptr->map_potentials[comb] = 0;//conflict with the evidence; set the potential to 0.
         }
       }
-    } else {
+    }
+    else {
       fprintf(stderr, "Error in Function [%s]", __FUNCTION__);
       exit(1);
     }

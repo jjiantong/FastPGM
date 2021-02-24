@@ -7,7 +7,8 @@
 
 
 /**
- * @brief: construct a factor given a node; the factor consists of the node and all the existing related_variables.
+ * @brief: construct a factor given a node;
+ * the factor consists of the node and all the existing related_variables, i.e., all its parents.
  */
 Factor::Factor(DiscreteNode *disc_node, Network *net) {
   int node_index = disc_node->GetNodeIndex();
