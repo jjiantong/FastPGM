@@ -46,7 +46,7 @@ void Dataset::LoadLIBSVMDataAutoDetectConfig(string data_file_path, set<int> con
     int it = 0;   // id of the label is 0
 
     // check whether the label is continuous
-    if (cont_vars.find(0)==cont_vars.end()) {
+    if (cont_vars.find(0) == cont_vars.end()) {
       //the label is not continuous (i.e., classification task)
       // insert the value of label of one sample into "map_disc_vars_possible_values"
       // "parsed_sample.at(it)" is the value of label
@@ -55,7 +55,8 @@ void Dataset::LoadLIBSVMDataAutoDetectConfig(string data_file_path, set<int> con
       Value v;
       v.SetInt(stoi(parsed_sample.at(it)));
       dataset_y_vector.push_back(v);
-    } else {
+    }
+    else {
       //the label is continuous (i.e., regression task)
       // insert the value of label of one sample into "dataset_y_vector"
       Value v;
@@ -72,11 +73,12 @@ void Dataset::LoadLIBSVMDataAutoDetectConfig(string data_file_path, set<int> con
       int index = stoi(parsed_feature_val[0]);
       max_index_occurred = index > max_index_occurred ? index : max_index_occurred;
       Value v;
-      if (cont_vars.find(index)==cont_vars.end()) {//same as the processing of label TODO: maintain consistent, change the former code
+      if (cont_vars.find(index) == cont_vars.end()) {//same as the processing of label TODO: maintain consistent, change the former code
         int value = stoi(parsed_feature_val[1]);
         v.SetInt(value);
         map_disc_vars_possible_values[index].insert(value);
-      } else {
+      }
+      else {
         float value = stof(parsed_feature_val[1]);
         v.SetFloat(value);
       }

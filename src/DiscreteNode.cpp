@@ -232,7 +232,7 @@ double DiscreteNode:: GetProbability(int query_val, DiscreteConfig &parents_conf
   bool unseen_value = (set_discrete_parents_combinations.find(parents_config) == set_discrete_parents_combinations.end() ||
                        std::find(vec_potential_vals.begin(), vec_potential_vals.end(), query_val) == vec_potential_vals.end());
   if (unseen_value) {
-    fprintf(stdout, "In function [%s]: the given instance contains the value that has not been seen before.\n", __FUNCTION__);
+//    fprintf(stdout, "In function [%s]: the given instance contains the value that has not been seen before.\n", __FUNCTION__);
     double min_prob = 1;
     // traverse all potential values of child & all configurations of parents and compute all the probabilities
     // however, 1. getting probability for the same seen value will do the same computation

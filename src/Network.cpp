@@ -187,7 +187,8 @@ void Network::StructLearnCompData(Dataset *dts, bool print_struct, string algo, 
     //give this node a name
     if (dts->vec_var_names.size() == num_nodes) {
       node_ptr->node_name = dts->vec_var_names.at(i);
-    } else {
+    }
+    else {
       node_ptr->node_name = to_string(i);//use id as name
     }
 
@@ -636,7 +637,7 @@ bool Network::ContainCircle() {
 }
 
 /**
- * @brief: learn the weights or probability tables TODO:?
+ * @brief: learn the weights or probability tables TODO: check algorithms for parameter learning
  * @brief: get each node's conditional probability table
  */
 void Network::LearnParamsKnowStructCompData(const Dataset *dts, int alpha, bool print_params){
@@ -1175,7 +1176,7 @@ double Network::EvaluateVarElimAccuracy(Dataset *dts) {
 }
 
 //TODO: combine with the EvaluateVarElimAccuracy(Dataset *dts) function
-double Network::EvaluateAccuracyGivenAllCompleteInstances(Dataset *dts) {
+double Network:: EvaluateAccuracyGivenAllCompleteInstances(Dataset *dts) {
 
   cout << "==================================================" << '\n'
        << "Begin testing the trained network." << endl;

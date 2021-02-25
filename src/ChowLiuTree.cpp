@@ -86,7 +86,9 @@ double ChowLiuTree::ComputeMutualInformation(Node *Xi, Node *Xj, const Dataset *
   for (a = 0; a < ri; a++) {
     for (b = 0; b < rj; b++) {
       double temp = Pij[a][b] * log( Pij[a][b] / (Pi[a]*Pj[b]) );
-      if (!isnan(temp)) {    // There may be runtime error of divided by zero.
+      // may have error: call of overloaded ‘isnan(double&)’ is ambiguous
+      // qualify "isnan" explicitly, by calling either "::isnan" or "std::isnan"
+      if (!::isnan(temp)) {    // There may be runtime error of divided by zero.
         mutualInformation += temp;
       }
     }
