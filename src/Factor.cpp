@@ -72,19 +72,19 @@ Factor Factor::MultiplyWithFactor(Factor second_factor) {
   newFactor.related_variables.insert(second_factor.related_variables.begin(),second_factor.related_variables.end());
 
   //find common variables from two sets
-  //TODO: remove set intersection; not used.
-  set<int> common_related_variables;
-  set_intersection(this->related_variables.begin(),this->related_variables.end(),
-            second_factor.related_variables.begin(),second_factor.related_variables.end(),
-            std::inserter(common_related_variables,common_related_variables.begin()));
+//  set<int> common_related_variables;
+//  set_intersection(this->related_variables.begin(),this->related_variables.end(),
+//            second_factor.related_variables.begin(),second_factor.related_variables.end(),
+//            std::inserter(common_related_variables,common_related_variables.begin()));
 
   for (auto first: set_disc_config) {
     for (auto second : second_factor.set_disc_config) {
 
       // If two combinations have different values on common variables,
       // which means that they conflict, then these two combinations can not form a legal entry.
-      if (!FirstCompatibleSecond(&first, &second)) continue;//TODO: use "Conflict" function.
-
+      if (Conflict(&first, &second)) {
+        continue;
+      }
       DiscreteConfig new_comb;
       new_comb.insert(first.begin(),first.end());
       new_comb.insert(second.begin(),second.end());
@@ -92,7 +92,6 @@ Factor Factor::MultiplyWithFactor(Factor second_factor) {
       newFactor.map_potentials[new_comb] = this->map_potentials[first] * second_factor.map_potentials[second];
     }
   }
-
   return newFactor;
 }
 
@@ -141,6 +140,41 @@ Factor Factor::SumOverVar(int index) {
 Factor Factor::SumOverVar(DiscreteNode *node) {
   return SumOverVar(node->GetNodeIndex());
 }
+
+/*!
+ * @brief: factor reduction given evidence
+ * @example:    a0 b0 c0    0.3             a0 b0 c0    0.3
+ *              a0 b0 c1    0.7             a0 b0 c1    0.7
+ *              a0 b1 c0    0.4     -->     a0 b1 c0    0.4
+ *              a0 b1 c1    0.6             a0 b1 c1    0.6
+ *              a1 b0 c0    0.1
+ *              a1 b0 c1    0.9         (if we get the evidence that a = 0,
+ *              a1 b1 c0    0.2         the line that conflict with this evidence will be removed)
+ *              a1 b1 c1    0.8
+ * the scope of the reduced factor actually becomes to be {b, c}
+ */
+Factor Factor::FactorReduction(DiscreteConfig evidence) { //set< pair<int, int> >
+  Factor newFactor(related_variables, set_disc_config, map_potentials);
+
+  for (auto &e: evidence) { // for each observation of variable
+    // if this factor is related to the observation
+    if (newFactor.related_variables.find(e.first) != newFactor.related_variables.end()) {
+      newFactor.related_variables.erase(e.first); //TODO
+      for (auto &comb: newFactor.set_disc_config) { // for each discrete config of this factor
+        // if this config and the evidence have different values on common variables,
+        // which means that they conflict, then this config will be removed
+        if (comb.find(e) == comb.end()) {
+          // TODO: double-check: set to 0 or remove?
+//          newFactor.map_potentials[comb] = 0; //TODO
+          newFactor.set_disc_config.erase(comb); //TODO
+          newFactor.map_potentials.erase(comb); //TODO
+        }
+      }
+    }
+  }
+  return newFactor;
+}
+
 
 /**
  * @brief: convert weight/potential into probability

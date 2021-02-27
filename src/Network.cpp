@@ -783,9 +783,6 @@ void Network::LoadEvidenceIntoFactors(vector<Factor> *factors_list,
       for (const auto &e : E) {  // For each node's observation in E
         // If this factor is related to the observation
         if (f.related_variables.find(e.first) != f.related_variables.end()) {
-          /** For example:  X --> Y (evidence/obs) --> Z --> A (target node) --> B --> C --> E --> F (evidence/observation) --> G
-           * Only the factors of Z and G are true in the above if statement, because Z and G have configurations containing evidence.
-           * **/ // TODO: what about Y and F?
           // Update each row of map_potentials
           for (const auto &comb : f.set_disc_config) {
             // If this entry is not compatible to the evidence -> reduction
@@ -952,7 +949,6 @@ Factor Network::VarElimInferReturnPossib(DiscreteConfig evid, Node *target_node,
  * @param evidence: full evidence/observation (i.e. a dense instance)
  * @return map: key is the possible value of the target node; value is the probability of the target node with a specific value
  */
- // TODO: i think it is to compute joint distribution
 map<int, double> Network::GetMarginalProbabilities(int target_var_index, DiscreteConfig evidence) {
   if (!this->pure_discrete) {
     fprintf(stderr, "Function [%s] only works on pure discrete networks!", __FUNCTION__);
@@ -965,40 +961,24 @@ map<int, double> Network::GetMarginalProbabilities(int target_var_index, Discret
   map<int, double> result;
 
   DiscreteNode *target_node = (DiscreteNode*) FindNodePtrByIndex(target_var_index);
-  auto vec_complete_instance_values = SparseInstanceFillZeroToDenseInstance(evidence); // vector<int>
+  // TODO: "SparseInstanceFillZeroToDenseInstance" here is no use, because "evidence" is dense
+  auto vec_complete_instance_values = SparseInstanceFillZeroToDenseInstance(evidence);
 
   // compute the probability of each possible value of the target node
   for (int i = 0; i < target_node->GetDomainSize(); ++i) { // for each possible value of the target node (e.g. X=0)
-    // add the ith value of the target node into "vec_complete_instance_values" and "evidence"
+    // add the ith value of the target node into "vec_complete_instance_values"
     vec_complete_instance_values.at(target_var_index) = target_node->vec_potential_vals.at(i);
-    // TODO: "evidence" is not used
-    evidence.insert(DiscVarVal(target_var_index, target_node->vec_potential_vals.at(i)));
 
     // use chain rule to get the joint distribution (multiply "num_nodes" factors)
     result[i] = 0;
     for (int j = 0; j < num_nodes; ++j) { // for each node
-      // e.g. Y
       DiscreteNode *node_j = (DiscreteNode*) FindNodePtrByIndex(j);
-      // e.g. X = 0. related to the target node X, then the value is the ith possible value i.e. 0.
       DiscreteConfig par_config = node_j->GetDiscParConfigGivenAllVarValue(vec_complete_instance_values);
-
-      // TODO: merge if/else
-      double temp_prob = 0;
-      if (j == target_var_index) {//e.g. false
-        temp_prob = target_node->GetProbability(target_node->vec_potential_vals.at(i), par_config);
-      }
-      else {//Y=1 given X = 0
-        int observe_value = vec_complete_instance_values.at(j); // e.g. observation of Y
-        temp_prob = node_j->GetProbability(observe_value, par_config); // e.g. P(Y=observation|X=0)
-      }
-
+      // compute the probability of node j given its parents
+      double temp_prob = node_j->GetProbability(vec_complete_instance_values.at(j), par_config);
       // note: use log!! so it is not "+=", it is in fact "*="..
       result[i] += log(temp_prob);
     }
-
-    // remove the ith value of the target node
-    // TODO: "evidence" is not used
-    evidence.erase(DiscVarVal(target_var_index, target_node->vec_potential_vals.at(i)));
   }//end for each possible value of the target node
 
   for (int i = 0; i < target_node->GetDomainSize(); ++i) {
@@ -1054,9 +1034,6 @@ vector<int> Network::PredictUseVarElimInfer(vector<DiscreteConfig> evidences, in
   for (int i = 0; i < size; ++i) {
 #pragma omp critical
     { ++progress; }
-//    string progress_detail = to_string(progress) + '/' + to_string(size);
-//    fprintf(stdout, "%s\n", progress_detail.c_str());
-//    fflush(stdout);
 
     if (progress % every_1_of_20 == 0) {
       string progress_percentage = to_string((double)progress/size * 100) + "%...\n";
@@ -1077,7 +1054,7 @@ vector<int> Network::PredictUseVarElimInfer(vector<DiscreteConfig> evidences, in
  * @return label of the target variable
  */
 int Network::PredictLabelBruteForce(DiscreteConfig E, int Y_index) {
-  // get map "distribution"; key: possible value of Y_index; value: probability under evidence E and value of Y_index
+  // get map "distribution"; key: possible value of Y_index; value: probability of evidence E and possible value of Y_index
   map<int, double> distribution = GetMarginalProbabilities(Y_index, E);
   // find the label which has the max probability
   int label_index = ArgMax(distribution);
@@ -1105,9 +1082,6 @@ vector<int> Network::PredictUseSimpleBruteForce(vector<DiscreteConfig> evidences
   for (int i = 0; i < size; ++i) {
 #pragma omp critical
     { ++progress; }
-//    string progress_detail = to_string(progress) + '/' + to_string(size);
-//    fprintf(stdout, "%s\n", progress_detail.c_str());
-//    fflush(stdout);
 
     if (progress % every_1_of_20 == 0) {
       string progress_percentage = to_string((double)progress/size * 100) + "%...\n";
@@ -1549,9 +1523,6 @@ vector<int> Network::ApproxinferByLikelihoodWeighting(vector<DiscreteConfig> evi
   for (int i = 0; i < size; ++i) {
 #pragma omp critical
     { ++progress; }
-//    string progress_detail = to_string(progress) + '/' + to_string(size);
-//    fprintf(stdout, "%s\n", progress_detail.c_str());
-//    fflush(stdout);
 
     if (progress % every_1_of_20 == 0) {
       string progress_percentage = to_string((double)progress/size * 100) + "%...\n";
@@ -1762,9 +1733,6 @@ vector<int> Network::ApproxInferByProbLogiRejectSamp(vector<DiscreteConfig> evid
   for (int i = 0; i < size; ++i) {
 #pragma omp critical
     { ++progress; }
-//    string progress_detail = to_string(progress) + '/' + to_string(size);
-//    fprintf(stdout, "%s\n", progress_detail.c_str());
-//    fflush(stdout);
 
     if (progress % every_1_of_20 == 0) {
       string progress_percentage = to_string((double)progress/size * 100) + "%...\n";

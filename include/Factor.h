@@ -36,6 +36,7 @@ class Factor {//this is used only for discrete nodes;
   Factor MultiplyWithFactor(Factor second_factor);
   Factor SumOverVar(DiscreteNode *);
   Factor SumOverVar(int);
+  Factor FactorReduction(DiscreteConfig evidence);
   void Normalize();
 
   void PrintPotentials() const;

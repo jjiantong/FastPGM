@@ -41,14 +41,14 @@ protected:
 
 TEST_F(ExperimentOnA1a, ve) {
     cout << "hhhhh" << endl;
-//    double accuracy = network->EvaluateVarElimAccuracy(tester);
-//    EXPECT_GT(accuracy, 0.8230);
+    double accuracy = network->EvaluateVarElimAccuracy(tester);
+    EXPECT_GT(accuracy, 0.8230);
 }
 
-//TEST_F(ExperimentOnA1a, brute_force) {
-//    double accuracy = network->EvaluateAccuracyGivenAllCompleteInstances(tester);
-//    EXPECT_GT(accuracy, 0.8230);
-//}
+TEST_F(ExperimentOnA1a, brute_force) {
+    double accuracy = network->EvaluateAccuracyGivenAllCompleteInstances(tester);
+    EXPECT_GT(accuracy, 0.8230);
+}
 //
 //TEST_F(ExperimentOnA1a, likelihood_weighing) {
 //    double accuracy = network->EvaluateLikelihoodWeightingAccuracy(tester, 50);
