@@ -152,7 +152,7 @@ bool OccurInCorrectOrder(int a, int b, vector<int> vec) {
     if (have_met_b && !have_met_a) {
       return false;
     }
-    else if (have_met_b && have_met_a) {
+    else if (!have_met_b && have_met_a) {
       return true;
     }
   }

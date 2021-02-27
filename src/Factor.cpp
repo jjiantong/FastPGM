@@ -102,14 +102,15 @@ Factor Factor::MultiplyWithFactor(Factor second_factor) {
  */
 Factor Factor::SumOverVar(int index) {
   Factor newFactor;
+
   this->related_variables.erase(index);
   newFactor.related_variables = this->related_variables;//new set of related variables
-  for (auto config : set_disc_config) { // check each of the configurations
 
+  for (auto config : set_disc_config) { // check each of the configurations
     //check if this configuration needs to be sum over
     pair<int, int> pair_to_be_erased;
     for (auto p : config) {
-      if (p.first==index) {//this configuration contains the value of the variable which needs to be sum over.
+      if (p.first == index) { //this configuration contains the value of the variable which needs to be sum over.
         pair_to_be_erased = p;
         break;
       }
@@ -121,7 +122,7 @@ Factor Factor::SumOverVar(int index) {
 
     //update potential for new factor; similar to marginalise a variable.
     // this (result) config is existed: add the new probability/potential
-    if (newFactor.set_disc_config.find(config)!=newFactor.set_disc_config.end()) {
+    if (newFactor.set_disc_config.find(config) != newFactor.set_disc_config.end()) {
       newFactor.map_potentials[config] += temp;
     }
     // cannot find this config: insert and initialize

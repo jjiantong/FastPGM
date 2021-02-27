@@ -45,35 +45,35 @@ void Dataset::LoadLIBSVMDataAutoDetectConfig(string data_file_path, set<int> con
     vector<string> parsed_sample = Split(sample, " ");
     int it = 0;   // id of the label is 0
 
+    Value v; // to insert the value of label of one sample into "dataset_y_vector"
     // check whether the label is continuous
     if (cont_vars.find(0) == cont_vars.end()) {
       //the label is not continuous (i.e., classification task)
+      int value = stoi(parsed_sample.at(it)); // the value of label
+      v.SetInt(value);
       // insert the value of label of one sample into "map_disc_vars_possible_values"
-      // "parsed_sample.at(it)" is the value of label
-      map_disc_vars_possible_values[class_var_index].insert(stoi(parsed_sample.at(it)));
-      // insert the value of label of one sample into "dataset_y_vector"
-      Value v;
-      v.SetInt(stoi(parsed_sample.at(it)));
-      dataset_y_vector.push_back(v);
+      map_disc_vars_possible_values[class_var_index].insert(value);
     }
     else {
       //the label is continuous (i.e., regression task)
-      // insert the value of label of one sample into "dataset_y_vector"
-      Value v;
-      v.SetFloat(stof(parsed_sample.at(it)));
-      dataset_y_vector.push_back(v);
-    }//end storing the label of the data set
+      float value = stof(parsed_sample.at(it)); // the value of label
+      v.SetFloat(value);
+    }
+    dataset_y_vector.push_back(v); // insert the value of label into "dataset_y_vector"
 
-    vector<VarVal> single_sample_vector;
+    vector<VarVal> single_sample_vector; // one instance
     for (++it; it < parsed_sample.size(); ++it) {
       // Each element is in the form of "feature_index:feature_value".
       string feature_val = parsed_sample.at(it);
+
       // split the feature index and the feature value using ":"
       vector<string> parsed_feature_val = Split(feature_val, ":");
       int index = stoi(parsed_feature_val[0]);
       max_index_occurred = index > max_index_occurred ? index : max_index_occurred;
+
+      //same as the processing of label
       Value v;
-      if (cont_vars.find(index) == cont_vars.end()) {//same as the processing of label TODO: maintain consistent, change the former code
+      if (cont_vars.find(index) == cont_vars.end()) {
         int value = stoi(parsed_feature_val[1]);
         v.SetInt(value);
         map_disc_vars_possible_values[index].insert(value);
@@ -83,21 +83,34 @@ void Dataset::LoadLIBSVMDataAutoDetectConfig(string data_file_path, set<int> con
         v.SetFloat(value);
       }
       VarVal var_value(index, v);
+
       single_sample_vector.push_back(var_value);
     }
     dataset_X_vector.push_back(single_sample_vector);
+
     getline(in_file, sample);
   }
 
   // vector_dataset_all_vars: vector<vector<VarVal>>; label + feature
   vector_dataset_all_vars = dataset_X_vector;
   //insert label to the beginning of each instance
-  for (int i=0; i<vector_dataset_all_vars.size(); ++i) {
+  for (int i = 0; i < vector_dataset_all_vars.size(); ++i) {
     vector_dataset_all_vars.at(i).insert(
             vector_dataset_all_vars.at(i).begin(),
             VarVal(class_var_index,dataset_y_vector.at(i))
     );
   }
+
+//  cout << endl << "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~" << '\n'
+//       << "The vector \"vector_dataset_all_vars\": " << endl;
+//  for (auto instance: vector_dataset_all_vars) {
+//    cout << "instance: ";
+//    for (auto feature: instance) {
+//      cout << feature.first << ",";
+//    }
+//    cout << endl;
+//  }
+//  cout << endl;
 
   num_instance = vector_dataset_all_vars.size();
   num_vars = max_index_occurred + 1;//the number of variables of the data set
@@ -110,10 +123,9 @@ void Dataset::LoadLIBSVMDataAutoDetectConfig(string data_file_path, set<int> con
   }
 
   //discrete variable domain construction, whether a variable is continuous
-  for (int i=0; i<num_vars; ++i) {
-    // for features
-    if (i!=class_var_index) {
-      if (cont_vars.find(i)==cont_vars.end()) {
+  for (int i = 0; i < num_vars; ++i) {
+    if (i != class_var_index) { // for each feature
+      if (cont_vars.find(i) == cont_vars.end()) { // for each discrete feature
         // Because features of LIBSVM format do not record the value of 0, we need to add it in.
         map_disc_vars_possible_values[i].insert(0);
       }
@@ -127,6 +139,16 @@ void Dataset::LoadLIBSVMDataAutoDetectConfig(string data_file_path, set<int> con
   if (cont_vars.empty()) {//the data set only contains discrete variables.
     ConvertLIBSVMVectorDatasetIntoIntArrayDataset();
   }
+
+//  cout << endl << "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~" << '\n'
+//       << "The matrix \"dataset_all_vars\": " << endl;
+//  for (int i = 0; i < num_instance; i++) {
+//    for (int j = 0; j < num_vars; j++) {
+//      cout << dataset_all_vars[i][j] << ",";
+//    }
+//    cout << endl;
+//  }
+//  cout << endl;
 
   cout << "Finish loading data. " << '\n'
        << "Number of instances: " << num_instance << ". \n"

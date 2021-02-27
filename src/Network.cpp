@@ -166,7 +166,7 @@ void Network::ConstructNaiveBayesNetwork(Dataset *dts) {
  * @param max_num_parents:      a node can only has max_num_parents (to limit the # of possible networks)
  */
 void Network::StructLearnCompData(Dataset *dts, bool print_struct, string algo, string topo_ord_constraint, int max_num_parents) {
-  fprintf(stderr, "Not be completely implemented yet!");//TODO: most of the functionalities have been implemented; "algo" hasn't been used.
+  fprintf(stderr, "Not be completely implemented yet!");//TODO: most of the functions have been implemented; "algo" hasn't been used.
 
   cout << "==================================================" << '\n'
        << "Begin structural learning with complete data......" << endl;
@@ -742,7 +742,7 @@ vector<int> Network::SimplifyDefaultElimOrd(DiscreteConfig evidence) {//TODO: us
 }
 
 /**
- * @brief: Factor is a class; construct a set of factors using a node and an elimination order; used in Junction Tree
+ * @brief: Factor is a class; construct a set of factors using a node and an elimination order
  * @param Z: a set of nodes identified by IDs; Z is the elimination order.
  * @param Y: a node
  * @return: a set of Factors, where each factor corresponds to a node; first Y (target node), then nodes ordered by Z
@@ -758,8 +758,8 @@ vector<Factor> Network::ConstructFactors(vector<int> Z, Node *Y) {
 }
 
 /**
- * @brief: update the probabilities/weights of all the factors related to the nodes between the target node and node with the evidence/observation
- * @param factors_list: a list factors related to the nodes between the target node and the node with evidence/observation
+ * @brief: update the probabilities/weights of all the factors related to the nodes between the target node and the evidence/observation
+ * @param factors_list: a list factors related to the nodes between the target node and the evidence/observation
  * @param E: a new observation
  * @param all_related_vars: all the related variables between the target node and the node with the evidence/observation
  */
@@ -781,11 +781,11 @@ void Network::LoadEvidenceIntoFactors(vector<Factor> *factors_list,
     for (int i = 0; i < factors_list->size(); ++i) {
       Factor &f = factors_list->at(i);   // For each factor. "std::vector::at" returns reference.
       for (const auto &e : E) {  // For each node's observation in E
-        // If this factor is related to this node with observation
+        // If this factor is related to the observation
         if (f.related_variables.find(e.first) != f.related_variables.end()) {
           /** For example:  X --> Y (evidence/obs) --> Z --> A (target node) --> B --> C --> E --> F (evidence/observation) --> G
            * Only the factors of Z and G are true in the above if statement, because Z and G have configurations containing evidence.
-           * **/
+           * **/ // TODO: what about Y and F?
           // Update each row of map_potentials
           for (const auto &comb : f.set_disc_config) {
             // If this entry is not compatible to the evidence -> reduction
@@ -813,7 +813,7 @@ void Network::LoadEvidenceIntoFactors(vector<Factor> *factors_list,
       // so what we need to do is to eliminate these variables before the main variable elimination (VE) process.
       set<int> related_vars_of_f = f.related_variables;
       for (auto &v : related_vars_of_f) { // for each related variables of the factor f
-        if (all_related_vars.find(v) == all_related_vars.end()) {
+        if (all_related_vars.find(v) == all_related_vars.end()) { // if v is not in the elimination order
           f = f.SumOverVar(v);//X and G will be sum over, i.e. eliminate X and G given the evidence/observations
         }
       }
@@ -824,7 +824,8 @@ void Network::LoadEvidenceIntoFactors(vector<Factor> *factors_list,
 }
 
 /**
- * @brief: variable elimination (VE): gradually eliminate variables until only one (i.e. the target node) left
+ * @brief: the main variable elimination (VE) process
+ * gradually eliminate variables until only one (i.e. the target node) left
  */
 Factor Network::SumProductVarElim(vector<Factor> factors_list, vector<int> elim_order) {
   for (int i = 0; i < elim_order.size(); ++i) { // consider each node i according to the elimination order
@@ -840,7 +841,7 @@ Factor Network::SumProductVarElim(vector<Factor> factors_list, vector<int> elim_
      */
     for (auto it = factors_list.begin(); it != factors_list.end(); /* no ++it */) {
       // if the factor "it" is related to the node "elim_order[i]" (i.e., the node to be eliminated now)
-      if ((*it).related_variables.find(nodePtr->GetNodeIndex())!=(*it).related_variables.end()) {
+      if ((*it).related_variables.find(nodePtr->GetNodeIndex()) != (*it).related_variables.end()) {
         tempFactorsList.push_back(*it);
         factors_list.erase(it);
         continue;
@@ -850,8 +851,8 @@ Factor Network::SumProductVarElim(vector<Factor> factors_list, vector<int> elim_
       }
     }
 
-    //merge all the factors in tempFactorsList into one factor
-    while(tempFactorsList.size()>1) {
+    // merge all the factors in tempFactorsList into one factor
+    while(tempFactorsList.size() > 1) {
       // every time merge two factors into one
       Factor temp1, temp2, product;
       temp1 = tempFactorsList.back(); // get the last element
@@ -875,7 +876,7 @@ Factor Network::SumProductVarElim(vector<Factor> factors_list, vector<int> elim_
    *   about the same node which is the query node Y.
    *   When it happens, we need to multiply these several factors.
    */
-  while (factors_list.size()>1) {//TODO: reuse the code of the while loop above
+  while (factors_list.size() > 1) {//TODO: reuse the code of the while loop above
     Factor temp1, temp2, product;
     temp1 = factors_list.back();
     factors_list.pop_back();
@@ -898,13 +899,19 @@ Factor Network::SumProductVarElim(vector<Factor> factors_list, vector<int> elim_
  */
 Factor Network::VarElimInferReturnPossib(DiscreteConfig evid, Node *target_node, vector<int> elim_order) {
 
+//  cout << endl << "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~" << '\n'
+//       << "The evidence node: " << endl;
+//  for (auto e: evid) {
+//    cout << e.first << ", ";
+//  }
+
   if (elim_order.empty()) {
+    // call "ChowLiuTree::SimplifyDefaultElimOrd"; "elim_order" is the reverse topological order removing barren nodes and m-separated nodes
     elim_order = SimplifyDefaultElimOrd(evid);
   }
 
-  /**
-   * the factor list corresponds to all the nodes which are between the target node and the observation/evidence.
-   * **/
+  // "factorsList" corresponds to all the nodes which are between the target node and the observation/evidence
+  // because we have removed barren nodes and m-separated nodes
   vector<Factor> factorsList = ConstructFactors(elim_order, target_node);
 
   //--------------------------------------------------------------------------------
@@ -929,11 +936,12 @@ Factor Network::VarElimInferReturnPossib(DiscreteConfig evid, Node *target_node,
   }
   //--------------------------------------------------------------------------------
 
-  //load evidence function below returns a factorsList with fewer configurations.
+  // load evidence function below returns a factorsList with fewer configurations.
   LoadEvidenceIntoFactors(&factorsList, evid, all_related_vars);
 
-  //compute the probability table of the target node
+  // compute the probability table of the target node
   Factor target_node_factor = SumProductVarElim(factorsList, elim_order);
+  // renormalization
   target_node_factor.Normalize();
 
   return target_node_factor;
@@ -944,7 +952,7 @@ Factor Network::VarElimInferReturnPossib(DiscreteConfig evid, Node *target_node,
  * @param evidence: full evidence/observation (i.e. a dense instance)
  * @return map: key is the possible value of the target node; value is the probability of the target node with a specific value
  */
- // TODO: why marginal? i think it is to compute joint distribution
+ // TODO: i think it is to compute joint distribution
 map<int, double> Network::GetMarginalProbabilities(int target_var_index, DiscreteConfig evidence) {
   if (!this->pure_discrete) {
     fprintf(stderr, "Function [%s] only works on pure discrete networks!", __FUNCTION__);
@@ -1150,7 +1158,7 @@ double Network::EvaluateVarElimAccuracy(Dataset *dts) {
     }
     // convert to DiscreteConfig and construct the test set
     DiscreteConfig E = ArrayToDiscreteConfig(e_index, e_value, e_num);
-    evidences.push_back(E);
+    evidences.push_back(E); // TODO: "evidence" contains values of all the variables...?
 
     // construct the ground truth
     int g = dts->dataset_all_vars[i][class_var_index];
