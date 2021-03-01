@@ -39,14 +39,18 @@ protected:
     Network *network;
 };
 
-TEST_F(ExperimentOnA1a, ve) {
-    cout << "hhhhh" << endl;
-    double accuracy = network->EvaluateVarElimAccuracy(tester);
-    EXPECT_GT(accuracy, 0.8230);
-}
+//TEST_F(ExperimentOnA1a, ve) {
+//    double accuracy = network->EvaluateVarElimAccuracy(tester);
+//    EXPECT_GT(accuracy, 0.8230);
+//}
+//
+//TEST_F(ExperimentOnA1a, brute_force) {
+//    double accuracy = network->EvaluateAccuracyGivenAllCompleteInstances(tester);
+//    EXPECT_GT(accuracy, 0.8230);
+//}
 
-TEST_F(ExperimentOnA1a, brute_force) {
-    double accuracy = network->EvaluateAccuracyGivenAllCompleteInstances(tester);
+TEST_F(ExperimentOnA1a, my_brute_force) {
+    double accuracy = network->EvaluateBruteForceAccuracy(tester);
     EXPECT_GT(accuracy, 0.8230);
 }
 //

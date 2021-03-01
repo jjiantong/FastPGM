@@ -99,10 +99,14 @@ class Network {//this class is used by both the customized networks and networks
   Factor SumProductVarElim(vector<Factor> factors_list, vector<int> elim_order);
   Factor VarElimInferReturnPossib(DiscreteConfig evid, Node *target_node, vector<int> elim_order=vector<int>{});
 
-  map<int, double> GetMarginalProbabilities(int target_var_index, DiscreteConfig evidence);
+  map<int, double> GetMarginalProbabilitiesUseVE(int target_var_index, DiscreteConfig evidence);
+  Factor GetMarginalProbabilitiesBruteForce(int target_var_index, DiscreteConfig evidence);
 
-  int PredictLabelBruteForce(DiscreteConfig E, int Y_index);
-  vector<int> PredictUseSimpleBruteForce(vector<DiscreteConfig> evidences, int target_node_idx);
+  int PredictDirectly(DiscreteConfig E, int Y_index);
+  vector<int> PredictDirectly(vector<DiscreteConfig> evidences, int target_node_idx);
+
+  int PredictUseBruteForce(DiscreteConfig evid, int target_node_idx);
+  vector<int> PredictUseBruteForce(vector<DiscreteConfig> evidences, int target_node_idx);
 
   int PredictUseVarElimInfer(DiscreteConfig evid, int target_node_idx, vector<int> elim_order=vector<int>{});
   vector<int> PredictUseVarElimInfer(vector<DiscreteConfig> evidences, int target_node_idx, vector<vector<int>> elim_orders=vector<vector<int>>{});
@@ -125,7 +129,9 @@ class Network {//this class is used by both the customized networks and networks
 
   // ========== Evaluation ==========
   double EvaluateVarElimAccuracy(Dataset *dts);
+  double EvaluateBruteForceAccuracy(Dataset *dts);
   double EvaluateAccuracyGivenAllCompleteInstances(Dataset *dts);
+  double EvaluateAccuracyBruteForce(Dataset *dts);
   double EvaluateApproxInferAccuracy(Dataset *dts, int num_samp);
   double EvaluateLikelihoodWeightingAccuracy(Dataset *dts, int num_samp);
 

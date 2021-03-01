@@ -863,6 +863,7 @@ Factor Network::SumProductVarElim(vector<Factor> factors_list, vector<int> elim_
 
     // eliminate variable "nodePtr" by summation of the factor "tempFactorsList.back()" over "nodePtr"
     Factor newFactor = tempFactorsList.back().SumOverVar(dynamic_cast<DiscreteNode*>(nodePtr));
+    // TODO: factors_list.pop_back()?
     factors_list.push_back(newFactor);
   } // finish eliminating variables and only one variable left
 
@@ -948,8 +949,9 @@ Factor Network::VarElimInferReturnPossib(DiscreteConfig evid, Node *target_node,
  * @brief: for inference given a target variable id and an (full) evidence/observation.
  * @param evidence: full evidence/observation (i.e. a dense instance)
  * @return map: key is the possible value of the target node; value is the probability of the target node with a specific value
+ * product of factors seems to compute the joint distribution, but we renormalize it in the end, so it actually the marginal distribution
  */
-map<int, double> Network::GetMarginalProbabilities(int target_var_index, DiscreteConfig evidence) {
+map<int, double> Network::GetMarginalProbabilitiesUseVE(int target_var_index, DiscreteConfig evidence) {
   if (!this->pure_discrete) {
     fprintf(stderr, "Function [%s] only works on pure discrete networks!", __FUNCTION__);
     exit(1);
@@ -990,13 +992,84 @@ map<int, double> Network::GetMarginalProbabilities(int target_var_index, Discret
 
 
 /**
+ * @brief: for inference given a target variable id and some evidences/observations.
+ */
+Factor Network::GetMarginalProbabilitiesBruteForce(int target_var_index, DiscreteConfig evidence) {
+  if (!this->pure_discrete) {
+    fprintf(stderr, "Function [%s] only works on pure discrete networks!", __FUNCTION__);
+    exit(1);
+  }
+
+  /// reduce each factor of variable according to the evidence and construct "factors_list"
+  vector<Factor> factors_list;
+  for (int i = 0; i < num_nodes; ++i) { // for each node in the network
+    Node* node = FindNodePtrByIndex(i);
+    Factor factor(dynamic_cast<DiscreteNode*>(node), this); // each node corresponds to a factor
+
+    // factor reduction given the evidence
+    Factor reduced_factor = factor.FactorReduction(evidence);
+    factors_list.push_back(reduced_factor);
+  }
+
+  /// get the product of factors in "factors_list"
+  while(factors_list.size() > 1) {
+    // every time merge two factors into one
+    Factor temp1, temp2, product;
+    temp1 = factors_list.back(); // get the last element
+    factors_list.pop_back();  // remove the last element
+    temp2 = factors_list.back();
+    factors_list.pop_back();
+
+    product = temp1.MultiplyWithFactor(temp2);
+    factors_list.push_back(product);
+  }
+
+  /// get the variables to be marginalized
+  vector<int> marginalize_vars;
+  for (int i = 0; i < num_nodes; ++i) {
+    bool is_target_or_evidence = false;
+    if (i == target_var_index) {
+      is_target_or_evidence = true; // i is the target node
+    }
+    else {
+      for (auto &e: evidence) {
+        if (i == e.first) {
+          is_target_or_evidence = true; // i is an evidence
+          break;
+        }
+      }
+    }
+    // if the variable is not the target and the evidence,
+    // then the variable needs to be marginalized
+    if (!is_target_or_evidence) {
+      marginalize_vars.push_back(i);
+    }
+  }
+
+  /// sum out the variables in "marginalize_vars"
+  for (int i = 0; i < marginalize_vars.size(); ++i) { // for each variable to be summed out
+    Node* node = FindNodePtrByIndex(marginalize_vars.at(i));
+    Factor new_factor = factors_list.back().SumOverVar(dynamic_cast<DiscreteNode*>(node));
+    factors_list.pop_back();
+    factors_list.push_back(new_factor);
+  }
+
+  /// renormalization
+  Factor target_node_factor = factors_list.back();
+  target_node_factor.Normalize();
+
+  return target_node_factor;
+}
+
+
+/**
  * @brief: predict label given (partial or full observation) evidence
  * check "map_potentials", and the predict label is the one with maximum probability
  * @return label of the target variable
  */
 int Network::PredictUseVarElimInfer(DiscreteConfig evid, int target_node_idx, vector<int> elim_order) {
   Node *Y = FindNodePtrByIndex(target_node_idx);
-  // get the factor (marginal probability) of the target node, given the evidence
+  // get the factor (marginal probability) of the target node, given the evidences
   Factor F = VarElimInferReturnPossib(evid, Y, elim_order);
 
   // find the configuration with the maximum probability
@@ -1050,12 +1123,12 @@ vector<int> Network::PredictUseVarElimInfer(vector<DiscreteConfig> evidences, in
 }
 
 /**
- * @brief: predict label given evidence E and target variable id
+ * @brief: predict label given (full) evidence E and target variable id
  * @return label of the target variable
  */
-int Network::PredictLabelBruteForce(DiscreteConfig E, int Y_index) {
+int Network::PredictDirectly(DiscreteConfig E, int Y_index) {
   // get map "distribution"; key: possible value of Y_index; value: probability of evidence E and possible value of Y_index
-  map<int, double> distribution = GetMarginalProbabilities(Y_index, E);
+  map<int, double> distribution = GetMarginalProbabilitiesUseVE(Y_index, E);
   // find the label which has the max probability
   int label_index = ArgMax(distribution);
 
@@ -1069,7 +1142,7 @@ int Network::PredictLabelBruteForce(DiscreteConfig E, int Y_index) {
  * @brief: predict the label of different evidences
  * it just repeats the function above multiple times, and print the progress at the meantime
  */
-vector<int> Network::PredictUseSimpleBruteForce(vector<DiscreteConfig> evidences, int target_node_idx) {
+vector<int> Network::PredictDirectly(vector<DiscreteConfig> evidences, int target_node_idx) {
   int size = evidences.size();
 
   cout << "Progress indicator: ";
@@ -1089,7 +1162,59 @@ vector<int> Network::PredictUseSimpleBruteForce(vector<DiscreteConfig> evidences
       fflush(stdout);
     }
 
-    int pred = PredictLabelBruteForce(evidences.at(i), target_node_idx);
+    int pred = PredictDirectly(evidences.at(i), target_node_idx);
+    results.at(i) = pred;
+  }
+  return results;
+}
+
+/**
+ * @brief: predict label given (partial or full observation) evidence
+ * @return label of the target variable
+ */
+int Network::PredictUseBruteForce(DiscreteConfig evid, int target_node_idx) {
+  // get the factor (marginal probability) of the target node given the evidences
+  Factor F = GetMarginalProbabilitiesBruteForce(target_node_idx, evid);
+
+  // find the configuration with the maximum probability
+  double max_prob = 0;
+  DiscreteConfig comb_predict;
+  for (auto &comb : F.set_disc_config) { // for each configuration of the related variables
+    if (F.map_potentials[comb] > max_prob) {
+      max_prob = F.map_potentials[comb];
+      comb_predict = comb;
+    }
+  }
+  int label_predict = comb_predict.begin()->second;
+  return label_predict;
+}
+
+/**
+ * @brief: predict the label of different evidences
+ * it just repeats the function above multiple times, and print the progress at the meantime
+ */
+vector<int> Network::PredictUseBruteForce(vector<DiscreteConfig> evidences, int target_node_idx) {
+  cout << "predict use brute force..." << endl;
+  int size = evidences.size();
+
+  cout << "Progress indicator: ";
+  int every_1_of_20 = size / 20;
+  int progress = 0;
+
+
+  vector<int> results(size, 0);
+#pragma omp parallel for
+  for (int i = 0; i < size; ++i) {
+#pragma omp critical
+    { ++progress; }
+
+    if (progress % every_1_of_20 == 0) {
+      string progress_percentage = to_string((double)progress/size * 100) + "%...\n";
+      fprintf(stdout, "%s\n", progress_percentage.c_str());
+      fflush(stdout);
+    }
+
+    int pred = PredictUseBruteForce(evidences.at(i), target_node_idx);
     results.at(i) = pred;
   }
   return results;
@@ -1158,6 +1283,65 @@ double Network::EvaluateVarElimAccuracy(Dataset *dts) {
 }
 
 //TODO: combine with the EvaluateVarElimAccuracy(Dataset *dts) function
+double Network:: EvaluateBruteForceAccuracy(Dataset *dts) {
+
+  cout << "==================================================" << '\n'
+       << "Begin testing the trained network." << endl;
+
+  struct timeval start, end;
+  double diff;
+  gettimeofday(&start,NULL);
+
+  int m = dts->num_instance;
+
+  int class_var_index = dts->class_var_index;
+
+  // construct the test data set with labels
+  vector<int> ground_truths;
+  vector<DiscreteConfig> evidences;
+  evidences.reserve(m);
+  ground_truths.reserve(m);
+
+  for (int i = 0; i < m; ++i) { // for each instance in the data set
+    // construct a test data set by removing the class variable
+    int e_num = num_nodes - 1;
+    int *e_index = new int[e_num];
+    int *e_value = new int[e_num];
+    for (int j = 0; j < num_nodes; ++j) {
+      if (j == class_var_index) {
+        continue; // skip the class variable
+      }
+      e_index[j < class_var_index ? j : j - 1] = j;
+      e_value[j < class_var_index ? j : j - 1] = dts->dataset_all_vars[i][j];
+    }
+    // convert to DiscreteConfig and construct the test set
+    DiscreteConfig E = ArrayToDiscreteConfig(e_index, e_value, e_num);
+    evidences.push_back(E);
+
+    // construct the ground truth
+    int g = dts->dataset_all_vars[i][class_var_index];
+    ground_truths.push_back(g);
+
+    delete[] e_index;
+    delete[] e_value;
+  }
+
+  // predict the labels of the test instances
+  // TODO: the only difference is the line below: use different function to obtain "predictions"
+  vector<int> predictions = PredictUseBruteForce(evidences, class_var_index);
+  double accuracy = Accuracy(ground_truths, predictions);
+  cout << '\n' << "Accuracy: " << accuracy << endl;
+
+  gettimeofday(&end,NULL);
+  diff = (end.tv_sec-start.tv_sec) + ((double)(end.tv_usec-start.tv_usec))/1.0E6;
+  setlocale(LC_NUMERIC, "");
+  cout << "==================================================" << '\n'
+       << "The time spent to test the accuracy is " << diff << " seconds" << endl;
+
+  return accuracy;
+}
+
+//TODO: combine with the EvaluateVarElimAccuracy(Dataset *dts) function
 double Network:: EvaluateAccuracyGivenAllCompleteInstances(Dataset *dts) {
 
   cout << "==================================================" << '\n'
@@ -1203,7 +1387,7 @@ double Network:: EvaluateAccuracyGivenAllCompleteInstances(Dataset *dts) {
 
   // predict the labels of the test instances
   // TODO: the only difference is the line below: use different function to obtain "predictions"
-  vector<int> predictions = PredictUseSimpleBruteForce(evidences, class_var_index);
+  vector<int> predictions = PredictDirectly(evidences, class_var_index);
   double accuracy = Accuracy(ground_truths, predictions);
   cout << '\n' << "Accuracy: " << accuracy << endl;
 
