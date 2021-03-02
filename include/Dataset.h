@@ -30,7 +30,7 @@ class Dataset {
   vector<bool> is_vars_discrete;
   vector<string> vec_var_names;
 
-  int **dataset_all_vars;//a matrix storing the whole data set; [n][n], sparse TODO: the matrix is used; need to be replaced to improve quality
+  int **dataset_all_vars;//a matrix storing the whole data set; [n][n] TODO: the matrix is used; need to be replaced to improve quality
   vector<vector<VarVal>> vector_dataset_all_vars;//a vector storing the whole data set, label + features
 
 

@@ -40,20 +40,25 @@ protected:
 };
 
 //TEST_F(ExperimentOnA1a, ve) {
-//    double accuracy = network->EvaluateVarElimAccuracy(tester);
-//    EXPECT_GT(accuracy, 0.8230);
-//}
-//
-//TEST_F(ExperimentOnA1a, brute_force) {
-//    double accuracy = network->EvaluateAccuracyGivenAllCompleteInstances(tester);
+//    double accuracy = network->EvaluateVEAccuracyGivenCompleteInstances(tester);
 //    EXPECT_GT(accuracy, 0.8230);
 //}
 
-TEST_F(ExperimentOnA1a, my_brute_force) {
-    double accuracy = network->EvaluateBruteForceAccuracy(tester);
+TEST_F(ExperimentOnA1a, ve_partial) {
+    double accuracy = network->EvaluateVEAccuracy(tester);
     EXPECT_GT(accuracy, 0.8230);
 }
-//
+
+//TEST_F(ExperimentOnA1a, brute_force) {
+//    double accuracy = network->EvaluateAccuracyGivenCompleteInstances(tester);
+//    EXPECT_GT(accuracy, 0.8230);
+//}
+
+//TEST_F(ExperimentOnA1a, my_brute_force) {
+//    double accuracy = network->EvaluateBruteForceAccuracy(tester);
+//    EXPECT_GT(accuracy, 0.8230);
+//}
+
 //TEST_F(ExperimentOnA1a, likelihood_weighing) {
 //    double accuracy = network->EvaluateLikelihoodWeightingAccuracy(tester, 50);
 //    EXPECT_GT(accuracy, 0.8150);

@@ -92,6 +92,9 @@ class Network {//this class is used by both the customized networks and networks
 
 
   virtual vector<int> SimplifyDefaultElimOrd(DiscreteConfig evidence);
+  virtual vector<int> SimplifyDefaultElimOrd2(DiscreteConfig evidence, vector<int> left_nodes);
+
+  vector<int> FilterOutIrrelevantNodes();
 
   vector<Factor> ConstructFactors(vector<int> Z, Node *Y);
   void LoadEvidenceIntoFactors(vector<Factor> *factors_list, DiscreteConfig E, set<int> all_related_vars);
@@ -99,8 +102,9 @@ class Network {//this class is used by both the customized networks and networks
   Factor SumProductVarElim(vector<Factor> factors_list, vector<int> elim_order);
   Factor VarElimInferReturnPossib(DiscreteConfig evid, Node *target_node, vector<int> elim_order=vector<int>{});
 
-  map<int, double> GetMarginalProbabilitiesUseVE(int target_var_index, DiscreteConfig evidence);
-  Factor GetMarginalProbabilitiesBruteForce(int target_var_index, DiscreteConfig evidence);
+  map<int, double> GetMarginalProbabilitiesDirectly(int target_var_index, DiscreteConfig evidence);
+  Factor GetMarginalProbabilitiesUseVE(int target_var_index, DiscreteConfig evidence, vector<int> elim_order);
+  Factor GetMarginalProbabilitiesUseBruteForce(int target_var_index, DiscreteConfig evidence);
 
   int PredictDirectly(DiscreteConfig E, int Y_index);
   vector<int> PredictDirectly(vector<DiscreteConfig> evidences, int target_node_idx);
@@ -108,8 +112,8 @@ class Network {//this class is used by both the customized networks and networks
   int PredictUseBruteForce(DiscreteConfig evid, int target_node_idx);
   vector<int> PredictUseBruteForce(vector<DiscreteConfig> evidences, int target_node_idx);
 
-  int PredictUseVarElimInfer(DiscreteConfig evid, int target_node_idx, vector<int> elim_order=vector<int>{});
-  vector<int> PredictUseVarElimInfer(vector<DiscreteConfig> evidences, int target_node_idx, vector<vector<int>> elim_orders=vector<vector<int>>{});
+  int PredictUseVEInfer(DiscreteConfig evid, int target_node_idx, vector<int> elim_order=vector<int>{});
+  vector<int> PredictUseVEInfer(vector<DiscreteConfig> evidences, int target_node_idx, vector<vector<int>> elim_orders=vector<vector<int>>{});
 
   DiscreteConfig GenerateInstanceByProbLogicSampleNetwork();
   vector<DiscreteConfig> DrawSamplesByProbLogiSamp(int num_samp);
@@ -128,10 +132,11 @@ class Network {//this class is used by both the customized networks and networks
   vector<int> ApproxInferByProbLogiRejectSamp(vector<DiscreteConfig> evidences, int node_idx, vector<DiscreteConfig> &samples);
 
   // ========== Evaluation ==========
-  double EvaluateVarElimAccuracy(Dataset *dts);
+  double EvaluateVEAccuracyGivenCompleteInstances(Dataset *dts);
+  double EvaluateVEAccuracy(Dataset *dts);
   double EvaluateBruteForceAccuracy(Dataset *dts);
-  double EvaluateAccuracyGivenAllCompleteInstances(Dataset *dts);
-  double EvaluateAccuracyBruteForce(Dataset *dts);
+  double EvaluateAccuracyGivenCompleteInstances(Dataset *dts);
+
   double EvaluateApproxInferAccuracy(Dataset *dts, int num_samp);
   double EvaluateLikelihoodWeightingAccuracy(Dataset *dts, int num_samp);
 

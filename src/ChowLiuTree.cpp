@@ -300,6 +300,13 @@ vector<int> ChowLiuTree::SimplifyDefaultElimOrd(DiscreteConfig evidence) {
 }
 
 /**
+ * Just an API. Call another function.
+ */
+vector<int> ChowLiuTree::SimplifyDefaultElimOrd2(DiscreteConfig evidence, vector<int> left_nodes) {
+  return SimplifyTreeDefaultElimOrd2(evidence, left_nodes);
+}
+
+/**
  * @brief: given an evidence, the default elimination order can be simplified by removing two types of nodes (i.e., barren and m-separated).
  * suppose Y is the set of variables observed; X is the set of variables of interest
  * barren node: a leaf and not in X∪Y
@@ -312,51 +319,51 @@ vector<int> ChowLiuTree::SimplifyTreeDefaultElimOrd(DiscreteConfig evidence) {
   // barren node: a leaf and not in X∪Y
   set<int> to_be_removed;
 
-  for (int i = 0; i < num_nodes - 1; ++i) { // for each node except for the target
-    // "vec_default_elim_ord" is obtained by reverse topological sort
-    // so "vec_default_elim_ord.at(num_nodes - 1)" is the root, i.e., the target node
-    int vec_size = vec_default_elim_ord.size();
-    int vec_capacity = vec_default_elim_ord.capacity();
-    if (vec_size != vec_capacity) {
-      fprintf(stderr, "Function [%s]: vec_size != vec_capacity\n", __FUNCTION__);
-    }
-
-    int default_elim_ord_i = vec_default_elim_ord.at(i);
-    Node *ptr_curr_node = FindNodePtrByIndex(default_elim_ord_i);
-    bool observed = false;
-    bool need_to_be_removed = true;
-
-    for (auto p : evidence) {
-      if (p.first == ptr_curr_node->GetNodeIndex()) { // if it is observed.
-        observed = true;
-        break;
-      }
-    }
-    if (observed) { // the observed variables (in Y)
-      continue;
-    }
-
-    // if it is not observed
-    // if it is not a leaf; otherwise, it is a leaf
-    if (!ptr_curr_node->set_children_indexes.empty()) {
-      for (auto ptr_child : GetChildrenPtrsOfNode(ptr_curr_node->GetNodeIndex())) { // for each of its child
-        // And if its children are not all removed;
-        // otherwise, all its children are removed, then it becomes a new leaf
-        if (to_be_removed.find(ptr_child->GetNodeIndex()) == to_be_removed.end()) {
-          need_to_be_removed = false;
-          break;
-        }
-      }
-    }
-    if (need_to_be_removed) {
-      to_be_removed.insert(ptr_curr_node->GetNodeIndex());
-    }
-  }
-
-  // Remove all m-separated nodes.
-  // m-separated node: this node and X are separated by the set Y in the moral graph
-  set<int> visited;
-  DepthFirstTraversalUntillMeetObserved(evidence, root_node_index, visited, to_be_removed);  // Start at root.
+//  for (int i = 0; i < num_nodes - 1; ++i) { // for each node except for the target
+//    // "vec_default_elim_ord" is obtained by reverse topological sort
+//    // so "vec_default_elim_ord.at(num_nodes - 1)" is the root, i.e., the target node
+//    int vec_size = vec_default_elim_ord.size();
+//    int vec_capacity = vec_default_elim_ord.capacity();
+//    if (vec_size != vec_capacity) {
+//      fprintf(stderr, "Function [%s]: vec_size != vec_capacity\n", __FUNCTION__);
+//    }
+//
+//    int default_elim_ord_i = vec_default_elim_ord.at(i);
+//    Node *ptr_curr_node = FindNodePtrByIndex(default_elim_ord_i);
+//    bool observed = false;
+//    bool need_to_be_removed = true;
+//
+//    for (auto p : evidence) {
+//      if (p.first == ptr_curr_node->GetNodeIndex()) { // if it is observed.
+//        observed = true;
+//        break;
+//      }
+//    }
+//    if (observed) { // the observed variables (in Y)
+//      continue;
+//    }
+//
+//    // if it is not observed
+//    // if it is not a leaf; otherwise, it is a leaf
+//    if (!ptr_curr_node->set_children_indexes.empty()) {
+//      for (auto ptr_child : GetChildrenPtrsOfNode(ptr_curr_node->GetNodeIndex())) { // for each of its child
+//        // And if its children are not all removed;
+//        // otherwise, all its children are removed, then it becomes a new leaf
+//        if (to_be_removed.find(ptr_child->GetNodeIndex()) == to_be_removed.end()) {
+//          need_to_be_removed = false;
+//          break;
+//        }
+//      }
+//    }
+//    if (need_to_be_removed) {
+//      to_be_removed.insert(ptr_curr_node->GetNodeIndex());
+//    }
+//  }
+//
+//  // Remove all m-separated nodes.
+//  // m-separated node: this node and X are separated by the set Y in the moral graph
+//  set<int> visited;
+//  DepthFirstTraversalUntillMeetObserved(evidence, root_node_index, visited, to_be_removed);  // Start at root.
 
 //  cout << endl << "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~" << '\n'
 //       << "The removed barren nodes and m-separated node: " << endl;
@@ -382,6 +389,45 @@ vector<int> ChowLiuTree::SimplifyTreeDefaultElimOrd(DiscreteConfig evidence) {
 
   return vec_simplified_order;
 }
+
+/**
+ * @brief: given an evidence and the left nodes,
+ * the order can be simplified by removing the evidence and the target nodes from the left nodes
+ * @param left_nodes is the left node set by removing barren nodes and m-separated nodes
+ * The implementation is based on "A simple approach to Bayesian network computations" by Zhang and Poole, 1994.
+ */
+vector<int> ChowLiuTree::SimplifyTreeDefaultElimOrd2(DiscreteConfig evidence, vector<int> left_nodes) {
+  // to_be_removed contains: irrelevant nodes & evidence
+  set<int> to_be_removed;
+  // add the evidence
+  for (auto p: evidence) { // for each index-value pair in the evidence
+    to_be_removed.insert(p.first);
+  }
+  // add the irrelevant nodes
+  for (int i = 0; i < num_nodes; ++i) { // for each node in the network
+    if (find(left_nodes.begin(), left_nodes.end(), i) == left_nodes.end()) { // if i is not in "left_nodes"
+      to_be_removed.insert(i); // add into "to_be_removed"
+    }
+  }
+
+  // Record all the remaining nodes in array "simplified_order".
+  int num_of_remain = num_nodes - 1 - to_be_removed.size(); // The one of the nodes is class variable node and does not need to be eliminated.
+  vector<int> vec_simplified_order;
+  vec_simplified_order.reserve(num_of_remain);
+  for (int i = 0; i < num_nodes - 1; ++i) {
+    int ord = vec_default_elim_ord.at(i);
+    if (to_be_removed.find(ord) == to_be_removed.end()) { // if it is not removed
+      vec_simplified_order.push_back(ord);
+    }
+  }
+  if (vec_simplified_order.size() != num_of_remain) {
+    fprintf(stderr, "Error in function [%s], simplified order size not equal to number of remaining nodes!\n", __FUNCTION__);
+    exit(1);
+  }
+
+  return vec_simplified_order;
+}
+
 
 /**
  * Recursive.

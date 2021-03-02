@@ -49,7 +49,9 @@ class ChowLiuTree : public Network {
 
 
   vector<int> SimplifyDefaultElimOrd(DiscreteConfig evidence) override;
+  vector<int> SimplifyDefaultElimOrd2(DiscreteConfig evidence, vector<int> left_nodes) override;
   vector<int> SimplifyTreeDefaultElimOrd(DiscreteConfig evidence);
+  vector<int> SimplifyTreeDefaultElimOrd2(DiscreteConfig evidence, vector<int> left_nodes);
 
  protected:
   void DepthFirstTraversalUntillMeetObserved(DiscreteConfig evidence, int start, set<int>& visited, set<int>& to_be_removed);

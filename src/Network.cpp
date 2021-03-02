@@ -742,14 +742,54 @@ vector<int> Network::SimplifyDefaultElimOrd(DiscreteConfig evidence) {//TODO: us
 }
 
 /**
- * @brief: Factor is a class; construct a set of factors using a node and an elimination order
- * @param Z: a set of nodes identified by IDs; Z is the elimination order.
- * @param Y: a node
- * @return: a set of Factors, where each factor corresponds to a node; first Y (target node), then nodes ordered by Z
+ * @brief: this is a virtual function;
+ * The performance of variable elimination relies heavily on the elimination ordering
  */
-vector<Factor> Network::ConstructFactors(vector<int> Z, Node *Y) {
+vector<int> Network::SimplifyDefaultElimOrd2(DiscreteConfig evidence, vector<int> left_nodes) {//TODO: use C++ pure virtual function
+  fprintf(stderr, "Function [%s] not implemented yet!", __FUNCTION__);
+  exit(1);
+}
+
+
+/**
+ * @brief: find the nodes to be removed, including the barren nodes and m-separated nodes
+ * filter out these nodes and obtain the left nodes
+ * suppose Y is the set of variables observed; X is the set of variables of interest
+ * barren node: a leaf which is not in X and not in Y
+ * moral graph: obtained by adding an edge between each pair of parents and dropping all directions
+ * m-separated node: this node and X are separated by the set Y in the moral graph
+ * The implementation is based on "A simple approach to Bayesian network computations" by Zhang and Poole, 1994.
+ */
+vector<int> Network::FilterOutIrrelevantNodes() { // TODO
+  /// find the nodes to be removed TODO
+  set<int> to_be_removed;
+
+  /// filter out these nodes and obtain the left nodes
+  vector<int> left_nodes;
+  int num_of_left = num_nodes - to_be_removed.size();
+  left_nodes.reserve(num_of_left);
+  for (int i = 0; i < num_nodes; ++i) { // for each nodes in the network
+    if (to_be_removed.find(i) == to_be_removed.end()) { // if this node does not need to be removed
+      left_nodes.push_back(i);
+    }
+  }
+
+  return left_nodes;
+}
+
+/**
+ * @brief: construct a set of factors using a set of nodes and/or a node
+ * @param Z: a set of nodes identified by IDs
+ * @param Y: a node
+ * @example 1: using the elimination order and a target node
+ * @example 2: using the left nodes (filter out the barren nodes and m-separated nodes)
+ * @return: a set of Factors, where each factor corresponds to a node
+ */
+vector<Factor> Network::ConstructFactors(vector<int> Z, Node* Y) {
   vector<Factor> factors_list;
-  factors_list.push_back(Factor(dynamic_cast<DiscreteNode*>(Y), this));
+  if(Y) {
+    factors_list.push_back(Factor(dynamic_cast<DiscreteNode*>(Y), this));
+  }
   for (int i = 0; i < Z.size(); ++i) {
     Node* n = FindNodePtrByIndex(Z.at(i));
     factors_list.push_back(Factor(dynamic_cast<DiscreteNode*>(n), this));
@@ -779,44 +819,37 @@ void Network::LoadEvidenceIntoFactors(vector<Factor> *factors_list,
 //         ++i) {
 
     for (int i = 0; i < factors_list->size(); ++i) {
+      // TODO: see Factor::FactorReduction -- it is the same
       Factor &f = factors_list->at(i);   // For each factor. "std::vector::at" returns reference.
       for (const auto &e : E) {  // For each node's observation in E
         // If this factor is related to the observation
         if (f.related_variables.find(e.first) != f.related_variables.end()) {
-          // Update each row of map_potentials
-          for (const auto &comb : f.set_disc_config) {
-            // If this entry is not compatible to the evidence -> reduction
+          f.related_variables.erase(e.first); // TODO
+          for (const auto &comb : f.set_disc_config) { // for each discrete config of this factor
+            // if this config and the evidence have different values on common variables,
+            // which means that they conflict, then this config will be removed
             if (comb.find(e) == comb.end()) {
-              f.map_potentials[comb] = 0;
+//              f.map_potentials[comb] = 0; // TODO
+              f.set_disc_config.erase(comb); // TODO
+              f.map_potentials.erase(comb); // TODO
             }
           }
         }//end if the factor is related to the node
       }
 
-      //--------------------------------------------------------------------------------
-      // Fix bug Step 2/2.
-      // This block is to fix the bug occurring when the target node
-      // is not the root and the variable elimination order do not start at root.
-      // For example:  X--> Y (evidence/obs) --> Z --> A (target node) --> B --> C --> E --> F (evidence/observation; not important) --> G
-      //
-      // For example: A --> B --> C (old example)
-      // When given the markov blanket of node "C", which is "{B}",
-      // there is no need to calculate the other nodes, which is "{A}".
-      // However, when using this function,
-      // the parent of parent of this node, which is "A",
-      // still appears in the constructed factor of the parent which is "B".
-      // my understanding:
-      // maybe some variables are not in the elimination order, but they are also existed in some related factors,
-      // so what we need to do is to eliminate these variables before the main variable elimination (VE) process.
+      // fix the bug occurring after removing the irrelevant nodes (barren nodes and m-separated nodes)
+      // For example:  X--> Y (evidence/obs) --> Z --> A (target node) --> B, where X and B are the irrelevant nodes,
+      // there is no need to calculate {X, B}, but X is the parent of Y (which is a relevant node),
+      // so X still appears in the constructed factor of the node Y
+      // what we need to do is to eliminate it before the main variable elimination (VE) process.
+      // since B is a child of the relevant node, so it does not have this problem
       set<int> related_vars_of_f = f.related_variables;
       for (auto &v : related_vars_of_f) { // for each related variables of the factor f
-        if (all_related_vars.find(v) == all_related_vars.end()) { // if v is not in the elimination order
-          f = f.SumOverVar(v);//X and G will be sum over, i.e. eliminate X and G given the evidence/observations
+        if (all_related_vars.find(v) == all_related_vars.end()) { // if v is not in the left nodes
+          f = f.SumOverVar(v); //X and G will be sum over, i.e. eliminate X and G given the evidence/observations
         }
       }
-      //--------------------------------------------------------------------------------
     }
-
   }   // end of: #pragma omp parallel
 }
 
@@ -824,9 +857,9 @@ void Network::LoadEvidenceIntoFactors(vector<Factor> *factors_list,
  * @brief: the main variable elimination (VE) process
  * gradually eliminate variables until only one (i.e. the target node) left
  */
-Factor Network::SumProductVarElim(vector<Factor> factors_list, vector<int> elim_order) {
+Factor Network::SumProductVarElim(vector<Factor> factor_list, vector<int> elim_order) {
   for (int i = 0; i < elim_order.size(); ++i) { // consider each node i according to the elimination order
-    vector<Factor> tempFactorsList;
+    vector<Factor> temp_factor_list;
     Node* nodePtr = FindNodePtrByIndex(elim_order.at(i));
 
     // Move every factor that is related to the node elim_order[i] from factors_list to tempFactorsList.
@@ -836,11 +869,11 @@ Factor Network::SumProductVarElim(vector<Factor> factors_list, vector<int> elim_
      *      We use "erase" to delete this element from "factors_list" via iterator "it";
      *      the function "erase" returns an iterator pointing to the next element of the delete element.
      */
-    for (auto it = factors_list.begin(); it != factors_list.end(); /* no ++it */) {
+    for (auto it = factor_list.begin(); it != factor_list.end(); /* no ++it */) {
       // if the factor "it" is related to the node "elim_order[i]" (i.e., the node to be eliminated now)
       if ((*it).related_variables.find(nodePtr->GetNodeIndex()) != (*it).related_variables.end()) {
-        tempFactorsList.push_back(*it);
-        factors_list.erase(it);
+        temp_factor_list.push_back(*it);
+        factor_list.erase(it);
         continue;
       }
       else {
@@ -849,43 +882,39 @@ Factor Network::SumProductVarElim(vector<Factor> factors_list, vector<int> elim_
     }
 
     // merge all the factors in tempFactorsList into one factor
-    while(tempFactorsList.size() > 1) {
+    while(temp_factor_list.size() > 1) {
       // every time merge two factors into one
       Factor temp1, temp2, product;
-      temp1 = tempFactorsList.back(); // get the last element
-      tempFactorsList.pop_back();  // remove the last element
-      temp2 = tempFactorsList.back();
-      tempFactorsList.pop_back();
+      temp1 = temp_factor_list.back(); // get the last element
+      temp_factor_list.pop_back();  // remove the last element
+      temp2 = temp_factor_list.back();
+      temp_factor_list.pop_back();
 
       product = temp1.MultiplyWithFactor(temp2);
-      tempFactorsList.push_back(product);
+      temp_factor_list.push_back(product);
     }
 
     // eliminate variable "nodePtr" by summation of the factor "tempFactorsList.back()" over "nodePtr"
-    Factor newFactor = tempFactorsList.back().SumOverVar(dynamic_cast<DiscreteNode*>(nodePtr));
-    // TODO: factors_list.pop_back()?
-    factors_list.push_back(newFactor);
+    Factor newFactor = temp_factor_list.back().SumOverVar(dynamic_cast<DiscreteNode*>(nodePtr));
+    factor_list.push_back(newFactor);
   } // finish eliminating variables and only one variable left
 
-  /*
-   *   If we are calculating a node's posterior probability given evidence about its children,
-   *   then when the program runs to here,
-   *   the "factors_list" will contain several factors
-   *   about the same node which is the query node Y.
-   *   When it happens, we need to multiply these several factors.
-   */
-  while (factors_list.size() > 1) {//TODO: reuse the code of the while loop above
+  // if the "factor_list" contains several factors, we need to multiply these several factors
+  // for example, the case when we have a full evidence...
+  // then "factor_list" contains "num_nodes" factor while "elim_order" is empty
+  while (factor_list.size() > 1) {
     Factor temp1, temp2, product;
-    temp1 = factors_list.back();
-    factors_list.pop_back();
-    temp2 = factors_list.back();
-    factors_list.pop_back();
+    temp1 = factor_list.back(); // get the last element
+    factor_list.pop_back();  // remove the last element
+    temp2 = factor_list.back();
+    factor_list.pop_back();
+
     product = temp1.MultiplyWithFactor(temp2);
-    factors_list.push_back(product);
+    factor_list.push_back(product);
   }
 
   // After all the processing shown above, the only remaining factor is the factor about Y.
-  return factors_list.back();
+  return factor_list.back();
 }
 
 /**
@@ -951,7 +980,7 @@ Factor Network::VarElimInferReturnPossib(DiscreteConfig evid, Node *target_node,
  * @return map: key is the possible value of the target node; value is the probability of the target node with a specific value
  * product of factors seems to compute the joint distribution, but we renormalize it in the end, so it actually the marginal distribution
  */
-map<int, double> Network::GetMarginalProbabilitiesUseVE(int target_var_index, DiscreteConfig evidence) {
+map<int, double> Network::GetMarginalProbabilitiesDirectly(int target_var_index, DiscreteConfig evidence) {
   if (!this->pure_discrete) {
     fprintf(stderr, "Function [%s] only works on pure discrete networks!", __FUNCTION__);
     exit(1);
@@ -990,11 +1019,48 @@ map<int, double> Network::GetMarginalProbabilitiesUseVE(int target_var_index, Di
   return result;
 }
 
+/**
+ * @brief: for inference given a target variable id and some evidences/observations.
+ */
+Factor Network::GetMarginalProbabilitiesUseVE(int target_var_index, DiscreteConfig evidence, vector<int> elim_order) {
+
+  // find the nodes to be removed, include barren nodes and m-separated nodes
+  // filter out these nodes and obtain the left nodes
+  vector<int> left_nodes = FilterOutIrrelevantNodes();
+
+  Node *n = nullptr;
+  // "factorsList" corresponds to all the nodes which are between the target node and the observation/evidence
+  // because we have removed barren nodes and m-separated nodes
+  vector<Factor> factor_list = ConstructFactors(left_nodes, n);
+
+  set<int> all_related_vars;
+  all_related_vars.insert(target_var_index);
+  for (int i = 0; i < left_nodes.size(); ++i) {
+    all_related_vars.insert(left_nodes.at(i));
+  }
+  // load evidence function below returns a factorsList with fewer configurations.
+  LoadEvidenceIntoFactors(&factor_list, evidence, all_related_vars);
+
+  if (elim_order.empty()) {
+    // call "ChowLiuTree::SimplifyDefaultElimOrd"; "elim_order" is the reverse topological order removing barren nodes and m-separated nodes
+    elim_order = SimplifyDefaultElimOrd2(evidence, left_nodes);
+  }
+
+  // compute the probability table of the target node
+  Factor target_node_factor = SumProductVarElim(factor_list, elim_order);
+
+  // renormalization
+  target_node_factor.Normalize();
+
+  return target_node_factor;
+}
+
+
 
 /**
  * @brief: for inference given a target variable id and some evidences/observations.
  */
-Factor Network::GetMarginalProbabilitiesBruteForce(int target_var_index, DiscreteConfig evidence) {
+Factor Network::GetMarginalProbabilitiesUseBruteForce(int target_var_index, DiscreteConfig evidence) {
   if (!this->pure_discrete) {
     fprintf(stderr, "Function [%s] only works on pure discrete networks!", __FUNCTION__);
     exit(1);
@@ -1067,10 +1133,13 @@ Factor Network::GetMarginalProbabilitiesBruteForce(int target_var_index, Discret
  * check "map_potentials", and the predict label is the one with maximum probability
  * @return label of the target variable
  */
-int Network::PredictUseVarElimInfer(DiscreteConfig evid, int target_node_idx, vector<int> elim_order) {
-  Node *Y = FindNodePtrByIndex(target_node_idx);
-  // get the factor (marginal probability) of the target node, given the evidences
-  Factor F = VarElimInferReturnPossib(evid, Y, elim_order);
+int Network::PredictUseVEInfer(DiscreteConfig evid, int target_node_idx, vector<int> elim_order) {
+//  Node *Y = FindNodePtrByIndex(target_node_idx);
+//  // get the factor (marginal probability) of the target node, given the evidences
+//  Factor F = VarElimInferReturnPossib(evid, Y, elim_order);
+
+  // get the factor (marginal probability) of the target node given the evidences
+  Factor F = GetMarginalProbabilitiesUseVE(target_node_idx, evid, elim_order);
 
   // find the configuration with the maximum probability
   double max_prob = 0;
@@ -1090,7 +1159,7 @@ int Network::PredictUseVarElimInfer(DiscreteConfig evid, int target_node_idx, ve
  * it just repeats the function above multiple times, and print the progress at the meantime
  * @param elim_orders: elimination order which may be different given different evidences due to the simplification of elimination order
  */
-vector<int> Network::PredictUseVarElimInfer(vector<DiscreteConfig> evidences, int target_node_idx, vector<vector<int>> elim_orders) {
+vector<int> Network::PredictUseVEInfer(vector<DiscreteConfig> evidences, int target_node_idx, vector<vector<int>> elim_orders) {
   int size = evidences.size();
 
   cout << "Progress indicator: ";
@@ -1116,7 +1185,7 @@ vector<int> Network::PredictUseVarElimInfer(vector<DiscreteConfig> evidences, in
 
     DiscreteConfig evidence = evidences.at(i);
     vector<int> elim_ord = elim_orders.at(i);
-    int pred = PredictUseVarElimInfer(evidence, target_node_idx, elim_ord);
+    int pred = PredictUseVEInfer(evidence, target_node_idx, elim_ord);
     results.at(i) = pred;
   }
   return results;
@@ -1128,7 +1197,7 @@ vector<int> Network::PredictUseVarElimInfer(vector<DiscreteConfig> evidences, in
  */
 int Network::PredictDirectly(DiscreteConfig E, int Y_index) {
   // get map "distribution"; key: possible value of Y_index; value: probability of evidence E and possible value of Y_index
-  map<int, double> distribution = GetMarginalProbabilitiesUseVE(Y_index, E);
+  map<int, double> distribution = GetMarginalProbabilitiesDirectly(Y_index, E);
   // find the label which has the max probability
   int label_index = ArgMax(distribution);
 
@@ -1174,7 +1243,7 @@ vector<int> Network::PredictDirectly(vector<DiscreteConfig> evidences, int targe
  */
 int Network::PredictUseBruteForce(DiscreteConfig evid, int target_node_idx) {
   // get the factor (marginal probability) of the target node given the evidences
-  Factor F = GetMarginalProbabilitiesBruteForce(target_node_idx, evid);
+  Factor F = GetMarginalProbabilitiesUseBruteForce(target_node_idx, evid);
 
   // find the configuration with the maximum probability
   double max_prob = 0;
@@ -1194,7 +1263,6 @@ int Network::PredictUseBruteForce(DiscreteConfig evid, int target_node_idx) {
  * it just repeats the function above multiple times, and print the progress at the meantime
  */
 vector<int> Network::PredictUseBruteForce(vector<DiscreteConfig> evidences, int target_node_idx) {
-  cout << "predict use brute force..." << endl;
   int size = evidences.size();
 
   cout << "Progress indicator: ";
@@ -1224,7 +1292,7 @@ vector<int> Network::PredictUseBruteForce(vector<DiscreteConfig> evidences, int 
  * @brief: compute the accuracy for a classification problem.
  * @param dts: data set; this is a classification problem.
  */
-double Network::EvaluateVarElimAccuracy(Dataset *dts) {
+double Network::EvaluateVEAccuracyGivenCompleteInstances(Dataset *dts) {
 
   cout << "==================================================" << '\n'
        << "Begin testing the trained network." << endl;
@@ -1245,30 +1313,25 @@ double Network::EvaluateVarElimAccuracy(Dataset *dts) {
 
   for (int i = 0; i < m; ++i) { // for each instance in the data set
     // construct a test data set by removing the class variable
-    int e_num = num_nodes - 1;
-    int *e_index = new int[e_num];
-    int *e_value = new int[e_num];
+    DiscreteConfig e;
+    pair<int, int> p;
     for (int j = 0; j < num_nodes; ++j) {
       if (j == class_var_index) {
         continue; // skip the class variable
       }
-      e_index[j < class_var_index ? j : j - 1] = j;
-      e_value[j < class_var_index ? j : j - 1] = dts->dataset_all_vars[i][j];
+      p.first = j;
+      p.second = dts->dataset_all_vars[i][j];
+      e.insert(p);
     }
-    // convert to DiscreteConfig and construct the test set
-    DiscreteConfig E = ArrayToDiscreteConfig(e_index, e_value, e_num);
-    evidences.push_back(E); // TODO: "evidence" contains values of all the variables...?
+    evidences.push_back(e);
 
     // construct the ground truth
     int g = dts->dataset_all_vars[i][class_var_index];
     ground_truths.push_back(g);
-
-    delete[] e_index;
-    delete[] e_value;
   }
 
   // predict the labels of the test instances
-  vector<int> predictions = PredictUseVarElimInfer(evidences, class_var_index);
+  vector<int> predictions = PredictUseVEInfer(evidences, class_var_index);
   double accuracy = Accuracy(ground_truths, predictions);
   cout << '\n' << "Accuracy: " << accuracy << endl;
 
@@ -1282,7 +1345,67 @@ double Network::EvaluateVarElimAccuracy(Dataset *dts) {
   return accuracy;
 }
 
+
+/**
+ * @brief: compute the accuracy for a classification problem.
+ * @param dts: data set; this is a classification problem.
+ */
+double Network::EvaluateVEAccuracy(Dataset *dts) {
+
+  cout << "==================================================" << '\n'
+       << "Begin testing the trained network." << endl;
+
+  struct timeval start, end;
+  double diff;
+  gettimeofday(&start,NULL);
+
+  int m = dts->num_instance;
+
+  int class_var_index = dts->class_var_index;
+
+  // construct the test data set with labels
+  vector<int> ground_truths;
+  vector<DiscreteConfig> evidences;
+  evidences.reserve(m);
+  ground_truths.reserve(m);
+
+  for (int i = 0; i < m; ++i) { // for each instance in the data set
+    // construct a test data set by removing the class variable
+    DiscreteConfig e;
+    pair<int, int> p;
+    for (int j = 0; j < num_nodes; ++j) {
+      if (j == class_var_index) {
+        continue; // skip the class variable
+      }
+      p.first = j;
+      p.second = dts->dataset_all_vars[i][j];
+      e.insert(p);
+    }
+    evidences.push_back(e);
+
+    // construct the ground truth
+    int g = dts->dataset_all_vars[i][class_var_index];
+    ground_truths.push_back(g);
+  }
+
+  // predict the labels of the test instances
+  vector<int> predictions = PredictUseVEInfer(evidences, class_var_index);
+  double accuracy = Accuracy(ground_truths, predictions);
+  cout << '\n' << "Accuracy: " << accuracy << endl;
+
+
+  gettimeofday(&end,NULL);
+  diff = (end.tv_sec-start.tv_sec) + ((double)(end.tv_usec-start.tv_usec))/1.0E6;
+  setlocale(LC_NUMERIC, "");
+  cout << "==================================================" << '\n'
+       << "The time spent to test the accuracy is " << diff << " seconds" << endl;
+
+  return accuracy;
+}
+
+
 //TODO: combine with the EvaluateVarElimAccuracy(Dataset *dts) function
+//vector<int> Network::PredictUseBruteForce(vector<DiscreteConfig> evidences, int target_node_idx)
 double Network:: EvaluateBruteForceAccuracy(Dataset *dts) {
 
   cout << "==================================================" << '\n'
@@ -1303,28 +1426,33 @@ double Network:: EvaluateBruteForceAccuracy(Dataset *dts) {
   ground_truths.reserve(m);
 
   for (int i = 0; i < m; ++i) { // for each instance in the data set
+    vector<VarVal> vec_instance = dts->vector_dataset_all_vars.at(i);
+
     // construct a test data set by removing the class variable
-    int e_num = num_nodes - 1;
-    int *e_index = new int[e_num];
-    int *e_value = new int[e_num];
-    for (int j = 0; j < num_nodes; ++j) {
-      if (j == class_var_index) {
-        continue; // skip the class variable
-      }
-      e_index[j < class_var_index ? j : j - 1] = j;
-      e_value[j < class_var_index ? j : j - 1] = dts->dataset_all_vars[i][j];
+    DiscreteConfig e;
+    pair<int, int> p;
+    for (int j = 1; j < vec_instance.size(); ++j) { // skip the class variable (which is at the beginning of the vector)
+      p.first = vec_instance.at(j).first;
+      p.second = vec_instance.at(j).second.GetInt();
+      e.insert(p);
     }
-    // convert to DiscreteConfig and construct the test set
-    DiscreteConfig E = ArrayToDiscreteConfig(e_index, e_value, e_num);
-    evidences.push_back(E);
+    evidences.push_back(e);
 
     // construct the ground truth
-    int g = dts->dataset_all_vars[i][class_var_index];
+    int g = vec_instance.at(0).second.GetInt();
+//    int g = dts->dataset_all_vars[i][class_var_index];
     ground_truths.push_back(g);
 
-    delete[] e_index;
-    delete[] e_value;
+//    cout << endl << "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~" << '\n'
+//         << "The evidences \"e\" of instance " << i << ": " << endl;
+//    for (auto p: e) {
+//      cout << p.first << " = " << p.second << "\t";
+//    }
+//    cout << endl;
+//    cout << "The ground truth \"g\" of instance" << m << ": " << g << endl;
   }
+
+  cout << "finish constructing test set and ground truth..." << endl;
 
   // predict the labels of the test instances
   // TODO: the only difference is the line below: use different function to obtain "predictions"
@@ -1342,7 +1470,7 @@ double Network:: EvaluateBruteForceAccuracy(Dataset *dts) {
 }
 
 //TODO: combine with the EvaluateVarElimAccuracy(Dataset *dts) function
-double Network:: EvaluateAccuracyGivenAllCompleteInstances(Dataset *dts) {
+double Network:: EvaluateAccuracyGivenCompleteInstances(Dataset *dts) {
 
   cout << "==================================================" << '\n'
        << "Begin testing the trained network." << endl;
@@ -1363,26 +1491,21 @@ double Network:: EvaluateAccuracyGivenAllCompleteInstances(Dataset *dts) {
 
   for (int i = 0; i < m; ++i) { // for each instance in the data set
     // construct a test data set by removing the class variable
-    int e_num = num_nodes - 1;
-    int *e_index = new int[e_num];
-    int *e_value = new int[e_num];
+    DiscreteConfig e;
+    pair<int, int> p;
     for (int j = 0; j < num_nodes; ++j) {
       if (j == class_var_index) {
         continue; // skip the class variable
       }
-      e_index[j < class_var_index ? j : j - 1] = j;
-      e_value[j < class_var_index ? j : j - 1] = dts->dataset_all_vars[i][j];
+      p.first = j;
+      p.second = dts->dataset_all_vars[i][j];
+      e.insert(p);
     }
-    // convert to DiscreteConfig and construct the test set
-    DiscreteConfig E = ArrayToDiscreteConfig(e_index, e_value, e_num);
-    evidences.push_back(E);
+    evidences.push_back(e);
 
     // construct the ground truth
     int g = dts->dataset_all_vars[i][class_var_index];
     ground_truths.push_back(g);
-
-    delete[] e_index;
-    delete[] e_value;
   }
 
   // predict the labels of the test instances
@@ -1429,26 +1552,21 @@ double Network::EvaluateApproxInferAccuracy(Dataset *dts, int num_samp) {
 
   for (int i = 0; i < m; ++i) { // for each instance in the data set
     // construct a test data set by removing the class variable
-    int e_num = num_nodes - 1;
-    int *e_index = new int[e_num];
-    int *e_value = new int[e_num];
+    DiscreteConfig e;
+    pair<int, int> p;
     for (int j = 0; j < num_nodes; ++j) {
       if (j == class_var_index) {
         continue; // skip the class variable
       }
-      e_index[j < class_var_index ? j : j - 1] = j;
-      e_value[j < class_var_index ? j : j - 1] = dts->dataset_all_vars[i][j];
+      p.first = j;
+      p.second = dts->dataset_all_vars[i][j];
+      e.insert(p);
     }
-    // convert to DiscreteConfig and construct the test set
-    DiscreteConfig E = ArrayToDiscreteConfig(e_index, e_value, e_num);
-    evidences.push_back(E);
+    evidences.push_back(e);
 
     // construct the ground truth
     int g = dts->dataset_all_vars[i][class_var_index];
     ground_truths.push_back(g);
-
-    delete[] e_index;
-    delete[] e_value;
   }
 
   // predict the labels of the test instances TODO: difference in function
@@ -1486,26 +1604,21 @@ double Network::EvaluateLikelihoodWeightingAccuracy(Dataset *dts, int num_samp) 
 
   for (int i = 0; i < m; ++i) { // for each instance in the data set
     // construct a test data set by removing the class variable
-    int e_num = num_nodes - 1;
-    int *e_index = new int[e_num];
-    int *e_value = new int[e_num];
+    DiscreteConfig e;
+    pair<int, int> p;
     for (int j = 0; j < num_nodes; ++j) {
       if (j == class_var_index) {
         continue; // skip the class variable
       }
-      e_index[j < class_var_index ? j : j - 1] = j;
-      e_value[j < class_var_index ? j : j - 1] = dts->dataset_all_vars[i][j];
+      p.first = j;
+      p.second = dts->dataset_all_vars[i][j];
+      e.insert(p);
     }
-    // convert to DiscreteConfig and construct the test set
-    DiscreteConfig E = ArrayToDiscreteConfig(e_index, e_value, e_num);
-    evidences.push_back(E);
+    evidences.push_back(e);
 
     // construct the ground truth
     int g = dts->dataset_all_vars[i][class_var_index];
     ground_truths.push_back(g);
-
-    delete[] e_index;
-    delete[] e_value;
   }
 
   // predict the labels of the test instances TODO: difference

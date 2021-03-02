@@ -146,7 +146,7 @@ Factor Factor::SumOverVar(DiscreteNode *node) {
  *              a1 b0 c1    0.9         (if we get the evidence that a = 0,
  *              a1 b1 c0    0.2         the line that conflict with this evidence will be removed)
  *              a1 b1 c1    0.8
- * the scope of the reduced factor actually becomes to be {b, c}
+ * in the example, the scope of the reduced factor actually becomes to be {b, c},
  */
 Factor Factor::FactorReduction(DiscreteConfig evidence) { //set< pair<int, int> >
   Factor newFactor(related_variables, set_disc_config, map_potentials);
