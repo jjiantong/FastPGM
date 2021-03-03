@@ -62,16 +62,21 @@ Factor::Factor(set<int> &rv,
 /**
  * @brief: cartesian product on two factors (product of factors)
  * if two factors have shared variables, the conflict ones (i.e. one variable has more than one value) in the results need to be removed.
+ * if "related_variables" of one of the factors is empty, then directly return the other factor without multiplication
+ * because the case means that this factor is a constant; since we re-normalize at the end, the constant will not affect the result
  */
 Factor Factor::MultiplyWithFactor(Factor second_factor) {
   Factor newFactor;
 
-  if (!this->related_variables.empty()) {
-      newFactor.related_variables.insert(this->related_variables.begin(),this->related_variables.end());
+  if (this->related_variables.empty()) {
+    return second_factor;
   }
-  if (!second_factor.related_variables.empty()) {
-      newFactor.related_variables.insert(second_factor.related_variables.begin(),second_factor.related_variables.end());
+  if (second_factor.related_variables.empty()) {
+    return *this;
   }
+
+  newFactor.related_variables.insert(this->related_variables.begin(),this->related_variables.end());
+  newFactor.related_variables.insert(second_factor.related_variables.begin(),second_factor.related_variables.end());
 
   for (auto first: set_disc_config) {
     for (auto second : second_factor.set_disc_config) {

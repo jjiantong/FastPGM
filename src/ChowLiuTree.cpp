@@ -411,19 +411,20 @@ vector<int> ChowLiuTree::SimplifyTreeDefaultElimOrd2(DiscreteConfig evidence, ve
   }
 
   // Record all the remaining nodes in array "simplified_order".
-  int num_of_remain = num_nodes - 1 - to_be_removed.size(); // The one of the nodes is class variable node and does not need to be eliminated.
+//  int num_of_remain = num_nodes - 1 - to_be_removed.size(); // The one of the nodes is class variable node and does not need to be eliminated.
   vector<int> vec_simplified_order;
-  vec_simplified_order.reserve(num_of_remain);
+//  vec_simplified_order.reserve(num_of_remain);
   for (int i = 0; i < num_nodes - 1; ++i) {
     int ord = vec_default_elim_ord.at(i);
     if (to_be_removed.find(ord) == to_be_removed.end()) { // if it is not removed
       vec_simplified_order.push_back(ord);
     }
   }
-  if (vec_simplified_order.size() != num_of_remain) {
-    fprintf(stderr, "Error in function [%s], simplified order size not equal to number of remaining nodes!\n", __FUNCTION__);
-    exit(1);
-  }
+//  // this case may happen if the test set contains more features than the training set
+//  if (vec_simplified_order.size() != num_of_remain) {
+//    fprintf(stderr, "Error in function [%s], simplified order size not equal to number of remaining nodes!\n", __FUNCTION__);
+//    exit(1);
+//  }
 
   return vec_simplified_order;
 }

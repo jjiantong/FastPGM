@@ -1370,21 +1370,21 @@ double Network::EvaluateVEAccuracy(Dataset *dts) {
   ground_truths.reserve(m);
 
   for (int i = 0; i < m; ++i) { // for each instance in the data set
+    vector<VarVal> vec_instance = dts->vector_dataset_all_vars.at(i);
+
     // construct a test data set by removing the class variable
     DiscreteConfig e;
     pair<int, int> p;
-    for (int j = 0; j < num_nodes; ++j) {
-      if (j == class_var_index) {
-        continue; // skip the class variable
-      }
-      p.first = j;
-      p.second = dts->dataset_all_vars[i][j];
+    for (int j = 1; j < vec_instance.size(); ++j) { // skip the class variable (which is at the beginning of the vector)
+      p.first = vec_instance.at(j).first;
+      p.second = vec_instance.at(j).second.GetInt();
       e.insert(p);
     }
     evidences.push_back(e);
 
     // construct the ground truth
-    int g = dts->dataset_all_vars[i][class_var_index];
+    int g = vec_instance.at(0).second.GetInt();
+//    int g = dts->dataset_all_vars[i][class_var_index];
     ground_truths.push_back(g);
   }
 
