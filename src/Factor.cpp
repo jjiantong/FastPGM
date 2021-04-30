@@ -153,26 +153,24 @@ Factor Factor::SumOverVar(DiscreteNode *node) {
  *              a1 b1 c1    0.8
  * in the example, the scope of the reduced factor actually becomes to be {b, c},
  */
-Factor Factor::FactorReduction(DiscreteConfig evidence) { //set< pair<int, int> >
-  Factor newFactor(related_variables, set_disc_config, map_potentials);
+void Factor::FactorReduction(DiscreteConfig evidence) { //set< pair<int, int> >
 
   for (auto &e: evidence) { // for each observation of variable
     // if this factor is related to the observation
-    if (newFactor.related_variables.find(e.first) != newFactor.related_variables.end()) {
-      newFactor.related_variables.erase(e.first); //TODO
-      for (auto &comb: newFactor.set_disc_config) { // for each discrete config of this factor
+    if (related_variables.find(e.first) != related_variables.end()) {
+      related_variables.erase(e.first); //TODO
+      for (auto &comb: set_disc_config) { // for each discrete config of this factor
         // if this config and the evidence have different values on common variables,
         // which means that they conflict, then this config will be removed
         if (comb.find(e) == comb.end()) {
           // TODO: double-check: set to 0 or remove?
 //          newFactor.map_potentials[comb] = 0; //TODO
-          newFactor.set_disc_config.erase(comb); //TODO
-          newFactor.map_potentials.erase(comb); //TODO
+          set_disc_config.erase(comb); //TODO
+          map_potentials.erase(comb); //TODO
         }
       }
     }
   }
-  return newFactor;
 }
 
 

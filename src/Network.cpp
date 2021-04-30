@@ -819,23 +819,8 @@ void Network::LoadEvidenceIntoFactors(vector<Factor> *factors_list,
 //         ++i) {
 
     for (int i = 0; i < factors_list->size(); ++i) {
-      // TODO: see Factor::FactorReduction -- it is the same
       Factor &f = factors_list->at(i);   // For each factor. "std::vector::at" returns reference.
-      for (const auto &e : E) {  // For each node's observation in E
-        // If this factor is related to the observation
-        if (f.related_variables.find(e.first) != f.related_variables.end()) {
-          f.related_variables.erase(e.first); // TODO
-          for (const auto &comb : f.set_disc_config) { // for each discrete config of this factor
-            // if this config and the evidence have different values on common variables,
-            // which means that they conflict, then this config will be removed
-            if (comb.find(e) == comb.end()) {
-//              f.map_potentials[comb] = 0; // TODO
-              f.set_disc_config.erase(comb); // TODO
-              f.map_potentials.erase(comb); // TODO
-            }
-          }
-        }//end if the factor is related to the node
-      }
+      f.FactorReduction(E); // factor reduction given evidence
 
       // fix the bug occurring after removing the irrelevant nodes (barren nodes and m-separated nodes)
       // For example:  X--> Y (evidence/obs) --> Z --> A (target node) --> B, where X and B are the irrelevant nodes,
@@ -1073,8 +1058,8 @@ Factor Network::GetMarginalProbabilitiesUseBruteForce(int target_var_index, Disc
     Factor factor(dynamic_cast<DiscreteNode*>(node), this); // each node corresponds to a factor
 
     // factor reduction given the evidence
-    Factor reduced_factor = factor.FactorReduction(evidence);
-    factors_list.push_back(reduced_factor);
+    factor.FactorReduction(evidence);
+    factors_list.push_back(factor);
   }
 
   /// get the product of factors in "factors_list"
