@@ -9,6 +9,7 @@
 #include "Node.h"
 #include "Factor.h"
 #include "gadget.h"
+#include <string>
 #include <set>
 #include <queue>
 #include <vector>
@@ -38,7 +39,7 @@ class Network {//this class is used by both the customized networks and networks
   vector<int> vec_default_elim_ord;//the elimination order is obtained by reverse topological sort.
 
   map<int, Node*> map_idx_node_ptr;  // Key: node index. Value: node pointer. This map is a helper for FindNodePtrByIndex.
-  vector<int> SparseInstanceFillZeroToDenseInstance(DiscreteConfig &sparse_instance); //TODO: change a name?
+  DiscreteConfig Sparse2Dense(DiscreteConfig evidence);
 
   Network();
   explicit Network(bool pure_disc);
@@ -132,10 +133,7 @@ class Network {//this class is used by both the customized networks and networks
   vector<int> ApproxInferByProbLogiRejectSamp(vector<DiscreteConfig> evidences, int node_idx, vector<DiscreteConfig> &samples);
 
   // ========== Evaluation ==========
-  double EvaluateVEAccuracyGivenCompleteInstances(Dataset *dts);
-  double EvaluateVEAccuracy(Dataset *dts);
-  double EvaluateBruteForceAccuracy(Dataset *dts);
-  double EvaluateAccuracyGivenCompleteInstances(Dataset *dts);
+  double EvaluateAccuracy(Dataset *dts, string alg, bool dense);
 
   double EvaluateApproxInferAccuracy(Dataset *dts, int num_samp);
   double EvaluateLikelihoodWeightingAccuracy(Dataset *dts, int num_samp);

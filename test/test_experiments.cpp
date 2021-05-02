@@ -39,22 +39,24 @@ protected:
     Network *network;
 };
 
-//TEST_F(ExperimentOnA1a, ve) {
+TEST_F(ExperimentOnA1a, ve) {
 //    double accuracy = network->EvaluateVEAccuracyGivenCompleteInstances(tester);
-//    EXPECT_GT(accuracy, 0.8230);
-//}
-
-TEST_F(ExperimentOnA1a, ve_partial) {
-    double accuracy = network->EvaluateVEAccuracy(tester);
+//    double accuracy = network->EvaluateAccuracyGivenCompleteInstances(tester, "ve");
+    double accuracy = network->EvaluateAccuracy(tester, "ve", true);
     EXPECT_GT(accuracy, 0.8230);
 }
 
-//TEST_F(ExperimentOnA1a, brute_force) {
-//    double accuracy = network->EvaluateAccuracyGivenCompleteInstances(tester);
-//    EXPECT_GT(accuracy, 0.8230);
-//}
+TEST_F(ExperimentOnA1a, ve_partial) {
+    double accuracy = network->EvaluateAccuracy(tester, "ve", false);
+    EXPECT_GT(accuracy, 0.8230);
+}
 
-//TEST_F(ExperimentOnA1a, my_brute_force) {
+TEST_F(ExperimentOnA1a, brute_force) {
+    double accuracy = network->EvaluateAccuracy(tester, "direct", true);
+    EXPECT_GT(accuracy, 0.8230);
+}
+
+//TEST_F(ExperimentOnA1a, my_brute_force) { // high computational complexity!
 //    double accuracy = network->EvaluateBruteForceAccuracy(tester);
 //    EXPECT_GT(accuracy, 0.8230);
 //}

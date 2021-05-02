@@ -962,7 +962,8 @@ Factor Network::VarElimInferReturnPossib(DiscreteConfig evid, Node *target_node,
 /**
  * @brief: for inference given a target variable id and an (full) evidence/observation.
  * @param evidence: full evidence/observation (i.e. a dense instance)
- * @return map: key is the possible value of the target node; value is the probability of the target node with a specific value
+ * @return map: key is the possible value of the target node;
+ *              value is the probability of the target node with a specific value
  * product of factors seems to compute the joint distribution, but we renormalize it in the end, so it actually the marginal distribution
  */
 map<int, double> Network::GetMarginalProbabilitiesDirectly(int target_var_index, DiscreteConfig evidence) {
@@ -977,8 +978,11 @@ map<int, double> Network::GetMarginalProbabilitiesDirectly(int target_var_index,
   map<int, double> result;
 
   DiscreteNode *target_node = (DiscreteNode*) FindNodePtrByIndex(target_var_index);
-  // TODO: "SparseInstanceFillZeroToDenseInstance" here is no use, because "evidence" is dense
-  auto vec_complete_instance_values = SparseInstanceFillZeroToDenseInstance(evidence);
+  vector<int> vec_complete_instance_values;
+  vec_complete_instance_values.push_back(0);
+  for (auto evi = evidence.begin(); evi != evidence.end(); evi++) {
+      vec_complete_instance_values.push_back(evi->second);
+  }
 
   // compute the probability of each possible value of the target node
   for (int i = 0; i < target_node->GetDomainSize(); ++i) { // for each possible value of the target node (e.g. X=0)
@@ -1119,9 +1123,6 @@ Factor Network::GetMarginalProbabilitiesUseBruteForce(int target_var_index, Disc
  * @return label of the target variable
  */
 int Network::PredictUseVEInfer(DiscreteConfig evid, int target_node_idx, vector<int> elim_order) {
-//  Node *Y = FindNodePtrByIndex(target_node_idx);
-//  // get the factor (marginal probability) of the target node, given the evidences
-//  Factor F = VarElimInferReturnPossib(evid, Y, elim_order);
 
   // get the factor (marginal probability) of the target node given the evidences
   Factor F = GetMarginalProbabilitiesUseVE(target_node_idx, evid, elim_order);
@@ -1276,66 +1277,10 @@ vector<int> Network::PredictUseBruteForce(vector<DiscreteConfig> evidences, int 
 /**
  * @brief: compute the accuracy for a classification problem.
  * @param dts: data set; this is a classification problem.
+ * @param alg: inference algorithm used
+ * @param dense: dense evidence or sparse evidence
  */
-double Network::EvaluateVEAccuracyGivenCompleteInstances(Dataset *dts) {
-
-  cout << "==================================================" << '\n'
-       << "Begin testing the trained network." << endl;
-
-  struct timeval start, end;
-  double diff;
-  gettimeofday(&start,NULL);
-
-  int m = dts->num_instance;
-
-  int class_var_index = dts->class_var_index;
-
-  // construct the test data set with labels
-  vector<int> ground_truths;
-  vector<DiscreteConfig> evidences;
-  evidences.reserve(m);
-  ground_truths.reserve(m);
-
-  for (int i = 0; i < m; ++i) { // for each instance in the data set
-    // construct a test data set by removing the class variable
-    DiscreteConfig e;
-    pair<int, int> p;
-    for (int j = 0; j < num_nodes; ++j) {
-      if (j == class_var_index) {
-        continue; // skip the class variable
-      }
-      p.first = j;
-      p.second = dts->dataset_all_vars[i][j];
-      e.insert(p);
-    }
-    evidences.push_back(e);
-
-    // construct the ground truth
-    int g = dts->dataset_all_vars[i][class_var_index];
-    ground_truths.push_back(g);
-  }
-
-  // predict the labels of the test instances
-  vector<int> predictions = PredictUseVEInfer(evidences, class_var_index);
-  double accuracy = Accuracy(ground_truths, predictions);
-  cout << '\n' << "Accuracy: " << accuracy << endl;
-
-
-  gettimeofday(&end,NULL);
-  diff = (end.tv_sec-start.tv_sec) + ((double)(end.tv_usec-start.tv_usec))/1.0E6;
-  setlocale(LC_NUMERIC, "");
-  cout << "==================================================" << '\n'
-       << "The time spent to test the accuracy is " << diff << " seconds" << endl;
-
-  return accuracy;
-}
-
-
-/**
- * @brief: compute the accuracy for a classification problem.
- * @param dts: data set; this is a classification problem.
- */
-double Network::EvaluateVEAccuracy(Dataset *dts) {
+double Network::EvaluateAccuracy(Dataset *dts, string alg, bool dense) {
 
   cout << "==================================================" << '\n'
        << "Begin testing the trained network." << endl;
@@ -1365,61 +1310,8 @@ double Network::EvaluateVEAccuracy(Dataset *dts) {
       p.second = vec_instance.at(j).second.GetInt();
       e.insert(p);
     }
-    evidences.push_back(e);
-
-    // construct the ground truth
-    int g = vec_instance.at(0).second.GetInt();
-//    int g = dts->dataset_all_vars[i][class_var_index];
-    ground_truths.push_back(g);
-  }
-
-  // predict the labels of the test instances
-  vector<int> predictions = PredictUseVEInfer(evidences, class_var_index);
-  double accuracy = Accuracy(ground_truths, predictions);
-  cout << '\n' << "Accuracy: " << accuracy << endl;
-
-
-  gettimeofday(&end,NULL);
-  diff = (end.tv_sec-start.tv_sec) + ((double)(end.tv_usec-start.tv_usec))/1.0E6;
-  setlocale(LC_NUMERIC, "");
-  cout << "==================================================" << '\n'
-       << "The time spent to test the accuracy is " << diff << " seconds" << endl;
-
-  return accuracy;
-}
-
-
-//TODO: combine with the EvaluateVarElimAccuracy(Dataset *dts) function
-//vector<int> Network::PredictUseBruteForce(vector<DiscreteConfig> evidences, int target_node_idx)
-double Network:: EvaluateBruteForceAccuracy(Dataset *dts) {
-
-  cout << "==================================================" << '\n'
-       << "Begin testing the trained network." << endl;
-
-  struct timeval start, end;
-  double diff;
-  gettimeofday(&start,NULL);
-
-  int m = dts->num_instance;
-
-  int class_var_index = dts->class_var_index;
-
-  // construct the test data set with labels
-  vector<int> ground_truths;
-  vector<DiscreteConfig> evidences;
-  evidences.reserve(m);
-  ground_truths.reserve(m);
-
-  for (int i = 0; i < m; ++i) { // for each instance in the data set
-    vector<VarVal> vec_instance = dts->vector_dataset_all_vars.at(i);
-
-    // construct a test data set by removing the class variable
-    DiscreteConfig e;
-    pair<int, int> p;
-    for (int j = 1; j < vec_instance.size(); ++j) { // skip the class variable (which is at the beginning of the vector)
-      p.first = vec_instance.at(j).first;
-      p.second = vec_instance.at(j).second.GetInt();
-      e.insert(p);
+    if (dense) {
+        e = Sparse2Dense(e);
     }
     evidences.push_back(e);
 
@@ -1427,77 +1319,21 @@ double Network:: EvaluateBruteForceAccuracy(Dataset *dts) {
     int g = vec_instance.at(0).second.GetInt();
 //    int g = dts->dataset_all_vars[i][class_var_index];
     ground_truths.push_back(g);
-
-//    cout << endl << "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~" << '\n'
-//         << "The evidences \"e\" of instance " << i << ": " << endl;
-//    for (auto p: e) {
-//      cout << p.first << " = " << p.second << "\t";
-//    }
-//    cout << endl;
-//    cout << "The ground truth \"g\" of instance" << m << ": " << g << endl;
-  }
-
-  cout << "finish constructing test set and ground truth..." << endl;
-
-  // predict the labels of the test instances
-  // TODO: the only difference is the line below: use different function to obtain "predictions"
-  vector<int> predictions = PredictUseBruteForce(evidences, class_var_index);
-  double accuracy = Accuracy(ground_truths, predictions);
-  cout << '\n' << "Accuracy: " << accuracy << endl;
-
-  gettimeofday(&end,NULL);
-  diff = (end.tv_sec-start.tv_sec) + ((double)(end.tv_usec-start.tv_usec))/1.0E6;
-  setlocale(LC_NUMERIC, "");
-  cout << "==================================================" << '\n'
-       << "The time spent to test the accuracy is " << diff << " seconds" << endl;
-
-  return accuracy;
-}
-
-//TODO: combine with the EvaluateVarElimAccuracy(Dataset *dts) function
-double Network:: EvaluateAccuracyGivenCompleteInstances(Dataset *dts) {
-
-  cout << "==================================================" << '\n'
-       << "Begin testing the trained network." << endl;
-
-  struct timeval start, end;
-  double diff;
-  gettimeofday(&start,NULL);
-
-  int m = dts->num_instance;
-
-  int class_var_index = dts->class_var_index;
-
-  // construct the test data set with labels
-  vector<int> ground_truths;
-  vector<DiscreteConfig> evidences;
-  evidences.reserve(m);
-  ground_truths.reserve(m);
-
-  for (int i = 0; i < m; ++i) { // for each instance in the data set
-    // construct a test data set by removing the class variable
-    DiscreteConfig e;
-    pair<int, int> p;
-    for (int j = 0; j < num_nodes; ++j) {
-      if (j == class_var_index) {
-        continue; // skip the class variable
-      }
-      p.first = j;
-      p.second = dts->dataset_all_vars[i][j];
-      e.insert(p);
-    }
-    evidences.push_back(e);
-
-    // construct the ground truth
-    int g = dts->dataset_all_vars[i][class_var_index];
-    ground_truths.push_back(g);
   }
 
   // predict the labels of the test instances
-  // TODO: the only difference is the line below: use different function to obtain "predictions"
-  vector<int> predictions = PredictDirectly(evidences, class_var_index);
+  vector<int> predictions;
+  if (alg.compare("direct") == 0) {
+      predictions = PredictDirectly(evidences, class_var_index);
+  } else if (alg.compare("ve") == 0) {
+      predictions = PredictUseVEInfer(evidences, class_var_index);
+  } else {
+      cout << "ERROR with inference algorithm!" << endl;
+      exit(0);
+  }
   double accuracy = Accuracy(ground_truths, predictions);
   cout << '\n' << "Accuracy: " << accuracy << endl;
+
 
   gettimeofday(&end,NULL);
   diff = (end.tv_sec-start.tv_sec) + ((double)(end.tv_usec-start.tv_usec))/1.0E6;
@@ -2245,15 +2081,25 @@ void Network::StructLearnByOtt(Dataset *dts, vector<int> topo_ord_constraint) {/
 }
 
 /**
- * @brief: convert sparse to dense
+ * @brief: convert sparse to dense by filling zero
  */
- // todo: change a name?
-vector<int> Network::SparseInstanceFillZeroToDenseInstance(DiscreteConfig &sparse_instance) {
-  vector<int> complete_instance(this->num_nodes, 0);
-  for (const auto p : sparse_instance) {
-    complete_instance.at(p.first) = p.second;
+DiscreteConfig Network::Sparse2Dense(DiscreteConfig evidence) {
+  set<int> existing_index;
+  for (auto it = evidence.begin(); it != evidence.end(); it++) {
+      existing_index.insert(it->first);
   }
-  return complete_instance;
+  for (int i = 1; i < num_nodes; i++) { // for all nodes except for the target node
+      // if node index i is not in existing evidence, filling 0
+      if (existing_index.find(i) == existing_index.end()) {
+          pair<int, int> p;
+          p.first = i;
+          p.second = 0;
+          evidence.insert(p);
+      }
+  }
+
+  DiscreteConfig dense_instance = evidence;
+  return dense_instance;
 }
 
 /**
