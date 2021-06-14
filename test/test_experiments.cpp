@@ -28,8 +28,8 @@ protected:
         string train_set_file_path = "../../data/dataset/a1a.txt",
                 test_set_file_path = "../../data/dataset/a1a.test.txt";
 
-        trainer->LoadLIBSVMDataAutoDetectConfig(train_set_file_path);
-        tester->LoadLIBSVMDataAutoDetectConfig(test_set_file_path);
+        trainer->LoadLIBSVMData(train_set_file_path);
+        tester->LoadLIBSVMData(test_set_file_path);
         network->StructLearnCompData(trainer, true);
         network->LearnParamsKnowStructCompData(trainer, 2, true);
     }
@@ -91,8 +91,8 @@ TEST_F(ExperimentOnA1a, brute_force) {
 //           test_set_file_path = "../../data/dataset/Covertype/covtype_discretization_test.data";
 //
 //
-//    trainer->LoadCSVDataAutoDetectConfig(train_set_file_path, false, 54);
-//    tester->LoadCSVDataAutoDetectConfig(test_set_file_path, false, 54);
+//    trainer->LoadCSVData(train_set_file_path, false, 54);
+//    tester->LoadCSVData(test_set_file_path, false, 54);
 //    network->StructLearnCompData(trainer, true);
 //    network->LearnParamsKnowStructCompData(trainer, true);
 //  }
@@ -142,8 +142,8 @@ TEST_F(ExperimentOnA1a, brute_force) {
 //            test_set_file_path = "../../data/dataset/Phishing/Phishing_Training_Dataset_split_9_of_10.csv";
 //
 //
-//    trainer->LoadCSVDataAutoDetectConfig(train_set_file_path, false, 30);
-//    tester->LoadCSVDataAutoDetectConfig(test_set_file_path, false, 30);
+//    trainer->LoadCSVData(train_set_file_path, false, 30);
+//    tester->LoadCSVData(test_set_file_path, false, 30);
 //    network->StructLearnCompData(trainer, false);
 //    network->LearnParamsKnowStructCompData(trainer, 1, false);
 //  }

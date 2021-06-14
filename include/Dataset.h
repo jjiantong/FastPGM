@@ -35,15 +35,15 @@ class Dataset {
 
 
   Dataset();
-  void LoadLIBSVMDataAutoDetectConfig(string data_file_path, set<int> cont_vars={});
-  void ConvertLIBSVMVectorDatasetIntoIntArrayDataset();
+  void LoadLIBSVMData(string data_file_path, set<int> cont_vars={});
   void SamplesToLIBSVMFile(vector<DiscreteConfig> &samples, string &file) const;
   void SamplesToLIBSVMFile(vector<Configuration> &samples, string &file) const;
 
-  void LoadCSVDataAutoDetectConfig(string data_file_path, bool header=true, int cls_var_id=-1, set<int> cont_vars={});
-  void ConvertCSVVectorDatasetIntoIntArrayDataset();
+  void LoadCSVData(string data_file_path, bool header=true, int cls_var_id=-1, set<int> cont_vars={});
   void SamplesToCSVFile(vector<DiscreteConfig> &samples, string &file, vector<string> header={}) const;
   void SamplesToCSVFile(vector<Configuration> &samples, string &file, vector<string> header={}) const;
+
+  void ConvertVectorDatasetIntoIntArrayDataset();
 };
 
 

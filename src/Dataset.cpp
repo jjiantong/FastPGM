@@ -10,14 +10,15 @@
 Dataset::Dataset() {}
 
 /**
- * @brief: AutoDetect means to automatically find the possible values for each discrete variable
+ * @brief: load data file with libsvm format
  * 1, read the data file and store with the representation of std::vector.
  * 2, convert the vector representation into array (does not erase the vector representation).
  * @param: data_file_path: path to the LIBSVM data file (like a1a)
  * @param: cont_vars: indexes for continuous variables; need to manually specify which variable is continuous
  */
-void Dataset::LoadLIBSVMDataAutoDetectConfig(string data_file_path, set<int> cont_vars) {
+void Dataset::LoadLIBSVMData(string data_file_path, set<int> cont_vars) {
 
+  // the first element is the class variable in the LibSVN format
   class_var_index = 0;
 
   ifstream in_file;
@@ -101,17 +102,6 @@ void Dataset::LoadLIBSVMDataAutoDetectConfig(string data_file_path, set<int> con
     );
   }
 
-//  cout << endl << "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~" << '\n'
-//       << "The vector \"vector_dataset_all_vars\": " << endl;
-//  for (auto instance: vector_dataset_all_vars) {
-//    cout << "instance: ";
-//    for (auto feature: instance) {
-//      cout << feature.first << ",";
-//    }
-//    cout << endl;
-//  }
-//  cout << endl;
-
   num_instance = vector_dataset_all_vars.size();
   num_vars = max_index_occurred + 1;//the number of variables of the data set
 
@@ -137,32 +127,21 @@ void Dataset::LoadLIBSVMDataAutoDetectConfig(string data_file_path, set<int> con
   // 2, convert vector "vector_dataset_all_vars" into array "dataset_all_vars" (does not erase "vector_dataset_all_vars").
   // TODO: check the two representations. remove?
   if (cont_vars.empty()) {//the data set only contains discrete variables.
-    ConvertLIBSVMVectorDatasetIntoIntArrayDataset();
+    ConvertVectorDatasetIntoIntArrayDataset();
   }
-
-//  cout << endl << "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~" << '\n'
-//       << "The matrix \"dataset_all_vars\": " << endl;
-//  for (int i = 0; i < num_instance; i++) {
-//    for (int j = 0; j < num_vars; j++) {
-//      cout << dataset_all_vars[i][j] << ",";
-//    }
-//    cout << endl;
-//  }
-//  cout << endl;
 
   cout << "Finish loading data. " << '\n'
        << "Number of instances: " << num_instance << ". \n"
-       << "Number of features (maximum feature index occurred): " << max_index_occurred << ". " << endl;
+       << "Number of features: " << max_index_occurred << ". " << endl;
 
   in_file.close();
-
 }
 
 /*!
  * @brief: convert from vector ("vector_dataset_all_vars") to array ("dataset_all_vars")
  * this function is used if the data set only contains discrete variables
  */
-void Dataset::ConvertLIBSVMVectorDatasetIntoIntArrayDataset() {//storing the data set using int only
+void Dataset::ConvertVectorDatasetIntoIntArrayDataset() {//storing the data set using int only
   // Initialize to be all zero. (dataset_all_vars: int **)
   dataset_all_vars = new int *[num_instance];
 #pragma omp parallel for
@@ -177,24 +156,13 @@ void Dataset::ConvertLIBSVMVectorDatasetIntoIntArrayDataset() {//storing the dat
 }
 
 /**
- * @brief: convert a data set with float and int, to a data set with int only
+ * @brief: load data file with csv format
  */
-void Dataset::ConvertCSVVectorDatasetIntoIntArrayDataset() {//need to redesign this function
-  dataset_all_vars = new int *[num_instance];
-#pragma omp parallel for
-  for (int s=0; s<num_instance; ++s) {
-    dataset_all_vars[s] = new int[num_vars]();  // The parentheses at end will initialize the array to be all zeros.
-    for (const VarVal &vv : vector_dataset_all_vars.at(s)) {
-      dataset_all_vars[s][vv.first] = vv.second.GetInt();
-    }
-  }
-}
+void Dataset::LoadCSVData(string data_file_path, bool header, int cls_var_id, set<int> cont_vars) {
 
-/**
- * @brief: similar to Load Data from LibSVM: cf. LoadLIBSVMDataAutoDetectConfig.
- */
-void Dataset::LoadCSVDataAutoDetectConfig(string data_file_path, bool header, int cls_var_id, set<int> cont_vars) {
+  // we need to specify the variable interested for the CSV format
   this->class_var_index = cls_var_id;
+
   ifstream in_file;
   in_file.open(data_file_path);
   if (!in_file.is_open()) {
@@ -202,22 +170,26 @@ void Dataset::LoadCSVDataAutoDetectConfig(string data_file_path, bool header, in
     fprintf(stderr, "Unable to open file %s!", data_file_path.c_str());
     exit(1);
   }
+
   cout << "Data file opened. Begin to load data. " << endl;
 
   string sample;
-  // Use the first line to detect the dataset attributes. It is like the table head.
+  /*
+   * 1, read and parse the first line
+   */
+  // use the first line to detect the number of variables of the data set
   getline(in_file, sample);
   sample = TrimRight(sample);
   vector<string> parsed_variable = Split(sample, ",");
-  num_vars = parsed_variable.size();
+  num_vars = parsed_variable.size(); // the number of variables of the data set
   is_vars_discrete.reserve(num_vars);
   num_of_possible_values_of_disc_vars.reserve(num_vars);
 
-
-  if (header) {
+  if (header) { // the first line contains variable names, it is like the table header
     vec_var_names = parsed_variable;
     set<string> temp;
     temp.insert(parsed_variable.begin(), parsed_variable.end());
+    // check whether there are duplicate variable names
     if (temp.size() != parsed_variable.size()) {
       fprintf(stderr, "Error in function [%s]\nDuplicate variable names in header!", __FUNCTION__);
       exit(1);
@@ -225,21 +197,27 @@ void Dataset::LoadCSVDataAutoDetectConfig(string data_file_path, bool header, in
     getline(in_file, sample);
   }
 
-  // Load data.
+  /**
+   * 2, read the data file and store with the representation of std::vector.
+   */
   while (!in_file.eof()) {
     // If there is a whitespace at the end of each line,
     // it will cause a bug if we do not trim it.
     sample = TrimRight(sample);
     vector<string> parsed_sample = Split(sample, ",");
     vector<VarVal> single_sample_vector;
-    for (int i=0; i<num_vars; ++i) {
+    for (int i = 0; i < num_vars; ++i) {
       Value v;
-      if (cont_vars.find(i)==cont_vars.end()) {
-        int value = stoi(parsed_sample.at(i));
+      // check whether the variable is continuous
+      if (cont_vars.find(i) == cont_vars.end()) {
+        //the label is not continuous (i.e., classification task)
+        int value = stoi(parsed_sample.at(i)); // the value of the variable TODO
         v.SetInt(value);
+        // insert the value of one variable of one sample into "map_disc_vars_possible_values"
         map_disc_vars_possible_values[i].insert(value);
       } else {
-        float value = stof(parsed_sample.at(i));
+        //the label is continuous (i.e., regression task)
+        float value = stof(parsed_sample.at(i)); // the value of the variable
         v.SetFloat(value);
       }
 
@@ -251,15 +229,14 @@ void Dataset::LoadCSVDataAutoDetectConfig(string data_file_path, bool header, in
   }
 
   num_instance = vector_dataset_all_vars.size();
-  num_of_possible_values_of_disc_vars.reserve(num_vars);
 
   for (int i=0; i<num_vars; ++i) {
     num_of_possible_values_of_disc_vars.push_back(map_disc_vars_possible_values[i].size());
-    is_vars_discrete.push_back(cont_vars.find(i)==cont_vars.end()); // For now, we can only process discrete features.
+    is_vars_discrete.push_back(cont_vars.find(i)==cont_vars.end()); // TODO: For now, we can only process discrete features.
   }
 
   if (cont_vars.empty()) {
-    ConvertCSVVectorDatasetIntoIntArrayDataset();
+    ConvertVectorDatasetIntoIntArrayDataset();
   }
 
   cout << "Finish loading data. " << '\n'
