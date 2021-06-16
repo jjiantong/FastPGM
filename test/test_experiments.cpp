@@ -42,33 +42,33 @@ protected:
     Inference *inference;
 };
 
-//TEST_F(ExperimentOnA1a, ve) {
-////    double accuracy = network->EvaluateAccuracy(tester, "ve", true);
-////    EXPECT_GT(accuracy, 0.8230);
-//    double accuracy = inference->EvaluateExactInferenceAccuracy(tester, "ve", true);
+TEST_F(ExperimentOnA1a, ve) {
+//    double accuracy = network->EvaluateAccuracy(tester, "ve", true);
 //    EXPECT_GT(accuracy, 0.8230);
-//}
-//
-//TEST_F(ExperimentOnA1a, ve_partial) {
-////    double accuracy = network->EvaluateAccuracy(tester, "ve", false);
-////    EXPECT_GT(accuracy, 0.8230);
-//    double accuracy = inference->EvaluateExactInferenceAccuracy(tester, "ve", false);
+    double accuracy = inference->EvaluateExactInferenceAccuracy(tester, "ve", true);
+    EXPECT_GT(accuracy, 0.8230);
+}
+
+TEST_F(ExperimentOnA1a, ve_partial) {
+//    double accuracy = network->EvaluateAccuracy(tester, "ve", false);
 //    EXPECT_GT(accuracy, 0.8230);
-//}
-//
-//TEST_F(ExperimentOnA1a, brute_force) {
-////    double accuracy = network->EvaluateAccuracy(tester, "direct", true);
-////    EXPECT_GT(accuracy, 0.8230);
-//    double accuracy = inference->EvaluateExactInferenceAccuracy(tester, "direct", true);
+    double accuracy = inference->EvaluateExactInferenceAccuracy(tester, "ve", false);
+    EXPECT_GT(accuracy, 0.8230);
+}
+
+TEST_F(ExperimentOnA1a, brute_force) {
+//    double accuracy = network->EvaluateAccuracy(tester, "direct", true);
 //    EXPECT_GT(accuracy, 0.8230);
-//}
-//
-//TEST_F(ExperimentOnA1a, likelihood_weighing) {
-////    double accuracy = network->EvaluateLikelihoodWeightingAccuracy(tester, 50);
-////    EXPECT_GT(accuracy, 0.8150);
-//    double accuracy = inference->EvaluateApproximateInferenceAccuracy(tester, 50, "likelihood", true);
+    double accuracy = inference->EvaluateExactInferenceAccuracy(tester, "direct", true);
+    EXPECT_GT(accuracy, 0.8230);
+}
+
+TEST_F(ExperimentOnA1a, likelihood_weighing) {
+//    double accuracy = network->EvaluateLikelihoodWeightingAccuracy(tester, 50);
 //    EXPECT_GT(accuracy, 0.8150);
-//}
+    double accuracy = inference->EvaluateApproximateInferenceAccuracy(tester, 50, "likelihood", true);
+    EXPECT_GT(accuracy, 0.8150);
+}
 
 TEST_F(ExperimentOnA1a, approx) {
 //    double accuracy = network->EvaluateApproxInferAccuracy(tester, 50);

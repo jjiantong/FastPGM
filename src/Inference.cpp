@@ -206,7 +206,8 @@ Factor Inference::GetMarginalProbabilitiesUseVE(int target_var_index, DiscreteCo
 
     if (elim_order.empty()) {
         // call "ChowLiuTree::SimplifyDefaultElimOrd"; "elim_order" is the reverse topological order removing barren nodes and m-separated nodes
-        elim_order = network->SimplifyDefaultElimOrd2(evidence, left_nodes); //TODO
+//        elim_order = network->SimplifyDefaultElimOrd2(evidence, left_nodes);
+        elim_order = DefaultEliminationOrder(evidence, left_nodes);
     }
 
     // compute the probability table of the target node
@@ -242,6 +243,46 @@ vector<int> Inference::FilterOutIrrelevantNodes() { // TODO
     }
 
     return left_nodes;
+}
+
+/**
+ * @brief: default elimination order is based on the reverse topological order
+ * simplified by removing the evidence and the target nodes from the left nodes
+ * @param left_nodes is the left node set by removing barren nodes and m-separated nodes
+ * The implementation is based on "A simple approach to Bayesian network computations" by Zhang and Poole, 1994.
+ */
+vector<int> Inference::DefaultEliminationOrder(DiscreteConfig evidence, vector<int> left_nodes) {
+
+    // based on the reverse topological order
+    vector<int> vec_default_elim_ord = network->GetReverseTopoOrd();
+
+    // to_be_removed contains: irrelevant nodes & evidence
+    set<int> to_be_removed;
+    // add the evidence
+    for (auto p: evidence) { // for each index-value pair in the evidence
+        to_be_removed.insert(p.first);
+    }
+    // add the irrelevant nodes
+    for (int i = 0; i < network->num_nodes; ++i) { // for each node in the network
+        if (find(left_nodes.begin(), left_nodes.end(), i) == left_nodes.end()) { // if i is not in "left_nodes"
+            to_be_removed.insert(i); // add into "to_be_removed"
+        }
+    }
+
+    vector<int> vec_simplified_order;
+    for (int i = 0; i < network->num_nodes - 1; ++i) { // the last one in the vector is the target node
+        int ord = vec_default_elim_ord.at(i);
+        if (to_be_removed.find(ord) == to_be_removed.end()) { // if it is not removed
+            vec_simplified_order.push_back(ord);
+        }
+    }
+//  // this case may happen if the test set contains more features than the training set
+//  if (vec_simplified_order.size() != num_of_remain) {
+//    fprintf(stderr, "Error in function [%s], simplified order size not equal to number of remaining nodes!\n", __FUNCTION__);
+//    exit(1);
+//  }
+
+    return vec_simplified_order;
 }
 
 /**
@@ -601,7 +642,6 @@ DiscreteConfig Inference::GenerateInstanceByProbLogicSampleNetwork() {
     }
     return instance;
 }
-
 
 double Inference::EvaluateExactInferenceAccuracy(Dataset *dts, string alg, bool is_dense) {
 

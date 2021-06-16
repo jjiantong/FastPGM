@@ -932,126 +932,126 @@ Factor Network::VarElimInferReturnPossib(DiscreteConfig evid, Node *target_node,
   return target_node_factor;
 }
 
-/**
- * @brief: for inference given a target variable id and some evidences/observations.
- */
-Factor Network::GetMarginalProbabilitiesUseBruteForce(int target_var_index, DiscreteConfig evidence) {
-  if (!this->pure_discrete) {
-    fprintf(stderr, "Function [%s] only works on pure discrete networks!", __FUNCTION__);
-    exit(1);
-  }
-
-  /// reduce each factor of variable according to the evidence and construct "factors_list"
-  vector<Factor> factors_list;
-  for (int i = 0; i < num_nodes; ++i) { // for each node in the network
-    Node* node = FindNodePtrByIndex(i);
-    Factor factor(dynamic_cast<DiscreteNode*>(node), this); // each node corresponds to a factor
-
-    // factor reduction given the evidence
-    factor.FactorReduction(evidence);
-    factors_list.push_back(factor);
-  }
-
-  /// get the product of factors in "factors_list"
-  while(factors_list.size() > 1) {
-    // every time merge two factors into one
-    Factor temp1, temp2, product;
-    temp1 = factors_list.back(); // get the last element
-    factors_list.pop_back();  // remove the last element
-    temp2 = factors_list.back();
-    factors_list.pop_back();
-
-    product = temp1.MultiplyWithFactor(temp2);
-    factors_list.push_back(product);
-  }
-
-  /// get the variables to be marginalized
-  vector<int> marginalize_vars;
-  for (int i = 0; i < num_nodes; ++i) {
-    bool is_target_or_evidence = false;
-    if (i == target_var_index) {
-      is_target_or_evidence = true; // i is the target node
-    }
-    else {
-      for (auto &e: evidence) {
-        if (i == e.first) {
-          is_target_or_evidence = true; // i is an evidence
-          break;
-        }
-      }
-    }
-    // if the variable is not the target and the evidence,
-    // then the variable needs to be marginalized
-    if (!is_target_or_evidence) {
-      marginalize_vars.push_back(i);
-    }
-  }
-
-  /// sum out the variables in "marginalize_vars"
-  for (int i = 0; i < marginalize_vars.size(); ++i) { // for each variable to be summed out
-    Node* node = FindNodePtrByIndex(marginalize_vars.at(i));
-    Factor new_factor = factors_list.back().SumOverVar(dynamic_cast<DiscreteNode*>(node));
-    factors_list.pop_back();
-    factors_list.push_back(new_factor);
-  }
-
-  /// renormalization
-  Factor target_node_factor = factors_list.back();
-  target_node_factor.Normalize();
-
-  return target_node_factor;
-}
-
-/**
- * @brief: predict label given (partial or full observation) evidence
- * @return label of the target variable
- */
-int Network::PredictUseBruteForce(DiscreteConfig evid, int target_node_idx) {
-  // get the factor (marginal probability) of the target node given the evidences
-  Factor F = GetMarginalProbabilitiesUseBruteForce(target_node_idx, evid);
-
-  // find the configuration with the maximum probability
-  double max_prob = 0;
-  DiscreteConfig comb_predict;
-  for (auto &comb : F.set_disc_config) { // for each configuration of the related variables
-    if (F.map_potentials[comb] > max_prob) {
-      max_prob = F.map_potentials[comb];
-      comb_predict = comb;
-    }
-  }
-  int label_predict = comb_predict.begin()->second;
-  return label_predict;
-}
-
-/**
- * @brief: predict the label of different evidences
- * it just repeats the function above multiple times, and print the progress at the meantime
- */
-vector<int> Network::PredictUseBruteForce(vector<DiscreteConfig> evidences, int target_node_idx) {
-  int size = evidences.size();
-
-  cout << "Progress indicator: ";
-  int every_1_of_20 = size / 20;
-  int progress = 0;
-
-
-  vector<int> results(size, 0);
-#pragma omp parallel for
-  for (int i = 0; i < size; ++i) {
-#pragma omp critical
-    { ++progress; }
-
-    if (progress % every_1_of_20 == 0) {
-      string progress_percentage = to_string((double)progress/size * 100) + "%...\n";
-      fprintf(stdout, "%s\n", progress_percentage.c_str());
-      fflush(stdout);
-    }
-
-    int pred = PredictUseBruteForce(evidences.at(i), target_node_idx);
-    results.at(i) = pred;
-  }
-  return results;
-}
+///**
+// * @brief: for inference given a target variable id and some evidences/observations.
+// */
+//Factor Network::GetMarginalProbabilitiesUseBruteForce(int target_var_index, DiscreteConfig evidence) {
+//  if (!this->pure_discrete) {
+//    fprintf(stderr, "Function [%s] only works on pure discrete networks!", __FUNCTION__);
+//    exit(1);
+//  }
+//
+//  /// reduce each factor of variable according to the evidence and construct "factors_list"
+//  vector<Factor> factors_list;
+//  for (int i = 0; i < num_nodes; ++i) { // for each node in the network
+//    Node* node = FindNodePtrByIndex(i);
+//    Factor factor(dynamic_cast<DiscreteNode*>(node), this); // each node corresponds to a factor
+//
+//    // factor reduction given the evidence
+//    factor.FactorReduction(evidence);
+//    factors_list.push_back(factor);
+//  }
+//
+//  /// get the product of factors in "factors_list"
+//  while(factors_list.size() > 1) {
+//    // every time merge two factors into one
+//    Factor temp1, temp2, product;
+//    temp1 = factors_list.back(); // get the last element
+//    factors_list.pop_back();  // remove the last element
+//    temp2 = factors_list.back();
+//    factors_list.pop_back();
+//
+//    product = temp1.MultiplyWithFactor(temp2);
+//    factors_list.push_back(product);
+//  }
+//
+//  /// get the variables to be marginalized
+//  vector<int> marginalize_vars;
+//  for (int i = 0; i < num_nodes; ++i) {
+//    bool is_target_or_evidence = false;
+//    if (i == target_var_index) {
+//      is_target_or_evidence = true; // i is the target node
+//    }
+//    else {
+//      for (auto &e: evidence) {
+//        if (i == e.first) {
+//          is_target_or_evidence = true; // i is an evidence
+//          break;
+//        }
+//      }
+//    }
+//    // if the variable is not the target and the evidence,
+//    // then the variable needs to be marginalized
+//    if (!is_target_or_evidence) {
+//      marginalize_vars.push_back(i);
+//    }
+//  }
+//
+//  /// sum out the variables in "marginalize_vars"
+//  for (int i = 0; i < marginalize_vars.size(); ++i) { // for each variable to be summed out
+//    Node* node = FindNodePtrByIndex(marginalize_vars.at(i));
+//    Factor new_factor = factors_list.back().SumOverVar(dynamic_cast<DiscreteNode*>(node));
+//    factors_list.pop_back();
+//    factors_list.push_back(new_factor);
+//  }
+//
+//  /// renormalization
+//  Factor target_node_factor = factors_list.back();
+//  target_node_factor.Normalize();
+//
+//  return target_node_factor;
+//}
+//
+///**
+// * @brief: predict label given (partial or full observation) evidence
+// * @return label of the target variable
+// */
+//int Network::PredictUseBruteForce(DiscreteConfig evid, int target_node_idx) {
+//  // get the factor (marginal probability) of the target node given the evidences
+//  Factor F = GetMarginalProbabilitiesUseBruteForce(target_node_idx, evid);
+//
+//  // find the configuration with the maximum probability
+//  double max_prob = 0;
+//  DiscreteConfig comb_predict;
+//  for (auto &comb : F.set_disc_config) { // for each configuration of the related variables
+//    if (F.map_potentials[comb] > max_prob) {
+//      max_prob = F.map_potentials[comb];
+//      comb_predict = comb;
+//    }
+//  }
+//  int label_predict = comb_predict.begin()->second;
+//  return label_predict;
+//}
+//
+///**
+// * @brief: predict the label of different evidences
+// * it just repeats the function above multiple times, and print the progress at the meantime
+// */
+//vector<int> Network::PredictUseBruteForce(vector<DiscreteConfig> evidences, int target_node_idx) {
+//  int size = evidences.size();
+//
+//  cout << "Progress indicator: ";
+//  int every_1_of_20 = size / 20;
+//  int progress = 0;
+//
+//
+//  vector<int> results(size, 0);
+//#pragma omp parallel for
+//  for (int i = 0; i < size; ++i) {
+//#pragma omp critical
+//    { ++progress; }
+//
+//    if (progress % every_1_of_20 == 0) {
+//      string progress_percentage = to_string((double)progress/size * 100) + "%...\n";
+//      fprintf(stdout, "%s\n", progress_percentage.c_str());
+//      fflush(stdout);
+//    }
+//
+//    int pred = PredictUseBruteForce(evidences.at(i), target_node_idx);
+//    results.at(i) = pred;
+//  }
+//  return results;
+//}
 
 /**
  * @brief: for approximate inference; this function generate an instance using the network

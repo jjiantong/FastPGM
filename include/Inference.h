@@ -38,6 +38,7 @@ public:
                                   vector<vector<int>> elim_orders=vector<vector<int>>{});
     Factor GetMarginalProbabilitiesUseVE(int target_var_index, DiscreteConfig evidence, vector<int> elim_order);
     vector<int> FilterOutIrrelevantNodes();
+    vector<int> DefaultEliminationOrder(DiscreteConfig evidence, vector<int> left_nodes);
     Factor SumProductVarElim(vector<Factor> factors_list, vector<int> elim_order);
 
     /**

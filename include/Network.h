@@ -87,9 +87,10 @@ class Network {//this class is used by both the customized networks and networks
   vector<int> GetTopoOrd();
   vector<int> GetReverseTopoOrd();
 
+  set<int> GetMarkovBlanketIndexesOfNode(Node *node_ptr);
+
   int** ConvertDAGNetworkToAdjacencyMatrix();
   bool ContainCircle();
-
 
   virtual vector<int> SimplifyDefaultElimOrd(DiscreteConfig evidence);
   virtual vector<int> SimplifyDefaultElimOrd2(DiscreteConfig evidence, vector<int> left_nodes);
@@ -100,10 +101,10 @@ class Network {//this class is used by both the customized networks and networks
   Factor SumProductVarElim(vector<Factor> factors_list, vector<int> elim_order);
   Factor VarElimInferReturnPossib(DiscreteConfig evid, Node *target_node, vector<int> elim_order=vector<int>{});
 
-  Factor GetMarginalProbabilitiesUseBruteForce(int target_var_index, DiscreteConfig evidence);
-
-  int PredictUseBruteForce(DiscreteConfig evid, int target_node_idx);
-  vector<int> PredictUseBruteForce(vector<DiscreteConfig> evidences, int target_node_idx);
+//  Factor GetMarginalProbabilitiesUseBruteForce(int target_var_index, DiscreteConfig evidence);
+//
+//  int PredictUseBruteForce(DiscreteConfig evid, int target_node_idx);
+//  vector<int> PredictUseBruteForce(vector<DiscreteConfig> evidences, int target_node_idx);
 
   DiscreteConfig GenerateInstanceByProbLogicSampleNetwork();
 
@@ -116,7 +117,7 @@ class Network {//this class is used by both the customized networks and networks
   vector<int> topo_ord;
 
   vector<int> GenTopoOrd();
-  set<int> GetMarkovBlanketIndexesOfNode(Node *node_ptr);
+
 
   /**
    * Functions for structure learning.
