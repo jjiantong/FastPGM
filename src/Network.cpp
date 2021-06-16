@@ -259,9 +259,7 @@ void Network::StructLearnCompData(Dataset *dts, bool print_struct, string algo, 
     cout << "==================================================" << '\n'
          << "Each node's parents: " << endl;
     this->PrintEachNodeParents();
-
   }
-
 }
 
 /**

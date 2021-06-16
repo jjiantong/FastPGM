@@ -70,8 +70,7 @@ class Network {//this class is used by both the customized networks and networks
   void DeleteArc(int p_index, int c_index);
   bool ReverseArc(int p_index, int c_index);
 
-  double CalcuExtraScoreWithModifiedArc(int p_index, int c_index, Dataset *dts,
-                                        string modification, string score_metric);
+  double CalcuExtraScoreWithModifiedArc(int p_index, int c_index, Dataset *dts, string modification, string score_metric);
 
   void SetParentChild(int p_index, int c_index);
   void SetParentChild(Node *par, Node *chi); // checked
@@ -101,11 +100,6 @@ class Network {//this class is used by both the customized networks and networks
   Factor SumProductVarElim(vector<Factor> factors_list, vector<int> elim_order);
   Factor VarElimInferReturnPossib(DiscreteConfig evid, Node *target_node, vector<int> elim_order=vector<int>{});
 
-//  Factor GetMarginalProbabilitiesUseBruteForce(int target_var_index, DiscreteConfig evidence);
-//
-//  int PredictUseBruteForce(DiscreteConfig evid, int target_node_idx);
-//  vector<int> PredictUseBruteForce(vector<DiscreteConfig> evidences, int target_node_idx);
-
   DiscreteConfig GenerateInstanceByProbLogicSampleNetwork();
 
   int SampleNodeGivenMarkovBlanketReturnValIndex(Node *node_ptr, DiscreteConfig markov_blanket);
@@ -117,7 +111,6 @@ class Network {//this class is used by both the customized networks and networks
   vector<int> topo_ord;
 
   vector<int> GenTopoOrd();
-
 
   /**
    * Functions for structure learning.

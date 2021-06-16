@@ -158,7 +158,7 @@ void Dataset::ConvertVectorDatasetIntoIntArrayDataset() {//storing the data set 
 /**
  * @brief: load data file with csv format
  */
-void Dataset::LoadCSVData(string data_file_path, bool header, int cls_var_id, set<int> cont_vars) {
+void Dataset::LoadCSVData(string data_file_path, bool header, bool str_val, int cls_var_id, set<int> cont_vars) {
 
   // we need to specify the variable interested for the CSV format
   this->class_var_index = cls_var_id;
@@ -174,10 +174,10 @@ void Dataset::LoadCSVData(string data_file_path, bool header, int cls_var_id, se
   cout << "Data file opened. Begin to load data. " << endl;
 
   string sample;
-  /*
+  /**
    * 1, read and parse the first line
+   * use the first line to detect the number of variables of the data set
    */
-  // use the first line to detect the number of variables of the data set
   getline(in_file, sample);
   sample = TrimRight(sample);
   vector<string> parsed_variable = Split(sample, ",");
@@ -200,7 +200,16 @@ void Dataset::LoadCSVData(string data_file_path, bool header, int cls_var_id, se
   /**
    * 2, read the data file and store with the representation of std::vector.
    */
-  while (!in_file.eof()) {
+
+  // they are used if some discrete variables contain string values
+  // key: discrete variable id
+  // value: a set of the possible string values of the variable
+  map<int,set<string>> map_disc_vars_string_values;
+  // to map the string values with different numbers
+  vector<int> counter(num_vars, -1);
+  map_string_values_numbers.resize(num_vars);
+
+  while (!in_file.eof()) { // for all instances
     // If there is a whitespace at the end of each line,
     // it will cause a bug if we do not trim it.
     sample = TrimRight(sample);
@@ -208,15 +217,27 @@ void Dataset::LoadCSVData(string data_file_path, bool header, int cls_var_id, se
     vector<VarVal> single_sample_vector;
     for (int i = 0; i < num_vars; ++i) {
       Value v;
+      int value;
       // check whether the variable is continuous
-      if (cont_vars.find(i) == cont_vars.end()) {
-        //the label is not continuous (i.e., classification task)
-        int value = stoi(parsed_sample.at(i)); // the value of the variable TODO
+      if (cont_vars.find(i) == cont_vars.end()) { //the label is discrete (i.e., classification task)
+        if (str_val) { // if some discrete variables contain string values
+            string s_value = parsed_sample.at(i);
+            // insert successfully -- it is a new possible value
+            if (map_disc_vars_string_values[i].insert(s_value).second) {
+                value = ++counter[i]; // get a new int value
+                map_string_values_numbers.at(i).insert(pair<string, int> (s_value, value)); // map
+//                cout << "variable " << i << ": (" << s_value << ", " << value << ")" << endl;
+            } else { // failed to insert -- it is an old value
+                value = map_string_values_numbers.at(i)[s_value];
+            }
+        } else { // if no variable contains the string value
+            value = stoi(parsed_sample.at(i)); // the value of the variable
+        }
+
         v.SetInt(value);
-        // insert the value of one variable of one sample into "map_disc_vars_possible_values"
+        // insert the value of one variable the mapped number of one variable of one sample
         map_disc_vars_possible_values[i].insert(value);
-      } else {
-        //the label is continuous (i.e., regression task)
+      } else { //the label is continuous (i.e., regression task)
         float value = stof(parsed_sample.at(i)); // the value of the variable
         v.SetFloat(value);
       }
@@ -235,6 +256,10 @@ void Dataset::LoadCSVData(string data_file_path, bool header, int cls_var_id, se
     is_vars_discrete.push_back(cont_vars.find(i)==cont_vars.end()); // TODO: For now, we can only process discrete features.
   }
 
+  /**
+   * 3, convert vector "vector_dataset_all_vars" into array "dataset_all_vars"
+   * (does not erase "vector_dataset_all_vars").
+   */
   if (cont_vars.empty()) {
     ConvertVectorDatasetIntoIntArrayDataset();
   }

@@ -20,75 +20,65 @@
 #include "gadget.h"
 
 
-class ExperimentOnA1a : public ::testing::Test {
-protected:
+//class ExperimentOnA1a : public ::testing::Test {
+//protected:
+//
+//    void SetUp() override {
+//        trainer = new Dataset();
+//        tester = new Dataset();
+//        network = new ChowLiuTree(true);
+//
+//        string train_set_file_path = "../../data/dataset/a1a.txt",
+//                test_set_file_path = "../../data/dataset/a1a.test.txt";
+//
+//        trainer->LoadLIBSVMData(train_set_file_path);
+//        tester->LoadLIBSVMData(test_set_file_path);
+//        network->StructLearnCompData(trainer, true);
+//        network->LearnParamsKnowStructCompData(trainer, 2, true);
+//    }
+//
+//    Dataset *trainer;
+//    Dataset *tester;
+//    Network *network;
+//};
 
-    void SetUp() override {
-        trainer = new Dataset();
-        tester = new Dataset();
-        network = new ChowLiuTree(true);
-
-        string train_set_file_path = "../../data/dataset/a1a.txt",
-                test_set_file_path = "../../data/dataset/a1a.test.txt";
-
-        trainer->LoadLIBSVMData(train_set_file_path);
-        tester->LoadLIBSVMData(test_set_file_path);
-        network->StructLearnCompData(trainer, true);
-        network->LearnParamsKnowStructCompData(trainer, 2, true);
-    }
-
-    Dataset *trainer;
-    Dataset *tester;
-    Network *network;
-};
-
-TEST_F(ExperimentOnA1a, ve) {
-//    double accuracy = network->EvaluateAccuracy(tester, "ve", true);
+//TEST_F(ExperimentOnA1a, ve) {
+//    ExactInference *inference = new ExactInference(network);
+//    double accuracy = inference->EvaluateAccuracy(tester, -1, "ve", true);
 //    EXPECT_GT(accuracy, 0.8230);
-    ExactInference *inference = new ExactInference(network);
-    double accuracy = inference->EvaluateAccuracy(tester, -1, "ve", true);
-    EXPECT_GT(accuracy, 0.8230);
-}
-
-TEST_F(ExperimentOnA1a, ve_partial) {
-//    double accuracy = network->EvaluateAccuracy(tester, "ve", false);
+//}
+//
+//TEST_F(ExperimentOnA1a, ve_partial) {
+//    ExactInference *inference = new ExactInference(network);
+//    double accuracy = inference->EvaluateAccuracy(tester, -1, "ve", false);
 //    EXPECT_GT(accuracy, 0.8230);
-    ExactInference *inference = new ExactInference(network);
-    double accuracy = inference->EvaluateAccuracy(tester, -1, "ve", false);
-    EXPECT_GT(accuracy, 0.8230);
-}
-
-TEST_F(ExperimentOnA1a, brute_force) {
-//    double accuracy = network->EvaluateAccuracy(tester, "direct", true);
+//}
+//
+//TEST_F(ExperimentOnA1a, brute_force) {
+//    ExactInference *inference = new ExactInference(network);
+//    double accuracy = inference->EvaluateAccuracy(tester, -1, "direct", true);
 //    EXPECT_GT(accuracy, 0.8230);
-    ExactInference *inference = new ExactInference(network);
-    double accuracy = inference->EvaluateAccuracy(tester, -1, "direct", true);
-    EXPECT_GT(accuracy, 0.8230);
-}
-
-TEST_F(ExperimentOnA1a, likelihood_weighing) {
-//    double accuracy = network->EvaluateLikelihoodWeightingAccuracy(tester, 50);
+//}
+//
+//TEST_F(ExperimentOnA1a, likelihood_weighing) {
+//    ApproximateInference *inference = new ApproximateInference(network);
+//    double accuracy = inference->EvaluateAccuracy(tester, 50, "likelihood", true);
 //    EXPECT_GT(accuracy, 0.8150);
-    ApproximateInference *inference = new ApproximateInference(network);
-    double accuracy = inference->EvaluateAccuracy(tester, 50, "likelihood", true);
-    EXPECT_GT(accuracy, 0.8150);
-}
-
-TEST_F(ExperimentOnA1a, approx) {
-//    double accuracy = network->EvaluateApproxInferAccuracy(tester, 50);
+//}
+//
+//TEST_F(ExperimentOnA1a, approx) {
+//    ApproximateInference *inference = new ApproximateInference(network);
+//    double accuracy = inference->EvaluateAccuracy(tester, 50, "emm", true);
 //    EXPECT_GT(accuracy, 0.650);
-    ApproximateInference *inference = new ApproximateInference(network);
-    double accuracy = inference->EvaluateAccuracy(tester, 50, "emm", true);
-    EXPECT_GT(accuracy, 0.650);
-}
-
-
-TEST_F(ExperimentOnA1a, junction_tree) {
-    auto *jt = new JunctionTree(network, false);
-    double accuracy = jt->EvaluateJTAccuracy(0, tester);
-    delete jt;
-    EXPECT_GT(accuracy,0.8150);
-}
+//}
+//
+//
+//TEST_F(ExperimentOnA1a, junction_tree) {
+//    auto *jt = new JunctionTree(network, false);
+//    double accuracy = jt->EvaluateJTAccuracy(0, tester);
+//    delete jt;
+//    EXPECT_GT(accuracy,0.8150);
+//}
 
 
 //class ExperimentOnCovertype : public ::testing::Test {
@@ -100,13 +90,13 @@ TEST_F(ExperimentOnA1a, junction_tree) {
 //    network = new ChowLiuTree(true);
 //
 //    string train_set_file_path = "../../data/dataset/Covertype/covtype_discretization_train.data",
-//           test_set_file_path = "../../data/dataset/Covertype/covtype_discretization_test.data";
+//           test_set_file_path  = "../../data/dataset/Covertype/covtype_discretization_test.data";
 //
 //
-//    trainer->LoadCSVData(train_set_file_path, false, 54);
-//    tester->LoadCSVData(test_set_file_path, false, 54);
-////    network->StructLearnCompData(trainer, true);
-////    network->LearnParamsKnowStructCompData(trainer, true);
+//    trainer->LoadCSVData(train_set_file_path, false, false, 54);
+//    tester->LoadCSVData(test_set_file_path, false, false, 54);
+//    network->StructLearnCompData(trainer, true);
+//    network->LearnParamsKnowStructCompData(trainer, true);
 //  }
 //
 //  Dataset *trainer;
@@ -118,16 +108,26 @@ TEST_F(ExperimentOnA1a, junction_tree) {
 //  cout << "Hello world..." << endl;
 //}
 
-
-//TEST_F(ExperimentOnCovertype, covertype_test_var_elim) {
-//  double accuracy = network->EvaluateVarElimAccuracy(tester);
-//  EXPECT_GT(accuracy, 0.600);
+//TEST_F(ExperimentOnCovertype, ve) {
+//    ExactInference *inference = new ExactInference(network);
+//    double accuracy = inference->EvaluateAccuracy(tester, -1, "ve", true);
+//    EXPECT_GT(accuracy, 0.600);
+//}
+//
+//TEST_F(ExperimentOnCovertype, ve_partial) {
+//    ExactInference *inference = new ExactInference(network);
+//    double accuracy = inference->EvaluateAccuracy(tester, -1, "ve", false);
+//    EXPECT_GT(accuracy, 0.600);
+//}
+//
+//TEST_F(ExperimentOnCovertype, brute_force) {
+//    ExactInference *inference = new ExactInference(network);
+//    double accuracy = inference->EvaluateAccuracy(tester, -1, "direct", true);
+//    EXPECT_GT(accuracy, 0.600);
 //}
 
-//TEST_F(ExperimentOnCovertype, DISABLED_covertype_test_brute_force) {
-//  double accuracy = network->EvaluateAccuracyGivenAllCompleteInstances(tester);
-//  EXPECT_GT(accuracy, 0.600);
-//}
+
+
 //
 //TEST_F(ExperimentOnCovertype, covertype_test_like_weigh) {
 //  double accuracy = network->EvaluateLikelihoodWeightingAccuracy(tester, 50);
@@ -146,6 +146,40 @@ TEST_F(ExperimentOnA1a, junction_tree) {
 //  EXPECT_GT(accuracy,0.600);
 //}
 //
+
+
+class ExperimentOnAlarm : public ::testing::Test {
+protected:
+
+    void SetUp() override {
+        trainer = new Dataset();
+        tester = new Dataset();
+        network = new ChowLiuTree(true);
+
+        string train_set_file_path = "../../data/alarm_s10000.txt";
+
+        trainer->LoadCSVData(train_set_file_path, true, true, 0);
+        tester->LoadCSVData(train_set_file_path, true, true, 0);
+        network->StructLearnCompData(trainer, true);
+        network->LearnParamsKnowStructCompData(trainer, true);
+    }
+
+    Dataset *trainer;
+    Dataset *tester;
+    Network *network;
+};
+
+TEST_F(ExperimentOnAlarm, do_nothing) {
+    cout << "Hello world..." << endl;
+}
+
+//TEST_F(ExperimentOnAlarm, brute_force) {
+//    ExactInference *inference = new ExactInference(network);
+//    double accuracy = inference->EvaluateAccuracy(tester, -1, "direct", true);
+//    EXPECT_GT(accuracy, 0.600);
+//}
+
+
 //
 //class ExperimentOnPhishing : public ::testing::Test {
 // protected:
