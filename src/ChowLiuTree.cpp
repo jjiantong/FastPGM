@@ -224,7 +224,8 @@ void ChowLiuTree::StructLearnChowLiuTreeCompData(Dataset *dts, bool print_struct
   int* topologicalSortedPermutation = BreadthFirstTraversalWithAdjacencyMatrix(graphAdjacencyMatrix, n, root_node_index);
 
 
-  //TODO: see the comments for "default_elim_ord" in the "ChowLiuTree.h" file; may need to remove either "default_elim_ord" or "vec_default_elim_ord".
+  //TODO: see the comments for "default_elim_ord" in the "ChowLiuTree.h" file;
+  // may need to remove either "default_elim_ord" or "vec_default_elim_ord".
   // elimination ordering is the reverse order of the topological ordering
   // (remove the first element of the topological ordering)
   vec_default_elim_ord.reserve(n-1);

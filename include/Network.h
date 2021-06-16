@@ -39,7 +39,6 @@ class Network {//this class is used by both the customized networks and networks
   vector<int> vec_default_elim_ord;//the elimination order is obtained by reverse topological sort.
 
   map<int, Node*> map_idx_node_ptr;  // Key: node index. Value: node pointer. This map is a helper for FindNodePtrByIndex.
-  DiscreteConfig Sparse2Dense(DiscreteConfig evidence);
 
   Network();
   explicit Network(bool pure_disc);
@@ -95,56 +94,28 @@ class Network {//this class is used by both the customized networks and networks
   virtual vector<int> SimplifyDefaultElimOrd(DiscreteConfig evidence);
   virtual vector<int> SimplifyDefaultElimOrd2(DiscreteConfig evidence, vector<int> left_nodes);
 
-  vector<int> FilterOutIrrelevantNodes();
-
   vector<Factor> ConstructFactors(vector<int> Z, Node *Y);
   void LoadEvidenceIntoFactors(vector<Factor> *factors_list, DiscreteConfig E, set<int> all_related_vars);
 
   Factor SumProductVarElim(vector<Factor> factors_list, vector<int> elim_order);
   Factor VarElimInferReturnPossib(DiscreteConfig evid, Node *target_node, vector<int> elim_order=vector<int>{});
 
-  map<int, double> GetMarginalProbabilitiesDirectly(int target_var_index, DiscreteConfig evidence);
-  Factor GetMarginalProbabilitiesUseVE(int target_var_index, DiscreteConfig evidence, vector<int> elim_order);
   Factor GetMarginalProbabilitiesUseBruteForce(int target_var_index, DiscreteConfig evidence);
-
-  int PredictDirectly(DiscreteConfig E, int Y_index);
-  vector<int> PredictDirectly(vector<DiscreteConfig> evidences, int target_node_idx);
 
   int PredictUseBruteForce(DiscreteConfig evid, int target_node_idx);
   vector<int> PredictUseBruteForce(vector<DiscreteConfig> evidences, int target_node_idx);
 
-  int PredictUseVEInfer(DiscreteConfig evid, int target_node_idx, vector<int> elim_order=vector<int>{});
-  vector<int> PredictUseVEInfer(vector<DiscreteConfig> evidences, int target_node_idx, vector<vector<int>> elim_orders=vector<vector<int>>{});
-
   DiscreteConfig GenerateInstanceByProbLogicSampleNetwork();
-  vector<DiscreteConfig> DrawSamplesByProbLogiSamp(int num_samp);
-
-  vector<pair<DiscreteConfig, double>> DrawSamplesByLikelihoodWeighting(const DiscreteConfig &evidence, int num_samp);
-  Factor CalcuMargWithLikelihoodWeightingSamples(const vector<pair<DiscreteConfig, double>> &samples, const int &node_index);
-  int ApproxinferByLikelihoodWeighting(DiscreteConfig e, const int &node_index, const int &num_samp);
-  vector<int> ApproxinferByLikelihoodWeighting(vector<DiscreteConfig> evidences, const int &target_node_idx, const int &num_samp);
 
   int SampleNodeGivenMarkovBlanketReturnValIndex(Node *node_ptr, DiscreteConfig markov_blanket);
 
   vector<DiscreteConfig> DrawSamplesByGibbsSamp(int num_samp, int num_burn_in);
 
-  int ApproxInferByProbLogiRejectSamp(DiscreteConfig e, Node *node, vector<DiscreteConfig> &samples);
-  int ApproxInferByProbLogiRejectSamp(DiscreteConfig e, int node_index, vector<DiscreteConfig> &samples);
-  vector<int> ApproxInferByProbLogiRejectSamp(vector<DiscreteConfig> evidences, int node_idx, vector<DiscreteConfig> &samples);
-
-  // ========== Evaluation ==========
-  double EvaluateAccuracy(Dataset *dts, string alg, bool dense);
-
-  double EvaluateApproxInferAccuracy(Dataset *dts, int num_samp);
-  double EvaluateLikelihoodWeightingAccuracy(Dataset *dts, int num_samp);
-
-  double Accuracy(vector<int> ground_truth, vector<int> predictions);
 
  protected:
   vector<int> topo_ord;
 
   vector<int> GenTopoOrd();
-  pair<DiscreteConfig, double> DrawOneLikelihoodWeightingSample(const DiscreteConfig &evidence);
   set<int> GetMarkovBlanketIndexesOfNode(Node *node_ptr);
 
   /**
