@@ -739,14 +739,6 @@ vector<int> Network::SimplifyDefaultElimOrd(DiscreteConfig evidence) {//TODO: us
   exit(1);
 }
 
-/**
- * @brief: this is a virtual function;
- * The performance of variable elimination relies heavily on the elimination ordering
- */
-vector<int> Network::SimplifyDefaultElimOrd2(DiscreteConfig evidence, vector<int> left_nodes) {//TODO: use C++ pure virtual function
-  fprintf(stderr, "Function [%s] not implemented yet!", __FUNCTION__);
-  exit(1);
-}
 
 /**
  * @brief: construct a set of factors using a set of nodes and/or a node

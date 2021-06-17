@@ -7,6 +7,7 @@
 
 #include "Dataset.h"
 #include "Network.h"
+#include "StructureLearning.h"
 #include "Node.h"
 #include "DiscreteNode.h"
 #include "Factor.h"
@@ -25,7 +26,7 @@ using namespace std;
 typedef set< pair<int, int> > DiscreteConfig;
 
 
-class ChowLiuTree : public Network {
+class ChowLiuTree : public StructureLearning {
  public:
 
   /* About (tree)"default_elim_ord":
@@ -40,18 +41,17 @@ class ChowLiuTree : public Network {
 
   int root_node_index = -1;
 
-  ChowLiuTree();
-  explicit ChowLiuTree(bool pure_disc);
+  ChowLiuTree(Network *net) {network = net;};
 
   double ComputeMutualInformation(Node *Xi, Node *Xj, const Dataset *dts);
-  void StructLearnCompData(Dataset *dts, bool print_struct=true, string algo="chow-liu", string topo_ord_constraint="", int max_num_parents=1) override;
+  virtual void StructLearnCompData(Dataset *dts, bool print_struct=true, string topo_ord_constraint="", int max_num_parents=1);
   void StructLearnChowLiuTreeCompData(Dataset *dts, bool print_struct=true);
 
 
-  vector<int> SimplifyDefaultElimOrd(DiscreteConfig evidence) override;
-  vector<int> SimplifyDefaultElimOrd2(DiscreteConfig evidence, vector<int> left_nodes) override;
-  vector<int> SimplifyTreeDefaultElimOrd(DiscreteConfig evidence);
-  vector<int> SimplifyTreeDefaultElimOrd2(DiscreteConfig evidence, vector<int> left_nodes);
+//  vector<int> SimplifyDefaultElimOrd(DiscreteConfig evidence) ;
+//  vector<int> SimplifyDefaultElimOrd2(DiscreteConfig evidence, vector<int> left_nodes) ;
+//  vector<int> SimplifyTreeDefaultElimOrd(DiscreteConfig evidence);
+//  vector<int> SimplifyTreeDefaultElimOrd2(DiscreteConfig evidence, vector<int> left_nodes);
 
  protected:
   void DepthFirstTraversalUntillMeetObserved(DiscreteConfig evidence, int start, set<int>& visited, set<int>& to_be_removed);

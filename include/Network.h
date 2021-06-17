@@ -35,7 +35,8 @@ class Network {//this class is used by both the customized networks and networks
   string network_name;//a name for each bayesian network (usually an xml file contains a name for the network).
   int num_nodes = 0;
   bool pure_discrete;
-  /** the default value to infer is the first (i.e. root) variable **/
+  vector<int> topo_ord;
+    /** the default value to infer is the first (i.e. root) variable **/
   vector<int> vec_default_elim_ord;//the elimination order is obtained by reverse topological sort.
 
   map<int, Node*> map_idx_node_ptr;  // Key: node index. Value: node pointer. This map is a helper for FindNodePtrByIndex.
@@ -92,7 +93,6 @@ class Network {//this class is used by both the customized networks and networks
   bool ContainCircle();
 
   virtual vector<int> SimplifyDefaultElimOrd(DiscreteConfig evidence);
-  virtual vector<int> SimplifyDefaultElimOrd2(DiscreteConfig evidence, vector<int> left_nodes);
 
   vector<Factor> ConstructFactors(vector<int> Z, Node *Y);
   void LoadEvidenceIntoFactors(vector<Factor> *factors_list, DiscreteConfig E, set<int> all_related_vars);
@@ -108,7 +108,6 @@ class Network {//this class is used by both the customized networks and networks
 
 
  protected:
-  vector<int> topo_ord;
 
   vector<int> GenTopoOrd();
 

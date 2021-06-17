@@ -43,31 +43,31 @@
 //};
 
 //TEST_F(ExperimentOnA1a, ve) {
-//    ExactInference *inference = new ExactInference(network);
+//    Inference *inference = new ExactInference(network);
 //    double accuracy = inference->EvaluateAccuracy(tester, -1, "ve", true);
 //    EXPECT_GT(accuracy, 0.8230);
 //}
 //
 //TEST_F(ExperimentOnA1a, ve_partial) {
-//    ExactInference *inference = new ExactInference(network);
+//    Inference *inference = new ExactInference(network);
 //    double accuracy = inference->EvaluateAccuracy(tester, -1, "ve", false);
 //    EXPECT_GT(accuracy, 0.8230);
 //}
 //
 //TEST_F(ExperimentOnA1a, brute_force) {
-//    ExactInference *inference = new ExactInference(network);
+//    Inference *inference = new ExactInference(network);
 //    double accuracy = inference->EvaluateAccuracy(tester, -1, "direct", true);
 //    EXPECT_GT(accuracy, 0.8230);
 //}
 //
 //TEST_F(ExperimentOnA1a, likelihood_weighing) {
-//    ApproximateInference *inference = new ApproximateInference(network);
+//    Inference *inference = new ApproximateInference(network);
 //    double accuracy = inference->EvaluateAccuracy(tester, 50, "likelihood", true);
 //    EXPECT_GT(accuracy, 0.8150);
 //}
 //
 //TEST_F(ExperimentOnA1a, approx) {
-//    ApproximateInference *inference = new ApproximateInference(network);
+//    Inference *inference = new ApproximateInference(network);
 //    double accuracy = inference->EvaluateAccuracy(tester, 50, "emm", true);
 //    EXPECT_GT(accuracy, 0.650);
 //}
@@ -109,19 +109,19 @@
 //}
 
 //TEST_F(ExperimentOnCovertype, ve) {
-//    ExactInference *inference = new ExactInference(network);
+//    Inference *inference = new ExactInference(network);
 //    double accuracy = inference->EvaluateAccuracy(tester, -1, "ve", true);
 //    EXPECT_GT(accuracy, 0.600);
 //}
 //
 //TEST_F(ExperimentOnCovertype, ve_partial) {
-//    ExactInference *inference = new ExactInference(network);
+//    Inference *inference = new ExactInference(network);
 //    double accuracy = inference->EvaluateAccuracy(tester, -1, "ve", false);
 //    EXPECT_GT(accuracy, 0.600);
 //}
 //
 //TEST_F(ExperimentOnCovertype, brute_force) {
-//    ExactInference *inference = new ExactInference(network);
+//    Inference *inference = new ExactInference(network);
 //    double accuracy = inference->EvaluateAccuracy(tester, -1, "direct", true);
 //    EXPECT_GT(accuracy, 0.600);
 //}
@@ -154,13 +154,16 @@ protected:
     void SetUp() override {
         trainer = new Dataset();
         tester = new Dataset();
-        network = new ChowLiuTree(true);
+        network = new Network(true);
 
         string train_set_file_path = "../../data/alarm_s10000.txt";
 
         trainer->LoadCSVData(train_set_file_path, true, true, 0);
         tester->LoadCSVData(train_set_file_path, true, true, 0);
-        network->StructLearnCompData(trainer, true);
+
+        StructureLearning *bnsl = new ChowLiuTree(network);
+        bnsl->StructLearnCompData(trainer, true, "", 1);
+
         network->LearnParamsKnowStructCompData(trainer, true);
     }
 
@@ -174,7 +177,7 @@ TEST_F(ExperimentOnAlarm, do_nothing) {
 }
 
 TEST_F(ExperimentOnAlarm, brute_force) {
-    ExactInference *inference = new ExactInference(network);
+    Inference *inference = new ExactInference(network);
     double accuracy = inference->EvaluateAccuracy(tester, -1, "direct", true);
     EXPECT_GT(accuracy, 0.600);
 }
