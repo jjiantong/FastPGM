@@ -173,11 +173,11 @@ TEST_F(ExperimentOnAlarm, do_nothing) {
     cout << "Hello world..." << endl;
 }
 
-//TEST_F(ExperimentOnAlarm, brute_force) {
-//    ExactInference *inference = new ExactInference(network);
-//    double accuracy = inference->EvaluateAccuracy(tester, -1, "direct", true);
-//    EXPECT_GT(accuracy, 0.600);
-//}
+TEST_F(ExperimentOnAlarm, brute_force) {
+    ExactInference *inference = new ExactInference(network);
+    double accuracy = inference->EvaluateAccuracy(tester, -1, "direct", true);
+    EXPECT_GT(accuracy, 0.600);
+}
 
 
 //

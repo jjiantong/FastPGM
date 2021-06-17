@@ -179,6 +179,8 @@ void Dataset::LoadCSVData(string data_file_path, bool header, bool str_val, int 
    * use the first line to detect the number of variables of the data set
    */
   getline(in_file, sample);
+  // If there is a whitespace at the end of each line,
+  // it will cause a bug if we do not trim it.
   sample = TrimRight(sample);
   vector<string> parsed_variable = Split(sample, ",");
   num_vars = parsed_variable.size(); // the number of variables of the data set
@@ -195,12 +197,12 @@ void Dataset::LoadCSVData(string data_file_path, bool header, bool str_val, int 
       exit(1);
     }
     getline(in_file, sample);
+    sample = TrimRight(sample);
   }
 
   /**
    * 2, read the data file and store with the representation of std::vector.
    */
-
   // they are used if some discrete variables contain string values
   // key: discrete variable id
   // value: a set of the possible string values of the variable
@@ -210,9 +212,6 @@ void Dataset::LoadCSVData(string data_file_path, bool header, bool str_val, int 
   map_string_values_numbers.resize(num_vars);
 
   while (!in_file.eof()) { // for all instances
-    // If there is a whitespace at the end of each line,
-    // it will cause a bug if we do not trim it.
-    sample = TrimRight(sample);
     vector<string> parsed_sample = Split(sample, ",");
     vector<VarVal> single_sample_vector;
     for (int i = 0; i < num_vars; ++i) {
@@ -233,7 +232,6 @@ void Dataset::LoadCSVData(string data_file_path, bool header, bool str_val, int 
         } else { // if no variable contains the string value
             value = stoi(parsed_sample.at(i)); // the value of the variable
         }
-
         v.SetInt(value);
         // insert the value of one variable the mapped number of one variable of one sample
         map_disc_vars_possible_values[i].insert(value);
@@ -241,13 +239,47 @@ void Dataset::LoadCSVData(string data_file_path, bool header, bool str_val, int 
         float value = stof(parsed_sample.at(i)); // the value of the variable
         v.SetFloat(value);
       }
-
       VarVal var_value(i, v);
       single_sample_vector.push_back(var_value);
     }
     vector_dataset_all_vars.push_back(single_sample_vector);
     getline(in_file, sample);
+    sample = TrimRight(sample);
   }
+
+  // handle the last sample: the same way for other samples -- copy from the while-loop
+  vector<string> parsed_sample = Split(sample, ",");
+  vector<VarVal> single_sample_vector;
+  for (int i = 0; i < num_vars; ++i) {
+    Value v;
+    int value;
+    // check whether the variable is continuous
+    if (cont_vars.find(i) == cont_vars.end()) { //the label is discrete (i.e., classification task)
+      if (str_val) { // if some discrete variables contain string values
+        string s_value = parsed_sample.at(i);
+        // insert successfully -- it is a new possible value
+        if (map_disc_vars_string_values[i].insert(s_value).second) {
+          value = ++counter[i]; // get a new int value
+          map_string_values_numbers.at(i).insert(pair<string, int> (s_value, value)); // map
+//          cout << "variable " << i << ": (" << s_value << ", " << value << ")" << endl;
+        } else { // failed to insert -- it is an old value
+          value = map_string_values_numbers.at(i)[s_value];
+        }
+      } else { // if no variable contains the string value
+        value = stoi(parsed_sample.at(i)); // the value of the variable
+      }
+      v.SetInt(value);
+      // insert the value of one variable the mapped number of one variable of one sample
+      map_disc_vars_possible_values[i].insert(value);
+    } else { //the label is continuous (i.e., regression task)
+      float value = stof(parsed_sample.at(i)); // the value of the variable
+      v.SetFloat(value);
+    }
+    VarVal var_value(i, v);
+    single_sample_vector.push_back(var_value);
+  }
+  vector_dataset_all_vars.push_back(single_sample_vector);
+
 
   num_instance = vector_dataset_all_vars.size();
 
