@@ -6,6 +6,7 @@
 #define BAYESIANNETWORK_STRUCTURELEARNING_H
 
 #include "Network.h"
+#include "Dataset.h"
 
 
 class StructureLearning {
@@ -15,6 +16,9 @@ public:
     virtual void StructLearnCompData(Dataset *dts, bool print_struct, string topo_ord_constraint, int max_num_parents) = 0;
 
     virtual ~StructureLearning() {};
+
+    void AssignNodeInformation(Dataset *dts);
+    vector<int> AssignNodeOrder(string topo_ord_constraint);
 };
 
 #endif //BAYESIANNETWORK_STRUCTURELEARNING_H
