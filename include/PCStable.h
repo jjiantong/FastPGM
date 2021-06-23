@@ -23,6 +23,7 @@ public:
     PCStable(Network *net, int d, bool s) {network = net; depth = d; stable = s;};
 
     virtual void StructLearnCompData(Dataset *dts, bool print_struct, string topo_ord_constraint, int max_num_parents);
+    void StructLearnByPCStable(Dataset *dts, bool print_struct);
 };
 
 #endif //BAYESIANNETWORK_PCSTABLE_H

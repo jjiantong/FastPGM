@@ -15,6 +15,7 @@ void PCStable::StructLearnCompData(Dataset *dts, bool print_struct, string topo_
 
     depth = (depth == -1) ? 1000 : depth; // depth = -1 means no limitation
     AssignNodeInformation(dts);
+    StructLearnByPCStable(dts, print_struct);
 
     // print time
     gettimeofday(&end,NULL);
@@ -24,6 +25,13 @@ void PCStable::StructLearnCompData(Dataset *dts, bool print_struct, string topo_
          << "The time spent to generate CPDAG with PC-stable is " << diff << " seconds" << endl;
 }
 
-//void PCStable::StructLearnByPCStable(Dataset *dts, bool print_struct) {
-//
-//}
+void PCStable::StructLearnByPCStable(Dataset *dts, bool print_struct) {
+    cout << "==================================================" << '\n'
+         << "Generating complete undirected graph" << endl;
+
+    for (int i = 0; i < network->num_nodes; i++) {
+        for (int j = i + 1; j < network->num_nodes; j++) {
+            network->AddUndirectedEdge(i, j);
+        }
+    }
+}
