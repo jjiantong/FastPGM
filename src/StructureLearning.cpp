@@ -5,7 +5,7 @@
 #include "StructureLearning.h"
 
 /**
- * @brief: set each node, contains:
+ * @brief: add each node in the network, contains:
  * index, name, domain size, possible values
  */
 void StructureLearning::AssignNodeInformation(Dataset *dts) {
@@ -15,10 +15,10 @@ void StructureLearning::AssignNodeInformation(Dataset *dts) {
     // Assign an index for each node.
 #pragma omp parallel for
     for (int i = 0; i < network->num_nodes; ++i) {
+        // construct a node in the network
         DiscreteNode *node_ptr = new DiscreteNode(i);  // For now, only support discrete node.
 
-        // TODO: extra part. double-check the usage of "node_name"
-        // give this node a name
+        // give this node a name, mainly for print
         if (dts->vec_var_names.size() == network->num_nodes) {
             node_ptr->node_name = dts->vec_var_names.at(i);
         }

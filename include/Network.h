@@ -35,12 +35,14 @@ class Network {//this class is used by both the customized networks and networks
  public:
   string network_name;//a name for each bayesian network (usually an xml file contains a name for the network).
   int num_nodes = 0;
+  int num_edges = 0;
   bool pure_discrete;
   vector<int> topo_ord;
     /** the default value to infer is the first (i.e. root) variable **/
   vector<int> vec_default_elim_ord;//the elimination order is obtained by reverse topological sort.
 
   map<int, Node*> map_idx_node_ptr;  // Key: node index. Value: node pointer. This map is a helper for FindNodePtrByIndex.
+  vector<Edge> vec_edges;  // edges in the network
 
   Network();
   explicit Network(bool pure_disc);
@@ -62,9 +64,14 @@ class Network {//this class is used by both the customized networks and networks
   void AddNode(Node *node_ptr);
   void RemoveNode(int node_index);
 
-  bool AddEdge(int p_index, int c_index);
-  void DeleteEdge(int p_index, int c_index);
-  bool ReverseEdge(int p_index, int c_index);
+  bool NodeIsInNetwork(Node *node_ptr);
+  bool NodeIsInNetwork(int node_idx);
+
+  bool AddDirectedEdge(int p_index, int c_index);
+  void DeleteDirectedEdge(int p_index, int c_index);
+  bool ReverseDirectedEdge(int p_index, int c_index);
+  void AddUndirectedEdge(int p_index, int c_index);
+  void DeleteUndirectedEdge(int p_index, int c_index);
 
   double CalcuExtraScoreWithModifiedEdge(int p_index, int c_index, Dataset *dts, string modification, string score_metric);
 

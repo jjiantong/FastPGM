@@ -19,6 +19,14 @@ public:
     Edge(Node* node1, Node* node2, EndPoint end_point1, EndPoint end_point2); // for directed edges
     Edge(Node* node1, Node* node2); // for undirected edges
 
+    // define the "==" operator to compare two Edge object.
+    bool operator == (const Edge edge) const {
+        return (this->node1 == edge.node1) &&
+               (this->node2 == edge.node2) &&
+               (this->end_point1 == edge.end_point1) &&
+               (this->end_point2 == edge.end_point2);
+    }
+
     Node* GetNode1();
     Node* GetNode2();
     EndPoint GetEndPoint1();

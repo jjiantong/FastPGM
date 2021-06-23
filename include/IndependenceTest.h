@@ -1,0 +1,10 @@
+//
+// Created by jjt on 2021/6/23.
+//
+
+#ifndef BAYESIANNETWORK_INDEPENDENCETEST_H
+#define BAYESIANNETWORK_INDEPENDENCETEST_H
+
+class IndependenceTest {};
+
+#endif //BAYESIANNETWORK_INDEPENDENCETEST_H

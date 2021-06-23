@@ -13,6 +13,8 @@ void PCStable::StructLearnCompData(Dataset *dts, bool print_struct, string topo_
     cout << "==================================================" << '\n'
          << "Begin structural learning with PC-stable" << endl;
 
+    depth = (depth == -1) ? 1000 : depth; // depth = -1 means no limitation
+    AssignNodeInformation(dts);
 
     // print time
     gettimeofday(&end,NULL);
@@ -21,3 +23,7 @@ void PCStable::StructLearnCompData(Dataset *dts, bool print_struct, string topo_
     cout << "==================================================" << '\n'
          << "The time spent to generate CPDAG with PC-stable is " << diff << " seconds" << endl;
 }
+
+//void PCStable::StructLearnByPCStable(Dataset *dts, bool print_struct) {
+//
+//}

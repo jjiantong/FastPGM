@@ -115,6 +115,11 @@ void ChowLiuTree::StructLearnCompData(Dataset *dts, bool print_struct, string to
   cout << "==================================================" << '\n'
        << "Begin structural learning with Chow-Liu Tree." << endl;
 
+  assert(network->pure_discrete == true);//It seems Chow Liu Tree only supports discrete networks.
+
+  root_node_index = dts->class_var_index;
+  AssignNodeInformation(dts);
+
   StructLearnChowLiuTreeCompData(dts, print_struct);
 
   // print time
@@ -129,27 +134,6 @@ void ChowLiuTree::StructLearnCompData(Dataset *dts, bool print_struct, string to
  * @brief: construct a Bayesian network which is a tree, based on the data set
  */
 void ChowLiuTree::StructLearnChowLiuTreeCompData(Dataset *dts, bool print_struct) {
-  cout << "==================================================" << '\n'
-       << "Constructing Chow-Liu tree with complete data......" << endl;
-  assert(network->pure_discrete == true);//It seems Chow Liu Tree only supports discrete networks.
-
-  network->num_nodes = dts->num_vars;
-  root_node_index = dts->class_var_index;
-
-  // Assign an index for each node.
-  #pragma omp parallel for
-  for (int i = 0; i < network->num_nodes; ++i) { // for each node in the network
-    // construct a node in the network
-    DiscreteNode *node_ptr = new DiscreteNode(i);  // For now, only support discrete node.
-    node_ptr->SetDomainSize(dts->num_of_possible_values_of_disc_vars[i]);
-    for (auto v : dts->map_disc_vars_possible_values[i]) {
-      node_ptr->vec_potential_vals.push_back(v);
-    }
-
-    #pragma omp critical
-    { network->map_idx_node_ptr[i] = node_ptr; }
-  }
-
   cout << "==================================================" << '\n'
        << "Constructing mutual information table......" << endl;
 

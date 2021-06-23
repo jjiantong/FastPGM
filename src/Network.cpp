@@ -174,31 +174,138 @@ void Network::RemoveNode(int node_index) {
 }
 
 /**
+ * @brief: check whether the node belongs to the network
+ */
+bool Network::NodeIsInNetwork(Node *node_ptr) {
+    return NodeIsInNetwork(node_ptr->GetNodeIndex());
+}
+
+bool Network::NodeIsInNetwork(int node_idx) {
+    if (map_idx_node_ptr.find(node_idx) == map_idx_node_ptr.end()) {
+        return false;
+    } else {
+        return true;
+    }
+}
+
+/**
  * @brief: add an edge/arc to the network
  * @return true if not form a circle; false if form a circle (also delete the added arc)
  */
-bool Network::AddEdge(int p_index, int c_index) {
-  SetParentChild(p_index, c_index); // set parent and child relationship
-  bool contain_circle = ContainCircle();
+bool Network::AddDirectedEdge(int p_index, int c_index) {
+    // first check the two nodes
+    if(!(NodeIsInNetwork(p_index) && NodeIsInNetwork(c_index))) {
+        fprintf(stderr, "Error in function [%s].\nNode [%d] and/or [%d] do not belong to this network!",
+                __FUNCTION__, p_index, c_index);
+        exit(1);
+    }
 
-  // the edge/arc shouldn't be added, because it leads to loops in the network.
-  if (contain_circle) {
-    DeleteEdge(p_index, c_index);
-  }
-  return !contain_circle;
+    Node* node1 = FindNodePtrByIndex(p_index);
+    Node* node2 = FindNodePtrByIndex(c_index);
+    SetParentChild(node1, node2); // set parent and child relationship
+
+    Edge edge(node1, node2, TAIL, ARROW);
+    if (find(vec_edges.begin(), vec_edges.end(), edge) == vec_edges.end()) {
+        // vec_edges does not contain edge: add edge
+        vec_edges.push_back(edge);
+        ++num_edges;
+    }
+
+    bool contain_circle = ContainCircle();
+    // the edge/arc shouldn't be added, because it leads to loops in the network.
+    if (contain_circle) {
+        DeleteDirectedEdge(p_index, c_index);
+    }
+    return !contain_circle;
 }
 
-void Network::DeleteEdge(int p_index, int c_index) {
-  RemoveParentChild(p_index, c_index);
+void Network::DeleteDirectedEdge(int p_index, int c_index) {
+    // first check the two nodes
+    if(!(NodeIsInNetwork(p_index) && NodeIsInNetwork(c_index))) {
+        fprintf(stderr, "Error in function [%s].\nNode [%d] and/or [%d] do not belong to this network!",
+                __FUNCTION__, p_index, c_index);
+        exit(1);
+    }
+
+    Node* node1 = FindNodePtrByIndex(p_index);
+    Node* node2 = FindNodePtrByIndex(c_index);
+
+    Edge edge(node1, node2, TAIL, ARROW);
+    auto iter = find(vec_edges.begin(), vec_edges.end(), edge);
+    if (iter == vec_edges.end()) {
+        cout << "The edge "  << node1->node_name << " -> " << node2->node_name << " does not exist!" << endl;
+    } else {
+        RemoveParentChild(node1, node2);
+        vec_edges.erase(iter);
+        --num_edges;
+    }
 }
 
 /**
  * @brief: swap a parent and child relationship
  * @return true if not form a circle; false if form a circle (also delete the added arc)
  */
-bool Network::ReverseEdge(int p_index, int c_index) {
-  DeleteEdge(p_index, c_index);
-  return AddEdge(c_index, p_index);
+bool Network::ReverseDirectedEdge(int p_index, int c_index) {
+  DeleteDirectedEdge(p_index, c_index);
+  return AddDirectedEdge(c_index, p_index);
+}
+
+/**
+ * @brief: add an undirected edge/arc to the network
+ * have order
+ */
+void Network::AddUndirectedEdge(int p_index, int c_index) {
+    // first check the two nodes
+    if(!(NodeIsInNetwork(p_index) && NodeIsInNetwork(c_index))) {
+        fprintf(stderr, "Error in function [%s].\nNode [%d] and/or [%d] do not belong to this network!",
+                __FUNCTION__, p_index, c_index);
+        exit(1);
+    }
+
+    // then check the order
+    if (p_index > c_index) {
+        int tmp = p_index;
+        p_index = c_index;
+        c_index = tmp;
+    }
+
+    Node* node1 = FindNodePtrByIndex(p_index);
+    Node* node2 = FindNodePtrByIndex(c_index);
+
+    Edge edge(node1, node2);
+    if (find(vec_edges.begin(), vec_edges.end(), edge) == vec_edges.end()) {
+        // vec_edges does not contain edge: add edge
+        vec_edges.push_back(edge);
+        ++num_edges;
+    }
+}
+
+void Network::DeleteUndirectedEdge(int p_index, int c_index) {
+    // first check the two nodes
+    if(!(NodeIsInNetwork(p_index) && NodeIsInNetwork(c_index))) {
+        fprintf(stderr, "Error in function [%s].\nNode [%d] and/or [%d] do not belong to this network!",
+                __FUNCTION__, p_index, c_index);
+        exit(1);
+    }
+
+    // then check the order
+    if (p_index > c_index) {
+        int tmp = p_index;
+        p_index = c_index;
+        c_index = tmp;
+    }
+
+    Node* node1 = FindNodePtrByIndex(p_index);
+    Node* node2 = FindNodePtrByIndex(c_index);
+
+    Edge edge(node1, node2);
+    auto iter = find(vec_edges.begin(), vec_edges.end(), edge);
+    if (iter == vec_edges.end()) {
+        cout << "The edge "  << node1->node_name << " - " << node2->node_name << " does not exist!" << endl;
+    } else {
+        vec_edges.erase(iter);
+        --num_edges;
+    }
 }
 
 /**
@@ -223,19 +330,19 @@ double Network::CalcuExtraScoreWithModifiedEdge(int p_index, int c_index,
     if (node->set_parent_indexes.find(p_index)!=node->set_parent_indexes.end()) {
       return 0; // The parent already exists.
     }
-    new_net.AddEdge(p_index, c_index);
+    new_net.AddDirectedEdge(p_index, c_index);
   }
   else if (modification == "delete") {
     if (node->set_parent_indexes.find(p_index)==node->set_parent_indexes.end()) {
       return 0; // The parent does not exist.
     }
-    new_net.DeleteEdge(p_index, c_index);
+    new_net.DeleteDirectedEdge(p_index, c_index);
   }
   else if (modification == "reverse") {
     if (node->set_parent_indexes.find(p_index)==node->set_parent_indexes.end()) {
       return 0; // The parent does not exist.
     }
-    new_net.ReverseEdge(p_index, c_index);
+    new_net.ReverseDirectedEdge(p_index, c_index);
   }
   else {
     fprintf(stderr, "Fucntion [%s]: Invalid modification string \"%s\"!",
@@ -276,13 +383,13 @@ void Network::SetParentChild(int p_index, int c_index) {
  * add c to p as a child, and add p to c as a parent
  */
 void Network::SetParentChild(Node *p, Node *c) {
-  if (map_idx_node_ptr.find(p->GetNodeIndex()) == map_idx_node_ptr.end()
-      ||
-      map_idx_node_ptr.find(c->GetNodeIndex())==map_idx_node_ptr.end()) {
-    fprintf(stderr, "Error in function [%s].\nThe nodes [%d] and [%d] do not belong to this network!",
-            __FUNCTION__, p->GetNodeIndex(), c->GetNodeIndex());
-    exit(1);
-  }//end checking whether the nodes belong to the network
+//  if (map_idx_node_ptr.find(p->GetNodeIndex()) == map_idx_node_ptr.end()
+//      ||
+//      map_idx_node_ptr.find(c->GetNodeIndex())==map_idx_node_ptr.end()) {
+//    fprintf(stderr, "Error in function [%s].\nThe nodes [%d] and [%d] do not belong to this network!",
+//            __FUNCTION__, p->GetNodeIndex(), c->GetNodeIndex());
+//    exit(1);
+//  }//end checking whether the nodes belong to the network
   p->AddChild(c);
   c->AddParent(p);
 }
@@ -305,13 +412,13 @@ void Network::RemoveParentChild(int p_index, int c_index) {
  * @param c: child node ptr
  */
 void Network::RemoveParentChild(Node *p, Node *c) {
-  if (map_idx_node_ptr.find(p->GetNodeIndex()) == map_idx_node_ptr.end()
-      ||
-      map_idx_node_ptr.find(c->GetNodeIndex())==map_idx_node_ptr.end()) {
-    fprintf(stderr, "Error in function [%s].\nThe nodes [%d] and [%d] do not belong to this network!",
-            __FUNCTION__, p->GetNodeIndex(), c->GetNodeIndex());
-    exit(1);
-  }//end checking whether the nodes belong to the network
+//  if (map_idx_node_ptr.find(p->GetNodeIndex()) == map_idx_node_ptr.end()
+//      ||
+//      map_idx_node_ptr.find(c->GetNodeIndex())==map_idx_node_ptr.end()) {
+//    fprintf(stderr, "Error in function [%s].\nThe nodes [%d] and [%d] do not belong to this network!",
+//            __FUNCTION__, p->GetNodeIndex(), c->GetNodeIndex());
+//    exit(1);
+//  }//end checking whether the nodes belong to the network
   p->RemoveChild(c);
   c->RemoveParent(p);
 }
