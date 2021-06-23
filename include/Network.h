@@ -7,6 +7,7 @@
 
 #include "Dataset.h"
 #include "Node.h"
+#include "Edge.h"
 #include "Factor.h"
 #include "gadget.h"
 #include <string>
@@ -54,9 +55,6 @@ class Network {//this class is used by both the customized networks and networks
 
   void ConstructNaiveBayesNetwork(Dataset *dts);
 
-  // TODO: understanding: I think this function just gets each node's conditional probability table
-//  void LearnParamsKnowStructCompData(const Dataset *dts, int alpha=1, bool print_params=true);
-
   int GetNumParams() const;
   void ClearStructure();
   void ClearParams();
@@ -64,11 +62,11 @@ class Network {//this class is used by both the customized networks and networks
   void AddNode(Node *node_ptr);
   void RemoveNode(int node_index);
 
-  bool AddArc(int p_index, int c_index);
-  void DeleteArc(int p_index, int c_index);
-  bool ReverseArc(int p_index, int c_index);
+  bool AddEdge(int p_index, int c_index);
+  void DeleteEdge(int p_index, int c_index);
+  bool ReverseEdge(int p_index, int c_index);
 
-  double CalcuExtraScoreWithModifiedArc(int p_index, int c_index, Dataset *dts, string modification, string score_metric);
+  double CalcuExtraScoreWithModifiedEdge(int p_index, int c_index, Dataset *dts, string modification, string score_metric);
 
   void SetParentChild(int p_index, int c_index);
   void SetParentChild(Node *par, Node *chi); // checked
@@ -99,7 +97,6 @@ class Network {//this class is used by both the customized networks and networks
 
 
  protected:
-
   vector<int> GenTopoOrd();
 };
 

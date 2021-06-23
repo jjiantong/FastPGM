@@ -43,14 +43,14 @@ void K2::StructLearnByK2Weka(Dataset *dts, vector<int> topo_ord_constraint, int 
                 // TODO: why not
                 // TODO:      1. directly compute the new score and compare the i scores to find the maximum, rather than compare the delta scores
                 // TODO:      2. compute the old score before calling this function, because the i old scores seem to be the same
-                double extra_score = network->CalcuExtraScoreWithModifiedArc(par_index, var_index, dts, "add", "log K2");//use K2 as scoring function
+                double extra_score = network->CalcuExtraScoreWithModifiedEdge(par_index, var_index, dts, "add", "log K2");//use K2 as scoring function
                 if (extra_score > best_extra_score) { // find the max g() as the "best_extra_score" iteratively
                     // TODO: may not need to addarc and deletearc
                     // TODO: because if "AddArc" function returns false, then current "extra_score" equals to 0 and cannot be the "best_extra_score"
-                    if (network->AddArc(par_index, var_index)) {
+                    if (network->AddEdge(par_index, var_index)) {
                         best_par_index = j;
                         best_extra_score = extra_score;
-                        network->DeleteArc(par_index, var_index);
+                        network->DeleteEdge(par_index, var_index);
                     }
                 }
             }
@@ -60,7 +60,7 @@ void K2::StructLearnByK2Weka(Dataset *dts, vector<int> topo_ord_constraint, int 
             }
             // if the maximum new score is better than the old score, add this arc and continue
             else {
-                network->AddArc(best_par_index, var_index);
+                network->AddEdge(best_par_index, var_index);
                 ok_to_proceed = (node->GetNumParents() < max_num_parents);
             }
         }

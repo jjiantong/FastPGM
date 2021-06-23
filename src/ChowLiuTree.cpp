@@ -110,7 +110,10 @@ void ChowLiuTree::StructLearnCompData(Dataset *dts, bool print_struct, string to
   double diff;
   gettimeofday(&start,NULL);
 
-  fprintf(stdout, "In function [%s]:\nChow-Liu tree will not be restricted by the argument \"topo_ord_constraint\".", __FUNCTION__);
+//  fprintf(stdout, "In function [%s]:\nChow-Liu tree will not be restricted by the argument \"topo_ord_constraint\".", __FUNCTION__);
+
+  cout << "==================================================" << '\n'
+       << "Begin structural learning with Chow-Liu Tree." << endl;
 
   StructLearnChowLiuTreeCompData(dts, print_struct);
 
@@ -127,7 +130,7 @@ void ChowLiuTree::StructLearnCompData(Dataset *dts, bool print_struct, string to
  */
 void ChowLiuTree::StructLearnChowLiuTreeCompData(Dataset *dts, bool print_struct) {
   cout << "==================================================" << '\n'
-       << "Begin structural learning. \nConstructing Chow-Liu tree with complete data......" << endl;
+       << "Constructing Chow-Liu tree with complete data......" << endl;
   assert(network->pure_discrete == true);//It seems Chow Liu Tree only supports discrete networks.
 
   network->num_nodes = dts->num_vars;

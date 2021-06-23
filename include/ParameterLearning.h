@@ -15,6 +15,7 @@ public:
 
     ParameterLearning(Network *net) {network = net;};
 
+    // TODO: check algorithms for parameter learning
     void LearnParamsKnowStructCompData(const Dataset *dts, int alpha=1, bool print_params=true);
 };
 
