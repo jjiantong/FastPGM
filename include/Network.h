@@ -55,7 +55,7 @@ class Network {//this class is used by both the customized networks and networks
   void ConstructNaiveBayesNetwork(Dataset *dts);
 
   // TODO: understanding: I think this function just gets each node's conditional probability table
-  void LearnParamsKnowStructCompData(const Dataset *dts, int alpha=1, bool print_params=true);
+//  void LearnParamsKnowStructCompData(const Dataset *dts, int alpha=1, bool print_params=true);
 
   int GetNumParams() const;
   void ClearStructure();
@@ -96,12 +96,6 @@ class Network {//this class is used by both the customized networks and networks
 
   Factor SumProductVarElim(vector<Factor> factors_list, vector<int> elim_order);
   Factor VarElimInferReturnPossib(DiscreteConfig evid, Node *target_node, vector<int> elim_order=vector<int>{});
-
-  DiscreteConfig GenerateInstanceByProbLogicSampleNetwork();
-
-  int SampleNodeGivenMarkovBlanketReturnValIndex(Node *node_ptr, DiscreteConfig markov_blanket);
-
-  vector<DiscreteConfig> DrawSamplesByGibbsSamp(int num_samp, int num_burn_in);
 
 
  protected:

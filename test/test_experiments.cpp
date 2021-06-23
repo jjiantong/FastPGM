@@ -13,6 +13,8 @@
 #include "Inference.h"
 #include "ExactInference.h"
 #include "ApproximateInference.h"
+#include "StructureLearning.h"
+#include "ParameterLearning.h"
 #include "ChowLiuTree.h"
 #include "JunctionTree.h"
 #include "CustomNetwork.h"
@@ -164,7 +166,10 @@ protected:
         StructureLearning *bnsl = new ChowLiuTree(network);
         bnsl->StructLearnCompData(trainer, true, "", 1);
 
-        network->LearnParamsKnowStructCompData(trainer, true);
+        ParameterLearning *bnpl = new ParameterLearning(network);
+        bnpl->LearnParamsKnowStructCompData(trainer, true);
+
+//        network->LearnParamsKnowStructCompData(trainer, true);
     }
 
     Dataset *trainer;

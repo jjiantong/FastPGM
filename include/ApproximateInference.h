@@ -32,6 +32,10 @@ public:
                                                 vector<DiscreteConfig> &samples);
     vector<DiscreteConfig> DrawSamplesByProbLogiSamp(int num_samp);
     DiscreteConfig GenerateInstanceByProbLogicSampleNetwork();
+
+
+    int SampleNodeGivenMarkovBlanketReturnValIndex(Node *node_ptr, DiscreteConfig markov_blanket);
+    vector<DiscreteConfig> DrawSamplesByGibbsSamp(int num_samp, int num_burn_in);
 };
 
 

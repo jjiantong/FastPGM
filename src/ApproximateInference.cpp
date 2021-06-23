@@ -370,3 +370,98 @@ DiscreteConfig ApproximateInference::GenerateInstanceByProbLogicSampleNetwork() 
     }
     return instance;
 }
+
+
+/**
+ * @brief: obtain a value index given the Markov Blanket
+ * @param node_ptr: target node
+ * @param markov_blanket includes (i) direct parents, (ii) direct children and (iii) direct parents of direct children of the target node
+ * @return value index of the target node
+ */
+int ApproximateInference::SampleNodeGivenMarkovBlanketReturnValIndex(Node *node_ptr, DiscreteConfig markov_blanket) {
+    //use the Markov blanket to serve as the elimination order
+    //int num_elim_ord = markov_blanket.size();
+    vector<int> var_elim_ord;
+    var_elim_ord.reserve(markov_blanket.size());
+    for (auto &n_v : markov_blanket) {
+        var_elim_ord.push_back(n_v.first);
+    }
+
+    // TODO: the same problem with "DiscreteNode::SampleNodeGivenParents"
+    // TODO: the implementation of VE alg. in ExactInference has been changed,
+    //  we need to change the implementation here, and move to maybe Inference?
+    //obtain the marginal probabilities of the target node
+    Factor f = network->VarElimInferReturnPossib(markov_blanket, node_ptr, var_elim_ord);
+
+    //use the marginal probabilities of the target node for sampling
+    vector<int> weights;
+    for (int i = 0; i < dynamic_cast<DiscreteNode*>(node_ptr)->GetDomainSize(); ++i) {//for each possible value of the target node
+        DiscreteConfig temp;
+        temp.insert(pair<int,int>(node_ptr->GetNodeIndex(),
+                                  dynamic_cast<DiscreteNode*>(node_ptr)->vec_potential_vals.at(i)));
+        weights.push_back(f.map_potentials[temp]*10000);//the marginal probability is converted into int
+    }
+
+    unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+    default_random_engine rand_gen(seed);
+    discrete_distribution<int> this_distribution(weights.begin(),weights.end());
+    return this_distribution(rand_gen); // randomly pick an index and return
+}
+
+/**
+ * @brief: draw multiple instances
+ * @param num_samp: the number of instances to draw
+ * @param num_burn_in: a terminology in MCMC and Gibbs sampling; the number of instances drawn at the beginning to be ignored
+ * @return a set of instances
+ */
+vector<DiscreteConfig> ApproximateInference::DrawSamplesByGibbsSamp(int num_samp, int num_burn_in) {
+
+    vector<DiscreteConfig> samples;
+    samples.reserve(num_samp);
+
+    // randomly pick one sample
+    DiscreteConfig single_sample = this->GenerateInstanceByProbLogicSampleNetwork();
+
+    auto it_idx_node = network->map_idx_node_ptr.begin(); // begin at the first node
+
+    // Need burning in.
+//  #pragma omp parallel for
+    for (int i = 1; i < num_burn_in + num_samp; ++i) {//draw instances
+
+        Node *node_ptr = (*(it_idx_node++)).second;
+        if (it_idx_node == network->map_idx_node_ptr.end()) {
+            it_idx_node = network->map_idx_node_ptr.begin();
+        }
+
+        set<int> markov_blanket_node_index = network->GetMarkovBlanketIndexesOfNode(node_ptr);
+
+        // construct the markov blanket from the picked "single_sample"
+        // i.e., filter out the variable-values that are not in the markov blanket
+        DiscreteConfig markov_blanket;
+        for (auto &p : single_sample) { // for each variable-value of the picked "single_sample"
+            // check if the variable is in the Markov Blanket
+            if (markov_blanket_node_index.find(p.first) != markov_blanket_node_index.end()) {
+                markov_blanket.insert(p);
+            }
+        }
+
+        // obtain a value of a variable given the Markov Blanket
+        int value_index = SampleNodeGivenMarkovBlanketReturnValIndex(node_ptr, markov_blanket);
+
+        // replace the value of the previous instance with the new value
+        for (auto p : single_sample) {
+            if (p.first == node_ptr->GetNodeIndex()) {
+                single_sample.erase(p);
+                p.second = dynamic_cast<DiscreteNode*>(node_ptr)->vec_potential_vals.at(value_index);
+                single_sample.insert(p);
+                break;
+            }
+        }
+
+        // After burning in, we can store the samples now.
+#pragma omp critical
+        { if (i >= num_burn_in) { samples.push_back(single_sample); } }
+    }
+
+    return samples;
+}

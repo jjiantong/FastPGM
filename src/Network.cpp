@@ -529,65 +529,65 @@ bool Network::ContainCircle() {
   return result;
 }
 
-/**
- * @brief: learn the weights or probability tables TODO: check algorithms for parameter learning
- * @brief: get each node's conditional probability table
- */
-void Network::LearnParamsKnowStructCompData(const Dataset *dts, int alpha, bool print_params){
-  cout << "==================================================" << '\n'
-       << "Begin learning parameters with known structure and complete data." << '\n'
-       << "Laplace smoothing param: alpha = " << alpha << endl;
-
-  struct timeval start, end;
-  double diff;// j is a node index and also an array index
-  gettimeofday(&start,NULL);
-
-  int num_cores = omp_get_num_procs();
-  omp_set_num_threads(num_cores);
-  int max_work_per_thread = (dts->num_vars + num_cores - 1) / num_cores;
-  #pragma omp parallel
-  {
-    int thread_id = omp_get_thread_num();
-
-    // a thread for one or more nodes
-    for (int i = max_work_per_thread * thread_id;
-         i < max_work_per_thread * (thread_id + 1) && i < dts->num_vars;
-         ++i) {
-//    for (int i=0; i<dts->num_vars; ++i) {
-      // for each variable/node, update probability table of (node | parent configurations)
-      DiscreteNode *this_node = dynamic_cast<DiscreteNode*>(FindNodePtrByIndex(i));   // todo: support continuous node
-      this_node->SetLaplaceSmooth(alpha);
-
-      for (int s = 0; s < dts->num_instance; ++s) { // for each instance
-        // create the vector "values" by copying the array "dts->dataset_all_vars[s]"
-        vector<int> values = vector<int>(dts->dataset_all_vars[s], dts->dataset_all_vars[s] + dts->num_vars);
-        //convert an instance to discrete configuration
-        DiscreteConfig instance; //set<pair<int, int> >
-        for (int j = 0; j < values.size(); ++j) { // for each variable of this instance
-          instance.insert(pair<int, int>(j, values.at(j)));
-        }
-        this_node->AddInstanceOfVarVal(instance);//an instance affects all the nodes in the network, because the instance here is dense.
-      }
-    }
-  }   // end of: #pragma omp parallel
-  cout << "==================================================" << '\n'
-       << "Finish training with known structure and complete data." << endl;
-
-  if (print_params) {
-    cout << "==================================================" << '\n'
-         << "Each node's conditional probability table: " << endl;
-    for (const auto &id_node_ptr : map_idx_node_ptr) {  // For each node
-      dynamic_cast<DiscreteNode*>(id_node_ptr.second)->PrintProbabilityTable();
-    }
-  }
-
-  gettimeofday(&end,NULL);
-  diff = (end.tv_sec-start.tv_sec) + ((double)(end.tv_usec-start.tv_usec))/1.0E6;
-  setlocale(LC_NUMERIC, "");
-  cout << "==================================================" << '\n'
-       << "The time spent to learn the parameters is " << diff << " seconds" << endl;
-
-}
+///**
+// * @brief: learn the weights or probability tables TODO: check algorithms for parameter learning
+// * @brief: get each node's conditional probability table
+// */
+//void Network::LearnParamsKnowStructCompData(const Dataset *dts, int alpha, bool print_params){
+//  cout << "==================================================" << '\n'
+//       << "Begin learning parameters with known structure and complete data." << '\n'
+//       << "Laplace smoothing param: alpha = " << alpha << endl;
+//
+//  struct timeval start, end;
+//  double diff;// j is a node index and also an array index
+//  gettimeofday(&start,NULL);
+//
+//  int num_cores = omp_get_num_procs();
+//  omp_set_num_threads(num_cores);
+//  int max_work_per_thread = (dts->num_vars + num_cores - 1) / num_cores;
+//  #pragma omp parallel
+//  {
+//    int thread_id = omp_get_thread_num();
+//
+//    // a thread for one or more nodes
+//    for (int i = max_work_per_thread * thread_id;
+//         i < max_work_per_thread * (thread_id + 1) && i < dts->num_vars;
+//         ++i) {
+////    for (int i=0; i<dts->num_vars; ++i) {
+//      // for each variable/node, update probability table of (node | parent configurations)
+//      DiscreteNode *this_node = dynamic_cast<DiscreteNode*>(FindNodePtrByIndex(i));   // todo: support continuous node
+//      this_node->SetLaplaceSmooth(alpha);
+//
+//      for (int s = 0; s < dts->num_instance; ++s) { // for each instance
+//        // create the vector "values" by copying the array "dts->dataset_all_vars[s]"
+//        vector<int> values = vector<int>(dts->dataset_all_vars[s], dts->dataset_all_vars[s] + dts->num_vars);
+//        //convert an instance to discrete configuration
+//        DiscreteConfig instance; //set<pair<int, int> >
+//        for (int j = 0; j < values.size(); ++j) { // for each variable of this instance
+//          instance.insert(pair<int, int>(j, values.at(j)));
+//        }
+//        this_node->AddInstanceOfVarVal(instance);//an instance affects all the nodes in the network, because the instance here is dense.
+//      }
+//    }
+//  }   // end of: #pragma omp parallel
+//  cout << "==================================================" << '\n'
+//       << "Finish training with known structure and complete data." << endl;
+//
+//  if (print_params) {
+//    cout << "==================================================" << '\n'
+//         << "Each node's conditional probability table: " << endl;
+//    for (const auto &id_node_ptr : map_idx_node_ptr) {  // For each node
+//      dynamic_cast<DiscreteNode*>(id_node_ptr.second)->PrintProbabilityTable();
+//    }
+//  }
+//
+//  gettimeofday(&end,NULL);
+//  diff = (end.tv_sec-start.tv_sec) + ((double)(end.tv_usec-start.tv_usec))/1.0E6;
+//  setlocale(LC_NUMERIC, "");
+//  cout << "==================================================" << '\n'
+//       << "The time spent to learn the parameters is " << diff << " seconds" << endl;
+//
+//}
 
 /**
  * @brief: get the number of parameters of the network, based on probability tables
@@ -769,12 +769,6 @@ Factor Network::SumProductVarElim(vector<Factor> factor_list, vector<int> elim_o
  */
 Factor Network::VarElimInferReturnPossib(DiscreteConfig evid, Node *target_node, vector<int> elim_order) {
 
-//  cout << endl << "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~" << '\n'
-//       << "The evidence node: " << endl;
-//  for (auto e: evid) {
-//    cout << e.first << ", ";
-//  }
-
   if (elim_order.empty()) {
     // call "ChowLiuTree::SimplifyDefaultElimOrd"; "elim_order" is the reverse topological order removing barren nodes and m-separated nodes
     elim_order = SimplifyDefaultElimOrd(evid);
@@ -818,26 +812,6 @@ Factor Network::VarElimInferReturnPossib(DiscreteConfig evid, Node *target_node,
 }
 
 /**
- * @brief: for approximate inference; this function generate an instance using the network
- * @return an instance
- */
-DiscreteConfig Network::GenerateInstanceByProbLogicSampleNetwork() {
-  // Probabilistic logic sampling is a method
-  // proposed by Max Henrion at 1988: "Propagating uncertainty in Bayesian networks by probabilistic logic sampling" TODO: double-check
-
-  DiscreteConfig instance;
-  // Cannot use OpenMP, because must draw samples in the topological ordering.
-  // TODO: if we directly use "value", or use index to randomly pick one possible value of "n_p",
-  // TODO: then we do not need to use the topological ordering...
-  for (const auto &index : this->GetTopoOrd()) { // for each node following the topological ordering
-    Node *n_p = FindNodePtrByIndex(index);
-    int drawn_value = dynamic_cast<DiscreteNode*>(n_p)->SampleNodeGivenParents(instance); // todo: support continuous nodes
-    instance.insert(pair<int,int>(index, drawn_value));
-  }
-  return instance;
-}
-
-/**
  * @brief: get the Markov Blanket of a node
  */
 set<int> Network::GetMarkovBlanketIndexesOfNode(Node *node_ptr) {
@@ -862,96 +836,5 @@ set<int> Network::GetMarkovBlanketIndexesOfNode(Node *node_ptr) {
   return markov_blanket_node_index;
 }
 
-/**
- * @brief: draw multiple instances
- * @param num_samp: the number of instances to draw
- * @param num_burn_in: a terminology in MCMC and Gibbs sampling; the number of instances drawn at the beginning to be ignored
- * @return a set of instances
- */
-vector<DiscreteConfig> Network::DrawSamplesByGibbsSamp(int num_samp, int num_burn_in) {
-
-  vector<DiscreteConfig> samples;
-  samples.reserve(num_samp);
-
-  // randomly pick one sample
-  DiscreteConfig single_sample = this->GenerateInstanceByProbLogicSampleNetwork();
-
-  auto it_idx_node = this->map_idx_node_ptr.begin(); // begin at the first node
-
-  // Need burning in.
-//  #pragma omp parallel for
-  for (int i = 1; i < num_burn_in + num_samp; ++i) {//draw instances
-
-    Node *node_ptr = (*(it_idx_node++)).second;
-    if (it_idx_node == map_idx_node_ptr.end()) {
-      it_idx_node = this->map_idx_node_ptr.begin();
-    }
-
-    set<int> markov_blanket_node_index = GetMarkovBlanketIndexesOfNode(node_ptr);
-
-    // construct the markov blanket from the picked "single_sample"
-    // i.e., filter out the variable-values that are not in the markov blanket
-    DiscreteConfig markov_blanket;
-    for (auto &p : single_sample) { // for each variable-value of the picked "single_sample"
-      // check if the variable is in the Markov Blanket
-      if (markov_blanket_node_index.find(p.first) != markov_blanket_node_index.end()) {
-        markov_blanket.insert(p);
-      }
-    }
-
-    // obtain a value of a variable given the Markov Blanket
-    int value_index = SampleNodeGivenMarkovBlanketReturnValIndex(node_ptr, markov_blanket);
-
-    // replace the value of the previous instance with the new value
-    for (auto p : single_sample) {
-      if (p.first == node_ptr->GetNodeIndex()) {
-        single_sample.erase(p);
-        p.second = dynamic_cast<DiscreteNode*>(node_ptr)->vec_potential_vals.at(value_index);
-        single_sample.insert(p);
-        break;
-      }
-    }
-
-    // After burning in, we can store the samples now.
-    #pragma omp critical
-    { if (i >= num_burn_in) { samples.push_back(single_sample); } }
-  }
-
-  return samples;
-}
-
-/**
- * @brief: obtain a value index given the Markov Blanket
- * @param node_ptr: target node
- * @param markov_blanket includes (i) direct parents, (ii) direct children and (iii) direct parents of direct children of the target node
- * @return value index of the target node
- */
-int Network::SampleNodeGivenMarkovBlanketReturnValIndex(Node *node_ptr, DiscreteConfig markov_blanket) {
-  //use the Markov blanket to serve as the elimination order
-  //int num_elim_ord = markov_blanket.size();
-  vector<int> var_elim_ord;
-  var_elim_ord.reserve(markov_blanket.size());
-  for (auto &n_v : markov_blanket) {
-    var_elim_ord.push_back(n_v.first);
-  }
-
-  // TODO: the same problem with "DiscreteNode::SampleNodeGivenParents"
-  //obtain the marginal probabilities of the target node
-  Factor f = VarElimInferReturnPossib(markov_blanket, node_ptr, var_elim_ord);
-
-  //use the marginal probabilities of the target node for sampling
-  vector<int> weights;
-  for (int i = 0; i < dynamic_cast<DiscreteNode*>(node_ptr)->GetDomainSize(); ++i) {//for each possible value of the target node
-    DiscreteConfig temp;
-    temp.insert(pair<int,int>(node_ptr->GetNodeIndex(),
-                              dynamic_cast<DiscreteNode*>(node_ptr)->vec_potential_vals.at(i)));
-    weights.push_back(f.map_potentials[temp]*10000);//the marginal probability is converted into int
-  }
-
-  unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
-  default_random_engine rand_gen(seed);
-  discrete_distribution<int> this_distribution(weights.begin(),weights.end());
-  return this_distribution(rand_gen); // randomly pick an index and return
-}
 
 #pragma clang diagnostic pop
