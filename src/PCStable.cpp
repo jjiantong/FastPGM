@@ -4,7 +4,7 @@
 
 #include "PCStable.h"
 
-void PCStable::StructLearnCompData(Dataset *dts, bool print_struct, string topo_ord_constraint, int max_num_parents) {
+void PCStable::StructLearnCompData(Dataset *dts, bool print_struct) {
     // record time
     struct timeval start, end;
     double diff;
@@ -34,4 +34,34 @@ void PCStable::StructLearnByPCStable(Dataset *dts, bool print_struct) {
             network->AddUndirectedEdge(i, j);
         }
     }
+
+    cout << "==================================================" << '\n'
+         << "Begin level 0" << endl;
+
+    map<int, set<int>> adjacencies; // key is node index, value is the set of neighbor node index of the node
+
+    for (int i = 0; i < network->num_nodes; i++) { // find neighbor set of each node i
+        set<int> adjacency;
+        for (int j = 0; j < network->num_nodes; j++) { // all nodes except for i itself are neighbors of i
+            if (i == j)
+                continue;
+            adjacency.insert(j);
+        }
+        adjacencies.insert(pair<int, set<int>>(i, adjacency));
+    }
+
+//    for (Edge edge : network->vec_edges) {
+//    }
+//
+//
+//    for (Edge edge : new ArrayList<>(edges)) {
+//        if (scores.get(edge) < 0
+//            || (knowledge.isForbidden(edge.getNode1().getName(), edge.getNode2().getName())
+//                && (knowledge.isForbidden(edge.getNode2().getName(), edge.getNode1().getName())))) {
+//            edges.remove(edge);
+//            adjacencies.get(edge.getNode1()).remove(edge.getNode2());
+//            adjacencies.get(edge.getNode2()).remove(edge.getNode1());
+//            sepset.set(edge.getNode1(), edge.getNode2(), new ArrayList<>());
+//        }
+//    }
 }

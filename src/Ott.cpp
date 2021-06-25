@@ -9,7 +9,7 @@
      * Ott, Sascha, Seiya Imoto, and Satoru Miyano. "Finding optimal models for small gene networks."
      * In Biocomputing 2004, pp. 557-567. 2003.
  */
-void Ott::StructLearnByOtt(Dataset *dts, vector<int> topo_ord_constraint) {//TODO: double check correctness
+void Ott::StructLearnByOtt(Dataset *dts) {//TODO: double check correctness
 
     map<Node*, map<set<Node*>, double>> dynamic_program_for_F;
     map< pair<set<Node*>, vector<int>>,  pair<double, vector<pair<Node*, set<Node*>>> > > dynamic_program_for_Q;
@@ -19,16 +19,16 @@ void Ott::StructLearnByOtt(Dataset *dts, vector<int> topo_ord_constraint) {//TOD
         set_node_ptr_container.insert(id_np.second); // insert all node ptrs of the network
     }
 
-    // if "topo_ord_constraint" = "best"; no order is provided (i.e. no constraint)
-    if (topo_ord_constraint.empty() || topo_ord_constraint.size() != network->num_nodes) {
+    // if "order_constraint" = "best"; no order is provided (i.e. no constraint)
+    if (order.empty() || order.size() != network->num_nodes) {
         map<set<Node*>, vector<int>> dynamic_program_for_M;
         vector<int> m_of_all_nodes = M(set_node_ptr_container, dts, dynamic_program_for_F, dynamic_program_for_Q,
                                        dynamic_program_for_M);
-        topo_ord_constraint = m_of_all_nodes; // provide a order constraint
+        order = m_of_all_nodes; // provide a order constraint
     }
 
     pair<double, vector<pair<Node*, set<Node*>>>> score_vec_node_parents = Q(set_node_ptr_container,
-                                                                             topo_ord_constraint, dts,
+                                                                             order, dts,
                                                                              dynamic_program_for_F,
                                                                              dynamic_program_for_Q);
     vector<pair<Node*, set<Node*>>> vec_node_parents = score_vec_node_parents.second;
@@ -216,7 +216,7 @@ vector<int> Ott::M(set<Node*> &set_nodes, Dataset *dts, map<Node*, map<set<Node*
     return result;
 }
 
-void Ott::StructLearnCompData(Dataset *dts, bool print_struct, string topo_ord_constraint, int max_num_parents) {
+void Ott::StructLearnCompData(Dataset *dts, bool print_struct) {
 
     cout << "==================================================" << '\n'
          << "Begin structural learning with complete data using K2 algorithm...." << endl;
@@ -226,9 +226,9 @@ void Ott::StructLearnCompData(Dataset *dts, bool print_struct, string topo_ord_c
     gettimeofday(&start,NULL);
 
     AssignNodeInformation(dts);
-    vector<int> ord = AssignNodeOrder(topo_ord_constraint);
+    order = AssignNodeOrder(order_constraint);
 
-    StructLearnByOtt(dts, ord);
+    StructLearnByOtt(dts);
 
     cout << "==================================================" << '\n'
          << "Finish structural learning." << endl;

@@ -10,9 +10,15 @@
 
 class Ott: public StructureLearning {
 public:
-    virtual void StructLearnCompData(Dataset *dts, bool print_struct, string topo_ord_constraint, int max_num_parents);
+    string order_constraint;
+    vector<int> order;
 
-    void StructLearnByOtt(Dataset *dts, vector<int> topo_ord_constraint);
+    Ott(Network *net) {network = net;};
+    Ott(Network *net, string oc) {network = net; order_constraint = oc;};
+
+    virtual void StructLearnCompData(Dataset *dts, bool print_struct);
+
+    void StructLearnByOtt(Dataset *dts);
     pair<double, set<Node*>> F(Node *node, set<Node*> &candidate_parents, Dataset *dts,
                                map<Node*, map<set<Node*>, double>> &dynamic_program);
     pair<double, vector<pair<Node*, set<Node*>>>> Q(set<Node*> &set_nodes, vector<int> topo_ord, Dataset *dts,

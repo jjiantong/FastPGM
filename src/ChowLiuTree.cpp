@@ -101,16 +101,13 @@ double ChowLiuTree::ComputeMutualInformation(Node *Xi, Node *Xj, const Dataset *
 
 /**
  * Just an API. Call another function.
- * default params: print_struct = true, topo_ord_constraint = "", max_num_parents = 1
  * (they are no use...)
  */
-void ChowLiuTree::StructLearnCompData(Dataset *dts, bool print_struct, string topo_ord_constraint, int max_num_parents) {
+void ChowLiuTree::StructLearnCompData(Dataset *dts, bool print_struct) {
   // record time
   struct timeval start, end;
   double diff;
   gettimeofday(&start,NULL);
-
-//  fprintf(stdout, "In function [%s]:\nChow-Liu tree will not be restricted by the argument \"topo_ord_constraint\".", __FUNCTION__);
 
   cout << "==================================================" << '\n'
        << "Begin structural learning with Chow-Liu Tree." << endl;

@@ -6,6 +6,7 @@
 #define BAYESIANNETWORK_PCSTABLE_H
 
 #include "StructureLearning.h"
+#include "IndependenceTest.h"
 
 /**
  * @brief: Implementation the PC-stable (Peter & Clark) algorithm
@@ -18,11 +19,12 @@ class PCStable : public StructureLearning {
 public:
     int depth = 1000; // The maximum number of nodes conditioned on in the search. The default it 1000.
     bool stable = true; // PC-Stable or PC
+    IndependenceTest* ci_test;
 
     PCStable(Network *net) {network = net;};
     PCStable(Network *net, int d, bool s) {network = net; depth = d; stable = s;};
 
-    virtual void StructLearnCompData(Dataset *dts, bool print_struct, string topo_ord_constraint, int max_num_parents);
+    virtual void StructLearnCompData(Dataset *dts, bool print_struct);
     void StructLearnByPCStable(Dataset *dts, bool print_struct);
 };
 

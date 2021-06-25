@@ -9,9 +9,16 @@
 
 class K2 : public StructureLearning {
 public:
-    virtual void StructLearnCompData(Dataset *dts, bool print_struct, string topo_ord_constraint, int max_num_parents);
+    string order_constraint;
+    vector<int> order;
+    int max_num_parents;
 
-    void StructLearnByK2Weka(Dataset *dts, vector<int> topo_ord_constraint, int max_num_parents);
+    K2(Network *net) {network = net;};
+    K2(Network *net, string oc, int mnp) {network = net; order_constraint = oc; max_num_parents = mnp;};
+
+    virtual void StructLearnCompData(Dataset *dts, bool print_struct);
+
+    void StructLearnByK2Weka(Dataset *dts);
 };
 
 #endif //BAYESIANNETWORK_K2_H

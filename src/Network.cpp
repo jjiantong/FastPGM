@@ -252,7 +252,7 @@ bool Network::ReverseDirectedEdge(int p_index, int c_index) {
 
 /**
  * @brief: add an undirected edge/arc to the network
- * have order
+ * have an order
  */
 void Network::AddUndirectedEdge(int p_index, int c_index) {
     // first check the two nodes

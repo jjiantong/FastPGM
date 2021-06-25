@@ -110,7 +110,7 @@
 //TEST_F(ExperimentOnCovertype, do_nothing) {
 //  cout << "Hello world..." << endl;
 //}
-
+//
 //TEST_F(ExperimentOnCovertype, ve) {
 //    Inference *inference = new ExactInference(network);
 //    double accuracy = inference->EvaluateAccuracy(tester, -1, "ve", true);
@@ -151,40 +151,36 @@
 //
 
 
-//class ExperimentOnAlarm : public ::testing::Test {
-//protected:
-//
-//    void SetUp() override {
-//        trainer = new Dataset();
-//        tester = new Dataset();
-//        network = new Network(true);
-//
-//        string train_set_file_path = "../../data/alarm_s10000.txt";
-//
-//        trainer->LoadCSVData(train_set_file_path, true, true, 0);
-//        tester->LoadCSVData(train_set_file_path, true, true, 0);
-//
-//        StructureLearning *bnsl = new ChowLiuTree(network);
-//        bnsl->StructLearnCompData(trainer, true, "", 1);
-//
-//        ParameterLearning *bnpl = new ParameterLearning(network);
-//        bnpl->LearnParamsKnowStructCompData(trainer, true);
-//    }
-//
-//    Dataset *trainer;
-//    Dataset *tester;
-//    Network *network;
-//};
-//
-//TEST_F(ExperimentOnAlarm, do_nothing) {
-//    cout << "Hello world..." << endl;
-//}
-//
-//TEST_F(ExperimentOnAlarm, brute_force) {
-//    Inference *inference = new ExactInference(network);
-//    double accuracy = inference->EvaluateAccuracy(tester, -1, "direct", true);
-//    EXPECT_GT(accuracy, 0.600);
-//}
+class ExperimentOnAlarm : public ::testing::Test {
+protected:
+
+    void SetUp() override {
+        trainer = new Dataset();
+        tester = new Dataset();
+        network = new Network(true);
+
+        string train_set_file_path = "../../data/alarm_s10000.txt";
+
+        trainer->LoadCSVData(train_set_file_path, true, true, 0);
+        tester->LoadCSVData(train_set_file_path, true, true, 0);
+
+        StructureLearning *bnsl = new ChowLiuTree(network);
+        bnsl->StructLearnCompData(trainer, true);
+
+        ParameterLearning *bnpl = new ParameterLearning(network);
+        bnpl->LearnParamsKnowStructCompData(trainer, true);
+    }
+
+    Dataset *trainer;
+    Dataset *tester;
+    Network *network;
+};
+
+TEST_F(ExperimentOnAlarm, brute_force) {
+    Inference *inference = new ExactInference(network);
+    double accuracy = inference->EvaluateAccuracy(tester, -1, "direct", true);
+    EXPECT_GT(accuracy, 0.600);
+}
 
 
 //
@@ -289,16 +285,16 @@ protected:
 };
 
 TEST_F(ExperimentNetwork, do_nothing) {
-    StructureLearning *bnsl = new PCStable(network);
-    bnsl->StructLearnCompData(trainer, true, "", 1000);
+    StructureLearning *bnsl = new PCStable(network, 1000, true);
+    bnsl->StructLearnCompData(trainer, true);
 
-    cout << "num nodes = " << network->num_nodes << endl;
-    cout << "num edges = " << network->num_edges << endl;
     for (int i = 0; i < network->num_edges; ++i) {
         Edge edge = network->vec_edges.at(i);
         cout << edge.GetNode1()->node_name << " -- " << edge.GetNode2()->node_name << endl;
         if (edge.GetEndPoint1() == ARROW || edge.GetEndPoint2() == ARROW) {
-            cout << "aaaaaa!!!!!" << endl;
+            cout << "error!!!!!" << endl;
         }
     }
+    cout << "num nodes = " << network->num_nodes << endl;
+    cout << "num edges = " << network->num_edges << endl;
 }

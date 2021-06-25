@@ -10,17 +10,17 @@
  *      under: weka/src/main/java/weka/classifiers/bayes/net/search/global/K2.java
  *      or     weka/src/main/java/weka/classifiers/bayes/net/search/local/K2.java
  *
- * @key idea: add a parent to a node based on topo_ord_constraint
+ * @key idea: add a parent to a node based on order_constraint
  *            if adding the node as a parent results in increment of the score
  *            -- there are different scoring functions.
  */
-void K2::StructLearnByK2Weka(Dataset *dts, vector<int> topo_ord_constraint, int max_num_parents) { //checked
+void K2::StructLearnByK2Weka(Dataset *dts) { //checked
     // todo: test the correctness
-    // if "topo_ord_constraint" = "best"; no order is provided (i.e. no constraint)
-    if (topo_ord_constraint.empty() || topo_ord_constraint.size() != network->num_nodes) {
-        topo_ord_constraint.reserve(network->num_nodes);
+    // if "order_constraint" = "best"; no order is provided (i.e. no constraint)
+    if (order.empty() || order.size() != network->num_nodes) {
+        order.reserve(network->num_nodes);
         for (int i = 0; i < network->num_nodes; ++i) {
-            topo_ord_constraint.push_back(i); // provide a order constraint: 1, 2, ..., num_nodes-1
+            order.push_back(i); // provide a order constraint: 1, 2, ..., num_nodes-1
         }
     }
     network->GenDiscParCombsForAllNodes(); // generate all possible parent configurations ("set_discrete_parents_combinations") for all nodes
@@ -28,7 +28,7 @@ void K2::StructLearnByK2Weka(Dataset *dts, vector<int> topo_ord_constraint, int 
 //#pragma omp parallel for
     for (int i = 0; i < network->num_nodes; ++i) {
 
-        int var_index = topo_ord_constraint.at(i);
+        int var_index = order.at(i);
         DiscreteNode *node = (DiscreteNode*)network->map_idx_node_ptr.at(var_index); // TODO: function "FindNodePtrByIndex"？
 
         bool ok_to_proceed = (node->GetNumParents() < max_num_parents);
@@ -37,7 +37,7 @@ void K2::StructLearnByK2Weka(Dataset *dts, vector<int> topo_ord_constraint, int 
             double best_extra_score = 0;
 
             for (int j = 0; j < i; ++j) { // j < i: traverse all pre nodes, satisfy the ordering constraint
-                int par_index = topo_ord_constraint.at(j);
+                int par_index = order.at(j);
 
                 // TODO: this function calculates old score and new score and returns the delta score as "extra_score"
                 // TODO: why not
@@ -67,7 +67,7 @@ void K2::StructLearnByK2Weka(Dataset *dts, vector<int> topo_ord_constraint, int 
     }
 }
 
-void K2::StructLearnCompData(Dataset *dts, bool print_struct, string topo_ord_constraint, int max_num_parents) {
+void K2::StructLearnCompData(Dataset *dts, bool print_struct) {
 
     cout << "==================================================" << '\n'
          << "Begin structural learning with complete data using K2 algorithm...." << endl;
@@ -77,9 +77,9 @@ void K2::StructLearnCompData(Dataset *dts, bool print_struct, string topo_ord_co
     gettimeofday(&start,NULL);
 
     AssignNodeInformation(dts);
-    vector<int> ord = AssignNodeOrder(topo_ord_constraint);
+    order = AssignNodeOrder(order_constraint);
 
-    StructLearnByK2Weka(dts, ord, max_num_parents);
+    StructLearnByK2Weka(dts);
 
     cout << "==================================================" << '\n'
          << "Finish structural learning." << endl;

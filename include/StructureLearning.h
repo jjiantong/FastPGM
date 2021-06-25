@@ -13,7 +13,7 @@ class StructureLearning {
 public:
     Network *network; // the network to be learned
 
-    virtual void StructLearnCompData(Dataset *dts, bool print_struct, string topo_ord_constraint, int max_num_parents) = 0;
+    virtual void StructLearnCompData(Dataset *dts, bool print_struct) = 0;
 
     virtual ~StructureLearning() {};
 
