@@ -50,18 +50,37 @@ void PCStable::StructLearnByPCStable(Dataset *dts, bool print_struct) {
         adjacencies.insert(pair<int, set<int>>(i, adjacency));
     }
 
-//    for (Edge edge : network->vec_edges) {
-//    }
-//
-//
-//    for (Edge edge : new ArrayList<>(edges)) {
-//        if (scores.get(edge) < 0
-//            || (knowledge.isForbidden(edge.getNode1().getName(), edge.getNode2().getName())
-//                && (knowledge.isForbidden(edge.getNode2().getName(), edge.getNode1().getName())))) {
-//            edges.remove(edge);
-//            adjacencies.get(edge.getNode1()).remove(edge.getNode2());
-//            adjacencies.get(edge.getNode2()).remove(edge.getNode1());
-//            sepset.set(edge.getNode1(), edge.getNode2(), new ArrayList<>());
-//        }
-//    }
+    /**
+     * note that the for loop does not have "edge_it++", "edge_it++" only happens when (*edge_it) is not erased
+     * for the case of erasing (*edge_it), the iterator will point to the next edge after erasing the current edge
+     * (erasing operation is in Network::DeleteUndirectedEdge)
+     */
+    for (auto edge_it = network->vec_edges.begin(); edge_it != network->vec_edges.end();) {
+        int node_idx1 = (*edge_it).GetNode1()->GetNodeIndex();
+        int node_idx2 = (*edge_it).GetNode2()->GetNodeIndex();
+        set<int> empty_set;
+
+        if (ci_test->IsIndependent(node_idx1, node_idx2, empty_set, "") || //TODO: I(x1, x2) = I(x2, x1)?
+            ci_test->IsIndependent(node_idx2, node_idx1, empty_set, "")) {
+
+            network->DeleteUndirectedEdge(node_idx1, node_idx2);
+            adjacencies[node_idx1].erase(node_idx2);
+            adjacencies[node_idx2].erase(node_idx1);
+            ci_test->sepset.insert(make_pair(make_pair(node_idx1, node_idx2), empty_set));
+            ci_test->sepset.insert(make_pair(make_pair(node_idx2, node_idx1), empty_set));
+        } else {
+            edge_it++;
+        }
+    }
+
+    cout << "num nodes = " << network->num_nodes << endl;
+    cout << "num edges = " << network->num_edges << endl;
+    for (int i = 0; i < network->num_nodes; ++i) {
+        cout << i << ": ";
+        for (int adj : adjacencies[i]) {
+            cout << adj << ", ";
+        }
+        cout << endl;
+    }
+
 }

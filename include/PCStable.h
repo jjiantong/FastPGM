@@ -21,8 +21,9 @@ public:
     bool stable = true; // PC-Stable or PC
     IndependenceTest* ci_test;
 
-    PCStable(Network *net) {network = net;};
-    PCStable(Network *net, int d, bool s) {network = net; depth = d; stable = s;};
+
+    PCStable(Network *net) {network = net; ci_test = new IndependenceTest();};
+    PCStable(Network *net, int d, bool s) {network = net; ci_test = new IndependenceTest(); depth = d; stable = s;};
 
     virtual void StructLearnCompData(Dataset *dts, bool print_struct);
     void StructLearnByPCStable(Dataset *dts, bool print_struct);

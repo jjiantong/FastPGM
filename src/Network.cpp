@@ -219,6 +219,7 @@ bool Network::AddDirectedEdge(int p_index, int c_index) {
     return !contain_circle;
 }
 
+// TODO: double check, refer to undirected edge
 void Network::DeleteDirectedEdge(int p_index, int c_index) {
     // first check the two nodes
     if(!(NodeIsInNetwork(p_index) && NodeIsInNetwork(c_index))) {
