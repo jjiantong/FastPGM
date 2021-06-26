@@ -7,6 +7,7 @@
 
 #include "StructureLearning.h"
 #include "IndependenceTest.h"
+#include "ChoiceGenerator.h"
 
 /**
  * @brief: Implementation the PC-stable (Peter & Clark) algorithm
@@ -20,13 +21,17 @@ public:
     int depth = 1000; // The maximum number of nodes conditioned on in the search. The default it 1000.
     bool stable = true; // PC-Stable or PC
     IndependenceTest* ci_test;
+    int num_ci_test;
+    int num_dependence_judgement;
 
-
-    PCStable(Network *net) {network = net; ci_test = new IndependenceTest();};
-    PCStable(Network *net, int d, bool s) {network = net; ci_test = new IndependenceTest(); depth = d; stable = s;};
+    PCStable(Network *net);
+    PCStable(Network *net, int d, bool s);
 
     virtual void StructLearnCompData(Dataset *dts, bool print_struct);
     void StructLearnByPCStable(Dataset *dts, bool print_struct);
+    bool SearchAtDepth(map<int, set<int>> &adjacencies, int c_depth);
+    bool CheckSide(map<int, set<int>> adjacencies, int c_depth, Node* x, Node* y);
+    int FreeDegree(map<int, set<int>> adjacencies);
 };
 
 #endif //BAYESIANNETWORK_PCSTABLE_H

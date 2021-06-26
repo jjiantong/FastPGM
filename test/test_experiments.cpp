@@ -21,6 +21,7 @@
 #include "CustomNetwork.h"
 #include "ScoreFunction.h"
 #include "gadget.h"
+#include "ChoiceGenerator.h"
 
 
 //class ExperimentOnA1a : public ::testing::Test {
@@ -288,13 +289,10 @@ TEST_F(ExperimentNetwork, do_nothing) {
     StructureLearning *bnsl = new PCStable(network);
     bnsl->StructLearnCompData(trainer, true);
 
-//    for (int i = 0; i < network->num_edges; ++i) {
-//        Edge edge = network->vec_edges.at(i);
-//        cout << edge.GetNode1()->node_name << " -- " << edge.GetNode2()->node_name << endl;
-//        if (edge.GetEndPoint1() == ARROW || edge.GetEndPoint2() == ARROW) {
-//            cout << "error!!!!!" << endl;
-//        }
-//    }
-//    cout << "num nodes = " << network->num_nodes << endl;
-//    cout << "num edges = " << network->num_edges << endl;
+    for (int i = 0; i < network->num_edges; ++i) {
+        Edge edge = network->vec_edges.at(i);
+        cout << edge.GetNode1()->node_name << " -- " << edge.GetNode2()->node_name << endl;
+    }
+    cout << "num nodes = " << network->num_nodes << endl;
+    cout << "num edges = " << network->num_edges << endl;
 }
