@@ -54,8 +54,6 @@ void PCStable::StructLearnByPCStable(Dataset *dts, bool print_struct) {
     cout << "==================================================" << '\n'
          << "Begin level 0" << endl;
 
-    map<int, set<int>> adjacencies; // key is node index, value is the set of neighbor node index of the node
-
     for (int i = 0; i < network->num_nodes; i++) { // find neighbor set of each node i
         set<int> adjacency;
         for (int j = 0; j < network->num_nodes; j++) { // all nodes except for i itself are neighbors of i
@@ -96,7 +94,7 @@ void PCStable::StructLearnByPCStable(Dataset *dts, bool print_struct) {
         cout << "==================================================" << '\n'
              << "Begin level " << d << endl;
 
-        bool more = SearchAtDepth(adjacencies, d);
+        bool more = SearchAtDepth(d);
 
         if (!more) {
             break;
@@ -107,7 +105,7 @@ void PCStable::StructLearnByPCStable(Dataset *dts, bool print_struct) {
 /**
  * @brief: search for each level (c_depth, c_depth > 0) except for level 0
  */
-bool PCStable::SearchAtDepth(map<int, set<int>> &adjacencies, int c_depth) {
+bool PCStable::SearchAtDepth(int c_depth) {
     /**
      * the copied adjacency sets of all nodes are used and kept unchanged at each particular level c_depth
      * consequently, an edge deletion at one level does not affect the conditioning sets of the other nodes
@@ -193,3 +191,70 @@ int PCStable::FreeDegree(map<int, set<int>> adjacencies) {
     }
     return (max - 1);
 }
+
+///**
+// * @brief: set all direction of the edges that are part of a v-structure
+// * for each triplet x -- y -- z, if x is not adjacent to z and y is not in the sepset of (x,z),
+// * replace it with the v-structure x -> y <- z
+// */
+//void PCStable::OrientVStructure() {
+//
+//    for (int i = 0; i < network->num_nodes; ++i) { // for all nodes in the graph
+//        set<int> adjacent_nodes =
+//    }
+//
+//    List<Node> nodes = graph.getNodes();
+//
+//    for (Node b : nodes) {
+//        List<Node> adjacentNodes = graph.getAdjacentNodes(b);
+//
+//        if (adjacentNodes.size() < 2) {
+//            continue;
+//        }
+//
+//        ChoiceGenerator cg = new ChoiceGenerator(adjacentNodes.size(), 2);
+//        int[] combination;
+//
+//        while ((combination = cg.next()) != null) {
+//            Node a = adjacentNodes.get(combination[0]);
+//            Node c = adjacentNodes.get(combination[1]);
+//
+//            // Skip triples that are shielded.
+//            if (graph.isAdjacentTo(a, c)) {
+//                continue;
+//            }
+//
+//            List<Node> sepset = set.get(a, c);
+//
+//            //I think the null check needs to be here --AJ
+//            if (sepset != null && !sepset.contains(b)
+//                && isArrowpointAllowed(a, b, knowledge)
+//                && isArrowpointAllowed(c, b, knowledge)) {
+//                if (verbose) {
+//                    System.out.println("Collider orientation <" + a + ", " + b + ", " + c + "> sepset = " + sepset);
+//                }
+//
+//                if (enforcePattern) {
+//                    if (graph.getEndpoint(b, a) == Endpoint.ARROW || graph.getEndpoint(b, c) == Endpoint.ARROW) {
+//                        continue;
+//                    }
+//                }
+//
+////                    graph.setEndpoint(a, b, Endpoint.ARROW);
+////                    graph.setEndpoint(c, b, Endpoint.ARROW);
+//                graph.removeEdge(a, b);
+//                graph.removeEdge(c, b);
+//
+//                graph.addDirectedEdge(a, b);
+//                graph.addDirectedEdge(c, b);
+//
+//                colliders.add(new Triple(a, b, c));
+//                TetradLogger.getInstance().log("colliderOrientations", SearchLogUtils.colliderOrientedMsg(a, b, c, sepset));
+//            }
+//        }
+//    }
+//
+//    TetradLogger.getInstance().log("details", "Finishing Collider Orientation.");
+//
+//    return colliders;
+//}
