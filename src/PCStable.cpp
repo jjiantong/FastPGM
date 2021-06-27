@@ -52,7 +52,7 @@ void PCStable::StructLearnByPCStable(Dataset *dts, bool print_struct) {
     }
 
     cout << "==================================================" << '\n'
-         << "Begin level 0" << endl;
+         << "Begin finding the skeleton" << endl << "Level 0... ";
 
     for (int i = 0; i < network->num_nodes; i++) { // find neighbor set of each node i
         set<int> adjacency;
@@ -61,7 +61,7 @@ void PCStable::StructLearnByPCStable(Dataset *dts, bool print_struct) {
                 continue;
             adjacency.insert(j);
         }
-        adjacencies.insert(pair<int, set<int>>(i, adjacency));
+        network->adjacencies.insert(pair<int, set<int>>(i, adjacency));
     }
 
     /**
@@ -80,8 +80,8 @@ void PCStable::StructLearnByPCStable(Dataset *dts, bool print_struct) {
             // 1. delete the edge
             network->DeleteUndirectedEdge(node_idx1, node_idx2);
             // 2. remove each other from adjacency set
-            adjacencies[node_idx1].erase(node_idx2);
-            adjacencies[node_idx2].erase(node_idx1);
+            network->adjacencies[node_idx1].erase(node_idx2);
+            network->adjacencies[node_idx2].erase(node_idx1);
             // 3. add conditioning set (an empty set for level 0) to sepset
             ci_test->sepset.insert(make_pair(make_pair(node_idx1, node_idx2), empty_set));
             ci_test->sepset.insert(make_pair(make_pair(node_idx2, node_idx1), empty_set));
@@ -91,8 +91,7 @@ void PCStable::StructLearnByPCStable(Dataset *dts, bool print_struct) {
     }
 
     for (int d = 1; d < depth; ++d) {
-        cout << "==================================================" << '\n'
-             << "Begin level " << d << endl;
+        cout << "Level " << d << "... ";
 
         bool more = SearchAtDepth(d);
 
@@ -100,6 +99,13 @@ void PCStable::StructLearnByPCStable(Dataset *dts, bool print_struct) {
             break;
         }
     }
+
+    cout << "\n==================================================" << '\n'
+         << "Begin orienting v-structure " << endl;
+
+    OrientVStructure();
+
+
 }
 
 /**
@@ -111,7 +117,7 @@ bool PCStable::SearchAtDepth(int c_depth) {
      * consequently, an edge deletion at one level does not affect the conditioning sets of the other nodes
      * and thus the output is independent with the variable ordering, called PC-stable
      */
-    map<int, set<int>> adjacencies_copy = adjacencies;
+    map<int, set<int>> adjacencies_copy = network->adjacencies;
     /**
      * note that the for loop does not have "edge_it++", "edge_it++" only happens when (*edge_it) is not erased
      * for the case of erasing (*edge_it), the iterator will point to the next edge after erasing the current edge
@@ -129,8 +135,8 @@ bool PCStable::SearchAtDepth(int c_depth) {
              * so we only need to 1) delete the edge; 2) remove each other from adjacency set
              */
             network->DeleteUndirectedEdge(x->GetNodeIndex(), y->GetNodeIndex());
-            adjacencies[x->GetNodeIndex()].erase(y->GetNodeIndex());
-            adjacencies[y->GetNodeIndex()].erase(x->GetNodeIndex());
+            network->adjacencies[x->GetNodeIndex()].erase(y->GetNodeIndex());
+            network->adjacencies[y->GetNodeIndex()].erase(x->GetNodeIndex());
         } else { // the edge x -- y remains
             edge_it++;
         }
@@ -155,6 +161,11 @@ bool PCStable::CheckSide(map<int, set<int>> adjacencies, int c_depth, Node* x, N
         exit(1);
     }
     adjx.erase(y_idx);
+    // copy to a vector to access by position, which will be used for choice generating
+    vector<int> vec_adjx;
+    for (int adj : adjx) {
+        vec_adjx.push_back(adj);
+    }
 
     if (adjx.size() >= c_depth) {
         ChoiceGenerator cg (adjx.size(), c_depth);
@@ -162,8 +173,8 @@ bool PCStable::CheckSide(map<int, set<int>> adjacencies, int c_depth, Node* x, N
 
         while (!(choice = cg.Next()).empty()) {
             set<int> Z;
-            for (int z : choice) {
-                Z.insert(z);
+            for (int z_idx : choice) {
+                Z.insert(vec_adjx.at(z_idx));
             }
             num_ci_test++;
             bool independent = ci_test->IsIndependent(x_idx, y_idx, Z, "");
@@ -192,69 +203,53 @@ int PCStable::FreeDegree(map<int, set<int>> adjacencies) {
     return (max - 1);
 }
 
-///**
-// * @brief: set all direction of the edges that are part of a v-structure
-// * for each triplet x -- y -- z, if x is not adjacent to z and y is not in the sepset of (x,z),
-// * replace it with the v-structure x -> y <- z
-// */
-//void PCStable::OrientVStructure() {
-//
-//    for (int i = 0; i < network->num_nodes; ++i) { // for all nodes in the graph
-//        set<int> adjacent_nodes =
-//    }
-//
-//    List<Node> nodes = graph.getNodes();
-//
-//    for (Node b : nodes) {
-//        List<Node> adjacentNodes = graph.getAdjacentNodes(b);
-//
-//        if (adjacentNodes.size() < 2) {
-//            continue;
-//        }
-//
-//        ChoiceGenerator cg = new ChoiceGenerator(adjacentNodes.size(), 2);
-//        int[] combination;
-//
-//        while ((combination = cg.next()) != null) {
-//            Node a = adjacentNodes.get(combination[0]);
-//            Node c = adjacentNodes.get(combination[1]);
-//
-//            // Skip triples that are shielded.
-//            if (graph.isAdjacentTo(a, c)) {
-//                continue;
-//            }
-//
-//            List<Node> sepset = set.get(a, c);
-//
-//            //I think the null check needs to be here --AJ
-//            if (sepset != null && !sepset.contains(b)
-//                && isArrowpointAllowed(a, b, knowledge)
-//                && isArrowpointAllowed(c, b, knowledge)) {
-//                if (verbose) {
-//                    System.out.println("Collider orientation <" + a + ", " + b + ", " + c + "> sepset = " + sepset);
-//                }
-//
-//                if (enforcePattern) {
-//                    if (graph.getEndpoint(b, a) == Endpoint.ARROW || graph.getEndpoint(b, c) == Endpoint.ARROW) {
-//                        continue;
-//                    }
-//                }
-//
-////                    graph.setEndpoint(a, b, Endpoint.ARROW);
-////                    graph.setEndpoint(c, b, Endpoint.ARROW);
-//                graph.removeEdge(a, b);
-//                graph.removeEdge(c, b);
-//
-//                graph.addDirectedEdge(a, b);
-//                graph.addDirectedEdge(c, b);
-//
-//                colliders.add(new Triple(a, b, c));
-//                TetradLogger.getInstance().log("colliderOrientations", SearchLogUtils.colliderOrientedMsg(a, b, c, sepset));
-//            }
-//        }
-//    }
-//
-//    TetradLogger.getInstance().log("details", "Finishing Collider Orientation.");
-//
-//    return colliders;
-//}
+/**
+ * @brief: set all direction of the edges that are part of a v-structure
+ * for each triplet a -- b -- c, if
+ *      1) a is not adjacent to c
+ *      2) b is not in the sepset of (a, c)
+ * replace it with the v-structure a -> b <- c
+ *
+ * note that for PC-stable, the skeleton is estimated order-independently but not the v-structures!
+ * conflicting edges are simply overwritten
+ * this means that the orientation of one conflicting edge is determined by the v-structure that is last considered
+ */
+void PCStable::OrientVStructure() {
+
+    for (int b = 0; b < network->num_nodes; ++b) { // for all nodes in the graph
+        set<int> adjacent_nodes = network->adjacencies[b];
+        vector<int> vec_adjacent_nodes;
+        for (int adjs : adjacent_nodes) {
+            vec_adjacent_nodes.push_back(adjs);
+        }
+
+        if (adjacent_nodes.size() < 2) {
+            continue;
+        }
+        ChoiceGenerator cg(adjacent_nodes.size(), 2); // to find two adjacent nodes of this node and check
+        vector<int> combination;
+
+        while (!(combination = cg.Next()).empty()) {
+            int a = vec_adjacent_nodes.at(combination.at(0));
+            int c = vec_adjacent_nodes.at(combination.at(1));
+
+            // 1) a is not adjacent to c; skip if a is adjacent to c
+            if (network->IsAdjacentTo(a, c)) {
+                continue;
+            }
+            // 2) b is not in the sepset of (a, c)
+            set<int> sepset = ci_test->sepset[make_pair(a, c)];
+            if (sepset.find(b) == sepset.end()) {
+//            if (!sepset.empty() && sepset.find(b) == sepset.end()) {
+                if (network->DeleteUndirectedEdge(a, b) ||
+                    network->DeleteDirectedEdge(b, a)) { // it means a conflict if DeleteDirectedEdge returns true
+                    network->AddDirectedEdge(a, b);
+                }
+                if (network->DeleteUndirectedEdge(c, b) ||
+                    network->DeleteDirectedEdge(b, c)) {
+                    network->AddDirectedEdge(c, b);
+                }
+            }
+        }
+    }
+}

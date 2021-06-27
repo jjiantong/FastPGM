@@ -10,8 +10,8 @@ bool IndependenceTest::IsIndependent(int x_idx, int y_idx, set<int> s, string me
     else if (metric.compare("mutual information") == 0) {}
     else {}
 
-    int random_number = rand()%10000;
-    if (random_number > 9990) {
+    int random_number = rand()%1000;
+    if (random_number > 990) {
         return true;
     } else {
         return false;

@@ -291,7 +291,13 @@ TEST_F(ExperimentNetwork, do_nothing) {
 
     for (int i = 0; i < network->num_edges; ++i) {
         Edge edge = network->vec_edges.at(i);
-        cout << edge.GetNode1()->node_name << " -- " << edge.GetNode2()->node_name << endl;
+        if (!edge.IsDirected()) {
+            cout << edge.GetNode1()->GetNodeIndex() << " -- " << edge.GetNode2()->GetNodeIndex() << endl;
+        } else if (edge.GetEndPoint1() == ARROW){
+            cout << edge.GetNode2()->GetNodeIndex() << " -> " << edge.GetNode1()->GetNodeIndex() << endl;
+        } else {
+            cout << edge.GetNode1()->GetNodeIndex() << " -> " << edge.GetNode2()->GetNodeIndex() << endl;
+        }
     }
     cout << "num nodes = " << network->num_nodes << endl;
     cout << "num edges = " << network->num_edges << endl;

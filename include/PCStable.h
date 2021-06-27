@@ -20,7 +20,6 @@ class PCStable : public StructureLearning {
 public:
     int depth = 1000; // The maximum number of nodes conditioned on in the search. The default it 1000.
     bool stable = true; // PC-Stable or PC
-    map<int, set<int>> adjacencies; // key is node index, value is the set of neighbor node indexes of the node
     IndependenceTest* ci_test;
     int num_ci_test;
     int num_dependence_judgement;
@@ -33,6 +32,8 @@ public:
     bool SearchAtDepth(int c_depth);
     bool CheckSide(map<int, set<int>> adjacencies, int c_depth, Node* x, Node* y);
     int FreeDegree(map<int, set<int>> adjacencies);
+
+    void OrientVStructure();
 };
 
 #endif //BAYESIANNETWORK_PCSTABLE_H

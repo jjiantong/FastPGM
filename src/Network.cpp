@@ -220,7 +220,7 @@ bool Network::AddDirectedEdge(int p_index, int c_index) {
 }
 
 // TODO: double check, refer to undirected edge
-void Network::DeleteDirectedEdge(int p_index, int c_index) {
+bool Network::DeleteDirectedEdge(int p_index, int c_index) {
     // first check the two nodes
     if(!(NodeIsInNetwork(p_index) && NodeIsInNetwork(c_index))) {
         fprintf(stderr, "Error in function [%s].\nNode [%d] and/or [%d] do not belong to this network!",
@@ -234,11 +234,12 @@ void Network::DeleteDirectedEdge(int p_index, int c_index) {
     Edge edge(node1, node2, TAIL, ARROW);
     auto iter = find(vec_edges.begin(), vec_edges.end(), edge);
     if (iter == vec_edges.end()) {
-        cout << "The edge "  << node1->node_name << " -> " << node2->node_name << " does not exist!" << endl;
+        return false;
     } else {
         RemoveParentChild(node1, node2);
         vec_edges.erase(iter);
         --num_edges;
+        return true;
     }
 }
 
@@ -281,7 +282,7 @@ void Network::AddUndirectedEdge(int p_index, int c_index) {
     }
 }
 
-void Network::DeleteUndirectedEdge(int p_index, int c_index) {
+bool Network::DeleteUndirectedEdge(int p_index, int c_index) {
     // first check the two nodes
     if(!(NodeIsInNetwork(p_index) && NodeIsInNetwork(c_index))) {
         fprintf(stderr, "Error in function [%s].\nNode [%d] and/or [%d] do not belong to this network!",
@@ -302,10 +303,27 @@ void Network::DeleteUndirectedEdge(int p_index, int c_index) {
     Edge edge(node1, node2);
     auto iter = find(vec_edges.begin(), vec_edges.end(), edge);
     if (iter == vec_edges.end()) {
-        cout << "The edge "  << node1->node_name << " - " << node2->node_name << " does not exist!" << endl;
+        return false;
     } else {
         vec_edges.erase(iter);
         --num_edges;
+        return true;
+    }
+}
+
+bool Network::DeleteEdge(int p_index, int c_index) {
+    bool del = (DeleteUndirectedEdge(p_index, c_index) ||
+                DeleteDirectedEdge(p_index, c_index) ||
+                DeleteDirectedEdge(c_index, p_index));
+    return del;
+}
+
+bool Network::IsAdjacentTo(int node_idx1, int node_idx2) {
+    set<int> adjacent_nodes = adjacencies[node_idx1];
+    if (adjacent_nodes.find(node_idx2) == adjacent_nodes.end()) {
+        return false;
+    } else {
+        return true;
     }
 }
 

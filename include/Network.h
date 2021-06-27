@@ -43,6 +43,7 @@ class Network {//this class is used by both the customized networks and networks
 
   map<int, Node*> map_idx_node_ptr;  // Key: node index. Value: node pointer. This map is a helper for FindNodePtrByIndex.
   vector<Edge> vec_edges;  // edges in the network
+  map<int, set<int>> adjacencies; // key is node index, value is the set of neighbor node indexes of the node
 
   Network();
   explicit Network(bool pure_disc);
@@ -68,10 +69,13 @@ class Network {//this class is used by both the customized networks and networks
   bool NodeIsInNetwork(int node_idx);
 
   bool AddDirectedEdge(int p_index, int c_index);
-  void DeleteDirectedEdge(int p_index, int c_index);
+  bool DeleteDirectedEdge(int p_index, int c_index);
   bool ReverseDirectedEdge(int p_index, int c_index);
   void AddUndirectedEdge(int p_index, int c_index);
-  void DeleteUndirectedEdge(int p_index, int c_index);
+  bool DeleteUndirectedEdge(int p_index, int c_index);
+  bool DeleteEdge(int p_index, int c_index);
+
+  bool IsAdjacentTo(int node_idx1, int node_idx2);
 
   double CalcuExtraScoreWithModifiedEdge(int p_index, int c_index, Dataset *dts, string modification, string score_metric);
 
