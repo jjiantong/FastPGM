@@ -340,6 +340,14 @@ void PCStable::OrientVStructure() {
     }
 }
 
+/**
+ * @brief: orient remaining undirected edge as much as possible according to 3 rules
+ *      1) if a->b, b--c, and a not adj to c, then b->c (to avoid v-structures)
+ *      2) if a->b->c, a--c, then a->c (to avoid circles)
+ *      3) if d--a, d--b, d--c, b->a, c->a, b and c are not adjacent, then orient d->a
+ *
+ * note that for PC-stable, the skeleton is estimated order-independently but not the edge orientations!
+ */
 void PCStable::OrientImplied() {
     // The initial list of nodes to visit.
 //    set<int> visited;
@@ -417,7 +425,7 @@ bool PCStable::Rule1(int b_idx, int c_idx) {
 }
 
 /**
- * orientation rule2: if a->b->c, a--c, then a->c.
+ * orientation rule2: if a->b->c, a--c, then a->c (to avoid circles)
  */
 bool PCStable::Rule2(int a_idx, int c_idx) {
     // get common neighbors of a and c
@@ -439,7 +447,7 @@ bool PCStable::Rule2(int a_idx, int c_idx) {
 }
 
 /**
- * orientation rule3: If d--a, d--b, d--c, b->a, c->a, b and c are not adjacent, then orient d->a.
+ * orientation rule3: if d--a, d--b, d--c, b->a, c->a, b and c are not adjacent, then orient d->a
  */
 bool PCStable::Rule3(int d_idx, int a_idx) {
     // get common neighbors of a and d
