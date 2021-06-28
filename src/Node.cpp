@@ -204,17 +204,35 @@ void Node::AddContinuousParent(Node *p) {
   }
 }
 
+bool Node::IsChildOfThisNode(Node *node_ptr) {
+    int node_idx = node_ptr->GetNodeIndex();
+    if (set_children_indexes.find(node_idx) == set_children_indexes.end()) {
+        return false;
+    } else {
+        return true;
+    }
+}
+
+bool Node::IsParentOfThisNode(Node *node_ptr) {
+    int node_idx = node_ptr->GetNodeIndex();
+    if (set_parent_indexes.find(node_idx) == set_parent_indexes.end()) {
+        return false;
+    } else {
+        return true;
+    }
+}
+
 /**
  * @brief: remove a child node c; this function is used for network structure learning.
  * @attention: this function needs to use with RemoveParent
  * update:  "set_children_indexes"
  */
 void Node::RemoveChild(Node *c) {
-  int c_idx = c->GetNodeIndex();
-  if (set_children_indexes.find(c_idx) == set_children_indexes.end()) {
-    fprintf(stderr, "Node #%d does not have parent node #%d!", this->GetNodeIndex(), c_idx);
+  if (!IsChildOfThisNode(c)) {
+    fprintf(stderr, "Node #%d does not have parent node #%d!", this->GetNodeIndex(), c->GetNodeIndex());
     return;
   }
+  int c_idx = c->GetNodeIndex();
   set_children_indexes.erase(c_idx);
 }
 
@@ -229,11 +247,12 @@ void Node::RemoveChild(Node *c) {
  */
 void Node::RemoveParent(Node *p) {
     //TODO: combine with "RemoveParent" in ContinuousNode.cpp??
-  int p_idx = p->GetNodeIndex();
-  if (set_parent_indexes.find(p_idx)==set_parent_indexes.end()) {
-    fprintf(stderr, "Node #%d does not have parent node #%d!", this->GetNodeIndex(), p_idx);
+  if (!IsParentOfThisNode(p)) {
+    fprintf(stderr, "Node #%d does not have parent node #%d!", this->GetNodeIndex(), p->GetNodeIndex());
     return;
   }
+
+  int p_idx = p->GetNodeIndex();
   set_parent_indexes.erase(p_idx);
 
   if (p->is_discrete) {

@@ -66,6 +66,8 @@ class Node {
   int GetNumChildren() const;
   virtual void AddChild(Node *node_ptr);
   virtual void AddParent(Node *node_ptr);
+  bool IsChildOfThisNode(Node *node_ptr);
+  bool IsParentOfThisNode(Node *node_ptr);
   void RemoveChild(Node *node_ptr);
   virtual void RemoveParent(Node *node_ptr);
   void GenDiscParCombs(set<Node*> set_parent_ptrs);

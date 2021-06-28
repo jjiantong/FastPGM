@@ -318,6 +318,10 @@ bool Network::DeleteEdge(int p_index, int c_index) {
     return del;
 }
 
+/**
+ * @brief: to check whether two nodes are adjacent
+ * which also means whether an edge (either directed and undirected) between two nodes exists
+ */
 bool Network::IsAdjacentTo(int node_idx1, int node_idx2) {
     set<int> adjacent_nodes = adjacencies[node_idx1];
     if (adjacent_nodes.find(node_idx2) == adjacent_nodes.end()) {
@@ -325,6 +329,29 @@ bool Network::IsAdjacentTo(int node_idx1, int node_idx2) {
     } else {
         return true;
     }
+}
+
+/**
+ * @brief: to check whether an edge from node1->node2 exists
+ * the way is to check whether node1 is a parent of node2
+ */
+bool Network::IsDirectedFromTo(int node_idx1, int node_idx2) {
+    Node* node1 = FindNodePtrByIndex(node_idx1);
+    Node* node2 = FindNodePtrByIndex(node_idx2);
+    return node2->IsParentOfThisNode(node1);
+}
+
+/**
+ * @brief: to check whether an edge node1--node2 exists
+ * the way is to check three conditions:
+ *      1) node1 is adjacent to node2 (via IsAdjacentTo)
+ *      2) node1 is not a parent of node2 (via IsDirectedFromTo)
+ *      3) node2 is not a parent of node1 (via IsDirectedFromTo)
+ */
+bool Network::IsUndirectedFromTo(int node_idx1, int node_idx2) {
+    return (IsAdjacentTo(node_idx1, node_idx2) &&
+            !IsDirectedFromTo(node_idx1, node_idx2) &&
+            !IsDirectedFromTo(node_idx2, node_idx1));
 }
 
 /**

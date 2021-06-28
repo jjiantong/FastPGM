@@ -75,7 +75,13 @@ class Network {//this class is used by both the customized networks and networks
   bool DeleteUndirectedEdge(int p_index, int c_index);
   bool DeleteEdge(int p_index, int c_index);
 
+  // whether two nodes are adjacent, or say, whether an edge (either directed and undirected) between two nodes exists
   bool IsAdjacentTo(int node_idx1, int node_idx2);
+  // whether an edge from node1->node2 exists, or say, whether node1 is a parent of node2
+  bool IsDirectedFromTo(int node_idx1, int node_idx2);
+  // whether an edge node1--node2 exists, or say,
+  // whether node1 is adjacent to node2 && node1 is not a parent of node2 && node2 is not a parent of node1
+  bool IsUndirectedFromTo(int node_idx1, int node_idx2);
 
   double CalcuExtraScoreWithModifiedEdge(int p_index, int c_index, Dataset *dts, string modification, string score_metric);
 

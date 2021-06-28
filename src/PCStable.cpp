@@ -100,12 +100,41 @@ void PCStable::StructLearnByPCStable(Dataset *dts, bool print_struct) {
         }
     }
 
+    for (int i = 0; i < network->num_edges; ++i) {
+        Edge edge = network->vec_edges.at(i);
+        if (!edge.IsDirected()) {
+            cout << edge.GetNode1()->GetNodeIndex() << " -- " << edge.GetNode2()->GetNodeIndex() << endl;
+        } else if (edge.GetEndPoint1() == ARROW){
+            cout << edge.GetNode2()->GetNodeIndex() << " -> " << edge.GetNode1()->GetNodeIndex() << endl;
+        } else {
+            cout << edge.GetNode1()->GetNodeIndex() << " -> " << edge.GetNode2()->GetNodeIndex() << endl;
+        }
+    }
+    cout << "num nodes = " << network->num_nodes << endl;
+    cout << "num edges = " << network->num_edges << endl;
+
     cout << "\n==================================================" << '\n'
-         << "Begin orienting v-structure " << endl;
+         << "Begin orienting v-structure" << endl;
 
     OrientVStructure();
 
+    for (int i = 0; i < network->num_edges; ++i) {
+        Edge edge = network->vec_edges.at(i);
+        if (!edge.IsDirected()) {
+            cout << edge.GetNode1()->GetNodeIndex() << " -- " << edge.GetNode2()->GetNodeIndex() << endl;
+        } else if (edge.GetEndPoint1() == ARROW){
+            cout << edge.GetNode2()->GetNodeIndex() << " -> " << edge.GetNode1()->GetNodeIndex() << endl;
+        } else {
+            cout << edge.GetNode1()->GetNodeIndex() << " -> " << edge.GetNode2()->GetNodeIndex() << endl;
+        }
+    }
+    cout << "num nodes = " << network->num_nodes << endl;
+    cout << "num edges = " << network->num_edges << endl;
 
+    cout << "==================================================" << '\n'
+         << "Begin orienting other undirected edges" << endl;
+
+    OrientImplied();
 }
 
 /**
@@ -240,16 +269,216 @@ void PCStable::OrientVStructure() {
             // 2) b is not in the sepset of (a, c)
             set<int> sepset = ci_test->sepset[make_pair(a, c)];
             if (sepset.find(b) == sepset.end()) {
-//            if (!sepset.empty() && sepset.find(b) == sepset.end()) {
-                if (network->DeleteUndirectedEdge(a, b) ||
-                    network->DeleteDirectedEdge(b, a)) { // it means a conflict if DeleteDirectedEdge returns true
-                    network->AddDirectedEdge(a, b);
+                /**
+                 * the original code causes problems when adding a new edge generates a circle,
+                 * then the added edge will be deleted, but the related deleted edge is not added,
+                 * so the total number of edge is changed.
+                 */
+//                if (network->DeleteDirectedEdge(b, a) || // it means a conflict if DeleteDirectedEdge returns true
+//                    network->DeleteUndirectedEdge(a, b)) {
+//                    network->AddDirectedEdge(a, b);
+//                }
+//                if (network->DeleteDirectedEdge(b, c) ||
+//                    network->DeleteUndirectedEdge(c, b)) {
+//                    network->AddDirectedEdge(c, b);
+//                }
+                bool deleted_directed1;   // whether the directed edge b->a exists and being deleted
+                bool deleted_undirected1; // whether the undirected edge a--b exists and being deleted
+                bool to_add1; // whether the directed edge a->b should be added
+                bool added1;  // whether the directed edge a->b is successfully added (which means it does not cause a circle)
+                bool deleted_directed2;   // whether the directed edge b->c exists and being deleted
+                bool deleted_undirected2; // whether the undirected edge c--b exists and being deleted
+                bool to_add2; // whether the directed edge c->b should be added
+                bool added2;  // whether the directed edge c->b is successfully added (which means it does not cause a circle)
+
+                deleted_directed1 = network->DeleteDirectedEdge(b, a);
+                if (!deleted_directed1) { // b->a does not exist, check a--b
+                    deleted_undirected1 = network->DeleteUndirectedEdge(a, b);
+                } else { // b->a exists and being deleted, a--b cannot exist
+                    deleted_undirected1 = false;
                 }
-                if (network->DeleteUndirectedEdge(c, b) ||
-                    network->DeleteDirectedEdge(b, c)) {
-                    network->AddDirectedEdge(c, b);
+                to_add1 = deleted_directed1 | deleted_undirected1;
+                deleted_directed2 = network->DeleteDirectedEdge(b, c);
+                if (!deleted_directed2) { // b->c does not exist, check c--b
+                    deleted_undirected2 = network->DeleteUndirectedEdge(c, b);
+                } else { // b->c exists, c--b cannot exist
+                    deleted_undirected2 = false;
+                }
+                to_add2 = deleted_directed2 | deleted_undirected2;
+
+                if (to_add1) { // a->b should be added
+                    added1 = network->AddDirectedEdge(a, b);
+                } else {
+                    added1 = false;
+                }
+                if (to_add2) { // c->b should be added
+                    added2 = network->AddDirectedEdge(c, b);
+                } else {
+                    added2 = false;
+                }
+
+                // if a->b should be added but is not successfully added,
+                // find which edge is deleted and then add it back
+                if (to_add1 && !added1) {
+                    if (deleted_directed1) { // b->a is deleted, then add b->a
+                        network->AddDirectedEdge(b, a);
+                    } else { // a--b is deleted, then add a--b
+                        network->AddUndirectedEdge(a, b);
+                    }
+                }
+                // if c->b should be added but is not successfully added,
+                // find which edge is deleted and then add it back
+                if (to_add2 && !added2) {
+                    if (deleted_directed2) { // b->c is deleted, then add b->c
+                        network->AddDirectedEdge(b, c);
+                    } else { // c--b is deleted, then add c--b
+                        network->AddUndirectedEdge(c, b);
+                    }
                 }
             }
         }
     }
 }
+
+void PCStable::OrientImplied() {
+    // The initial list of nodes to visit.
+//    set<int> visited;
+
+    bool oriented = true;
+    /**
+     * in each iteration we traverse all undirected edges and try to orient it
+     * it stops if none edge is oriented during one iteration
+     */
+    while (oriented) {
+        oriented = false;
+        /**
+         * note that the for loop does not have "edge_it++", "edge_it++" only happens when (*edge_it) is not erased
+         * for the case of erasing (*edge_it), the iterator will point to the next edge after erasing the current edge
+         * (erasing operation is in Network::DeleteUndirectedEdge)
+         */
+        for (auto edge_it = network->vec_edges.begin(); edge_it != network->vec_edges.end();) {
+            int x_idx = (*edge_it).GetNode1()->GetNodeIndex();
+            int y_idx = (*edge_it).GetNode2()->GetNodeIndex();
+
+            if (network->IsUndirectedFromTo(x_idx, y_idx)) { // if the edge is undirected, check the 3 rules
+                if (Rule1(x_idx, y_idx) ||
+                    Rule1(y_idx, x_idx) ||
+                    Rule2(x_idx, y_idx) ||
+                    Rule2(y_idx, x_idx) ||
+                    Rule3(x_idx, y_idx) ||
+                    Rule3(y_idx, x_idx)) {
+                    oriented = true;
+                } else { // if the undirected edge x--y remains
+                    edge_it++;
+                }
+            } else { // if the edge is not undirected, go to check the next edge
+                edge_it++;
+            }
+        } // finish checking all edges
+    }
+}
+
+bool PCStable::Direct(int a, int c) {
+    if (network->DeleteUndirectedEdge(a, c)) {
+        network->AddDirectedEdge(a, c);
+        return true;
+    }
+    return false;
+}
+
+/**
+ * @brief: find common neighbors of x and y
+ * @param x_idx index of node x
+ * @param y_idx index of node y
+ * @return common neighbor set
+ */
+set<int> PCStable::GetCommonAdjacents(int x_idx, int y_idx) {
+    set<int> adjacent_x = network->adjacencies[x_idx];
+    set<int> adjacent_y = network->adjacencies[y_idx];
+    set<int> common_idx;
+    set_intersection(adjacent_x.begin(), adjacent_x.end(),
+                     adjacent_y.begin(), adjacent_y.end(),
+                     inserter(common_idx, common_idx.begin()));
+    return common_idx;
+}
+
+/**
+ * orientation rule1: if a->b, b--c, and a not adj to c, then b->c (to avoid v-structures)
+ */
+bool PCStable::Rule1(int b_idx, int c_idx) {
+    for (Node* a : network->GetParentPtrsOfNode(b_idx)) { // for every parent a of b
+        int a_idx = a->GetNodeIndex();
+        if (network->IsAdjacentTo(c_idx, a_idx)) continue; // skip the case if a is adjacent to c
+        if (Direct(b_idx, c_idx)) { // then b->c
+            return true;
+        }
+    }
+    return false;
+}
+
+/**
+ * orientation rule2: if a->b->c, a--c, then a->c.
+ */
+bool PCStable::Rule2(int a_idx, int c_idx) {
+    // get common neighbors of a and c
+    set<int> common_idx = GetCommonAdjacents(a_idx, c_idx);
+
+    for (int b_idx : common_idx) { // check every common neighbor b of a and c
+        if (network->IsDirectedFromTo(a_idx, b_idx) && network->IsDirectedFromTo(b_idx, c_idx)) { // a->b && b->c
+            if (Direct(a_idx, c_idx)) { // then a->c
+                return true;
+            }
+        }
+        else if (network->IsDirectedFromTo(c_idx, b_idx) && network->IsDirectedFromTo(b_idx, a_idx)) { // c->b && b->a
+            if (Direct(c_idx, a_idx)) { // then c->a
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+/**
+ * orientation rule3: If d--a, d--b, d--c, b->a, c->a, b and c are not adjacent, then orient d->a.
+ */
+bool PCStable::Rule3(int d_idx, int a_idx) {
+    // get common neighbors of a and d
+    set<int> common_idx = GetCommonAdjacents(a_idx, d_idx);
+
+    if (common_idx.size() < 2) {
+        return false;
+    }
+    // a and d has more than or equal to 2 common adjacents
+    for (int b_idx = 0; b_idx < common_idx.size(); b_idx++) {
+        for (int c_idx = b_idx + 1; c_idx < common_idx.size(); c_idx++) {
+            // find two adjacents b and c, b and c are not adjacent
+            if (!network->IsAdjacentTo(b_idx, c_idx)) {
+                if (R3Helper(a_idx, d_idx, b_idx, c_idx)) {
+                    return true;
+                }
+            }
+        }
+    }
+    return false;
+}
+
+/**
+ * @brief: R3Helper is to check the following 5 edges' direction:
+ * d--a, d--b, d--c, b->a, c->a
+ * orient d->a if all 5 edges satisfy the condition
+ */
+bool PCStable::R3Helper(int a_idx, int d_idx, int b_idx, int c_idx) {
+    bool oriented = false;
+
+    bool b4 = network->IsUndirectedFromTo(d_idx, a_idx);
+    bool b5 = network->IsUndirectedFromTo(d_idx, b_idx);
+    bool b6 = network->IsUndirectedFromTo(d_idx, c_idx);
+    bool b7 = network->IsDirectedFromTo(b_idx, a_idx);
+    bool b8 = network->IsDirectedFromTo(c_idx, a_idx);
+
+    if (b4 && b5 && b6 && b7 && b8) {
+        oriented = Direct(d_idx, a_idx);
+    }
+    return oriented;
+}
+
