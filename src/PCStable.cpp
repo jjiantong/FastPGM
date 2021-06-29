@@ -387,11 +387,32 @@ void PCStable::OrientImplied() {
 }
 
 bool PCStable::Direct(int a, int c) {
-    if (network->DeleteUndirectedEdge(a, c)) {
-        network->AddDirectedEdge(a, c);
-        return true;
+    /**
+     * the original code causes problems when adding a new edge generates a circle,
+     * then the added edge will be deleted, but the related deleted edge is not added,
+     * so the total number of edge is changed.
+     */
+//    if (network->DeleteUndirectedEdge(a, c)) {
+//        network->AddDirectedEdge(a, c);
+//        return true;
+//    }
+    bool to_add; // whether the undirected edge a--c exists and being deleted,
+                 // which also means whether the directed edge a->c should be added
+    bool added;  // whether the directed edge a->c is successfully added (which means it does not cause a circle)
+
+    to_add = network->DeleteUndirectedEdge(a, c);
+    if (to_add) { // a->c should be added
+        added = network->AddDirectedEdge(a, c);
+    } else {
+        added = false;
     }
-    return false;
+
+    // if a->c should be added but is not successfully added, add back the undirected edge
+    if (to_add && !added) {
+        network->AddUndirectedEdge(a, c);
+    }
+
+    return added;
 }
 
 /**
