@@ -8,6 +8,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp")
 include_directories(${PROJECT_SOURCE_DIR}/include)
 include_directories(${PROJECT_SOURCE_DIR}/lib/ARFF/src)
 include_directories(${PROJECT_SOURCE_DIR}/lib/stats/include)
+include_directories(${PROJECT_SOURCE_DIR}/lib/gcem/include)
 
 add_subdirectory(lib)
 add_subdirectory(src)

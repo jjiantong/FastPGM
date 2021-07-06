@@ -23,9 +23,6 @@
 #include "gadget.h"
 #include "ChoiceGenerator.h"
 
-#include "stats.hpp"
-#include "gcem.hpp"
-
 
 //class ExperimentOnA1a : public ::testing::Test {
 //protected:
@@ -304,15 +301,4 @@ TEST_F(ExperimentNetwork, do_nothing) {
     }
     cout << "num nodes = " << network->num_nodes << endl;
     cout << "num edges = " << network->num_edges << endl;
-
-    constexpr int x = 10;
-    constexpr int res = gcem::factorial(x);
-    cout << res << endl;
-
-    constexpr double dens_1  = stats::dlaplace(1.0,1.0,2.0); // answer = 0.25
-    constexpr double prob_1  = stats::plaplace(1.0,1.0,2.0); // answer = 0.5
-    constexpr double quant_1 = stats::qlaplace(0.1,1.0,2.0); // answer = -2.218875...
-    constexpr double p_value = 1 - stats::pchisq(4,5,false);
-    cout << dens_1 << ", " << prob_1 << ", " << quant_1 << endl;
-    cout << p_value << ": " << (p_value > 0.05) << "independent" << endl;
 }
