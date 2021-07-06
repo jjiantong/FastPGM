@@ -76,6 +76,8 @@ cd Bayesian-network/lib
 git submodule init ARFF && git submodule update
 git submodule init googletest && git submodule update
 git submodule init tinyxml2 && git submodule update
+git submodule init stats && git submodule update
+git submodule init gcem && git submodule update
 ```
 
 Build the project. 

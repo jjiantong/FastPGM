@@ -7,3 +7,9 @@
 [submodule "lib/tinyxml2"]
 	path = lib/tinyxml2
 	url = https://github.com/leethomason/tinyxml2
+[submodule "lib/stats"]
+	path = lib/stats
+	url = https://github.com/jjiantong/stats
+[submodule "lib/gcem"]
+	path = lib/gcem
+	url = https://github.com/kthohr/gcem
