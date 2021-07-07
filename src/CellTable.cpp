@@ -21,14 +21,12 @@ CellTable::CellTable(vector<int> dims) {
 void CellTable::Reset(vector<int> dims) {
     if (!dims.empty()) {
         num_vars_tested = dims.size();
-//        cout << "num_vars_tested: " << num_vars_tested << endl;
 
         // calculate length of cells[] array
         num_cells = 1;
         for (int dim : dims) {
             num_cells *= dim;
         }
-//        cout << "num_cells: " << num_cells << endl;
 
         // reset cells array
         if (!cells.empty()) {
@@ -40,12 +38,6 @@ void CellTable::Reset(vector<int> dims) {
             // set each counting value to 0
             cells.insert(pair<int, int>(i, 0));
         }
-
-//        cout << "cells: ";
-//        for (auto cell : cells) {
-//            cout << cell.first << ": " << cell.second << "; ";
-//        }
-//        cout << endl;
 
         // store the dimensions
         this->dims = dims;
@@ -63,32 +55,17 @@ void CellTable::AddToTable(Dataset *dataset, vector<int> indices) {
         int dim = dataset->num_of_possible_values_of_disc_vars.at(indices.at(i));
         dims.push_back(dim);
     }
-//    cout << "dims: ";
-//    for (auto it = dims.begin(); it != dims.end(); it++) {
-//        cout << *it << " ";
-//    }
-//    cout << endl;
     Reset(dims); // reset a new cell table using the given dimensions
 
     vector<int> config;
     config.resize(indices.size());
-//    cout << "config size: " << config.size() << endl;
     for (int i = 0; i < dataset->num_instance; i++) { // for each instance
         for (int j = 0; j < indices.size(); j++) { // for each feature in indices
             config.at(j) = dataset->dataset_all_vars[i][indices.at(j)];
 //            coords.at(j) = dataset->vector_dataset_all_vars.at(i).at(indices.at(j)).second.GetInt();
         }
-//        cout << "config: ";
-//        for (auto c : config) {
-//            cout << c << " ";
-//        }
         Increment(config, 1);
     }
-    cout << "cells: ";
-    for (auto cell : cells) {
-        cout << cell.first << ": " << cell.second << "; ";
-    }
-    cout << endl;
 }
 
 /**
@@ -99,11 +76,6 @@ void CellTable::AddToTable(Dataset *dataset, vector<int> indices) {
  */
 int CellTable::Increment(vector<int> config, int value) {
     int cell_index = GetCellIndex(config);
-//    cout << " -- index: " << cell_index << endl;
-
-//    if (cells.find(cell_index) == cells.end()) {
-//        cells.insert(pair<int, int>(cell_index, 0));
-//    }
 
     cells[cell_index] += value;
     return cells[cell_index];

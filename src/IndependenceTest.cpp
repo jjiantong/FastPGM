@@ -47,17 +47,6 @@ bool IndependenceTest::IsIndependent(int x_idx, int y_idx, set<int> z, string me
         test_idx.push_back(*it);
     }
 
-    cout << "ci test for " << x_idx << " and " << y_idx << " given ";
-    for (auto it = z.begin(); it != z.end(); it++) {
-        cout << *it << " ";
-    }
-    cout << endl;
-//    cout << "test_idx: ";
-//    for (auto it = test_idx.begin(); it != test_idx.end(); it++) {
-//        cout << *it << " ";
-//    }
-//    cout << endl;
-
     if (metric.compare("g square") == 0) {
         return IsIndependentByGSquare(test_idx);
     }
@@ -79,8 +68,6 @@ bool IndependenceTest::IsIndependent(int x_idx, int y_idx, set<int> z, string me
 bool IndependenceTest::IsIndependentByGSquare(vector<int> test_idx) {
 
     IndependenceTest::Result result = ComputeGSquare(test_idx);
-//    cout << ": g2 = " << result.g_square << ", df = " << result.df <<
-//            ", p value = " << result.p_value << ", is independent? " << result.is_independent << endl;
     return result.is_independent;
 }
 
@@ -107,11 +94,6 @@ IndependenceTest::Result IndependenceTest::ComputeGSquare(vector<int> test_idx) 
     // note that "dims" contains the dimensions of all variables, so we cannot use "dims" here
     vector<int> cond_dims;
     cond_dims.assign(cell_table->dims.begin() + 2, cell_table->dims.end());
-//    cout << "cond_dims: size = " << cond_dims.size() << ": ";
-//    for (auto c_dim : cond_dims) {
-//        cout << c_dim << ", ";
-//    }
-//    cout << endl;
 
     vector<int> config; // x, y, z1, z2, ...
     config.resize(test_idx.size());
@@ -123,24 +105,13 @@ IndependenceTest::Result IndependenceTest::ComputeGSquare(vector<int> test_idx) 
     CombinationGenerator cg(cond_dims);
     while (cg.has_next) {
         vector<int> combination = cg.Next();
-        cout << "combination: ";
-        for (auto c : combination) {
-            cout << c << ", ";
-        }
-        cout << endl;
         for (int i = 0; i < cond_dims.size(); ++i) {
             config.at(i + 2) = combination.at(i);
         }
         attested_rows.assign(num_rows, true);
         attested_cols.assign(num_cols, true);
-        cout << "config: ";
-        for (auto c : config) {
-            cout << c << ", ";
-        }
-        cout << endl;
 
         long total = cell_table->ComputeMargin(config, both_vars); // N_{++z}
-        cout << "N_{++z} = " << total << endl;
 
         double local_g2 = 0.0;
         vector<double> e;
@@ -150,16 +121,10 @@ IndependenceTest::Result IndependenceTest::ComputeGSquare(vector<int> test_idx) 
             for (int j = 0; j < num_cols; j++) { // for each possible value of y
                 config.at(0) = i;
                 config.at(1) = j;
-                cout << "config: ";
-                for (auto c : config) {
-                    cout << c << ", ";
-                }
-                cout << endl;
 
                 long sum_row = cell_table->ComputeMargin(config, second_var); // N_{x+z}
                 long sum_col = cell_table->ComputeMargin(config, first_var); // N_{+yz}
                 long observed = cell_table->GetValue(config); // N_{xyz}
-                cout << "N_{x+z} = " << sum_row << ", N_{+yz} = " << sum_col << ", N_{xyz} = " << observed << endl;
 
                 bool skip = false;
                 if (sum_row == 0) {
@@ -171,25 +136,19 @@ IndependenceTest::Result IndependenceTest::ComputeGSquare(vector<int> test_idx) 
                     skip = true;
                 }
                 if (skip) {
-                    cout << "skip!!" << endl;
                     continue;
                 }
 
                 e.push_back(sum_col * sum_row); // N_{x+z} * N_{+yz}
                 o.push_back(observed); // N_{xyz}
-                cout << "add " << sum_col * sum_row << " to e, add " << observed << " to o" << endl;
             }
         }
 
         for (int i = 0; i < o.size(); i++) {
             double expected = e.at(i) / (double) total; // E_{xyz} = (N_{x+z} * N_{+yz}) / N_{++z}
-            cout << "i = " << i << endl;
-            cout << "E_{xyz} = " << expected << " = e.at(i) / N_{++z} = " << e.at(i) << " / " << total << endl;
 
             if (o.at(i) != 0) {
                 local_g2 += 2.0 * o.at(i) * log(o.at(i) / expected); // 2 * N_{xyz} * log (N_{xyz} / E_{xyz})
-                cout << "local g2 = " << local_g2 << " = 2.0 * o.at(i) * log(o.at(i) / E) = 2.0 * "
-                     << o.at(i) << " *log( " << o.at(i) << " / " << expected << ")" << endl;
             }
         }
 
@@ -211,12 +170,10 @@ IndependenceTest::Result IndependenceTest::ComputeGSquare(vector<int> test_idx) 
         }
         // like (|X| - 1)(|Y| - 1) but not actually: |X| and |Y| are for non-zero cases
         int local_df = (num_attested_rows - 1) * (num_attested_cols - 1);
-        cout << "attested numbers = " << num_attested_rows << " and " << num_attested_cols << ", local df = " << local_df << endl;
         if (local_df > 0) {
             df += local_df;
             g2 += local_g2;
         }
-        cout << "now df = " << df << ", now g2 = " << g2 << endl;
     }
 
     if (df == 0) { // if df == 0, this is definitely an independent table
