@@ -10,7 +10,7 @@
  */
 CombinationGenerator::CombinationGenerator(vector<int> max_values) {
     num_values = max_values.size();
-    values.reserve(num_values);
+    values.resize(num_values);
     this->max_values = max_values;
     has_next = true;
 }

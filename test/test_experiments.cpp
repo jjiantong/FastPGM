@@ -271,7 +271,7 @@ protected:
         tester = new Dataset();
         network = new Network(true);
 
-        string train_set_file_path = "../../data/alarm_s10000.txt";
+        string train_set_file_path = "../../data/asia_s100000.txt";
 
         trainer->LoadCSVData(train_set_file_path, true, true, 0);
         tester->LoadCSVData(train_set_file_path, true, true, 0);
@@ -286,7 +286,7 @@ protected:
 };
 
 TEST_F(ExperimentNetwork, do_nothing) {
-    StructureLearning *bnsl = new PCStable(network);
+    StructureLearning *bnsl = new PCStable(network, trainer, 0.05);
     bnsl->StructLearnCompData(trainer, true);
 
     for (int i = 0; i < network->num_edges; ++i) {

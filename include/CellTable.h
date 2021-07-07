@@ -25,7 +25,7 @@ public:
      * value is the counting value of the configuration
      * the length of map = dims[0] * dims[1] ... * dims[dims.length - 1]
      */
-    map<int, int> cells;
+    map<int, long> cells;
 
     /**
      * the number of cells in the table, = dims[0] * dims[1] ... * dims[dims.length - 1]
@@ -47,9 +47,9 @@ public:
     void AddToTable(Dataset *dataset, vector<int> indices);
     int Increment(vector<int> config, int value);
     int GetCellIndex(vector<int> config);
-    int GetValue(vector<int> config);
-    int ComputeMargin(vector<int> config);
-    int ComputeMargin(vector<int> config, vector<int> margin_vars);
+    long GetValue(vector<int> config);
+    long ComputeMargin(vector<int> config);
+    long ComputeMargin(vector<int> config, vector<int> margin_vars);
 };
 
 #endif //BAYESIANNETWORK_CELLTABLE_H

@@ -16,6 +16,9 @@
 #include "CellTable.h"
 #include "CombinationGenerator.h"
 
+#include "gcem.hpp"
+#include "stats.hpp"
+
 using namespace std;
 
 /**
@@ -40,7 +43,7 @@ public:
      * stores a set of nodes which node1 and node2 are independent conditional on
      * or stores null if the pair are independent conditional on the empty set
      */
-    map<pair<int,int>, set<int>> sepset;
+    map<pair<int, int>, set<int>> sepset;
 
     /**
      * an inner class Result is used to store the parameters of the result returned by the G Square test
@@ -60,7 +63,7 @@ public:
         }
     };
 
-    IndependenceTest(){};
+//    IndependenceTest(){};
     IndependenceTest(Dataset *dataset, double alpha);
 
     bool IsIndependent(int x_idx, int y_idx, set<int> z, string metric);

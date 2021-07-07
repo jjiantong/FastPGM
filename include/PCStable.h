@@ -25,8 +25,8 @@ public:
     int num_ci_test;
     int num_dependence_judgement;
 
-    PCStable(Network *net);
-    PCStable(Network *net, int d, bool s);
+    PCStable(Network *net, Dataset *dataset, double alpha);
+    PCStable(Network *net, int d, bool s, Dataset *dataset, double alpha);
 
     virtual void StructLearnCompData(Dataset *dts, bool print_struct);
     void StructLearnByPCStable(Dataset *dts, bool print_struct);

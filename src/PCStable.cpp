@@ -4,16 +4,16 @@
 
 #include "PCStable.h"
 
-PCStable::PCStable(Network *net) {
+PCStable::PCStable(Network *net, Dataset *dataset, double alpha) {
     network = net;
-    ci_test = new IndependenceTest();
+    ci_test = new IndependenceTest(dataset, alpha);
     num_ci_test = 0;
     num_dependence_judgement = 0;
 }
 
-PCStable::PCStable(Network *net, int d, bool s) {
+PCStable::PCStable(Network *net, int d, bool s, Dataset *dataset, double alpha) {
     network = net;
-    ci_test = new IndependenceTest();
+    ci_test = new IndependenceTest(dataset, alpha);
     num_ci_test = 0;
     num_dependence_judgement = 0;
     depth = d;
@@ -74,8 +74,9 @@ void PCStable::StructLearnByPCStable(Dataset *dts, bool print_struct) {
         int node_idx2 = (*edge_it).GetNode2()->GetNodeIndex();
         set<int> empty_set;
 
-        if (ci_test->IsIndependent(node_idx1, node_idx2, empty_set, "") || //TODO: I(x1, x2) = I(x2, x1)?
-            ci_test->IsIndependent(node_idx2, node_idx1, empty_set, "")) {
+//        cout << "hello node " << node_idx1 << " and " << node_idx2 << endl;
+        if (ci_test->IsIndependent(node_idx1, node_idx2, empty_set, "g square") || //TODO: I(x1, x2) = I(x2, x1)?
+            ci_test->IsIndependent(node_idx2, node_idx1, empty_set, "g square")) {
             // the edge node1 -- node2 should be removed
             // 1. delete the edge
             network->DeleteUndirectedEdge(node_idx1, node_idx2);
@@ -206,7 +207,7 @@ bool PCStable::CheckSide(map<int, set<int>> adjacencies, int c_depth, Node* x, N
                 Z.insert(vec_adjx.at(z_idx));
             }
             num_ci_test++;
-            bool independent = ci_test->IsIndependent(x_idx, y_idx, Z, "");
+            bool independent = ci_test->IsIndependent(x_idx, y_idx, Z, "g square");
             if (!independent) {
                 num_dependence_judgement++;
             } else {
