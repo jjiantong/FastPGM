@@ -15,7 +15,13 @@ public:
     Node* node2;
     EndPoint end_point1;
     EndPoint end_point2;
+    /**
+     * used when we want to find an edge given two nodes
+     * set to true only when we cannot find such an edge, otherwise it is always false
+     */
+    bool empty;
 
+    Edge(){};
     Edge(Node* node1, Node* node2, EndPoint end_point1, EndPoint end_point2); // for directed edges
     Edge(Node* node1, Node* node2); // for undirected edges
 
@@ -31,7 +37,6 @@ public:
     Node* GetNode2();
     EndPoint GetEndPoint1();
     EndPoint GetEndPoint2();
-
     bool IsDirected();
 };
 

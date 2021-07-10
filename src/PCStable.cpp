@@ -74,7 +74,6 @@ void PCStable::StructLearnByPCStable(Dataset *dts, bool print_struct) {
         int node_idx2 = (*edge_it).GetNode2()->GetNodeIndex();
         set<int> empty_set;
 
-//        cout << "hello node " << node_idx1 << " and " << node_idx2 << endl;
         if (ci_test->IsIndependent(node_idx1, node_idx2, empty_set, "g square") || //TODO: I(x1, x2) = I(x2, x1)?
             ci_test->IsIndependent(node_idx2, node_idx1, empty_set, "g square")) {
             // the edge node1 -- node2 should be removed

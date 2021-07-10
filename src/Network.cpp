@@ -185,6 +185,44 @@ bool Network::NodeIsInNetwork(int node_idx) {
     }
 }
 
+Edge Network::GetUndirectedEdge(Node *node1, Node *node2) {
+    int index1 = node1->GetNodeIndex();
+    int index2 = node2->GetNodeIndex();
+
+    // check the order
+    if (index1 > index2) {
+        int tmp = index1;
+        index1 = index2;
+        index2 = tmp;
+    }
+
+    Edge edge(node1, node2);
+    if (find(vec_edges.begin(), vec_edges.end(), edge) == vec_edges.end()) {
+        // vec_edges does not contain edge: set empty to true
+        edge.empty = true;
+    }
+    return edge;
+}
+
+Edge Network::GetDirectedEdge(Node *node1, Node *node2) {
+    Edge edge(node1, node2, TAIL, ARROW);
+    if (find(vec_edges.begin(), vec_edges.end(), edge) == vec_edges.end()) {
+        // vec_edges does not contain edge: set empty to true
+        edge.empty = true;
+    }
+    return edge;
+}
+
+Edge Network::GetEdge(Node *node1, Node *node2) {
+    Edge edge;
+    if ((edge = GetUndirectedEdge(node1, node2)).empty &&
+        (edge = GetDirectedEdge(node1, node2)).empty &&
+        (edge = GetDirectedEdge(node2, node1)).empty) {
+        edge.empty = true;
+    }
+    return edge;
+}
+
 /**
  * @brief: add an edge/arc to the network
  * @return true if not form a circle; false if form a circle (also delete the added arc)
@@ -201,8 +239,8 @@ bool Network::AddDirectedEdge(int p_index, int c_index) {
     Node* node2 = FindNodePtrByIndex(c_index);
     SetParentChild(node1, node2); // set parent and child relationship
 
-    Edge edge(node1, node2, TAIL, ARROW);
-    if (find(vec_edges.begin(), vec_edges.end(), edge) == vec_edges.end()) {
+    Edge edge = GetDirectedEdge(node1, node2);
+    if (edge.empty) {
         // vec_edges does not contain edge: add edge
         vec_edges.push_back(edge);
         ++num_edges;
@@ -261,18 +299,11 @@ void Network::AddUndirectedEdge(int p_index, int c_index) {
         exit(1);
     }
 
-    // then check the order
-    if (p_index > c_index) {
-        int tmp = p_index;
-        p_index = c_index;
-        c_index = tmp;
-    }
-
     Node* node1 = FindNodePtrByIndex(p_index);
     Node* node2 = FindNodePtrByIndex(c_index);
 
-    Edge edge(node1, node2);
-    if (find(vec_edges.begin(), vec_edges.end(), edge) == vec_edges.end()) {
+    Edge edge = GetUndirectedEdge(node1, node2);
+    if (edge.empty) {
         // vec_edges does not contain edge: add edge
         vec_edges.push_back(edge);
         ++num_edges;

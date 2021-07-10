@@ -64,6 +64,10 @@ class Network {//this class is used by both the customized networks and networks
   bool NodeIsInNetwork(Node *node_ptr);
   bool NodeIsInNetwork(int node_idx);
 
+  Edge GetUndirectedEdge(Node* node1, Node* node2);
+  Edge GetDirectedEdge(Node* node1, Node* node2);
+  Edge GetEdge(Node* node1, Node* node2);
+
   bool AddDirectedEdge(int p_index, int c_index);
   bool DeleteDirectedEdge(int p_index, int c_index);
   bool ReverseDirectedEdge(int p_index, int c_index);

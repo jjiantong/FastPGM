@@ -25,6 +25,7 @@ using namespace std;
  * Conditional Independence Test (CI test): checks the conditional independence X _||_ Y | S
  * S is a set of discrete variable; X and Y are discrete variable not in S
  * available tests include:
+ *      G Square
  */
 class IndependenceTest {
 public:
