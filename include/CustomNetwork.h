@@ -1,13 +1,10 @@
-//
-// Created by LinjianLi on 2019/1/25.
-//
-
 #ifndef BAYESIANNETWORK_CUSTOMNETWORK_H
 #define BAYESIANNETWORK_CUSTOMNETWORK_H
 
 #include "Dataset.h"
 #include "Network.h"
-#include "Node.h"
+#include "Edge.h"
+#include "DiscreteNode.h"
 #include "Factor.h"
 #include "XMLBIFParser.h"
 #include "gadget.h"
@@ -35,6 +32,9 @@ class CustomNetwork : public Network {//CustomNetwork may be a tree shape graph 
   vector<int> SimplifyDefaultElimOrd(DiscreteConfig evidence) override;
 
   void GetNetFromXMLBIFFile(string file_path);//construct the network using content from the xml file.
+
+  // construct network structure from BIF files
+  void LoadBIFFile(string path);
 
 };
 

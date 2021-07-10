@@ -315,14 +315,21 @@ string TrimRight(string s) {
   return s;
 }
 
+string TrimRightComma(string s) {
+    if (s[s.size()-1] == 44) { // ASCII: ,=44
+        s.erase(s.size()-1);
+    }
+    return s;
+}
+
 /**
  * @brief: trim all \t, \n, \r and whitespace characters on the left of a string.
  */
 string TrimLeft(string s) {
-  while (!s.empty() && s[0]<33) { // ASCII. \t=09, \n=10, \r=13, space=32.
-    s.erase(0);
-  }
-  return s;
+    while (!s.empty() && s[0]<33) { // ASCII. \t=09, \n=10, \r=13, space=32.
+        s.erase(0, 1);
+    }
+    return s;
 }
 
 /**

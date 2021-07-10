@@ -10,6 +10,7 @@
 
 #include "Dataset.h"
 #include "Network.h"
+#include "CustomNetwork.h"
 #include "Inference.h"
 #include "ExactInference.h"
 #include "ApproximateInference.h"
@@ -301,4 +302,20 @@ TEST_F(ExperimentNetwork, do_nothing) {
     }
     cout << "num nodes = " << network->num_nodes << endl;
     cout << "num edges = " << network->num_edges << endl;
+
+
+    CustomNetwork *ref_net = new CustomNetwork();
+    ref_net->LoadBIFFile("../../data/asia.bif");
+    for (int i = 0; i < ref_net->num_edges; ++i) {
+        Edge edge = ref_net->vec_edges.at(i);
+        if (!edge.IsDirected()) {
+            cout << edge.GetNode1()->GetNodeIndex() << " -- " << edge.GetNode2()->GetNodeIndex() << endl;
+        } else if (edge.GetEndPoint1() == ARROW){
+            cout << edge.GetNode2()->GetNodeIndex() << " -> " << edge.GetNode1()->GetNodeIndex() << endl;
+        } else {
+            cout << edge.GetNode1()->GetNodeIndex() << " -> " << edge.GetNode2()->GetNodeIndex() << endl;
+        }
+    }
+    cout << "num nodes = " << ref_net->num_nodes << endl;
+    cout << "num edges = " << ref_net->num_edges << endl;
 }

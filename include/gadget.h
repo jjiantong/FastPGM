@@ -131,6 +131,7 @@ vector<int> TopoSortOfDAGZeroInDegreeFirst(int **graph, int num_nodes);
 string TrimRight(string);
 string TrimLeft(string);
 string Trim(string &);
+string TrimRightComma(string s);
 vector<string> Split(string &s, string delimiter);
 
 int FactorialForSmallInteger(int);

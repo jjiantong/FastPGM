@@ -1,7 +1,3 @@
-//
-// Created by Linjian Li on 2018/11/29.
-//
-
 #ifndef BAYESIANNETWORK_NETWORK_H
 #define BAYESIANNETWORK_NETWORK_H
 

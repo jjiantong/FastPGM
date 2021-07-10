@@ -90,7 +90,7 @@ cmake ..
 make
 ```
 
-On Mac OS, the default compiler (clang) needs to be changed to g++.
+On Mac OS, the default compiler (clang) needs to be changed to g++. (You can use ```ls /usr/local/bin | grep g++``` to check the compiler. Mine is ```g++-9```.)
 ```
 mkdir build
 cd build

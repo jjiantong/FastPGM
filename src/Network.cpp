@@ -1,8 +1,5 @@
 #pragma clang diagnostic push
 #pragma ide diagnostic ignored "openmp-use-default-none"
-//
-// Created by Linjian Li on 2018/11/29.
-//
 
 #include "Network.h"
 #include "ScoreFunction.h"
