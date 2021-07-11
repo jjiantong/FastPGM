@@ -12,10 +12,11 @@
  * available metrics include
  *      Structural Hamming Distance (SHD)
  */
-//class BNSLComparison {
-//
-//    int GetSHD(Network* true_dag, Network* learned_cpdag);
-//};
+class BNSLComparison {
+public:
+    int GetSHD(Network* true_dag, Network* learned_cpdag);
+    int GetSHDOneEdge(Edge true_edge, Edge learned_edge);
+};
 
 
 #endif //BAYESIANNETWORK_BNSLCOMPARISON_H
