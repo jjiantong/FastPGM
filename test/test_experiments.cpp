@@ -321,5 +321,5 @@ TEST_F(ExperimentNetwork, do_nothing) {
     cout << "num edges = " << ref_net->num_edges << endl;
 
     BNSLComparison comp(ref_net, network);
-    comp.GetSHD();
+    cout << "SHD = " << comp.GetSHD() << endl;
 }

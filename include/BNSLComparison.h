@@ -20,7 +20,7 @@ public:
     BNSLComparison(Network* true_graph, Network* learned_graph);
 
     int GetSHD();
-    int GetSHDOneEdge(Edge true_edge, Edge learned_edge);
+    int GetSHDOneEdge(int index1, int index2);
 };
 
 

@@ -186,16 +186,6 @@ bool Network::NodeIsInNetwork(int node_idx) {
 }
 
 int Network::GetUndirectedEdge(Node *node1, Node *node2) {
-    int index1 = node1->GetNodeIndex();
-    int index2 = node2->GetNodeIndex();
-
-    // check the order
-    if (index1 > index2) {
-        int tmp = index1;
-        index1 = index2;
-        index2 = tmp;
-    }
-
     Edge edge(node1, node2);
     vector<Edge>::iterator it = find(vec_edges.begin(), vec_edges.end(), edge);
     if (it == vec_edges.end()) {
@@ -210,6 +200,7 @@ int Network::GetDirectedEdge(Node *node1, Node *node2) {
     Edge edge(node1, node2, TAIL, ARROW);
     vector<Edge>::iterator it = find(vec_edges.begin(), vec_edges.end(), edge);
     if (it == vec_edges.end()) {
+        // vec_edges does not contain edge
         return -1;
     } else {
         return distance(vec_edges.begin(), it);
@@ -231,7 +222,7 @@ int Network::GetEdge(Node *node1, Node *node2) {
     int position;
     if ((position = GetUndirectedEdge(node1, node2)) == -1 &&
         (position = GetDirectedEdge(node1, node2)) == -1 &&
-        (position = GetDirectedEdge(node2, node1))) {
+        (position = GetDirectedEdge(node2, node1)) == -1) {
         return -1;
     } else {
         return position;

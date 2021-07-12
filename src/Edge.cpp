@@ -14,8 +14,17 @@ Edge::Edge(Node* node1, Node* node2, EndPoint end_point1, EndPoint end_point2) {
 }
 
 Edge::Edge(Node* node1, Node* node2) {
-    this->node1 = node1;
-    this->node2 = node2;
+    int index1 = node1->GetNodeIndex();
+    int index2 = node2->GetNodeIndex();
+
+    // check the order
+    if (index1 < index2) {
+        this->node1 = node1;
+        this->node2 = node2;
+    } else {
+        this->node1 = node2;
+        this->node2 = node1;
+    }
     this->end_point1 = TAIL;
     this->end_point2 = TAIL;
 //    is_ordered = false;
