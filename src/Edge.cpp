@@ -9,7 +9,8 @@ Edge::Edge(Node* node1, Node* node2, EndPoint end_point1, EndPoint end_point2) {
     this->node2 = node2;
     this->end_point1 = end_point1;
     this->end_point2 = end_point2;
-    this->empty = false;
+//    is_ordered = false;
+//    label = UNKNOWN;
 }
 
 Edge::Edge(Node* node1, Node* node2) {
@@ -17,7 +18,8 @@ Edge::Edge(Node* node1, Node* node2) {
     this->node2 = node2;
     this->end_point1 = TAIL;
     this->end_point2 = TAIL;
-    this->empty = false;
+//    is_ordered = false;
+//    label = UNKNOWN;
 }
 
 Node* Edge::GetNode1() {

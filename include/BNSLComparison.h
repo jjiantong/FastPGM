@@ -14,7 +14,12 @@
  */
 class BNSLComparison {
 public:
-    int GetSHD(Network* true_dag, Network* learned_cpdag);
+    Network* true_graph;
+    Network* learned_graph;
+
+    BNSLComparison(Network* true_graph, Network* learned_graph);
+
+    int GetSHD();
     int GetSHDOneEdge(Edge true_edge, Edge learned_edge);
 };
 

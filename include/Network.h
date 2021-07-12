@@ -41,6 +41,8 @@ class Network {//this class is used by both the customized networks and networks
   vector<Edge> vec_edges;  // edges in the network
   map<int, set<int>> adjacencies; // key is node index, value is the set of neighbor node indexes of the node
 
+  vector<Edge> edge_order;
+
   Network();
   explicit Network(bool pure_disc);
   Network(Network &net);
@@ -64,9 +66,10 @@ class Network {//this class is used by both the customized networks and networks
   bool NodeIsInNetwork(Node *node_ptr);
   bool NodeIsInNetwork(int node_idx);
 
-  Edge GetUndirectedEdge(Node* node1, Node* node2);
-  Edge GetDirectedEdge(Node* node1, Node* node2);
-  Edge GetEdge(Node* node1, Node* node2);
+  int GetUndirectedEdge(Node* node1, Node* node2);
+  int GetDirectedEdge(Node* node1, Node* node2);
+  int GetEdge(Node* node1, Node* node2);
+  int GetDirectedEdgeFromEdgeOrder(Node* node1, Node* node2);
 
   bool AddDirectedEdge(int p_index, int c_index);
   bool DeleteDirectedEdge(int p_index, int c_index);
@@ -112,6 +115,15 @@ class Network {//this class is used by both the customized networks and networks
   Factor SumProductVarElim(vector<Factor> factors_list, vector<int> elim_order);
   Factor VarElimInferReturnPossib(DiscreteConfig evid, Node *target_node, vector<int> elim_order=vector<int>{});
 
+    /**
+     * is used for Structural Hamming Distance (SHD)
+     * we need to convert DAGs to CPDAGs before computing the SHD, including two steps:
+     *      1. order the edges
+     *      2. label each edge as either compelled or reversible
+     */
+    void OrderEdge();
+    void FindCompelled();
+    bool IsDAG();
 
  protected:
   vector<int> GenTopoOrd();

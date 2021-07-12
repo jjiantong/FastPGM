@@ -185,7 +185,7 @@ bool Network::NodeIsInNetwork(int node_idx) {
     }
 }
 
-Edge Network::GetUndirectedEdge(Node *node1, Node *node2) {
+int Network::GetUndirectedEdge(Node *node1, Node *node2) {
     int index1 = node1->GetNodeIndex();
     int index2 = node2->GetNodeIndex();
 
@@ -197,30 +197,45 @@ Edge Network::GetUndirectedEdge(Node *node1, Node *node2) {
     }
 
     Edge edge(node1, node2);
-    if (find(vec_edges.begin(), vec_edges.end(), edge) == vec_edges.end()) {
-        // vec_edges does not contain edge: set empty to true
-        edge.empty = true;
+    vector<Edge>::iterator it = find(vec_edges.begin(), vec_edges.end(), edge);
+    if (it == vec_edges.end()) {
+        // vec_edges does not contain edge
+        return -1;
+    } else {
+        return distance(vec_edges.begin(), it);
     }
-    return edge;
 }
 
-Edge Network::GetDirectedEdge(Node *node1, Node *node2) {
+int Network::GetDirectedEdge(Node *node1, Node *node2) {
     Edge edge(node1, node2, TAIL, ARROW);
-    if (find(vec_edges.begin(), vec_edges.end(), edge) == vec_edges.end()) {
-        // vec_edges does not contain edge: set empty to true
-        edge.empty = true;
+    vector<Edge>::iterator it = find(vec_edges.begin(), vec_edges.end(), edge);
+    if (it == vec_edges.end()) {
+        return -1;
+    } else {
+        return distance(vec_edges.begin(), it);
     }
-    return edge;
 }
 
-Edge Network::GetEdge(Node *node1, Node *node2) {
-    Edge edge;
-    if ((edge = GetUndirectedEdge(node1, node2)).empty &&
-        (edge = GetDirectedEdge(node1, node2)).empty &&
-        (edge = GetDirectedEdge(node2, node1)).empty) {
-        edge.empty = true;
+int Network::GetDirectedEdgeFromEdgeOrder(Node *node1, Node *node2) {
+    Edge edge(node1, node2, TAIL, ARROW);
+    vector<Edge>::iterator it = find(edge_order.begin(), edge_order.end(), edge);
+    if (it == edge_order.end()) {
+        return -1;
+    } else {
+        return distance(edge_order.begin(), it);
     }
-    return edge;
+}
+
+int Network::GetEdge(Node *node1, Node *node2) {
+    Edge edge;
+    int position;
+    if ((position = GetUndirectedEdge(node1, node2)) == -1 &&
+        (position = GetDirectedEdge(node1, node2)) == -1 &&
+        (position = GetDirectedEdge(node2, node1))) {
+        return -1;
+    } else {
+        return position;
+    }
 }
 
 /**
@@ -239,9 +254,9 @@ bool Network::AddDirectedEdge(int p_index, int c_index) {
     Node* node2 = FindNodePtrByIndex(c_index);
     SetParentChild(node1, node2); // set parent and child relationship
 
-    Edge edge = GetDirectedEdge(node1, node2);
-    if (edge.empty) {
+    if (GetDirectedEdge(node1, node2) == -1) {
         // vec_edges does not contain edge: add edge
+        Edge edge(node1, node2, TAIL, ARROW);
         vec_edges.push_back(edge);
         ++num_edges;
     }
@@ -266,13 +281,12 @@ bool Network::DeleteDirectedEdge(int p_index, int c_index) {
     Node* node1 = FindNodePtrByIndex(p_index);
     Node* node2 = FindNodePtrByIndex(c_index);
 
-    Edge edge(node1, node2, TAIL, ARROW);
-    auto iter = find(vec_edges.begin(), vec_edges.end(), edge);
-    if (iter == vec_edges.end()) {
+    int pos = GetDirectedEdge(node1, node2);
+    if (pos == -1) {
         return false;
     } else {
         RemoveParentChild(node1, node2);
-        vec_edges.erase(iter);
+        vec_edges.erase(vec_edges.begin() + pos);
         --num_edges;
         return true;
     }
@@ -302,9 +316,9 @@ void Network::AddUndirectedEdge(int p_index, int c_index) {
     Node* node1 = FindNodePtrByIndex(p_index);
     Node* node2 = FindNodePtrByIndex(c_index);
 
-    Edge edge = GetUndirectedEdge(node1, node2);
-    if (edge.empty) {
+    if (GetUndirectedEdge(node1, node2) == -1) {
         // vec_edges does not contain edge: add edge
+        Edge edge(node1, node2);
         vec_edges.push_back(edge);
         ++num_edges;
     }
@@ -328,12 +342,11 @@ bool Network::DeleteUndirectedEdge(int p_index, int c_index) {
     Node* node1 = FindNodePtrByIndex(p_index);
     Node* node2 = FindNodePtrByIndex(c_index);
 
-    Edge edge(node1, node2);
-    auto iter = find(vec_edges.begin(), vec_edges.end(), edge);
-    if (iter == vec_edges.end()) {
+    int pos = GetUndirectedEdge(node1, node2);
+    if (pos == -1) {
         return false;
     } else {
-        vec_edges.erase(iter);
+        vec_edges.erase(vec_edges.begin() + pos);
         --num_edges;
         return true;
     }
@@ -955,6 +968,158 @@ set<int> Network::GetMarkovBlanketIndexesOfNode(Node *node_ptr) {
   markov_blanket_node_index.erase(node_ptr->GetNodeIndex());
 
   return markov_blanket_node_index;
+}
+
+/**
+ * @brief: order the edges based on the topological order of the nodes
+ * according to Chickering, "A Transformational Characterization of Equivalent Bayesian Network Structures", 1995
+ */
+void Network::OrderEdge() {
+    vector<Edge> tmp_edge_order;
+
+    // Perform a topological sort on the NODES in g
+    vector<int> topo_order = GetTopoOrd();
+
+    for (Edge edge : vec_edges) {
+        edge.is_ordered = false;
+    }
+
+    for (int j = 0; j < topo_order.size(); ++j) {
+        // Let y be the lowest ordered NODE that has an unordered EDGE incident into it
+        int y_idx = topo_order.at(j);
+        Node* y = FindNodePtrByIndex(y_idx);
+        if (!y->set_parent_indexes.empty()) {
+            // all the parents of y must precede y in the topo order, so we traverse from j-1 to 0
+            for (int k = j - 1; k >= 0; --k) {
+                // Let x be the highest ordered NODE for which x->y is not ordered
+                int x_idx = topo_order.at(k);
+                if (y->set_parent_indexes.find(x_idx) != y->set_parent_indexes.end()) { // x->y exists
+                    Node* x = FindNodePtrByIndex(x_idx);
+                    int edge_pos = GetDirectedEdge(x, y);
+                    if (!vec_edges.at(edge_pos).is_ordered) { // find edge x->y
+                        vec_edges.at(edge_pos).is_ordered = true;
+                        tmp_edge_order.push_back(vec_edges.at(edge_pos));
+                    }
+                }
+            }
+        }
+    }
+    if (tmp_edge_order.size() != vec_edges.size()) {
+        fprintf(stderr, "Error in function %s! \nnum of edges = %d but num of ordered edges = %d!", __FUNCTION__,
+                vec_edges.size(), tmp_edge_order.size());
+        exit(1);
+    }
+    edge_order = tmp_edge_order;
+}
+
+/**
+ * @brief: label each edge as either compelled or reversible
+ * change the reversible edges to undirected edges
+ * according to Chickering, "A Transformational Characterization of Equivalent Bayesian Network Structures", 1995
+ */
+void Network::FindCompelled() {
+    /*
+     * Label every edge in g as "unknown"
+     * every edge in "edge_order" is considered to be UNKNOWN
+     * when one edge should be labeled as either COMPELLED or REVERSIBLE, its label in "vec_edges" is changed,
+     * and at the same time, this edge will be erase from "edge_order", which means it is not UNKNOWN now
+     * when "edge_order" has no element, all edges are labeled and the process terminates.
+     */
+    // While there are edges labelled "unknown" in g
+    while (!edge_order.empty()) {
+        // Let x->y be the lowest ordered edge that is labelled "unknown"
+        Node* x = edge_order.at(0).GetNode1();
+        Node* y = edge_order.at(0).GetNode2();
+
+        bool tmp1 = false; // to label whether the IF conditions are satisfied
+        for (int w_idx : x->set_parent_indexes) {
+            Node* w = FindNodePtrByIndex(w_idx);
+            if (vec_edges.at(GetDirectedEdge(w, x)).label == COMPELLED) {
+                // For every edge w->x labelled "compelled"
+                if (!y->IsParentOfThisNode(w)) {
+                    /**
+                     * If w is not a parent of y, then label x->y and every edge incident into y with "compelled"
+                     * and goto 3 (the while loop)
+                     */
+                    tmp1 = true;
+                    // 1. x->y: edge_order[0]
+                    vec_edges.at(GetDirectedEdge(x, y)).label = COMPELLED;
+                    edge_order.erase(edge_order.begin());
+                    // 2. every edge incident into y
+                    for (int par_y_idx : y->set_parent_indexes) {
+                        Node* par_y = FindNodePtrByIndex(par_y_idx);
+                        int pos_edge_order = GetDirectedEdgeFromEdgeOrder(par_y, y);
+                        if (pos_edge_order != -1) { // this edge has not been labeled
+                            vec_edges.at(GetDirectedEdge(par_y, y)).label = COMPELLED;
+                            edge_order.erase(edge_order.begin() + pos_edge_order);
+                        } else {
+                            vec_edges.at(GetDirectedEdge(par_y, y)).label = COMPELLED;
+                        }
+                    }
+                    break;
+                } else {
+                    // Else label w->y with "compelled"
+                    int pos_edge_order = GetDirectedEdgeFromEdgeOrder(w, y);
+                    if (pos_edge_order != -1) { // this edge has not been labeled
+                        vec_edges.at(GetDirectedEdge(w, y)).label = COMPELLED;
+                        edge_order.erase(edge_order.begin() + pos_edge_order);
+                    }
+                }
+            }
+        }
+
+        if (!tmp1) { // otherwise, directly go to the while loop and do not
+            bool tmp2 = false; // to label whether the IF conditions are satisfied
+            for (int z_idx : y->set_parent_indexes) {
+                if (z_idx != x->GetNodeIndex()) {
+                    Node* z = FindNodePtrByIndex(z_idx);
+                    if (!x->IsParentOfThisNode(z)) {
+                        /**
+                         * If there exists an edge z->y such that z != x and z is not a parent of x,
+                         * then label x->y and all "unknown" edges incident into y with "compelled"
+                         */
+                        tmp2 = true;
+                        // 1. x->y: edge_order[0]
+                        vec_edges.at(GetDirectedEdge(x, y)).label = COMPELLED;
+                        edge_order.erase(edge_order.begin());
+                        // 2. every "unknown" edge incident into y
+                        for (int par_y_idx : y->set_parent_indexes) {
+                            Node* par_y = FindNodePtrByIndex(par_y_idx);
+                            int pos_edge_order = GetDirectedEdgeFromEdgeOrder(par_y, y);
+                            if (pos_edge_order != -1) { // this edge has not been labeled
+                                vec_edges.at(GetDirectedEdge(par_y, y)).label = COMPELLED;
+                                edge_order.erase(edge_order.begin() + pos_edge_order);
+                            }
+                        }
+                    }
+                }
+            }
+            if (!tmp2) {
+                // Else label x->y and all "unknown" edges incident into y with "reversible"
+                // 1. x->y: edge_order[0]
+                vec_edges.at(GetDirectedEdge(x, y)).label = REVERSIBLE;
+                edge_order.erase(edge_order.begin());
+                // 2. every "unknown" edge incident into y
+                for (int par_y_idx : y->set_parent_indexes) {
+                    Node* par_y = FindNodePtrByIndex(par_y_idx);
+                    int pos_edge_order = GetDirectedEdgeFromEdgeOrder(par_y, y);
+                    if (pos_edge_order != -1) { // this edge has not been labeled
+                        vec_edges.at(GetDirectedEdge(par_y, y)).label = REVERSIBLE;
+                        edge_order.erase(edge_order.begin() + pos_edge_order);
+                    }
+                }
+            }
+        }
+    }
+}
+
+bool Network::IsDAG() {
+    for (Edge edge : vec_edges) {
+        if (!edge.IsDirected()) {
+            return false;
+        }
+    }
+    return true;
 }
 
 

@@ -8,6 +8,7 @@
 #include "Node.h"
 
 enum EndPoint {ARROW, TAIL};
+enum Label {COMPELLED, REVERSIBLE};
 
 class Edge {
 public:
@@ -16,10 +17,12 @@ public:
     EndPoint end_point1;
     EndPoint end_point2;
     /**
-     * used when we want to find an edge given two nodes
-     * set to true only when we cannot find such an edge, otherwise it is always false
+     * are used for converting DAG to CPDAG
+     * an edge e is labeled as COMPELLED means e is in every graph of the equivalence class
+     * otherwise it is labeled as REVERSIBLE and it can be converted to undirected edge
      */
-    bool empty;
+    bool is_ordered;
+    Label label;
 
     Edge(){};
     Edge(Node* node1, Node* node2, EndPoint end_point1, EndPoint end_point2); // for directed edges
