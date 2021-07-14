@@ -273,7 +273,7 @@ protected:
         tester = new Dataset();
         network = new Network(true);
 
-        string train_set_file_path = "../../data/asia_s100000.txt";
+        string train_set_file_path = "../../data/alarm_s10000.txt";
 
         trainer->LoadCSVData(train_set_file_path, true, true, 0);
         tester->LoadCSVData(train_set_file_path, true, true, 0);
@@ -294,10 +294,13 @@ TEST_F(ExperimentNetwork, do_nothing) {
     for (int i = 0; i < network->num_edges; ++i) {
         Edge edge = network->vec_edges.at(i);
         if (!edge.IsDirected()) {
+//            cout << edge.GetNode1()->node_name << " -- " << edge.GetNode2()->node_name << endl;
             cout << edge.GetNode1()->GetNodeIndex() << " -- " << edge.GetNode2()->GetNodeIndex() << endl;
         } else if (edge.GetEndPoint1() == ARROW){
+//            cout << edge.GetNode2()->node_name << " -> " << edge.GetNode1()->node_name << endl;
             cout << edge.GetNode2()->GetNodeIndex() << " -> " << edge.GetNode1()->GetNodeIndex() << endl;
         } else {
+//            cout << edge.GetNode1()->node_name << " -> " << edge.GetNode2()->node_name << endl;
             cout << edge.GetNode1()->GetNodeIndex() << " -> " << edge.GetNode2()->GetNodeIndex() << endl;
         }
     }
@@ -306,7 +309,8 @@ TEST_F(ExperimentNetwork, do_nothing) {
 
 
     CustomNetwork *ref_net = new CustomNetwork();
-    ref_net->LoadBIFFile("../../data/asia.bif");
+    ref_net->LoadBIFFile("../../data/alarm.bif");
+
     for (int i = 0; i < ref_net->num_edges; ++i) {
         Edge edge = ref_net->vec_edges.at(i);
         if (!edge.IsDirected()) {

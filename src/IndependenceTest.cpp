@@ -35,7 +35,7 @@ IndependenceTest::IndependenceTest(Dataset *dataset, double alpha) {
  * @param z the set of conditioning variables
  * @param metric the conditional independence test method
  */
-bool IndependenceTest::IsIndependent(int x_idx, int y_idx, set<int> z, string metric) {
+bool IndependenceTest::IsIndependent(int x_idx, int y_idx, const set<int> &z, string metric) {
     /**
      * for testing x, y given z1,...,zn,
      * set up an array of length n + 2 containing the indices of these variables in order
@@ -43,7 +43,7 @@ bool IndependenceTest::IsIndependent(int x_idx, int y_idx, set<int> z, string me
     vector<int> test_idx;
     test_idx.push_back(x_idx);
     test_idx.push_back(y_idx);
-    for (auto it = z.begin(); it != z.end(); it++) {
+    for (auto it = z.begin(); it != z.end(); ++it) {
         test_idx.push_back(*it);
     }
 
@@ -65,7 +65,7 @@ bool IndependenceTest::IsIndependent(int x_idx, int y_idx, set<int> z, string me
  * perform conditional independence tests of discrete data using the G Square method
  * degrees of freedom are calculated as in Fienberg, The Analysis of Cross-Classified Categorical Data, 2nd Edition, 142
  */
-bool IndependenceTest::IsIndependentByGSquare(vector<int> test_idx) {
+bool IndependenceTest::IsIndependentByGSquare(const vector<int> &test_idx) {
 
     IndependenceTest::Result result = ComputeGSquare(test_idx);
     return result.is_independent;
@@ -76,15 +76,18 @@ bool IndependenceTest::IsIndependentByGSquare(vector<int> test_idx) {
  * by summing up g square and degrees of freedom for each conditional table in turn
  * rows or columns that consist entirely of zeros have been removed
  */
-IndependenceTest::Result IndependenceTest::ComputeGSquare(vector<int> test_idx) {
+IndependenceTest::Result IndependenceTest::ComputeGSquare(const vector<int> &test_idx) {
     // reset the cell table for the columns referred to in 'test_idx', do cell coefs for those columns
     cell_table->AddToTable(dataset, test_idx);
 
     // indicator vectors to tell the cell table which margins to calculate
     // for x _||_ y | z1, z2, ..., we want to calculate the margin for x, the margin for y, and the margin for x and y
-    vector<int> first_var = {0};
-    vector<int> second_var = {1};
-    vector<int> both_vars = {0, 1};
+//    vector<int> first_var = {0};
+//    vector<int> second_var = {1};
+//    vector<int> both_vars = {0, 1};
+    int first_var[1] = {0};
+    int second_var[1] = {1};
+    int both_vars[2] = {0, 1};
 
     double g2 = 0.0;
     int df = 0;
@@ -111,19 +114,19 @@ IndependenceTest::Result IndependenceTest::ComputeGSquare(vector<int> test_idx) 
         attested_rows.assign(num_rows, true);
         attested_cols.assign(num_cols, true);
 
-        long total = cell_table->ComputeMargin(config, both_vars); // N_{++z}
+        long total = cell_table->ComputeMargin(config, both_vars, 2); // N_{++z}
 
         double local_g2 = 0.0;
         vector<double> e;
         vector<double> o;
 
-        for (int i = 0; i < num_rows; i++) { // for each possible value of x
-            for (int j = 0; j < num_cols; j++) { // for each possible value of y
+        for (int i = 0; i < num_rows; ++i) { // for each possible value of x
+            for (int j = 0; j < num_cols; ++j) { // for each possible value of y
                 config.at(0) = i;
                 config.at(1) = j;
 
-                long sum_row = cell_table->ComputeMargin(config, second_var); // N_{x+z}
-                long sum_col = cell_table->ComputeMargin(config, first_var); // N_{+yz}
+                long sum_row = cell_table->ComputeMargin(config, second_var, 1); // N_{x+z}
+                long sum_col = cell_table->ComputeMargin(config, first_var, 1); // N_{+yz}
                 long observed = cell_table->GetValue(config); // N_{xyz}
 
                 bool skip = false;
@@ -144,7 +147,7 @@ IndependenceTest::Result IndependenceTest::ComputeGSquare(vector<int> test_idx) 
             }
         }
 
-        for (int i = 0; i < o.size(); i++) {
+        for (int i = 0; i < o.size(); ++i) {
             double expected = e.at(i) / (double) total; // E_{xyz} = (N_{x+z} * N_{+yz}) / N_{++z}
 
             if (o.at(i) != 0) {
@@ -158,12 +161,12 @@ IndependenceTest::Result IndependenceTest::ComputeGSquare(vector<int> test_idx) 
 
         int num_attested_rows = 0;
         int num_attested_cols = 0;
-        for (bool attested_row : attested_rows) {
+        for (const bool &attested_row : attested_rows) {
             if (attested_row) {
                 num_attested_rows++;
             }
         }
-        for (bool attested_col : attested_cols) {
+        for (const bool &attested_col : attested_cols) {
             if (attested_col) {
                 num_attested_cols++;
             }

@@ -20,19 +20,18 @@
 class PCStable : public StructureLearning {
 public:
     int depth = 1000; // The maximum number of nodes conditioned on in the search. The default it 1000.
-    bool stable = true; // PC-Stable or PC
     IndependenceTest* ci_test;
     int num_ci_test;
     int num_dependence_judgement;
 
     PCStable(Network *net, Dataset *dataset, double alpha);
-    PCStable(Network *net, int d, bool s, Dataset *dataset, double alpha);
+    PCStable(Network *net, int d, Dataset *dataset, double alpha);
 
     virtual void StructLearnCompData(Dataset *dts, bool print_struct);
-    void StructLearnByPCStable(Dataset *dts, bool print_struct);
+    void StructLearnByPCStable(bool print_struct);
     bool SearchAtDepth(int c_depth);
-    bool CheckSide(map<int, set<int>> adjacencies, int c_depth, Node* x, Node* y);
-    int FreeDegree(map<int, set<int>> adjacencies);
+    bool CheckSide(const map<int, set<int>> &adjacencies, int c_depth, Node* x, Node* y);
+    int FreeDegree(const map<int, set<int>> &adjacencies);
 
     void OrientVStructure();
     void OrientImplied();

@@ -11,13 +11,12 @@ PCStable::PCStable(Network *net, Dataset *dataset, double alpha) {
     num_dependence_judgement = 0;
 }
 
-PCStable::PCStable(Network *net, int d, bool s, Dataset *dataset, double alpha) {
+PCStable::PCStable(Network *net, int d, Dataset *dataset, double alpha) {
     network = net;
     ci_test = new IndependenceTest(dataset, alpha);
     num_ci_test = 0;
     num_dependence_judgement = 0;
     depth = d;
-    stable = s;
 }
 
 void PCStable::StructLearnCompData(Dataset *dts, bool print_struct) {
@@ -31,7 +30,7 @@ void PCStable::StructLearnCompData(Dataset *dts, bool print_struct) {
 
     depth = (depth == -1) ? 1000 : depth; // depth = -1 means no limitation
     AssignNodeInformation(dts);
-    StructLearnByPCStable(dts, print_struct);
+    StructLearnByPCStable(print_struct);
 
     // print time
     gettimeofday(&end,NULL);
@@ -41,12 +40,12 @@ void PCStable::StructLearnCompData(Dataset *dts, bool print_struct) {
          << "The time spent to generate CPDAG with PC-stable is " << diff << " seconds" << endl;
 }
 
-void PCStable::StructLearnByPCStable(Dataset *dts, bool print_struct) {
+void PCStable::StructLearnByPCStable(bool print_struct) {
     cout << "==================================================" << '\n'
          << "Generating complete undirected graph" << endl;
 
-    for (int i = 0; i < network->num_nodes; i++) {
-        for (int j = i + 1; j < network->num_nodes; j++) {
+    for (int i = 0; i < network->num_nodes; ++i) {
+        for (int j = i + 1; j < network->num_nodes; ++j) {
             network->AddUndirectedEdge(i, j);
         }
     }
@@ -54,9 +53,9 @@ void PCStable::StructLearnByPCStable(Dataset *dts, bool print_struct) {
     cout << "==================================================" << '\n'
          << "Begin finding the skeleton" << endl << "Level 0... ";
 
-    for (int i = 0; i < network->num_nodes; i++) { // find neighbor set of each node i
+    for (int i = 0; i < network->num_nodes; ++i) { // find neighbor set of each node i
         set<int> adjacency;
-        for (int j = 0; j < network->num_nodes; j++) { // all nodes except for i itself are neighbors of i
+        for (int j = 0; j < network->num_nodes; ++j) { // all nodes except for i itself are neighbors of i
             if (i == j)
                 continue;
             adjacency.insert(j);
@@ -74,8 +73,8 @@ void PCStable::StructLearnByPCStable(Dataset *dts, bool print_struct) {
         int node_idx2 = (*edge_it).GetNode2()->GetNodeIndex();
         set<int> empty_set;
 
-        if (ci_test->IsIndependent(node_idx1, node_idx2, empty_set, "g square") || //TODO: I(x1, x2) = I(x2, x1)?
-            ci_test->IsIndependent(node_idx2, node_idx1, empty_set, "g square")) {
+        // because I(x1, x2) = I(x2, x1) (at least for g2)
+        if (ci_test->IsIndependent(node_idx1, node_idx2, empty_set, "g square")) {
             // the edge node1 -- node2 should be removed
             // 1. delete the edge
             network->DeleteUndirectedEdge(node_idx1, node_idx2);
@@ -100,36 +99,36 @@ void PCStable::StructLearnByPCStable(Dataset *dts, bool print_struct) {
         }
     }
 
-    for (int i = 0; i < network->num_edges; ++i) {
-        Edge edge = network->vec_edges.at(i);
-        if (!edge.IsDirected()) {
-            cout << edge.GetNode1()->GetNodeIndex() << " -- " << edge.GetNode2()->GetNodeIndex() << endl;
-        } else if (edge.GetEndPoint1() == ARROW){
-            cout << edge.GetNode2()->GetNodeIndex() << " -> " << edge.GetNode1()->GetNodeIndex() << endl;
-        } else {
-            cout << edge.GetNode1()->GetNodeIndex() << " -> " << edge.GetNode2()->GetNodeIndex() << endl;
-        }
-    }
-    cout << "num nodes = " << network->num_nodes << endl;
-    cout << "num edges = " << network->num_edges << endl;
+//    for (int i = 0; i < network->num_edges; ++i) {
+//        Edge edge = network->vec_edges.at(i);
+//        if (!edge.IsDirected()) {
+//            cout << edge.GetNode1()->GetNodeIndex() << " -- " << edge.GetNode2()->GetNodeIndex() << endl;
+//        } else if (edge.GetEndPoint1() == ARROW){
+//            cout << edge.GetNode2()->GetNodeIndex() << " -> " << edge.GetNode1()->GetNodeIndex() << endl;
+//        } else {
+//            cout << edge.GetNode1()->GetNodeIndex() << " -> " << edge.GetNode2()->GetNodeIndex() << endl;
+//        }
+//    }
+//    cout << "num nodes = " << network->num_nodes << endl;
+//    cout << "num edges = " << network->num_edges << endl;
 
     cout << "\n==================================================" << '\n'
          << "Begin orienting v-structure" << endl;
 
     OrientVStructure();
 
-    for (int i = 0; i < network->num_edges; ++i) {
-        Edge edge = network->vec_edges.at(i);
-        if (!edge.IsDirected()) {
-            cout << edge.GetNode1()->GetNodeIndex() << " -- " << edge.GetNode2()->GetNodeIndex() << endl;
-        } else if (edge.GetEndPoint1() == ARROW){
-            cout << edge.GetNode2()->GetNodeIndex() << " -> " << edge.GetNode1()->GetNodeIndex() << endl;
-        } else {
-            cout << edge.GetNode1()->GetNodeIndex() << " -> " << edge.GetNode2()->GetNodeIndex() << endl;
-        }
-    }
-    cout << "num nodes = " << network->num_nodes << endl;
-    cout << "num edges = " << network->num_edges << endl;
+//    for (int i = 0; i < network->num_edges; ++i) {
+//        Edge edge = network->vec_edges.at(i);
+//        if (!edge.IsDirected()) {
+//            cout << edge.GetNode1()->GetNodeIndex() << " -- " << edge.GetNode2()->GetNodeIndex() << endl;
+//        } else if (edge.GetEndPoint1() == ARROW){
+//            cout << edge.GetNode2()->GetNodeIndex() << " -> " << edge.GetNode1()->GetNodeIndex() << endl;
+//        } else {
+//            cout << edge.GetNode1()->GetNodeIndex() << " -> " << edge.GetNode2()->GetNodeIndex() << endl;
+//        }
+//    }
+//    cout << "num nodes = " << network->num_nodes << endl;
+//    cout << "num edges = " << network->num_edges << endl;
 
     cout << "==================================================" << '\n'
          << "Begin orienting other undirected edges" << endl;
@@ -179,11 +178,11 @@ bool PCStable::SearchAtDepth(int c_depth) {
  *         if such a Z can be found, add Z into the sepset of x,y and y,x
  * @return true if such a Z can be found, which means edge x -- y should be deleted
  */
-bool PCStable::CheckSide(map<int, set<int>> adjacencies, int c_depth, Node* x, Node* y) {
+bool PCStable::CheckSide(const map<int, set<int>> &adjacencies, int c_depth, Node* x, Node* y) {
     int x_idx = x->GetNodeIndex();
     int y_idx = y->GetNodeIndex();
 
-    set<int> adjx = adjacencies[x_idx];
+    set<int> adjx(adjacencies.at(x_idx));
     if (adjx.find(y_idx) == adjx.end()) {
         fprintf(stderr, "Function [%s]: Node %d is not the neighbor of node %d!",
                 __FUNCTION__, y_idx, x_idx);
@@ -192,7 +191,7 @@ bool PCStable::CheckSide(map<int, set<int>> adjacencies, int c_depth, Node* x, N
     adjx.erase(y_idx);
     // copy to a vector to access by position, which will be used for choice generating
     vector<int> vec_adjx;
-    for (int adj : adjx) {
+    for (const int &adj : adjx) {
         vec_adjx.push_back(adj);
     }
 
@@ -202,7 +201,7 @@ bool PCStable::CheckSide(map<int, set<int>> adjacencies, int c_depth, Node* x, N
 
         while (!(choice = cg.Next()).empty()) {
             set<int> Z;
-            for (int z_idx : choice) {
+            for (int &z_idx : choice) {
                 Z.insert(vec_adjx.at(z_idx));
             }
             num_ci_test++;
@@ -224,10 +223,10 @@ bool PCStable::CheckSide(map<int, set<int>> adjacencies, int c_depth, Node* x, N
  * @return the max |adj(X)\{Y}| for all pairs of nodes (X,Y)
  * I think it is just equal to the max |adj(X)| - 1 for all nodes X
  */
-int PCStable::FreeDegree(map<int, set<int>> adjacencies) {
+int PCStable::FreeDegree(const map<int, set<int>> &adjacencies) {
     int max = 0;
     for (int i = 0; i < network->num_nodes; ++i) {
-        max = (adjacencies[i].size() > max) ? adjacencies[i].size() : max;
+        max = (adjacencies.at(i).size() > max) ? adjacencies.at(i).size() : max;
     }
     return (max - 1);
 }
@@ -244,11 +243,10 @@ int PCStable::FreeDegree(map<int, set<int>> adjacencies) {
  * this means that the orientation of one conflicting edge is determined by the v-structure that is last considered
  */
 void PCStable::OrientVStructure() {
-
     for (int b = 0; b < network->num_nodes; ++b) { // for all nodes in the graph
         set<int> adjacent_nodes = network->adjacencies[b];
         vector<int> vec_adjacent_nodes;
-        for (int adjs : adjacent_nodes) {
+        for (const int &adjs : adjacent_nodes) {
             vec_adjacent_nodes.push_back(adjs);
         }
 
@@ -435,7 +433,7 @@ set<int> PCStable::GetCommonAdjacents(int x_idx, int y_idx) {
  * orientation rule1: if a->b, b--c, and a not adj to c, then b->c (to avoid v-structures)
  */
 bool PCStable::Rule1(int b_idx, int c_idx) {
-    for (Node* a : network->GetParentPtrsOfNode(b_idx)) { // for every parent a of b
+    for (const Node* a : network->GetParentPtrsOfNode(b_idx)) { // for every parent a of b
         int a_idx = a->GetNodeIndex();
         if (network->IsAdjacentTo(c_idx, a_idx)) continue; // skip the case if a is adjacent to c
         if (Direct(b_idx, c_idx)) { // then b->c
@@ -452,7 +450,7 @@ bool PCStable::Rule2(int a_idx, int c_idx) {
     // get common neighbors of a and c
     set<int> common_idx = GetCommonAdjacents(a_idx, c_idx);
 
-    for (int b_idx : common_idx) { // check every common neighbor b of a and c
+    for (const int &b_idx : common_idx) { // check every common neighbor b of a and c
         if (network->IsDirectedFromTo(a_idx, b_idx) && network->IsDirectedFromTo(b_idx, c_idx)) { // a->b && b->c
             if (Direct(a_idx, c_idx)) { // then a->c
                 return true;
@@ -478,8 +476,8 @@ bool PCStable::Rule3(int d_idx, int a_idx) {
         return false;
     }
     // a and d has more than or equal to 2 common adjacents
-    for (int b_idx = 0; b_idx < common_idx.size(); b_idx++) {
-        for (int c_idx = b_idx + 1; c_idx < common_idx.size(); c_idx++) {
+    for (int b_idx = 0; b_idx < common_idx.size(); ++b_idx) {
+        for (int c_idx = b_idx + 1; c_idx < common_idx.size(); ++c_idx) {
             // find two adjacents b and c, b and c are not adjacent
             if (!network->IsAdjacentTo(b_idx, c_idx)) {
                 if (R3Helper(a_idx, d_idx, b_idx, c_idx)) {

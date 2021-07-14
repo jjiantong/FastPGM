@@ -86,7 +86,8 @@ class Network {//this class is used by both the customized networks and networks
   // whether node1 is adjacent to node2 && node1 is not a parent of node2 && node2 is not a parent of node1
   bool IsUndirectedFromTo(int node_idx1, int node_idx2);
 
-  double CalcuExtraScoreWithModifiedEdge(int p_index, int c_index, Dataset *dts, string modification, string score_metric);
+  double CalcuExtraScoreWithModifiedEdge(int p_index, int c_index, Dataset *dts,
+                                         const string &modification, const string &score_metric);
 
   void SetParentChild(int p_index, int c_index);
   void SetParentChild(Node *par, Node *chi); // checked
@@ -109,7 +110,7 @@ class Network {//this class is used by both the customized networks and networks
 
   virtual vector<int> SimplifyDefaultElimOrd(DiscreteConfig evidence);
 
-  vector<Factor> ConstructFactors(vector<int> Z, Node *Y);
+  vector<Factor> ConstructFactors(const vector<int> &Z, Node *Y);
   void LoadEvidenceIntoFactors(vector<Factor> *factors_list, DiscreteConfig E, set<int> all_related_vars);
 
   Factor SumProductVarElim(vector<Factor> factors_list, vector<int> elim_order);

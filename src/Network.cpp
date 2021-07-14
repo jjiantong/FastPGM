@@ -70,10 +70,10 @@ void Network::PrintEachNodeChildren() {//print the child nodes of all the nodes
  * @brief: find node ptr by id
  */
 Node* Network::FindNodePtrByIndex(const int &index) const {
-  if (index < 0 || index >= num_nodes) {  // The node indexes are consecutive integers start at 0.
-    fprintf(stderr, "Error in function %s! \nInvalid index [%d]!", __FUNCTION__, index);
-    exit(1);
-  }
+//  if (index < 0 || index >= num_nodes) {  // The node indexes are consecutive integers start at 0.
+//    fprintf(stderr, "Error in function %s! \nInvalid index [%d]!", __FUNCTION__, index);
+//    exit(1);
+//  }
   return map_idx_node_ptr.at(index);
 }
 
@@ -82,7 +82,7 @@ Node* Network::FindNodePtrByIndex(const int &index) const {
  */
 Node* Network::FindNodePtrByName(const string &name) const {
   Node* node_ptr = nullptr;
-  for (const auto i_n_ptr : map_idx_node_ptr) {
+  for (const auto &i_n_ptr : map_idx_node_ptr) {
     auto n_ptr = i_n_ptr.second;
     if (n_ptr->node_name==name) {
       node_ptr = n_ptr;
@@ -121,8 +121,8 @@ void Network::ConstructNaiveBayesNetwork(Dataset *dts) {
 
   // Set parents and children.
   Node *class_node_ptr = FindNodePtrByIndex(dts->class_var_index);
-  for (auto &i_n : map_idx_node_ptr) { // for each id-node_ptr pair i_n
-    if (i_n.second == class_node_ptr) { // TODO: directly "if (xxx != xxx)"
+  for (const auto &i_n : map_idx_node_ptr) { // for each id-node_ptr pair i_n
+    if (i_n.second == class_node_ptr) {
       continue;
     }
     // all feature variables are the children of the root node (i.e., the label)
@@ -235,11 +235,11 @@ int Network::GetEdge(Node *node1, Node *node2) {
  */
 bool Network::AddDirectedEdge(int p_index, int c_index) {
     // first check the two nodes
-    if(!(NodeIsInNetwork(p_index) && NodeIsInNetwork(c_index))) {
-        fprintf(stderr, "Error in function [%s].\nNode [%d] and/or [%d] do not belong to this network!",
-                __FUNCTION__, p_index, c_index);
-        exit(1);
-    }
+//    if(!(NodeIsInNetwork(p_index) && NodeIsInNetwork(c_index))) {
+//        fprintf(stderr, "Error in function [%s].\nNode [%d] and/or [%d] do not belong to this network!",
+//                __FUNCTION__, p_index, c_index);
+//        exit(1);
+//    }
 
     Node* node1 = FindNodePtrByIndex(p_index);
     Node* node2 = FindNodePtrByIndex(c_index);
@@ -263,11 +263,11 @@ bool Network::AddDirectedEdge(int p_index, int c_index) {
 // TODO: double check, refer to undirected edge
 bool Network::DeleteDirectedEdge(int p_index, int c_index) {
     // first check the two nodes
-    if(!(NodeIsInNetwork(p_index) && NodeIsInNetwork(c_index))) {
-        fprintf(stderr, "Error in function [%s].\nNode [%d] and/or [%d] do not belong to this network!",
-                __FUNCTION__, p_index, c_index);
-        exit(1);
-    }
+//    if(!(NodeIsInNetwork(p_index) && NodeIsInNetwork(c_index))) {
+//        fprintf(stderr, "Error in function [%s].\nNode [%d] and/or [%d] do not belong to this network!",
+//                __FUNCTION__, p_index, c_index);
+//        exit(1);
+//    }
 
     Node* node1 = FindNodePtrByIndex(p_index);
     Node* node2 = FindNodePtrByIndex(c_index);
@@ -298,11 +298,11 @@ bool Network::ReverseDirectedEdge(int p_index, int c_index) {
  */
 void Network::AddUndirectedEdge(int p_index, int c_index) {
     // first check the two nodes
-    if(!(NodeIsInNetwork(p_index) && NodeIsInNetwork(c_index))) {
-        fprintf(stderr, "Error in function [%s].\nNode [%d] and/or [%d] do not belong to this network!",
-                __FUNCTION__, p_index, c_index);
-        exit(1);
-    }
+//    if(!(NodeIsInNetwork(p_index) && NodeIsInNetwork(c_index))) {
+//        fprintf(stderr, "Error in function [%s].\nNode [%d] and/or [%d] do not belong to this network!",
+//                __FUNCTION__, p_index, c_index);
+//        exit(1);
+//    }
 
     Node* node1 = FindNodePtrByIndex(p_index);
     Node* node2 = FindNodePtrByIndex(c_index);
@@ -317,11 +317,11 @@ void Network::AddUndirectedEdge(int p_index, int c_index) {
 
 bool Network::DeleteUndirectedEdge(int p_index, int c_index) {
     // first check the two nodes
-    if(!(NodeIsInNetwork(p_index) && NodeIsInNetwork(c_index))) {
-        fprintf(stderr, "Error in function [%s].\nNode [%d] and/or [%d] do not belong to this network!",
-                __FUNCTION__, p_index, c_index);
-        exit(1);
-    }
+//    if(!(NodeIsInNetwork(p_index) && NodeIsInNetwork(c_index))) {
+//        fprintf(stderr, "Error in function [%s].\nNode [%d] and/or [%d] do not belong to this network!",
+//                __FUNCTION__, p_index, c_index);
+//        exit(1);
+//    }
 
     // then check the order
     if (p_index > c_index) {
@@ -393,13 +393,13 @@ bool Network::IsUndirectedFromTo(int node_idx1, int node_idx2) {
  */
 double Network::CalcuExtraScoreWithModifiedEdge(int p_index, int c_index,
                                                Dataset *dts,
-                                               string modification,
-                                               string score_metric) {
+                                               const string &modification,
+                                               const string &score_metric) {
   // todo: test correctness
   Network new_net(*this); // modify on new_net rather than the original "this"
 
   // Convert the string to lowercase
-  transform(modification.begin(), modification.end(), modification.begin(), ::tolower);
+//  transform(modification.begin(), modification.end(), modification.begin(), ::tolower);
 
   Node *node = new_net.FindNodePtrByIndex(c_index);
 
@@ -530,7 +530,7 @@ set<Node*> Network::GetChildrenPtrsOfNode(int node_index) {
  * @brief: generate all the configurations of the parents for each node
  */
 void Network::GenDiscParCombsForAllNodes() {
-  for (auto id_np : this->map_idx_node_ptr) { // for each node (id-node_ptr pair) in the network
+  for (const auto &id_np : this->map_idx_node_ptr) { // for each node (id-node_ptr pair) in the network
     auto np = id_np.second;
     np->GenDiscParCombs(GetParentPtrsOfNode(np->GetNodeIndex()));
   }
@@ -581,7 +581,7 @@ vector<int> Network::GenTopoOrd() {
     // TODO: calculate the in-degrees here instead of in "TopoSortOfDAGZeroInDegreeFirst"
     for (auto &i_n_p : map_idx_node_ptr) { // for each node
       auto n_p = i_n_p.second;
-      for (auto &c_p : GetChildrenPtrsOfNode(n_p->GetNodeIndex())) {
+      for (const auto &c_p : GetChildrenPtrsOfNode(n_p->GetNodeIndex())) {
         // TODO: each time assigning 1, add 1 to the in-degree of "c_p->GetNodeIndex()"
         graph[n_p->GetNodeIndex()][c_p->GetNodeIndex()] = 1;
       }
@@ -689,10 +689,10 @@ int** Network::ConvertDAGNetworkToAdjacencyMatrix() {
   // TODO: calculate the in-degrees here
   // TODO: instead of in "TopoSortOfDAGZeroInDegreeFirst" and "DirectedGraphContainsCircleByBFS"
   // direct: node_ptr->child_ptr (i.e., graph[node_ptr][child_ptr] = 1)
-  for (auto &id_node_ptr : map_idx_node_ptr) { // for each node
+  for (const auto &id_node_ptr : map_idx_node_ptr) { // for each node
     auto node_ptr = id_node_ptr.second;
 
-    for (auto &child_ptr : GetChildrenPtrsOfNode(node_ptr->GetNodeIndex())) {
+    for (const auto &child_ptr : GetChildrenPtrsOfNode(node_ptr->GetNodeIndex())) {
       // TODO: each time assigning 1, add 1 to the in-degree of "child_ptr->GetNodeIndex()"
       matrix[node_ptr->GetNodeIndex()][child_ptr->GetNodeIndex()] = 1;
     }
@@ -732,7 +732,7 @@ int Network::GetNumParams() const {
  * Important: may have bugs! TODO
  */
 void Network::ClearStructure() {
-  for (auto &i_n_p : this->map_idx_node_ptr) {
+  for (const auto &i_n_p : this->map_idx_node_ptr) {
     i_n_p.second->ClearParams();
     i_n_p.second->ClearParents();
     i_n_p.second->ClearChildren();
@@ -745,7 +745,7 @@ void Network::ClearStructure() {
  * Important: may have bugs! TODO
  */
 void Network::ClearParams() {
-  for (auto &i_n_p : this->map_idx_node_ptr) { // TODO: function "FindNodePtrByIndex"
+  for (const auto &i_n_p : this->map_idx_node_ptr) { // TODO: function "FindNodePtrByIndex"
     i_n_p.second->ClearParams(); // TODO: Node::ClearParams is a virtual function
   }
 }
@@ -768,7 +768,7 @@ vector<int> Network::SimplifyDefaultElimOrd(DiscreteConfig evidence) {//TODO: us
  * @example 2: using the left nodes (filter out the barren nodes and m-separated nodes)
  * @return: a set of Factors, where each factor corresponds to a node
  */
-vector<Factor> Network::ConstructFactors(vector<int> Z, Node* Y) {
+vector<Factor> Network::ConstructFactors(const vector<int> &Z, Node* Y) {
   vector<Factor> factors_list;
   if(Y) {
     factors_list.push_back(Factor(dynamic_cast<DiscreteNode*>(Y), this));
@@ -944,14 +944,14 @@ set<int> Network::GetMarkovBlanketIndexesOfNode(Node *node_ptr) {
   set<int> markov_blanket_node_index;
 
   // Add parents.
-  for (auto &par_ptr : GetParentPtrsOfNode(node_ptr->GetNodeIndex())) {
+  for (const auto &par_ptr : GetParentPtrsOfNode(node_ptr->GetNodeIndex())) {
     markov_blanket_node_index.insert(par_ptr->GetNodeIndex());
   }
 
   // Add children and parents of children.
-  for (auto &chil_ptr : GetChildrenPtrsOfNode(node_ptr->GetNodeIndex())) {
+  for (const auto &chil_ptr : GetChildrenPtrsOfNode(node_ptr->GetNodeIndex())) {
     markov_blanket_node_index.insert(chil_ptr->GetNodeIndex());
-    for (auto &par_chil_ptr : GetParentPtrsOfNode(chil_ptr->GetNodeIndex())) {
+    for (const auto &par_chil_ptr : GetParentPtrsOfNode(chil_ptr->GetNodeIndex())) {
       markov_blanket_node_index.insert(par_chil_ptr->GetNodeIndex());
     }
   }

@@ -57,7 +57,7 @@ vector<int> ChoiceGenerator::Next() {
 void ChoiceGenerator::Fill(int index) {
     choice[index]++;
 
-    for (int i = index + 1; i < b; i++) {
+    for (int i = index + 1; i < b; ++i) {
         choice[i] = choice[i - 1] + 1;
     }
 }

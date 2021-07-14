@@ -41,15 +41,15 @@ public:
     int num_vars_tested;
 
     CellTable(){};
-    CellTable(vector<int> dims);
+    CellTable(const vector<int> &dims);
 
-    void Reset(vector<int> dims);
-    void AddToTable(Dataset *dataset, vector<int> indices);
-    int Increment(vector<int> config, int value);
-    int GetCellIndex(vector<int> config);
-    long GetValue(vector<int> config);
-    long ComputeMargin(vector<int> config);
-    long ComputeMargin(vector<int> config, vector<int> margin_vars);
+    void Reset(const vector<int> &dims);
+    void AddToTable(Dataset *dataset, const vector<int> &indices);
+    int Increment(const vector<int> &config, int value);
+    int GetCellIndex(const vector<int> &config);
+    long GetValue(const vector<int> &config);
+    long ComputeMargin(const vector<int> &config);
+    long ComputeMargin(const vector<int> &config, int* margin_vars, int margin_size);
 };
 
 #endif //BAYESIANNETWORK_CELLTABLE_H
