@@ -19,7 +19,7 @@ public:
     /**
      * store a copy of config for temporary use (reused)
      */
-    vector<int> config_copy;
+    int* config_copy;
     /**
      * key is the cell index (corresponds to one configuration)
      * value is the counting value of the configuration
@@ -37,19 +37,20 @@ public:
      * and each value dims[i] is the numbers of values for the i'th dimension
      * each of these dimensions must be an integer greater than zero
      */
-    vector<int> dims;
+    int* dims;
     int num_vars_tested;
 
     CellTable(){};
-    CellTable(const vector<int> &dims);
+    CellTable(int* dims, int size);
+    ~CellTable();
 
-    void Reset(const vector<int> &dims);
-    void AddToTable(Dataset *dataset, const vector<int> &indices);
-    int Increment(const vector<int> &config, int value);
-    int GetCellIndex(const vector<int> &config);
-    long GetValue(const vector<int> &config);
-    long ComputeMargin(const vector<int> &config);
-    long ComputeMargin(const vector<int> &config, int* margin_vars, int margin_size);
+    void Reset(int* dims, int size);
+    void AddToTable(Dataset *dataset, int* indices, int size);
+    int Increment(int* config, int value);
+    int GetCellIndex(int* config);
+    long GetValue(int* config);
+    long ComputeMargin(int* config, int config_size);
+    long ComputeMargin(int* config, int config_size, int* margin_vars, int margin_size);
 };
 
 #endif //BAYESIANNETWORK_CELLTABLE_H

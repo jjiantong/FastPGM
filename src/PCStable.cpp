@@ -182,27 +182,28 @@ bool PCStable::CheckSide(const map<int, set<int>> &adjacencies, int c_depth, Nod
     int x_idx = x->GetNodeIndex();
     int y_idx = y->GetNodeIndex();
 
-    set<int> adjx(adjacencies.at(x_idx));
-    if (adjx.find(y_idx) == adjx.end()) {
+    set<int> set_adjx(adjacencies.at(x_idx));
+    if (set_adjx.find(y_idx) == set_adjx.end()) {
         fprintf(stderr, "Function [%s]: Node %d is not the neighbor of node %d!",
                 __FUNCTION__, y_idx, x_idx);
         exit(1);
     }
-    adjx.erase(y_idx);
+    set_adjx.erase(y_idx);
     // copy to a vector to access by position, which will be used for choice generating
-    vector<int> vec_adjx;
-    for (const int &adj : adjx) {
-        vec_adjx.push_back(adj);
+    int* adjx = new int[set_adjx.size()];
+    int index = 0;
+    for (const int &adj : set_adjx) {
+        adjx[index++] = adj;
     }
 
-    if (adjx.size() >= c_depth) {
-        ChoiceGenerator cg (adjx.size(), c_depth);
-        vector<int> choice;
+    if (set_adjx.size() >= c_depth) {
+        ChoiceGenerator cg (set_adjx.size(), c_depth);
+        int* choice = new int[c_depth];
 
-        while (!(choice = cg.Next()).empty()) {
+        while ((choice = cg.Next()) != nullptr) {
             set<int> Z;
-            for (int &z_idx : choice) {
-                Z.insert(vec_adjx.at(z_idx));
+            for (int i = 0; i < c_depth; ++i) {
+                Z.insert(adjx[choice[i]]);
             }
             num_ci_test++;
             bool independent = ci_test->IsIndependent(x_idx, y_idx, Z, "g square");
@@ -212,10 +213,13 @@ bool PCStable::CheckSide(const map<int, set<int>> &adjacencies, int c_depth, Nod
                 // add conditioning set to sepset
                 ci_test->sepset.insert(make_pair(make_pair(x_idx, y_idx), Z));
                 ci_test->sepset.insert(make_pair(make_pair(y_idx, x_idx), Z));
+                delete [] adjx;
                 return true;
             }
         }
+        delete [] choice;
     }
+    delete [] adjx;
     return false;
 }
 
@@ -244,21 +248,22 @@ int PCStable::FreeDegree(const map<int, set<int>> &adjacencies) {
  */
 void PCStable::OrientVStructure() {
     for (int b = 0; b < network->num_nodes; ++b) { // for all nodes in the graph
-        set<int> adjacent_nodes = network->adjacencies[b];
-        vector<int> vec_adjacent_nodes;
-        for (const int &adjs : adjacent_nodes) {
-            vec_adjacent_nodes.push_back(adjs);
+        set<int> set_adjacent_nodes = network->adjacencies[b];
+        int* adjacent_nodes = new int[set_adjacent_nodes.size()];
+        int index = 0;
+        for (const int &adjs : set_adjacent_nodes) {
+            adjacent_nodes[index++] = adjs;
         }
 
-        if (adjacent_nodes.size() < 2) {
+        if (set_adjacent_nodes.size() < 2) {
             continue;
         }
-        ChoiceGenerator cg(adjacent_nodes.size(), 2); // to find two adjacent nodes of this node and check
-        vector<int> combination;
+        ChoiceGenerator cg(set_adjacent_nodes.size(), 2); // to find two adjacent nodes of this node and check
+        int* combination = new int[2];
 
-        while (!(combination = cg.Next()).empty()) {
-            int a = vec_adjacent_nodes.at(combination.at(0));
-            int c = vec_adjacent_nodes.at(combination.at(1));
+        while ((combination = cg.Next()) != nullptr) {
+            int a = adjacent_nodes[combination[0]];
+            int c = adjacent_nodes[combination[1]];
 
             // 1) a is not adjacent to c; skip if a is adjacent to c
             if (network->IsAdjacentTo(a, c)) {
@@ -335,6 +340,8 @@ void PCStable::OrientVStructure() {
                 }
             }
         }
+        delete [] combination;
+        delete [] adjacent_nodes;
     }
 }
 

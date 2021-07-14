@@ -23,11 +23,13 @@ public:
     int a; // number of objects being selected from
     int b; // number of objects in the desired selection
     int diff; // difference between a and b (should be nonnegative)
-    vector<int> choice; // internally stored choice
+//    vector<int> choice; // internally stored choice
+    int* choice; // internally stored choice
 
     ChoiceGenerator (int a, int b);
+    ~ChoiceGenerator();
 
-    vector<int> Next();
+    int* Next();
     void Fill(int index);
 };
 

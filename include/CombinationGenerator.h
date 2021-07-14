@@ -17,11 +17,12 @@ using namespace std;
 class CombinationGenerator {
 public:
     vector<int> values;
-    vector<int> max_values;
-    int num_values;
+    int* max_values;
+    int  num_values;
     bool has_next;
 
-    CombinationGenerator(vector<int> max_values);
+    CombinationGenerator(int* max_values, int size);
+    ~CombinationGenerator();
 
     vector<int> Next();
 };

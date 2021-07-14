@@ -6,13 +6,21 @@
 
 /**
  * creates a combination set for a set of variables with the given number of max_values
- * @param maxValues: an int array consisting of the maximum values of each variable, in order
+ * @param max_values: an int array consisting of the maximum values of each variable, in order
+ * @param size: size of max_values
  */
-CombinationGenerator::CombinationGenerator(vector<int> max_values) {
-    num_values = max_values.size();
-    values.resize(num_values);
-    this->max_values = max_values;
+CombinationGenerator::CombinationGenerator(int* max_values, int size) {
+    num_values = size;
+    values.resize(size);
+    this->max_values = new int[size];
+    for (int i = 0; i < size; ++i) {
+        this->max_values[i] = max_values[i];
+    }
     has_next = true;
+}
+
+CombinationGenerator::~CombinationGenerator() {
+    delete [] max_values;
 }
 
 /**
@@ -27,7 +35,7 @@ vector<int> CombinationGenerator::Next() {
     int i;
     // start from the last position to find an element that can +1
     for (i = num_values - 1; i >= 0; i--) {
-        if (values.at(i) + 1 < max_values.at(i)) {
+        if (values.at(i) + 1 < max_values[i]) {
             break;
         }
     }

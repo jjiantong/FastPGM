@@ -26,16 +26,25 @@ ChoiceGenerator::ChoiceGenerator (int a, int b) {
      * set the value at the last index one less than it would be ([0 1 2 ... b-2 b-2])
      * so that on the first call to next() correctly returns the first combination ([0 1 2 ... b - 1])
      */
-    for (int i = 0; i < b - 1; i++) {
-        choice.push_back(i);
+//    for (int i = 0; i < b - 1; i++) {
+//        choice.push_back(i);
+//    }
+//    choice.push_back(b-2);
+    choice = new int[b];
+    for (int i = 0; i < b - 1; ++i) {
+        choice[i] = i;
     }
-    choice.push_back(b-2);
+    choice[b - 1] = b - 2;
+}
+
+ChoiceGenerator::~ChoiceGenerator() {
+    delete [] choice;
 }
 
 /**
  * @return the next combination in the series, or null if the series is finished
  */
-vector<int> ChoiceGenerator::Next() {
+int* ChoiceGenerator::Next() {
     int i = b;
 
     // Scan from the right, find the first index whose value is less than its expected maximum (i + diff),
@@ -46,7 +55,7 @@ vector<int> ChoiceGenerator::Next() {
             return choice;
         }
     }
-    return vector<int>();
+    return nullptr;
 }
 
 /**

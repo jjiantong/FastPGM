@@ -40,15 +40,16 @@ bool IndependenceTest::IsIndependent(int x_idx, int y_idx, const set<int> &z, st
      * for testing x, y given z1,...,zn,
      * set up an array of length n + 2 containing the indices of these variables in order
      */
-    vector<int> test_idx;
-    test_idx.push_back(x_idx);
-    test_idx.push_back(y_idx);
+    int* test_idx = new int[z.size() + 2];
+    test_idx[0] = x_idx;
+    test_idx[1] = y_idx;
+    int index = 2;
     for (auto it = z.begin(); it != z.end(); ++it) {
-        test_idx.push_back(*it);
+        test_idx[index++] = *it;
     }
 
     if (metric.compare("g square") == 0) {
-        return IsIndependentByGSquare(test_idx);
+        return IsIndependentByGSquare(test_idx, z.size() + 2);
     }
     else if (metric.compare("mutual information") == 0) {}
     else { // use for testing
@@ -59,15 +60,17 @@ bool IndependenceTest::IsIndependent(int x_idx, int y_idx, const set<int> &z, st
             return false;
         }
     }
+    delete [] test_idx;
 }
 
 /**
  * perform conditional independence tests of discrete data using the G Square method
  * degrees of freedom are calculated as in Fienberg, The Analysis of Cross-Classified Categorical Data, 2nd Edition, 142
+ * @param size: number of x, y, z1, z2, ...
  */
-bool IndependenceTest::IsIndependentByGSquare(const vector<int> &test_idx) {
+bool IndependenceTest::IsIndependentByGSquare(int* test_idx, int size) {
 
-    IndependenceTest::Result result = ComputeGSquare(test_idx);
+    IndependenceTest::Result result = ComputeGSquare(test_idx, size);
     return result.is_independent;
 }
 
@@ -75,16 +78,14 @@ bool IndependenceTest::IsIndependentByGSquare(const vector<int> &test_idx) {
  * calculate g square for a conditional crosstabulation table for independence question 0 _||_ 1 | 2, 3, ...max
  * by summing up g square and degrees of freedom for each conditional table in turn
  * rows or columns that consist entirely of zeros have been removed
+ * @param size: number of x, y, z1, z2, ...
  */
-IndependenceTest::Result IndependenceTest::ComputeGSquare(const vector<int> &test_idx) {
+IndependenceTest::Result IndependenceTest::ComputeGSquare(int* test_idx, int size) {
     // reset the cell table for the columns referred to in 'test_idx', do cell coefs for those columns
-    cell_table->AddToTable(dataset, test_idx);
+    cell_table->AddToTable(dataset, test_idx, size);
 
     // indicator vectors to tell the cell table which margins to calculate
     // for x _||_ y | z1, z2, ..., we want to calculate the margin for x, the margin for y, and the margin for x and y
-//    vector<int> first_var = {0};
-//    vector<int> second_var = {1};
-//    vector<int> both_vars = {0, 1};
     int first_var[1] = {0};
     int second_var[1] = {1};
     int both_vars[2] = {0, 1};
@@ -95,26 +96,27 @@ IndependenceTest::Result IndependenceTest::ComputeGSquare(const vector<int> &tes
     // dimensions of z1, z2, ...; copy from "cell_table->dims", starting from the third element
     // because "cell_table->dims" contains the dimensions of x, y, z1, z2, ..., then we ignore the first two elements
     // note that "dims" contains the dimensions of all variables, so we cannot use "dims" here
-    vector<int> cond_dims;
-    cond_dims.assign(cell_table->dims.begin() + 2, cell_table->dims.end());
+    int* cond_dims = new int[size - 2];
+    for (int i = 0; i < size - 2; ++i) {
+        cond_dims[i] = cell_table->dims[i + 2];
+    }
 
-    vector<int> config; // x, y, z1, z2, ...
-    config.resize(test_idx.size());
+    int* config = new int[size];
     int num_rows = cell_table->dims[0]; // dimension of x
     int num_cols = cell_table->dims[1]; // dimension of y
     vector<bool> attested_rows;
     vector<bool> attested_cols;
 
-    CombinationGenerator cg(cond_dims);
+    CombinationGenerator cg(cond_dims, size - 2);
     while (cg.has_next) {
         vector<int> combination = cg.Next();
-        for (int i = 0; i < cond_dims.size(); ++i) {
-            config.at(i + 2) = combination.at(i);
+        for (int i = 0; i < size - 2; ++i) {
+            config[i + 2] = combination.at(i);
         }
         attested_rows.assign(num_rows, true);
         attested_cols.assign(num_cols, true);
 
-        long total = cell_table->ComputeMargin(config, both_vars, 2); // N_{++z}
+        long total = cell_table->ComputeMargin(config, size, both_vars, 2); // N_{++z}
 
         double local_g2 = 0.0;
         vector<double> e;
@@ -122,11 +124,11 @@ IndependenceTest::Result IndependenceTest::ComputeGSquare(const vector<int> &tes
 
         for (int i = 0; i < num_rows; ++i) { // for each possible value of x
             for (int j = 0; j < num_cols; ++j) { // for each possible value of y
-                config.at(0) = i;
-                config.at(1) = j;
+                config[0] = i;
+                config[1] = j;
 
-                long sum_row = cell_table->ComputeMargin(config, second_var, 1); // N_{x+z}
-                long sum_col = cell_table->ComputeMargin(config, first_var, 1); // N_{+yz}
+                long sum_row = cell_table->ComputeMargin(config, size, second_var, 1); // N_{x+z}
+                long sum_col = cell_table->ComputeMargin(config, size, first_var, 1); // N_{+yz}
                 long observed = cell_table->GetValue(config); // N_{xyz}
 
                 bool skip = false;
@@ -178,6 +180,9 @@ IndependenceTest::Result IndependenceTest::ComputeGSquare(const vector<int> &tes
             g2 += local_g2;
         }
     }
+
+    delete [] config;
+    delete [] cond_dims;
 
     if (df == 0) { // if df == 0, this is definitely an independent table
         double p_value = 1.0;
