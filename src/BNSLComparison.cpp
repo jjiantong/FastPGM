@@ -123,7 +123,7 @@ int BNSLComparison::GetSHDOneEdge(int index1, int index2) {
             return 1;
         }
     } else {
-        if (pos1 = -1) {
+        if (pos1 == -1) {
             cout << "edge between " << index1 << " and " << index2 << " exists only in the learned graph" << endl;
         } else {
             cout << "edge between " << index1 << " and " << index2 << " exists only in the true graph" << endl;

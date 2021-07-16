@@ -99,41 +99,27 @@ void PCStable::StructLearnByPCStable(bool print_struct) {
         }
     }
 
-//    for (int i = 0; i < network->num_edges; ++i) {
-//        Edge edge = network->vec_edges.at(i);
-//        if (!edge.IsDirected()) {
-//            cout << edge.GetNode1()->GetNodeIndex() << " -- " << edge.GetNode2()->GetNodeIndex() << endl;
-//        } else if (edge.GetEndPoint1() == ARROW){
-//            cout << edge.GetNode2()->GetNodeIndex() << " -> " << edge.GetNode1()->GetNodeIndex() << endl;
-//        } else {
-//            cout << edge.GetNode1()->GetNodeIndex() << " -> " << edge.GetNode2()->GetNodeIndex() << endl;
-//        }
+//    if (print_struct) {
+//        network->PrintEachEdgeWithIndex();
 //    }
-//    cout << "num nodes = " << network->num_nodes << endl;
-//    cout << "num edges = " << network->num_edges << endl;
 
     cout << "\n==================================================" << '\n'
          << "Begin orienting v-structure" << endl;
 
     OrientVStructure();
 
-//    for (int i = 0; i < network->num_edges; ++i) {
-//        Edge edge = network->vec_edges.at(i);
-//        if (!edge.IsDirected()) {
-//            cout << edge.GetNode1()->GetNodeIndex() << " -- " << edge.GetNode2()->GetNodeIndex() << endl;
-//        } else if (edge.GetEndPoint1() == ARROW){
-//            cout << edge.GetNode2()->GetNodeIndex() << " -> " << edge.GetNode1()->GetNodeIndex() << endl;
-//        } else {
-//            cout << edge.GetNode1()->GetNodeIndex() << " -> " << edge.GetNode2()->GetNodeIndex() << endl;
-//        }
+//    if (print_struct) {
+//        network->PrintEachEdgeWithIndex();
 //    }
-//    cout << "num nodes = " << network->num_nodes << endl;
-//    cout << "num edges = " << network->num_edges << endl;
 
     cout << "==================================================" << '\n'
          << "Begin orienting other undirected edges" << endl;
 
     OrientImplied();
+
+//    if (print_struct) {
+//        network->PrintEachEdgeWithIndex();
+//    }
 }
 
 /**

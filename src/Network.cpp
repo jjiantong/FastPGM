@@ -70,10 +70,10 @@ void Network::PrintEachNodeChildren() {//print the child nodes of all the nodes
  * @brief: find node ptr by id
  */
 Node* Network::FindNodePtrByIndex(const int &index) const {
-//  if (index < 0 || index >= num_nodes) {  // The node indexes are consecutive integers start at 0.
-//    fprintf(stderr, "Error in function %s! \nInvalid index [%d]!", __FUNCTION__, index);
-//    exit(1);
-//  }
+  if (index < 0 || index >= num_nodes) {  // The node indexes are consecutive integers start at 0.
+    fprintf(stderr, "Error in function %s! \nInvalid index [%d]!", __FUNCTION__, index);
+    exit(1);
+  }
   return map_idx_node_ptr.at(index);
 }
 
@@ -217,6 +217,38 @@ int Network::GetDirectedEdgeFromEdgeOrder(Node *node1, Node *node2) {
     }
 }
 
+void Network::PrintEachEdgeWithIndex() {
+    for (int i = 0; i < num_edges; ++i) {
+        cout << i << ". ";
+        Edge edge = vec_edges.at(i);
+        if (!edge.IsDirected()) {
+            cout << edge.GetNode1()->GetNodeIndex() << " -- " << edge.GetNode2()->GetNodeIndex() << endl;
+        } else if (edge.GetEndPoint1() == TAIL){
+            cout << edge.GetNode1()->GetNodeIndex() << " -> " << edge.GetNode2()->GetNodeIndex() << endl;
+        } else {
+            cout << edge.GetNode2()->GetNodeIndex() << " -> " << edge.GetNode1()->GetNodeIndex() << endl;
+        }
+    }
+    cout << "num nodes = " << num_nodes << endl;
+    cout << "num edges = " << num_edges << endl;
+}
+
+void Network::PrintEachEdgeWithName() {
+    for (int i = 0; i < num_edges; ++i) {
+        cout << i << ". ";
+        Edge edge = vec_edges.at(i);
+        if (!edge.IsDirected()) {
+            cout << edge.GetNode1()->node_name << " -- " << edge.GetNode2()->node_name << endl;
+        } else if (edge.GetEndPoint1() == TAIL){
+            cout << edge.GetNode1()->node_name << " -> " << edge.GetNode2()->node_name << endl;
+        } else {
+            cout << edge.GetNode2()->node_name << " -> " << edge.GetNode1()->node_name << endl;
+        }
+    }
+    cout << "num nodes = " << num_nodes << endl;
+    cout << "num edges = " << num_edges << endl;
+}
+
 int Network::GetEdge(Node *node1, Node *node2) {
     Edge edge;
     int position;
@@ -235,11 +267,11 @@ int Network::GetEdge(Node *node1, Node *node2) {
  */
 bool Network::AddDirectedEdge(int p_index, int c_index) {
     // first check the two nodes
-//    if(!(NodeIsInNetwork(p_index) && NodeIsInNetwork(c_index))) {
-//        fprintf(stderr, "Error in function [%s].\nNode [%d] and/or [%d] do not belong to this network!",
-//                __FUNCTION__, p_index, c_index);
-//        exit(1);
-//    }
+    if(!(NodeIsInNetwork(p_index) && NodeIsInNetwork(c_index))) {
+        fprintf(stderr, "Error in function [%s].\nNode [%d] and/or [%d] do not belong to this network!",
+                __FUNCTION__, p_index, c_index);
+        exit(1);
+    }
 
     Node* node1 = FindNodePtrByIndex(p_index);
     Node* node2 = FindNodePtrByIndex(c_index);
@@ -263,11 +295,11 @@ bool Network::AddDirectedEdge(int p_index, int c_index) {
 // TODO: double check, refer to undirected edge
 bool Network::DeleteDirectedEdge(int p_index, int c_index) {
     // first check the two nodes
-//    if(!(NodeIsInNetwork(p_index) && NodeIsInNetwork(c_index))) {
-//        fprintf(stderr, "Error in function [%s].\nNode [%d] and/or [%d] do not belong to this network!",
-//                __FUNCTION__, p_index, c_index);
-//        exit(1);
-//    }
+    if(!(NodeIsInNetwork(p_index) && NodeIsInNetwork(c_index))) {
+        fprintf(stderr, "Error in function [%s].\nNode [%d] and/or [%d] do not belong to this network!",
+                __FUNCTION__, p_index, c_index);
+        exit(1);
+    }
 
     Node* node1 = FindNodePtrByIndex(p_index);
     Node* node2 = FindNodePtrByIndex(c_index);
@@ -298,11 +330,11 @@ bool Network::ReverseDirectedEdge(int p_index, int c_index) {
  */
 void Network::AddUndirectedEdge(int p_index, int c_index) {
     // first check the two nodes
-//    if(!(NodeIsInNetwork(p_index) && NodeIsInNetwork(c_index))) {
-//        fprintf(stderr, "Error in function [%s].\nNode [%d] and/or [%d] do not belong to this network!",
-//                __FUNCTION__, p_index, c_index);
-//        exit(1);
-//    }
+    if(!(NodeIsInNetwork(p_index) && NodeIsInNetwork(c_index))) {
+        fprintf(stderr, "Error in function [%s].\nNode [%d] and/or [%d] do not belong to this network!",
+                __FUNCTION__, p_index, c_index);
+        exit(1);
+    }
 
     Node* node1 = FindNodePtrByIndex(p_index);
     Node* node2 = FindNodePtrByIndex(c_index);
@@ -317,11 +349,11 @@ void Network::AddUndirectedEdge(int p_index, int c_index) {
 
 bool Network::DeleteUndirectedEdge(int p_index, int c_index) {
     // first check the two nodes
-//    if(!(NodeIsInNetwork(p_index) && NodeIsInNetwork(c_index))) {
-//        fprintf(stderr, "Error in function [%s].\nNode [%d] and/or [%d] do not belong to this network!",
-//                __FUNCTION__, p_index, c_index);
-//        exit(1);
-//    }
+    if(!(NodeIsInNetwork(p_index) && NodeIsInNetwork(c_index))) {
+        fprintf(stderr, "Error in function [%s].\nNode [%d] and/or [%d] do not belong to this network!",
+                __FUNCTION__, p_index, c_index);
+        exit(1);
+    }
 
     // then check the order
     if (p_index > c_index) {

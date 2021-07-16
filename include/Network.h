@@ -70,6 +70,8 @@ class Network {//this class is used by both the customized networks and networks
   int GetDirectedEdge(Node* node1, Node* node2);
   int GetEdge(Node* node1, Node* node2);
   int GetDirectedEdgeFromEdgeOrder(Node* node1, Node* node2);
+  void PrintEachEdgeWithIndex();
+  void PrintEachEdgeWithName();
 
   bool AddDirectedEdge(int p_index, int c_index);
   bool DeleteDirectedEdge(int p_index, int c_index);

@@ -86,7 +86,7 @@ Create a directory ```build``` under the root directory. Generate the make file 
 ```
 mkdir build
 cd build
-cmake ..
+cmake -DCMAKE_BUILD_TYPE=Release ..
 make
 ```
 
@@ -94,7 +94,7 @@ On Mac OS, the default compiler (clang) needs to be changed to g++. (You can use
 ```
 mkdir build
 cd build
-cmake -DCMAKE_CXX_COMPILER=g++-9 ..
+cmake -DCMAKE_CXX_COMPILER=g++-9 -DCMAKE_BUILD_TYPE=Release ..
 make
 ```
 
