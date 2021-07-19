@@ -8,6 +8,7 @@
 #include "StructureLearning.h"
 #include "IndependenceTest.h"
 #include "ChoiceGenerator.h"
+#include "Timer.h"
 #include <algorithm>
 
 /**
@@ -23,6 +24,7 @@ public:
     IndependenceTest* ci_test;
     int num_ci_test;
     int num_dependence_judgement;
+    Timer timer;
 
     PCStable(Network *net, Dataset *dataset, double alpha);
     PCStable(Network *net, int d, Dataset *dataset, double alpha);

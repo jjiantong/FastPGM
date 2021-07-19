@@ -172,12 +172,12 @@ protected:
 
 TEST_F(ExperimentBNSLOnWin95pts, pc_stable) {
     StructureLearning *bnsl = new PCStable(network, trainer, 0.05);
-    bnsl->StructLearnCompData(trainer, true);
-    network->PrintEachEdgeWithIndex();
+    bnsl->StructLearnCompData(trainer, false);
+//    network->PrintEachEdgeWithIndex();
 
     CustomNetwork *ref_net = new CustomNetwork();
     ref_net->LoadBIFFile("../../data/win95pts.bif");
-    ref_net->PrintEachEdgeWithIndex();
+//    ref_net->PrintEachEdgeWithIndex();
 
     BNSLComparison comp(ref_net, network);
     cout << "SHD = " << comp.GetSHD() << endl;

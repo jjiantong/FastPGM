@@ -21,9 +21,7 @@ PCStable::PCStable(Network *net, int d, Dataset *dataset, double alpha) {
 
 void PCStable::StructLearnCompData(Dataset *dts, bool print_struct) {
     // record time
-    struct timeval start, end;
-    double diff;
-    gettimeofday(&start,NULL);
+    timer.Start("pc-stable");
 
     cout << "==================================================" << '\n'
          << "Begin structural learning with PC-stable" << endl;
@@ -32,15 +30,20 @@ void PCStable::StructLearnCompData(Dataset *dts, bool print_struct) {
     AssignNodeInformation(dts);
     StructLearnByPCStable(print_struct);
 
-    // print time
-    gettimeofday(&end,NULL);
-    diff = (end.tv_sec-start.tv_sec) + ((double)(end.tv_usec-start.tv_usec))/1.0E6;
+    timer.Stop("pc-stable");
     setlocale(LC_NUMERIC, "");
-    cout << "==================================================" << '\n'
-         << "The time spent to generate CPDAG with PC-stable is " << diff << " seconds" << endl;
+    cout << "==================================================" << endl;
+    cout << "# of CI-tests is " << num_ci_test << ", # of dependence judgements is " << num_dependence_judgement << endl;
+    timer.Print("pc-stable");
+    timer.Print("pc-stable step 1");
+    timer.Print("pc-stable step 2");
+    timer.Print("pc-stable step 3");
+    ci_test->timer.Print("counting");
+    ci_test->timer.Print("computing p-value");
 }
 
 void PCStable::StructLearnByPCStable(bool print_struct) {
+    timer.Start("pc-stable step 1");
     cout << "==================================================" << '\n'
          << "Generating complete undirected graph" << endl;
 
@@ -73,8 +76,13 @@ void PCStable::StructLearnByPCStable(bool print_struct) {
         int node_idx2 = (*edge_it).GetNode2()->GetNodeIndex();
         set<int> empty_set;
 
+        num_ci_test++;
+        bool independent = ci_test->IsIndependent(node_idx1, node_idx2, empty_set, "g square");
         // because I(x1, x2) = I(x2, x1) (at least for g2)
-        if (ci_test->IsIndependent(node_idx1, node_idx2, empty_set, "g square")) {
+        if (!independent) { // the edge remains
+            num_dependence_judgement++;
+            edge_it++;
+        } else {
             // the edge node1 -- node2 should be removed
             // 1. delete the edge
             network->DeleteUndirectedEdge(node_idx1, node_idx2);
@@ -84,8 +92,6 @@ void PCStable::StructLearnByPCStable(bool print_struct) {
             // 3. add conditioning set (an empty set for level 0) to sepset
             ci_test->sepset.insert(make_pair(make_pair(node_idx1, node_idx2), empty_set));
             ci_test->sepset.insert(make_pair(make_pair(node_idx2, node_idx1), empty_set));
-        } else { // the edge remains
-            edge_it++;
         }
     }
 
@@ -99,6 +105,8 @@ void PCStable::StructLearnByPCStable(bool print_struct) {
         }
     }
 
+    timer.Stop("pc-stable step 1");
+
 //    if (print_struct) {
 //        network->PrintEachEdgeWithIndex();
 //    }
@@ -106,7 +114,9 @@ void PCStable::StructLearnByPCStable(bool print_struct) {
     cout << "\n==================================================" << '\n'
          << "Begin orienting v-structure" << endl;
 
+    timer.Start("pc-stable step 2");
     OrientVStructure();
+    timer.Stop("pc-stable step 2");
 
 //    if (print_struct) {
 //        network->PrintEachEdgeWithIndex();
@@ -115,7 +125,9 @@ void PCStable::StructLearnByPCStable(bool print_struct) {
     cout << "==================================================" << '\n'
          << "Begin orienting other undirected edges" << endl;
 
+    timer.Start("pc-stable step 3");
     OrientImplied();
+    timer.Stop("pc-stable step 3");
 
 //    if (print_struct) {
 //        network->PrintEachEdgeWithIndex();
@@ -155,7 +167,7 @@ bool PCStable::SearchAtDepth(int c_depth) {
             edge_it++;
         }
     }
-    return (FreeDegree(adjacencies_copy) > c_depth);
+    return (FreeDegree(network->adjacencies) > c_depth);
 }
 
 /**

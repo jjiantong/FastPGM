@@ -41,18 +41,8 @@ int BNSLComparison::GetSHD() {
         }
     }
 
-    cout << "true cpdag: " << endl;
-    for (int i = 0; i < true_graph->num_edges; ++i) {
-        Edge edge = true_graph->vec_edges.at(i);
-        if (!edge.IsDirected()) {
-            cout << edge.GetNode1()->GetNodeIndex() << " -- " << edge.GetNode2()->GetNodeIndex() << endl;
-        } else if (edge.GetEndPoint1() == ARROW){
-            cout << edge.GetNode2()->GetNodeIndex() << " -> " << edge.GetNode1()->GetNodeIndex() << endl;
-        } else {
-            cout << edge.GetNode1()->GetNodeIndex() << " -> " << edge.GetNode2()->GetNodeIndex() << endl;
-        }
-    }
-    cout << "num edges = " << true_graph->num_edges << endl;
+//    cout << "true cpdag: " << endl;
+//    true_graph->PrintEachEdgeWithIndex();
 
     if (learned_graph->IsDAG()) {
         learned_graph->OrderEdge();
@@ -100,35 +90,32 @@ int BNSLComparison::GetSHDOneEdge(int index1, int index2) {
         if (e1.GetNode1()->GetNodeIndex() == e2.GetNode1()->GetNodeIndex() &&
             e1.GetNode2()->GetNodeIndex() == e2.GetNode2()->GetNodeIndex() &&
             e1.GetEndPoint1() == e2.GetEndPoint1() && e1.GetEndPoint2() == e2.GetEndPoint2()) {
-//            cout << "e1 = e2, return 0" << endl;
             return 0;
         } else {
-//            cout << "!!!!!!e1 != e2, return 1" << endl;
-            cout << "edge in the true graph:    ";
-            if (!e1.IsDirected()) {
-                cout << e1.GetNode1()->GetNodeIndex() << " -- " << e1.GetNode2()->GetNodeIndex() << endl;
-            } else if (e1.GetEndPoint1() == ARROW){
-                cout << e1.GetNode2()->GetNodeIndex() << " -> " << e1.GetNode1()->GetNodeIndex() << endl;
-            } else {
-                cout << e1.GetNode1()->GetNodeIndex() << " -> " << e1.GetNode2()->GetNodeIndex() << endl;
-            }
-            cout << "edge in the learned graph: ";
-            if (!e2.IsDirected()) {
-                cout << e2.GetNode1()->GetNodeIndex() << " -- " << e2.GetNode2()->GetNodeIndex() << endl;
-            } else if (e2.GetEndPoint1() == ARROW){
-                cout << e2.GetNode2()->GetNodeIndex() << " -> " << e2.GetNode1()->GetNodeIndex() << endl;
-            } else {
-                cout << e2.GetNode1()->GetNodeIndex() << " -> " << e2.GetNode2()->GetNodeIndex() << endl;
-            }
+//            cout << "edge in the true graph:    ";
+//            if (!e1.IsDirected()) {
+//                cout << e1.GetNode1()->GetNodeIndex() << " -- " << e1.GetNode2()->GetNodeIndex() << endl;
+//            } else if (e1.GetEndPoint1() == ARROW){
+//                cout << e1.GetNode2()->GetNodeIndex() << " -> " << e1.GetNode1()->GetNodeIndex() << endl;
+//            } else {
+//                cout << e1.GetNode1()->GetNodeIndex() << " -> " << e1.GetNode2()->GetNodeIndex() << endl;
+//            }
+//            cout << "edge in the learned graph: ";
+//            if (!e2.IsDirected()) {
+//                cout << e2.GetNode1()->GetNodeIndex() << " -- " << e2.GetNode2()->GetNodeIndex() << endl;
+//            } else if (e2.GetEndPoint1() == ARROW){
+//                cout << e2.GetNode2()->GetNodeIndex() << " -> " << e2.GetNode1()->GetNodeIndex() << endl;
+//            } else {
+//                cout << e2.GetNode1()->GetNodeIndex() << " -> " << e2.GetNode2()->GetNodeIndex() << endl;
+//            }
             return 1;
         }
     } else {
-        if (pos1 == -1) {
-            cout << "edge between " << index1 << " and " << index2 << " exists only in the learned graph" << endl;
-        } else {
-            cout << "edge between " << index1 << " and " << index2 << " exists only in the true graph" << endl;
-        }
-//        cout << "!!!!!!one exists, the other dont, return 1" << endl;
+//        if (pos1 == -1) {
+//            cout << "edge between " << index1 << " and " << index2 << " exists only in the learned graph" << endl;
+//        } else {
+//            cout << "edge between " << index1 << " and " << index2 << " exists only in the true graph" << endl;
+//        }
         return 1;
     }
 }

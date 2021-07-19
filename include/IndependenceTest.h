@@ -15,6 +15,7 @@
 #include "Dataset.h"
 #include "CellTable.h"
 #include "CombinationGenerator.h"
+#include "Timer.h"
 
 #include "gcem.hpp"
 #include "stats.hpp"
@@ -31,6 +32,7 @@ class IndependenceTest {
 public:
     Dataset *dataset;
     double alpha;
+    Timer timer;
     /**
      * note that "dims" is not equal to "cell_table->dims":
      * "dims" contains the dimensions of all variables in the data set

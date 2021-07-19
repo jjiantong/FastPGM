@@ -81,6 +81,7 @@ bool IndependenceTest::IsIndependentByGSquare(int* test_idx, int size) {
  * @param size: number of x, y, z1, z2, ...
  */
 IndependenceTest::Result IndependenceTest::ComputeGSquare(int* test_idx, int size) {
+    timer.Start("counting");
     // reset the cell table for the columns referred to in 'test_idx', do cell coefs for those columns
     cell_table->AddToTable(dataset, test_idx, size);
 
@@ -183,7 +184,9 @@ IndependenceTest::Result IndependenceTest::ComputeGSquare(int* test_idx, int siz
 
     delete [] config;
     delete [] cond_dims;
+    timer.Stop("counting");
 
+    timer.Start("computing p-value");
     if (df == 0) { // if df == 0, this is definitely an independent table
         double p_value = 1.0;
         IndependenceTest::Result result(g2, p_value, df, true);
@@ -194,5 +197,6 @@ IndependenceTest::Result IndependenceTest::ComputeGSquare(int* test_idx, int siz
     // if p > alpha, accept the null hypothesis: independent
     double p_value = 1.0 - stats::pchisq(g2, df, false);
     bool indep = (p_value > alpha);
+    timer.Stop("computing p-value");
     return IndependenceTest::Result(g2, p_value, df, indep);
 }
