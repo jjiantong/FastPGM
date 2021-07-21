@@ -72,7 +72,6 @@ public:
     bool IsIndependent(int x_idx, int y_idx, const set<int> &z, string metric);
     bool IsIndependentByGSquare(int* test_idx, int size);
     Result ComputeGSquare(int* test_idx, int size);
-
 };
 
 #endif //BAYESIANNETWORK_INDEPENDENCETEST_H

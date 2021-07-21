@@ -50,8 +50,7 @@ bool IndependenceTest::IsIndependent(int x_idx, int y_idx, const set<int> &z, st
 
     if (metric.compare("g square") == 0) {
         return IsIndependentByGSquare(test_idx, z.size() + 2);
-    }
-    else if (metric.compare("mutual information") == 0) {}
+    } else if (metric.compare("mutual information") == 0) {}
     else { // use for testing
         int random_number = rand()%10000;
         if (random_number > 9990) {
@@ -81,10 +80,12 @@ bool IndependenceTest::IsIndependentByGSquare(int* test_idx, int size) {
  * @param size: number of x, y, z1, z2, ...
  */
 IndependenceTest::Result IndependenceTest::ComputeGSquare(int* test_idx, int size) {
-    timer.Start("counting");
+    timer.Start("counting1");
     // reset the cell table for the columns referred to in 'test_idx', do cell coefs for those columns
     cell_table->AddToTable(dataset, test_idx, size);
+    timer.Stop("counting1");
 
+    timer.Start("counting2");
     // indicator vectors to tell the cell table which margins to calculate
     // for x _||_ y | z1, z2, ..., we want to calculate the margin for x, the margin for y, and the margin for x and y
     int first_var[1] = {0};
@@ -184,7 +185,7 @@ IndependenceTest::Result IndependenceTest::ComputeGSquare(int* test_idx, int siz
 
     delete [] config;
     delete [] cond_dims;
-    timer.Stop("counting");
+    timer.Stop("counting2");
 
     timer.Start("computing p-value");
     if (df == 0) { // if df == 0, this is definitely an independent table
@@ -200,3 +201,108 @@ IndependenceTest::Result IndependenceTest::ComputeGSquare(int* test_idx, int siz
     timer.Stop("computing p-value");
     return IndependenceTest::Result(g2, p_value, df, indep);
 }
+
+//IndependenceTest::Result IndependenceTest::ComputeGSquare2(int* test_idx, int size) {
+//    double g2 = 0.0;
+//    int df = 0;
+//
+//    int *dims = new int[size];
+//    for (int i = 0; i < size; ++i) {
+//        // get the number of possible values of each feature in indices, from Dataset.num_of_possible_values_of_disc_vars
+//        int dim = dataset->num_of_possible_values_of_disc_vars.at(test_idx[i]);
+//        dims[i] = dim;
+//    }
+//
+//    // dimensions of z1, z2, ...; copy from "cell_table->dims", starting from the third element
+//    // because "cell_table->dims" contains the dimensions of x, y, z1, z2, ..., then we ignore the first two elements
+//    // note that "dims" contains the dimensions of all variables, so we cannot use "dims" here
+//    int* cond_dims = new int[size - 2];
+//    for (int i = 0; i < size - 2; ++i) {
+//        cond_dims[i] = dims[i + 2];
+//    }
+//
+//    int num_rows = dims[0]; // dimension of x
+//    int num_cols = dims[1]; // dimension of y
+//    int num_attested_rows = 0;
+//    int num_attested_cols = 0;
+//
+//    CombinationGenerator cg(cond_dims, size - 2);
+//    while (cg.has_next) {
+//        vector<int> combination = cg.Next();
+//        vector<int> base;
+//
+//        for (int i = 0; i < dataset->num_instance; ++i) { // for each instance
+//            bool flag = true;
+//            for (int j = 0; j < combination.size(); ++j) { // for each feature in indices
+//                if (dataset->dataset_all_vars[i][test_idx[j + 2]] != combination.at(j)) {
+//                    flag = false;
+//                    break;
+//                }
+//            }
+//            if (flag) {
+//                base.push_back(i);
+//            }
+//        }
+//        long total = base.size(); // N_{++z}
+//
+//        if (total != 0) {
+//            for (int i = 0; i < num_rows; ++i) { // for each possible value of x
+//                vector<int> count_x;
+//                for (int j : base) {
+//                    if (dataset->dataset_all_vars[j][test_idx[0]] == i) {
+//                        count_x.push_back(j);
+//                    }
+//                }
+//                long sum_row = count_x.size(); // N_{x+z}
+//
+//                if (sum_row != 0) {
+//                    num_attested_rows++;
+//                    for (int j = 0; j < num_cols; ++j) { // for each possible value of y
+//                        vector<int> count_y;
+//                        vector<int> count_xy;
+//                        for (int k : base) {
+//                            if (dataset->dataset_all_vars[k][test_idx[1]] == j) {
+//                                count_y.push_back(k);
+//                            }
+//                        }
+//                        long sum_col = count_y.size(); // N_{+yz}
+//
+//                        if (sum_col != 0) {
+//                            num_attested_cols++;
+//                            for (int k : count_x) {
+//                                if (dataset->dataset_all_vars[k][test_idx[1]] == j) {
+//                                    count_xy.push_back(k);
+//                                }
+//                            }
+//                            long observed = count_xy.size(); // N_{xyz}
+//
+//                            if (observed != 0) {
+//                                double component = observed * (log(observed) + log(total) - log(sum_row) - log(sum_col));
+//                                g2 += component;
+//                            }
+//                        }
+//                    }
+//                }
+//            }
+//        }
+//
+//        // like (|X| - 1)(|Y| - 1) but not actually: |X| and |Y| are for non-zero cases
+//        int local_df = (num_attested_rows - 1) * (num_attested_cols - 1);
+//        df += local_df;
+//    }
+//    g2 *= 2.0;
+//
+//    delete [] dims;
+//
+//    if (df == 0) { // if df == 0, this is definitely an independent table
+//        double p_value = 1.0;
+//        IndependenceTest::Result result(g2, p_value, df, true);
+//        return result;
+//    }
+//
+//    // if p < alpha, reject the null hypothesis: dependent
+//    // if p > alpha, accept the null hypothesis: independent
+//    double p_value = 1.0 - stats::pchisq(g2, df, false);
+//    bool indep = (p_value > alpha);
+//    return IndependenceTest::Result(g2, p_value, df, indep);
+//}

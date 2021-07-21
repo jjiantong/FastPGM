@@ -38,7 +38,8 @@ void PCStable::StructLearnCompData(Dataset *dts, bool print_struct) {
     timer.Print("pc-stable step 1");
     timer.Print("pc-stable step 2");
     timer.Print("pc-stable step 3");
-    ci_test->timer.Print("counting");
+    ci_test->timer.Print("counting1");
+    ci_test->timer.Print("counting2");
     ci_test->timer.Print("computing p-value");
 }
 
