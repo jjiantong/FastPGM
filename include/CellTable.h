@@ -19,7 +19,7 @@ public:
     /**
      * store a copy of config for temporary use (reused)
      */
-    int* config_copy;
+    vector<int> config_copy;
     /**
      * key is the cell index (corresponds to one configuration)
      * value is the counting value of the configuration
@@ -46,11 +46,11 @@ public:
 
     void Reset(int* dims, int size);
     void AddToTable(Dataset *dataset, int* indices, int size);
-    int Increment(int* config, int value);
-    int GetCellIndex(int* config);
-    long GetValue(int* config);
-    long ComputeMargin(int* config, int config_size);
-    long ComputeMargin(int* config, int config_size, int* margin_vars, int margin_size);
+    int Increment(const vector<int> &config, int value);
+    int GetCellIndex(const vector<int> &config);
+    long GetValue(const vector<int> &config);
+    long ComputeMargin(const vector<int> &config, int config_size);
+    long ComputeMargin(const vector<int> &config, int config_size, int* margin_vars, int margin_size);
 };
 
 #endif //BAYESIANNETWORK_CELLTABLE_H

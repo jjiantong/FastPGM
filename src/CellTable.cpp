@@ -64,7 +64,8 @@ void CellTable::AddToTable(Dataset *dataset, int* indices, int size) {
     Reset(dims, size); // reset a new cell table using the given dimensions
     delete [] dims;
 
-    int* config = new int[size];
+    vector<int> config;
+    config.resize(size);
     for (int i = 0; i < dataset->num_instance; ++i) { // for each instance
         for (int j = 0; j < size; ++j) { // for each feature in indices
             config[j] = dataset->dataset_all_vars[i][indices[j]];
@@ -72,7 +73,6 @@ void CellTable::AddToTable(Dataset *dataset, int* indices, int size) {
         }
         Increment(config, 1);
     }
-    delete [] config;
 }
 
 /**
@@ -81,7 +81,7 @@ void CellTable::AddToTable(Dataset *dataset, int* indices, int size) {
  * @param value the amount by which the table cell of the configuration should be incremented (an integer)
  * @return the new counting value
  */
-int CellTable::Increment(int* config, int value) {
+int CellTable::Increment(const vector<int> &config, int value) {
     int cell_index = GetCellIndex(config);
 
     cells[cell_index] += value;
@@ -106,7 +106,7 @@ int CellTable::Increment(int* config, int value) {
  *  given config (x, y, z), the cell index should be (((0 * 2) + x) * 3 + y) * 2 + z
  *  given config (1, 1, 1), the cell index = (((0 * 2) + 1) * 3 + 1) * 2 + 1 = 9
  */
-int CellTable::GetCellIndex(int* config) {
+int CellTable::GetCellIndex(const vector<int> &config) {
     int cell_index = 0;
     for (int i = 0; i < num_vars_tested; ++i) {
         cell_index *= dims[i];
@@ -118,7 +118,7 @@ int CellTable::GetCellIndex(int* config) {
 /**
  * get the count value of the configuration
  */
-long CellTable::GetValue(int* config) {
+long CellTable::GetValue(const vector<int> &config) {
     return cells[GetCellIndex(config)];
 }
 
@@ -132,12 +132,9 @@ long CellTable::GetValue(int* config) {
  * @param config: a vector of the sort described above.
  * @return the marginal sum specified
  */
-long CellTable::ComputeMargin(int* config, int config_size) {
+long CellTable::ComputeMargin(const vector<int> &config, int config_size) {
     // make a copy of the config vector so that the original is not messed up
-    config_copy = new int[config_size];
-    for (int i = 0; i < config_size; ++i) {
-        config_copy[i] = config[i];
-    }
+    config_copy = config;
 
     long sum = 0;
     int i = -1;
@@ -163,16 +160,12 @@ long CellTable::ComputeMargin(int* config, int config_size) {
  * the sum is over the cell specified by 'coord' and
  * all of the cells which differ from that cell in any of the specified coordinates
  */
-long CellTable::ComputeMargin(int* config, int config_size, int* margin_vars, int margin_size) {
+long CellTable::ComputeMargin(const vector<int> &config, int config_size, int* margin_vars, int margin_size) {
     // make a copy of the config vector so that the original is not messed up
-    config_copy = new int[config_size];
-    for (int i = 0; i < config_size; ++i) {
-        config_copy[i] = config[i];
-    }
+    config_copy = config;
     for (int i = 0; i < margin_size; ++i) {
         config_copy[margin_vars[i]] = -1;
     }
     long ret = ComputeMargin(config_copy, config_size);
-    delete [] config_copy;
     return ret;
 }

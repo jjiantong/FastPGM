@@ -103,7 +103,8 @@ IndependenceTest::Result IndependenceTest::ComputeGSquare(int* test_idx, int siz
         cond_dims[i] = cell_table->dims[i + 2];
     }
 
-    int* config = new int[size];
+    vector<int> config;
+    config.resize(size);
     int num_rows = cell_table->dims[0]; // dimension of x
     int num_cols = cell_table->dims[1]; // dimension of y
     vector<bool> attested_rows;
@@ -183,7 +184,6 @@ IndependenceTest::Result IndependenceTest::ComputeGSquare(int* test_idx, int siz
         }
     }
 
-    delete [] config;
     delete [] cond_dims;
     timer.Stop("counting2");
 
