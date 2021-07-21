@@ -24,8 +24,6 @@ IndependenceTest::IndependenceTest(Dataset *dataset, double alpha) {
         int dim = dataset->num_of_possible_values_of_disc_vars.at(i);
         dims.push_back(dim);
     }
-
-    cell_table = new CellTable();
 }
 
 /**
@@ -51,14 +49,8 @@ bool IndependenceTest::IsIndependent(int x_idx, int y_idx, const set<int> &z, st
     if (metric.compare("g square") == 0) {
         return IsIndependentByGSquare(test_idx, z.size() + 2);
     } else if (metric.compare("mutual information") == 0) {}
-    else { // use for testing
-        int random_number = rand()%10000;
-        if (random_number > 9990) {
-            return true;
-        } else {
-            return false;
-        }
-    }
+    else {}
+
     delete [] test_idx;
 }
 
@@ -82,7 +74,15 @@ bool IndependenceTest::IsIndependentByGSquare(int* test_idx, int size) {
 IndependenceTest::Result IndependenceTest::ComputeGSquare(int* test_idx, int size) {
     timer.Start("counting1");
     // reset the cell table for the columns referred to in 'test_idx', do cell coefs for those columns
-    cell_table->AddToTable(dataset, test_idx, size);
+    vector<int> dims;
+    for (int i = 0; i < size; ++i) {
+        // get the number of possible values of each feature in indices, from Dataset.num_of_possible_values_of_disc_vars
+        int dim = dataset->num_of_possible_values_of_disc_vars.at(test_idx[i]);
+        dims.push_back(dim);
+    }
+    cell_table = new CellTable(dims);
+
+    cell_table->AddToTable(dataset, test_idx, size); // more than 99% execution time here...
     timer.Stop("counting1");
 
     timer.Start("counting2");
@@ -119,7 +119,7 @@ IndependenceTest::Result IndependenceTest::ComputeGSquare(int* test_idx, int siz
         attested_rows.assign(num_rows, true);
         attested_cols.assign(num_cols, true);
 
-        long total = cell_table->ComputeMargin(config, size, both_vars, 2); // N_{++z}
+        long total = cell_table->ComputeMargin(config, both_vars, 2); // N_{++z}
 
         double local_g2 = 0.0;
         vector<double> e;
@@ -130,8 +130,8 @@ IndependenceTest::Result IndependenceTest::ComputeGSquare(int* test_idx, int siz
                 config[0] = i;
                 config[1] = j;
 
-                long sum_row = cell_table->ComputeMargin(config, size, second_var, 1); // N_{x+z}
-                long sum_col = cell_table->ComputeMargin(config, size, first_var, 1); // N_{+yz}
+                long sum_row = cell_table->ComputeMargin(config, second_var, 1); // N_{x+z}
+                long sum_col = cell_table->ComputeMargin(config, first_var, 1); // N_{+yz}
                 long observed = cell_table->GetValue(config); // N_{xyz}
 
                 bool skip = false;

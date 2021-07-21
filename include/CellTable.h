@@ -37,20 +37,16 @@ public:
      * and each value dims[i] is the numbers of values for the i'th dimension
      * each of these dimensions must be an integer greater than zero
      */
-    int* dims;
+    vector<int> dims;
     int num_vars_tested;
 
-    CellTable(){};
-    CellTable(int* dims, int size);
-    ~CellTable();
+    CellTable(const vector<int> &dims);
 
-    void Reset(int* dims, int size);
     void AddToTable(Dataset *dataset, int* indices, int size);
-    int Increment(const vector<int> &config, int value);
     int GetCellIndex(const vector<int> &config);
     long GetValue(const vector<int> &config);
-    long ComputeMargin(const vector<int> &config, int config_size);
-    long ComputeMargin(const vector<int> &config, int config_size, int* margin_vars, int margin_size);
+    long ComputeMargin(const vector<int> &config);
+    long ComputeMargin(const vector<int> &config, int* margin_vars, int margin_size);
 };
 
 #endif //BAYESIANNETWORK_CELLTABLE_H
