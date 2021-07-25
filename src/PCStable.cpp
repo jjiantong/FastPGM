@@ -36,11 +36,11 @@ void PCStable::StructLearnCompData(Dataset *dts, bool print_struct) {
     cout << "# of CI-tests is " << num_ci_test << ", # of dependence judgements is " << num_dependence_judgement << endl;
     timer.Print("pc-stable");
     timer.Print("pc-stable step 1");
-//    timer.Print("pc-stable step 2");
-//    timer.Print("pc-stable step 3");
-//    ci_test->timer.Print("counting1");
-//    ci_test->timer.Print("counting2");
-//    ci_test->timer.Print("computing p-value");
+    timer.Print("pc-stable step 2");
+    timer.Print("pc-stable step 3");
+    ci_test->timer.Print("counting1");
+    ci_test->timer.Print("counting2");
+    ci_test->timer.Print("computing p-value");
 }
 
 void PCStable::StructLearnByPCStable(bool print_struct) {

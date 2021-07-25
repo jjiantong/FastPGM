@@ -39,17 +39,17 @@ void CellTable::AddToTable(Dataset *dataset, int* indices, int size) {
     vector<int> config;
     config.resize(size);
 
-    omp_set_num_threads(2);
-#pragma omp parallel for firstprivate(config) schedule(static, 5000)
+//    omp_set_num_threads(2);
+//#pragma omp parallel for firstprivate(config) schedule(static, 5000)
     for (int i = 0; i < dataset->num_instance; ++i) { // for each instance
-#pragma omp simd
+//#pragma omp simd
         for (int j = 0; j < size; ++j) { // for each feature in indices
             config[j] = dataset->dataset_all_vars[i][indices[j]];
 //            coords.at(j) = dataset->vector_dataset_all_vars.at(i).at(indices.at(j)).second.GetInt();
         }
         // increment the counting value at the given configuration by 1
         int cell_index = GetCellIndex(config);
-#pragma omp atomic
+//#pragma omp atomic
         cells[cell_index]++;
     }
 }

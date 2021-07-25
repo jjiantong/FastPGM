@@ -77,20 +77,22 @@ IndependenceTest::Result IndependenceTest::IndependenceResult(int x_idx, int y_i
 
 /**
  * perform conditional independence tests of discrete data using the G Square method
- * degrees of freedom are calculated as in Fienberg, The Analysis of Cross-Classified Categorical Data, 2nd Edition, 142
  * @param size: number of x, y, z1, z2, ...
  */
 bool IndependenceTest::IsIndependentByGSquare(int* test_idx, int size) {
 
     IndependenceTest::Result result = ComputeGSquare(test_idx, size);
+//    IndependenceTest::Result result = ComputeGSquare2(test_idx, size);
     return result.is_independent;
 }
 
 /**
- * calculate g square for a conditional crosstabulation table for independence question 0 _||_ 1 | 2, 3, ...max
- * by summing up g square and degrees of freedom for each conditional table in turn
- * rows or columns that consist entirely of zeros have been removed
- * @param size: number of x, y, z1, z2, ...
+ * calculate g square for ci-test x _||_ y | z1, z2, ..., max
+ * by a commonly used approach, which also used by bnlearn and Tetrad -- for given test_idx,
+ * it first computes the counts by scanning the complete data set to fill up a contingency table / cell table
+ * this step is the most expensive part -- more than 99% execution time
+ * @param test_idx: x, y, z1, z2 ...
+ * @param size: number of test_idx
  */
 IndependenceTest::Result IndependenceTest::ComputeGSquare(int* test_idx, int size) {
     timer.Start("counting1");
@@ -101,8 +103,8 @@ IndependenceTest::Result IndependenceTest::ComputeGSquare(int* test_idx, int siz
         int dim = dataset->num_of_possible_values_of_disc_vars.at(test_idx[i]);
         dims.push_back(dim);
     }
-    cell_table = new CellTable(dims);
 
+    cell_table = new CellTable(dims);
     cell_table->AddToTable(dataset, test_idx, size); // more than 99% execution time here...
     timer.Stop("counting1");
 
@@ -124,12 +126,22 @@ IndependenceTest::Result IndependenceTest::ComputeGSquare(int* test_idx, int siz
         cond_dims[i] = cell_table->dims[i + 2];
     }
 
+    /**
+     * this part contains two ways to compute the degree of freedom (df)
+     *      1. |Z| * (|X|-1) * (|Y|-1), where |Z| means # of combinations of Z
+     *         so it equals (dim(x)-1) * (dim(y)-1) * dim(z1) * dim(z2) * ...
+     *         this way is used in Tetrad,
+     *         as in Fienberg, The Analysis of Cross-Classified Categorical Data, 2nd Edition, 142
+     *      2. just like 1, but |X| and |Y| only count for non-zero cases
+     * it seems that 2 is more reasonable and it can obtain smaller SHD in practice
+     * but 1 is more simple in implementation and actually more commonly used
+     */
     vector<int> config;
     config.resize(size);
     int num_rows = cell_table->dims[0]; // dimension of x
     int num_cols = cell_table->dims[1]; // dimension of y
-    vector<bool> attested_rows;
-    vector<bool> attested_cols;
+//    vector<bool> attested_rows;
+//    vector<bool> attested_cols;
 
     CombinationGenerator cg(cond_dims, size - 2);
     while (cg.has_next) {
@@ -137,8 +149,8 @@ IndependenceTest::Result IndependenceTest::ComputeGSquare(int* test_idx, int siz
         for (int i = 0; i < size - 2; ++i) {
             config[i + 2] = combination.at(i);
         }
-        attested_rows.assign(num_rows, true);
-        attested_cols.assign(num_cols, true);
+//        attested_rows.assign(num_rows, true);
+//        attested_cols.assign(num_cols, true);
 
         long total = cell_table->ComputeMargin(config, both_vars, 2); // N_{++z}
 
@@ -157,11 +169,11 @@ IndependenceTest::Result IndependenceTest::ComputeGSquare(int* test_idx, int siz
 
                 bool skip = false;
                 if (sum_row == 0) {
-                    attested_rows[i] = false;
+//                    attested_rows[i] = false;
                     skip = true;
                 }
                 if (sum_col == 0) {
-                    attested_cols[j] = false;
+//                    attested_cols[j] = false;
                     skip = true;
                 }
                 if (skip) {
@@ -185,20 +197,20 @@ IndependenceTest::Result IndependenceTest::ComputeGSquare(int* test_idx, int siz
             continue;
         }
 
-        int num_attested_rows = 0;
-        int num_attested_cols = 0;
-        for (const bool &attested_row : attested_rows) {
-            if (attested_row) {
-                num_attested_rows++;
-            }
-        }
-        for (const bool &attested_col : attested_cols) {
-            if (attested_col) {
-                num_attested_cols++;
-            }
-        }
-        // like (|X| - 1)(|Y| - 1) but not actually: |X| and |Y| are for non-zero cases
-        int local_df = (num_attested_rows - 1) * (num_attested_cols - 1);
+//        int num_attested_rows = 0;
+//        int num_attested_cols = 0;
+//        for (const bool &attested_row : attested_rows) {
+//            if (attested_row) {
+//                num_attested_rows++;
+//            }
+//        }
+//        for (const bool &attested_col : attested_cols) {
+//            if (attested_col) {
+//                num_attested_cols++;
+//            }
+//        }
+//        int local_df = (num_attested_rows - 1) * (num_attested_cols - 1);
+        int local_df = (num_rows - 1) * (num_cols - 1);
         if (local_df > 0) {
             df += local_df;
             g2 += local_g2;
@@ -223,20 +235,27 @@ IndependenceTest::Result IndependenceTest::ComputeGSquare(int* test_idx, int siz
     return IndependenceTest::Result(g2, p_value, df, indep);
 }
 
+/**
+ * calculate g square for ci-test x _||_ y | z1, z2, ..., max
+ * using a DFS tree, refer to code https://github.com/asrivast28/ramBLe, and papers
+ *      A parallel framework for constraint-based bayesian network learning via markov blanket discovery, 2020
+ *      Fast counting in machine learning applications, 2018
+ * @param test_idx: x, y, z1, z2 ...
+ * @param size: number of test_idx
+ */
 //IndependenceTest::Result IndependenceTest::ComputeGSquare2(int* test_idx, int size) {
 //    double g2 = 0.0;
 //    int df = 0;
 //
-//    int *dims = new int[size];
+//    vector<int> dims;
 //    for (int i = 0; i < size; ++i) {
 //        // get the number of possible values of each feature in indices, from Dataset.num_of_possible_values_of_disc_vars
 //        int dim = dataset->num_of_possible_values_of_disc_vars.at(test_idx[i]);
-//        dims[i] = dim;
+//        dims.push_back(dim);
 //    }
 //
-//    // dimensions of z1, z2, ...; copy from "cell_table->dims", starting from the third element
-//    // because "cell_table->dims" contains the dimensions of x, y, z1, z2, ..., then we ignore the first two elements
-//    // note that "dims" contains the dimensions of all variables, so we cannot use "dims" here
+//    // dimensions of z1, z2, ...; copy from "dims", starting from the third element
+//    // because "dims" contains the dimensions of x, y, z1, z2, ..., then we ignore the first two elements
 //    int* cond_dims = new int[size - 2];
 //    for (int i = 0; i < size - 2; ++i) {
 //        cond_dims[i] = dims[i + 2];
@@ -244,76 +263,53 @@ IndependenceTest::Result IndependenceTest::ComputeGSquare(int* test_idx, int siz
 //
 //    int num_rows = dims[0]; // dimension of x
 //    int num_cols = dims[1]; // dimension of y
-//    int num_attested_rows = 0;
-//    int num_attested_cols = 0;
 //
 //    CombinationGenerator cg(cond_dims, size - 2);
 //    while (cg.has_next) {
 //        vector<int> combination = cg.Next();
-//        vector<int> base;
+//        vector<int> base; // at the beginning, base is the whole data set
+//        for (int i = 0; i < dataset->num_instance; ++i) {
+//            base.push_back(i);
+//        }
 //
-//        for (int i = 0; i < dataset->num_instance; ++i) { // for each instance
-//            bool flag = true;
-//            for (int j = 0; j < combination.size(); ++j) { // for each feature in indices
-//                if (dataset->dataset_all_vars[i][test_idx[j + 2]] != combination.at(j)) {
-//                    flag = false;
-//                    break;
-//                }
-//            }
-//            if (flag) {
-//                base.push_back(i);
-//            }
+//        for (int i = 0; i < combination.size(); ++i) { // for z1, z2, ...
+//            base = Common(base, test_idx[i + 2], combination.at(i));
 //        }
 //        long total = base.size(); // N_{++z}
+//        if (total == 0)
+//            continue;
 //
-//        if (total != 0) {
-//            for (int i = 0; i < num_rows; ++i) { // for each possible value of x
-//                vector<int> count_x;
-//                for (int j : base) {
-//                    if (dataset->dataset_all_vars[j][test_idx[0]] == i) {
-//                        count_x.push_back(j);
-//                    }
-//                }
-//                long sum_row = count_x.size(); // N_{x+z}
+//        double local_g2 = 0.0;
+//        vector<double> e;
+//        vector<double> o;
 //
-//                if (sum_row != 0) {
-//                    num_attested_rows++;
-//                    for (int j = 0; j < num_cols; ++j) { // for each possible value of y
-//                        vector<int> count_y;
-//                        vector<int> count_xy;
-//                        for (int k : base) {
-//                            if (dataset->dataset_all_vars[k][test_idx[1]] == j) {
-//                                count_y.push_back(k);
-//                            }
-//                        }
-//                        long sum_col = count_y.size(); // N_{+yz}
+//        for (int i = 0; i < num_rows; ++i) { // for each possible value of x
+//            vector<int> count_x = Common(base, test_idx[0], i);
+//            long sum_row = count_x.size(); // N_{x+z}
+//            if (sum_row == 0)
+//                continue;
 //
-//                        if (sum_col != 0) {
-//                            num_attested_cols++;
-//                            for (int k : count_x) {
-//                                if (dataset->dataset_all_vars[k][test_idx[1]] == j) {
-//                                    count_xy.push_back(k);
-//                                }
-//                            }
-//                            long observed = count_xy.size(); // N_{xyz}
+//            for (int j = 0; j < num_cols; ++j) { // for each possible value of y
+//                vector<int> count_y = Common(base, test_idx[1], j);
+//                long sum_col = count_y.size(); // N_{+yz}
+//                if (sum_col == 0)
+//                    continue;
 //
-//                            if (observed != 0) {
-//                                double component = observed * (log(observed) + log(total) - log(sum_row) - log(sum_col));
-//                                g2 += component;
-//                            }
-//                        }
-//                    }
+//                vector<int> count_xy = Common(count_x, test_idx[1], j);
+//                long observed = count_xy.size(); // N_{xyz}
+//
+//                if (observed != 0) {
+//                    double e = sum_row * sum_col; // N_{x+z} * N_{+yz}
+//                    double expected = e / (double) total; // E_{xyz} = (N_{x+z} * N_{+yz}) / N_{++z}
+//                    g2 += 2.0 * observed * log(observed / expected); // 2 * N_{xyz} * log (N_{xyz} / E_{xyz})
 //                }
 //            }
 //        }
-//
-//        // like (|X| - 1)(|Y| - 1) but not actually: |X| and |Y| are for non-zero cases
-//        int local_df = (num_attested_rows - 1) * (num_attested_cols - 1);
+//        int local_df = (num_rows - 1) * (num_cols - 1);
 //        df += local_df;
 //    }
-//    g2 *= 2.0;
 //
-//    delete [] dims;
+//    delete [] cond_dims;
 //
 //    if (df == 0) { // if df == 0, this is definitely an independent table
 //        double p_value = 1.0;
@@ -326,4 +322,19 @@ IndependenceTest::Result IndependenceTest::ComputeGSquare(int* test_idx, int siz
 //    double p_value = 1.0 - stats::pchisq(g2, df, false);
 //    bool indep = (p_value > alpha);
 //    return IndependenceTest::Result(g2, p_value, df, indep);
+//}
+//
+///**
+// * select feature[index] = value from a subset of data set
+// * @param subset: index of a subset of the data set
+// * @return a set of index
+// */
+//vector<int> IndependenceTest::Common(const vector<int> &subset, int index, int value) {
+//    vector<int> result;
+//    for (int i : subset) {
+//        if (dataset->dataset_all_vars[i][index] == value) {
+//            result.push_back(i);
+//        }
+//    }
+//    return result;
 //}
