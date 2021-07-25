@@ -87,40 +87,44 @@
 //}
 
 
-//class ExperimentBNSLOnAlarm : public ::testing::Test {
-//protected:
-//
-//    void SetUp() override {
-//        trainer = new Dataset();
-//        tester = new Dataset();
-//        network = new Network(true);
-//
-//        string train_set_file_path = "../../data/alarm_s10000.txt";
-//
-//        trainer->LoadCSVData(train_set_file_path, true, true, 0);
-//        tester->LoadCSVData(train_set_file_path, true, true, 0);
-//
-////        ParameterLearning *bnpl = new ParameterLearning(network);
-////        bnpl->LearnParamsKnowStructCompData(trainer, true);
-//    }
-//
-//    Dataset *trainer;
-//    Dataset *tester;
-//    Network *network;
-//};
-//
-//TEST_F(ExperimentBNSLOnAlarm, pc_stable) {
-//    StructureLearning *bnsl = new PCStable(network, trainer, 0.05);
-//    bnsl->StructLearnCompData(trainer, true);
-////    network->PrintEachEdgeWithIndex();
-//
-//    CustomNetwork *ref_net = new CustomNetwork();
-//    ref_net->LoadBIFFile("../../data/alarm.bif");
-////    ref_net->PrintEachEdgeWithIndex();
-//
-//    BNSLComparison comp(ref_net, network);
-//    cout << "SHD = " << comp.GetSHD() << endl;
-//}
+class ExperimentBNSLOnAlarm : public ::testing::Test {
+protected:
+
+    void SetUp() override {
+        trainer = new Dataset();
+        tester = new Dataset();
+        network = new Network(true);
+
+        string train_set_file_path = "../../data/alarm_s10000.txt";
+
+        trainer->LoadCSVData(train_set_file_path, true, true, 0);
+        tester->LoadCSVData(train_set_file_path, true, true, 0);
+
+//        ParameterLearning *bnpl = new ParameterLearning(network);
+//        bnpl->LearnParamsKnowStructCompData(trainer, true);
+    }
+
+    Dataset *trainer;
+    Dataset *tester;
+    Network *network;
+};
+
+TEST_F(ExperimentBNSLOnAlarm, pc_stable) {
+    StructureLearning *bnsl = new PCStable(network, trainer, 0.05);
+    bnsl->StructLearnCompData(trainer, true);
+//    network->PrintEachEdgeWithIndex();
+
+    CustomNetwork *ref_net = new CustomNetwork();
+    ref_net->LoadBIFFile("../../data/alarm.bif");
+//    ref_net->PrintEachEdgeWithIndex();
+
+    BNSLComparison comp(ref_net, network);
+    int shd = comp.GetSHD();
+    cout << "SHD = " << shd << endl;
+    EXPECT_EQ(shd, 3);
+    EXPECT_EQ(((PCStable*)bnsl)->num_ci_test, 6265);
+    EXPECT_EQ(((PCStable*)bnsl)->num_dependence_judgement, 5643);
+}
 
 
 class ExperimentBNSLOnWin95pts : public ::testing::Test {
@@ -155,6 +159,10 @@ TEST_F(ExperimentBNSLOnWin95pts, pc_stable) {
 //    ref_net->PrintEachEdgeWithIndex();
 
     BNSLComparison comp(ref_net, network);
-    cout << "SHD = " << comp.GetSHD() << endl;
+    int shd = comp.GetSHD();
+    cout << "SHD = " << shd << endl;
+    EXPECT_EQ(shd, 31);
+    EXPECT_EQ(((PCStable*)bnsl)->num_ci_test, 21346);
+    EXPECT_EQ(((PCStable*)bnsl)->num_dependence_judgement, 18589);
 }
 

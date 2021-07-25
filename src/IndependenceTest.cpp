@@ -54,6 +54,27 @@ bool IndependenceTest::IsIndependent(int x_idx, int y_idx, const set<int> &z, st
     delete [] test_idx;
 }
 
+IndependenceTest::Result IndependenceTest::IndependenceResult(int x_idx, int y_idx, const set<int> &z, string metric) {
+    /**
+     * for testing x, y given z1,...,zn,
+     * set up an array of length n + 2 containing the indices of these variables in order
+     */
+    int* test_idx = new int[z.size() + 2];
+    test_idx[0] = x_idx;
+    test_idx[1] = y_idx;
+    int index = 2;
+    for (auto it = z.begin(); it != z.end(); ++it) {
+        test_idx[index++] = *it;
+    }
+
+    if (metric.compare("g square") == 0) {
+        return ComputeGSquare(test_idx, z.size() + 2);
+    } else if (metric.compare("mutual information") == 0) {}
+    else {}
+
+    delete [] test_idx;
+}
+
 /**
  * perform conditional independence tests of discrete data using the G Square method
  * degrees of freedom are calculated as in Fienberg, The Analysis of Cross-Classified Categorical Data, 2nd Edition, 142

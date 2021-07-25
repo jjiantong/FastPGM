@@ -6,6 +6,7 @@
 #define BAYESIANNETWORK_CELLTABLE_H
 
 #include "Dataset.h"
+#include <omp.h>
 
 /**
  * Important note: rename like Tetrad: "cell" = "configuration"!!
@@ -43,7 +44,7 @@ public:
     CellTable(const vector<int> &dims);
 
     void AddToTable(Dataset *dataset, int* indices, int size);
-    int GetCellIndex(const vector<int> &config);
+    int inline GetCellIndex(const vector<int> &config);
     long GetValue(const vector<int> &config);
     long ComputeMargin(const vector<int> &config);
     long ComputeMargin(const vector<int> &config, int* margin_vars, int margin_size);

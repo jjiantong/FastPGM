@@ -38,14 +38,18 @@ CellTable::CellTable(const vector<int> &dims) {
 void CellTable::AddToTable(Dataset *dataset, int* indices, int size) {
     vector<int> config;
     config.resize(size);
+
+    omp_set_num_threads(2);
+#pragma omp parallel for firstprivate(config) schedule(static, 5000)
     for (int i = 0; i < dataset->num_instance; ++i) { // for each instance
+#pragma omp simd
         for (int j = 0; j < size; ++j) { // for each feature in indices
             config[j] = dataset->dataset_all_vars[i][indices[j]];
 //            coords.at(j) = dataset->vector_dataset_all_vars.at(i).at(indices.at(j)).second.GetInt();
         }
-
         // increment the counting value at the given configuration by 1
         int cell_index = GetCellIndex(config);
+#pragma omp atomic
         cells[cell_index]++;
     }
 }
@@ -68,7 +72,7 @@ void CellTable::AddToTable(Dataset *dataset, int* indices, int size) {
  *  given config (x, y, z), the cell index should be (((0 * 2) + x) * 3 + y) * 2 + z
  *  given config (1, 1, 1), the cell index = (((0 * 2) + 1) * 3 + 1) * 2 + 1 = 9
  */
-int CellTable::GetCellIndex(const vector<int> &config) {
+int inline CellTable::GetCellIndex(const vector<int> &config) {
     int cell_index = 0;
     for (int i = 0; i < num_vars_tested; ++i) {
         cell_index *= dims[i];

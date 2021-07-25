@@ -70,6 +70,7 @@ public:
     IndependenceTest(Dataset *dataset, double alpha);
 
     bool IsIndependent(int x_idx, int y_idx, const set<int> &z, string metric);
+    Result IndependenceResult(int x_idx, int y_idx, const set<int> &z, string metric);
     bool IsIndependentByGSquare(int* test_idx, int size);
     Result ComputeGSquare(int* test_idx, int size);
 };

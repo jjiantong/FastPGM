@@ -1019,7 +1019,7 @@ void Network::OrderEdge() {
                 if (y->set_parent_indexes.find(x_idx) != y->set_parent_indexes.end()) { // x->y exists
                     Node* x = FindNodePtrByIndex(x_idx);
                     int edge_pos = GetDirectedEdge(x, y);
-                    if (!vec_edges.at(edge_pos).is_ordered) { // find edge x->y
+                    if (!vec_edges.at(edge_pos).is_ordered) { // find unordered edge x->y
                         vec_edges.at(edge_pos).is_ordered = true;
                         tmp_edge_order.push_back(vec_edges.at(edge_pos));
                     }

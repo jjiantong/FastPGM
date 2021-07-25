@@ -36,11 +36,11 @@ void PCStable::StructLearnCompData(Dataset *dts, bool print_struct) {
     cout << "# of CI-tests is " << num_ci_test << ", # of dependence judgements is " << num_dependence_judgement << endl;
     timer.Print("pc-stable");
     timer.Print("pc-stable step 1");
-    timer.Print("pc-stable step 2");
-    timer.Print("pc-stable step 3");
-    ci_test->timer.Print("counting1");
-    ci_test->timer.Print("counting2");
-    ci_test->timer.Print("computing p-value");
+//    timer.Print("pc-stable step 2");
+//    timer.Print("pc-stable step 3");
+//    ci_test->timer.Print("counting1");
+//    ci_test->timer.Print("counting2");
+//    ci_test->timer.Print("computing p-value");
 }
 
 void PCStable::StructLearnByPCStable(bool print_struct) {
@@ -78,10 +78,13 @@ void PCStable::StructLearnByPCStable(bool print_struct) {
         set<int> empty_set;
 
         num_ci_test++;
-        bool independent = ci_test->IsIndependent(node_idx1, node_idx2, empty_set, "g square");
+//        bool independent = ci_test->IsIndependent(node_idx1, node_idx2, empty_set, "g square");
+        IndependenceTest::Result result = ci_test->IndependenceResult(node_idx1, node_idx2, empty_set, "g square");
+        bool independent = result.is_independent;
         // because I(x1, x2) = I(x2, x1) (at least for g2)
         if (!independent) { // the edge remains
             num_dependence_judgement++;
+            (*edge_it).p = result.p_value; // store the p value - larger means a stronger association
             edge_it++;
         } else {
             // the edge node1 -- node2 should be removed

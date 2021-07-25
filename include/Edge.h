@@ -23,6 +23,7 @@ public:
      */
     bool is_ordered;
     Label label;
+    double p;
 
     Edge(){};
     Edge(Node* node1, Node* node2, EndPoint end_point1, EndPoint end_point2); // for directed edges
