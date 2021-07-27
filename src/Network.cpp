@@ -387,7 +387,11 @@ bool Network::DeleteEdge(int p_index, int c_index) {
  * which also means whether an edge (either directed and undirected) between two nodes exists
  */
 bool Network::IsAdjacentTo(int node_idx1, int node_idx2) {
-    set<int> adjacent_nodes = adjacencies[node_idx1];
+//    set<int> adjacent_nodes = adjacencies[node_idx1];
+    set<int> adjacent_nodes;
+    for (auto it = adjacencies[node_idx1].begin(); it != adjacencies[node_idx1].end(); ++it) {
+        adjacent_nodes.insert((*it).first);
+    }
     if (adjacent_nodes.find(node_idx2) == adjacent_nodes.end()) {
         return false;
     } else {

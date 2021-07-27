@@ -140,8 +140,8 @@ IndependenceTest::Result IndependenceTest::ComputeGSquare(int* test_idx, int siz
     config.resize(size);
     int num_rows = cell_table->dims[0]; // dimension of x
     int num_cols = cell_table->dims[1]; // dimension of y
-//    vector<bool> attested_rows;
-//    vector<bool> attested_cols;
+    vector<bool> attested_rows;
+    vector<bool> attested_cols;
 
     CombinationGenerator cg(cond_dims, size - 2);
     while (cg.has_next) {
@@ -149,8 +149,8 @@ IndependenceTest::Result IndependenceTest::ComputeGSquare(int* test_idx, int siz
         for (int i = 0; i < size - 2; ++i) {
             config[i + 2] = combination.at(i);
         }
-//        attested_rows.assign(num_rows, true);
-//        attested_cols.assign(num_cols, true);
+        attested_rows.assign(num_rows, true);
+        attested_cols.assign(num_cols, true);
 
         long total = cell_table->ComputeMargin(config, both_vars, 2); // N_{++z}
 
@@ -169,11 +169,11 @@ IndependenceTest::Result IndependenceTest::ComputeGSquare(int* test_idx, int siz
 
                 bool skip = false;
                 if (sum_row == 0) {
-//                    attested_rows[i] = false;
+                    attested_rows[i] = false;
                     skip = true;
                 }
                 if (sum_col == 0) {
-//                    attested_cols[j] = false;
+                    attested_cols[j] = false;
                     skip = true;
                 }
                 if (skip) {
@@ -197,20 +197,20 @@ IndependenceTest::Result IndependenceTest::ComputeGSquare(int* test_idx, int siz
             continue;
         }
 
-//        int num_attested_rows = 0;
-//        int num_attested_cols = 0;
-//        for (const bool &attested_row : attested_rows) {
-//            if (attested_row) {
-//                num_attested_rows++;
-//            }
-//        }
-//        for (const bool &attested_col : attested_cols) {
-//            if (attested_col) {
-//                num_attested_cols++;
-//            }
-//        }
-//        int local_df = (num_attested_rows - 1) * (num_attested_cols - 1);
-        int local_df = (num_rows - 1) * (num_cols - 1);
+        int num_attested_rows = 0;
+        int num_attested_cols = 0;
+        for (const bool &attested_row : attested_rows) {
+            if (attested_row) {
+                num_attested_rows++;
+            }
+        }
+        for (const bool &attested_col : attested_cols) {
+            if (attested_col) {
+                num_attested_cols++;
+            }
+        }
+        int local_df = (num_attested_rows - 1) * (num_attested_cols - 1);
+//        int local_df = (num_rows - 1) * (num_cols - 1);
         if (local_df > 0) {
             df += local_df;
             g2 += local_g2;

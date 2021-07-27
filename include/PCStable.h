@@ -11,6 +11,13 @@
 #include "Timer.h"
 #include <algorithm>
 
+struct CmpByValue {
+    template <typename T>
+    bool operator()(const T &lhs, const T &rhs) {
+        return lhs.second < rhs.second;
+    }
+};
+
 /**
  * @brief: Implementation the PC-stable (Peter & Clark) algorithm
  * PC: Chapter 6 of Spirtes, Glymour, and Scheines, "Causation, Prediction, and Search," 2nd edition,
@@ -32,8 +39,8 @@ public:
     virtual void StructLearnCompData(Dataset *dts, bool print_struct);
     void StructLearnByPCStable(bool print_struct);
     bool SearchAtDepth(int c_depth);
-    bool CheckSide(const map<int, set<int>> &adjacencies, int c_depth, Node* x, Node* y);
-    int FreeDegree(const map<int, set<int>> &adjacencies);
+    bool CheckSide(const map<int, map<int, double>> &adjacencies, int c_depth, Node* x, Node* y);
+    int FreeDegree(const map<int, map<int, double>> &adjacencies);
 
     void OrientVStructure();
     void OrientImplied();

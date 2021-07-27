@@ -22,15 +22,20 @@ public:
 
     int a; // number of objects being selected from
     int b; // number of objects in the desired selection
-    int diff; // difference between a and b (should be nonnegative)
-//    vector<int> choice; // internally stored choice
-    int* choice; // internally stored choice
+    int diff; // difference between a and b (should be non-negative)
+    vector<int> choice; // internally stored choice
+//    int* choice; // internally stored choice
 
     ChoiceGenerator (int a, int b);
-    ~ChoiceGenerator();
+//    ~ChoiceGenerator();
 
-    int* Next();
+    vector<int> Next();
     void Fill(int index);
+
+    int GetNumChoice();
+    int ComputeCombination(int m, int n);
+
+//    vector<int*> GenerateAllChoices();
 };
 
 #endif //BAYESIANNETWORK_CHOICEGENERATOR_H

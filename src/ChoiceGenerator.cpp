@@ -26,25 +26,25 @@ ChoiceGenerator::ChoiceGenerator (int a, int b) {
      * set the value at the last index one less than it would be ([0 1 2 ... b-2 b-2])
      * so that on the first call to next() correctly returns the first combination ([0 1 2 ... b - 1])
      */
-//    for (int i = 0; i < b - 1; i++) {
-//        choice.push_back(i);
-//    }
-//    choice.push_back(b-2);
-    choice = new int[b];
-    for (int i = 0; i < b - 1; ++i) {
-        choice[i] = i;
+    for (int i = 0; i < b - 1; i++) {
+        choice.push_back(i);
     }
-    choice[b - 1] = b - 2;
+    choice.push_back(b-2);
+//    choice = new int[b];
+//    for (int i = 0; i < b - 1; ++i) {
+//        choice[i] = i;
+//    }
+//    choice[b - 1] = b - 2;
 }
 
-ChoiceGenerator::~ChoiceGenerator() {
-    delete [] choice;
-}
+//ChoiceGenerator::~ChoiceGenerator() {
+//    delete [] choice;
+//}
 
 /**
  * @return the next combination in the series, or null if the series is finished
  */
-int* ChoiceGenerator::Next() {
+vector<int> ChoiceGenerator::Next() {
     int i = b;
 
     // Scan from the right, find the first index whose value is less than its expected maximum (i + diff),
@@ -55,7 +55,7 @@ int* ChoiceGenerator::Next() {
             return choice;
         }
     }
-    return nullptr;
+    return vector<int>();
 }
 
 /**
@@ -70,3 +70,44 @@ void ChoiceGenerator::Fill(int index) {
         choice[i] = choice[i - 1] + 1;
     }
 }
+
+/**
+ * @return number of choice by computing combination C(m, n)
+ */
+int ChoiceGenerator::GetNumChoice() {
+    if(b > a - b) {
+        return ComputeCombination(a, a - b);
+    } else {
+        return ComputeCombination(a, b);
+    }
+}
+
+/**
+ * Compute combination C(m, n)
+ * @example C(6, 2) = (6 * 5) / (2 * 1)
+ */
+int ChoiceGenerator::ComputeCombination(int m, int n) {
+    if (n == 0) {
+        return 1;
+    }
+    int numerator   = m;
+    int denominator = 1;
+    for (int i = 1; i < n; ++i) {
+        numerator *= --m;
+        denominator *= i + 1;
+    }
+    return numerator / denominator;
+}
+
+//vector<int*> ChoiceGenerator::GenerateAllChoices() {
+//    vector<int*> choices;
+//
+//    int* c;
+//    while ((c = Next()) != nullptr) {
+//        choices.push_back(c);
+//    }
+//
+//    if (choices.size() != GetNumChoice()) {
+//        cout << "error!! num choice = " << GetNumChoice() << " but size = " << choices.size() << endl;
+//    }
+//}
