@@ -13,7 +13,7 @@ class StructureLearning {
 public:
     Network *network; // the network to be learned
 
-    virtual void StructLearnCompData(Dataset *dts, bool print_struct) = 0;
+    virtual void StructLearnCompData(Dataset *dts, bool print_struct, bool verbose) = 0;
 
     virtual ~StructureLearning() {};
 

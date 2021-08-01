@@ -27,13 +27,15 @@ IndependenceTest::IndependenceTest(Dataset *dataset, double alpha) {
 }
 
 /**
- * @brief: determining whether variable x is independent of variable y given a set of conditioning variables z
+ * @brief: CI test TEST (x, y | z)
  * @param x_idx the one variable index being compared
  * @param y_idx the second variable index being compared
  * @param z the set of conditioning variables
  * @param metric the conditional independence test method
+ * @return CI test result, including g-square statistic, degree of freedom, p value, independent judgement
  */
-bool IndependenceTest::IsIndependent(int x_idx, int y_idx, const set<int> &z, string metric) {
+IndependenceTest::Result IndependenceTest::IndependenceResult(int x_idx, int y_idx, const set<int> &z,
+                                                              string metric, bool verbose) {
     /**
      * for testing x, y given z1,...,zn,
      * set up an array of length n + 2 containing the indices of these variables in order
@@ -47,28 +49,7 @@ bool IndependenceTest::IsIndependent(int x_idx, int y_idx, const set<int> &z, st
     }
 
     if (metric.compare("g square") == 0) {
-        return IsIndependentByGSquare(test_idx, z.size() + 2);
-    } else if (metric.compare("mutual information") == 0) {}
-    else {}
-
-    delete [] test_idx;
-}
-
-IndependenceTest::Result IndependenceTest::IndependenceResult(int x_idx, int y_idx, const set<int> &z, string metric) {
-    /**
-     * for testing x, y given z1,...,zn,
-     * set up an array of length n + 2 containing the indices of these variables in order
-     */
-    int* test_idx = new int[z.size() + 2];
-    test_idx[0] = x_idx;
-    test_idx[1] = y_idx;
-    int index = 2;
-    for (auto it = z.begin(); it != z.end(); ++it) {
-        test_idx[index++] = *it;
-    }
-
-    if (metric.compare("g square") == 0) {
-        return ComputeGSquare(test_idx, z.size() + 2);
+        return ComputeGSquare(test_idx, z.size() + 2, verbose);
     } else if (metric.compare("mutual information") == 0) {}
     else {}
 
@@ -76,25 +57,13 @@ IndependenceTest::Result IndependenceTest::IndependenceResult(int x_idx, int y_i
 }
 
 /**
- * perform conditional independence tests of discrete data using the G Square method
- * @param size: number of x, y, z1, z2, ...
- */
-bool IndependenceTest::IsIndependentByGSquare(int* test_idx, int size) {
-
-    IndependenceTest::Result result = ComputeGSquare(test_idx, size);
-//    IndependenceTest::Result result = ComputeGSquare2(test_idx, size);
-    return result.is_independent;
-}
-
-/**
- * calculate g square for ci-test x _||_ y | z1, z2, ..., max
+ * calculate g square for ci-test x _||_ y | z1, z2, ..., for discrete data
  * by a commonly used approach, which also used by bnlearn and Tetrad -- for given test_idx,
  * it first computes the counts by scanning the complete data set to fill up a contingency table / cell table
- * this step is the most expensive part -- more than 99% execution time
  * @param test_idx: x, y, z1, z2 ...
  * @param size: number of test_idx
  */
-IndependenceTest::Result IndependenceTest::ComputeGSquare(int* test_idx, int size) {
+IndependenceTest::Result IndependenceTest::ComputeGSquare(int* test_idx, int size, bool verbose) {
     timer.Start("counting1");
     // reset the cell table for the columns referred to in 'test_idx', do cell coefs for those columns
     vector<int> dims;
@@ -105,7 +74,7 @@ IndependenceTest::Result IndependenceTest::ComputeGSquare(int* test_idx, int siz
     }
 
     cell_table = new CellTable(dims);
-    cell_table->AddToTable(dataset, test_idx, size); // more than 99% execution time here...
+    cell_table->AddToTable(dataset, test_idx, size);
     timer.Stop("counting1");
 
     timer.Start("counting2");

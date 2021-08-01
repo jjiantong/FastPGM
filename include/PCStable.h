@@ -36,10 +36,10 @@ public:
     PCStable(Network *net, Dataset *dataset, double alpha);
     PCStable(Network *net, int d, Dataset *dataset, double alpha);
 
-    virtual void StructLearnCompData(Dataset *dts, bool print_struct);
-    void StructLearnByPCStable(bool print_struct);
-    bool SearchAtDepth(int c_depth);
-    bool CheckSide(const map<int, map<int, double>> &adjacencies, int c_depth, Node* x, Node* y);
+    virtual void StructLearnCompData(Dataset *dts, bool print_struct, bool verbose);
+    void StructLearnByPCStable(bool print_struct, bool verbose);
+    bool SearchAtDepth(int c_depth, bool verbose);
+    bool CheckSide(const map<int, map<int, double>> &adjacencies, int c_depth, Node* x, Node* y, bool verbose);
     int FreeDegree(const map<int, map<int, double>> &adjacencies);
 
     void OrientVStructure();

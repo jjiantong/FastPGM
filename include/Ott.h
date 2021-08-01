@@ -16,7 +16,7 @@ public:
     Ott(Network *net) {network = net;};
     Ott(Network *net, string oc) {network = net; order_constraint = oc;};
 
-    virtual void StructLearnCompData(Dataset *dts, bool print_struct);
+    virtual void StructLearnCompData(Dataset *dts, bool print_struct, bool verbose);
 
     void StructLearnByOtt(Dataset *dts);
     pair<double, set<Node*>> F(Node *node, set<Node*> &candidate_parents, Dataset *dts,

@@ -67,7 +67,7 @@ void K2::StructLearnByK2Weka(Dataset *dts) { //checked
     }
 }
 
-void K2::StructLearnCompData(Dataset *dts, bool print_struct) {
+void K2::StructLearnCompData(Dataset *dts, bool print_struct, bool verbose) {
 
     cout << "==================================================" << '\n'
          << "Begin structural learning with complete data using K2 algorithm...." << endl;

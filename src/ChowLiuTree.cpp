@@ -103,7 +103,7 @@ double ChowLiuTree::ComputeMutualInformation(Node *Xi, Node *Xj, const Dataset *
  * Just an API. Call another function.
  * (they are no use...)
  */
-void ChowLiuTree::StructLearnCompData(Dataset *dts, bool print_struct) {
+void ChowLiuTree::StructLearnCompData(Dataset *dts, bool print_struct, bool verbose) {
   // record time
   struct timeval start, end;
   double diff;

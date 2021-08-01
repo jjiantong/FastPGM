@@ -69,10 +69,8 @@ public:
 //    IndependenceTest(){};
     IndependenceTest(Dataset *dataset, double alpha);
 
-    bool IsIndependent(int x_idx, int y_idx, const set<int> &z, string metric);
-    Result IndependenceResult(int x_idx, int y_idx, const set<int> &z, string metric);
-    bool IsIndependentByGSquare(int* test_idx, int size);
-    Result ComputeGSquare(int* test_idx, int size);
+    Result IndependenceResult(int x_idx, int y_idx, const set<int> &z, string metric, bool verbose);
+    Result ComputeGSquare(int* test_idx, int size, bool verbose);
 //    Result ComputeGSquare2(int* test_idx, int size);
 //    vector<int> Common(const vector<int> &subset, int index, int value);
 };

@@ -19,19 +19,20 @@ PCStable::PCStable(Network *net, int d, Dataset *dataset, double alpha) {
     depth = d;
 }
 
-void PCStable::StructLearnCompData(Dataset *dts, bool print_struct) {
-    // record time
-    timer.Start("pc-stable");
-
+void PCStable::StructLearnCompData(Dataset *dts, bool print_struct, bool verbose) {
     cout << "==================================================" << '\n'
          << "Begin structural learning with PC-stable" << endl;
 
+    // record time
+    timer.Start("pc-stable");
+
     depth = (depth == -1) ? 1000 : depth; // depth = -1 means no limitation
     AssignNodeInformation(dts);
-    StructLearnByPCStable(print_struct);
+    StructLearnByPCStable(print_struct, verbose);
 
     timer.Stop("pc-stable");
     setlocale(LC_NUMERIC, "");
+
     cout << "==================================================" << endl;
     cout << "# of CI-tests is " << num_ci_test << ", # of dependence judgements is " << num_dependence_judgement << endl;
     timer.Print("pc-stable");
@@ -43,7 +44,7 @@ void PCStable::StructLearnCompData(Dataset *dts, bool print_struct) {
     ci_test->timer.Print("computing p-value");
 }
 
-void PCStable::StructLearnByPCStable(bool print_struct) {
+void PCStable::StructLearnByPCStable(bool print_struct, bool verbose) {
     timer.Start("pc-stable step 1");
     cout << "==================================================" << '\n'
          << "Generating complete undirected graph" << endl;
@@ -55,7 +56,7 @@ void PCStable::StructLearnByPCStable(bool print_struct) {
     }
 
     cout << "==================================================" << '\n'
-         << "Begin finding the skeleton" << endl << "Level 0... ";
+         << "Begin finding the skeleton" << endl << "Level 0... " << endl;
 
     for (int i = 0; i < network->num_nodes; ++i) { // find neighbor set of each node i
         map<int, double> adjacency;
@@ -77,10 +78,26 @@ void PCStable::StructLearnByPCStable(bool print_struct) {
         int node_idx2 = (*edge_it).GetNode2()->GetNodeIndex();
         set<int> empty_set;
 
+        if (verbose) {
+            cout << "--------------------------------------------------" << endl
+                 << "* investigating " << network->FindNodePtrByIndex(node_idx1)->node_name
+                 << " -- " << network->FindNodePtrByIndex(node_idx2)->node_name
+                 << ", conditioning sets of size 0." << endl;
+        }
         num_ci_test++;
-//        bool independent = ci_test->IsIndependent(node_idx1, node_idx2, empty_set, "g square");
-        IndependenceTest::Result result = ci_test->IndependenceResult(node_idx1, node_idx2, empty_set, "g square");
+        IndependenceTest::Result result = ci_test->IndependenceResult(node_idx1, node_idx2, empty_set,
+                                                                      "g square", verbose);
         bool independent = result.is_independent;
+        if (verbose) {
+            cout << "    > node " << network->FindNodePtrByIndex(node_idx1)->node_name << " is ";
+            if (independent) {
+                cout << "independent";
+            } else {
+                cout << "dependent";
+            }
+            cout << " on " << network->FindNodePtrByIndex(node_idx2)->node_name;
+            cout << " (p-value: " << result.p_value << ")." << endl;
+        }
 
         if (!independent) { // the edge remains
             num_dependence_judgement++;
@@ -101,10 +118,20 @@ void PCStable::StructLearnByPCStable(bool print_struct) {
         }
     }
 
-    for (int d = 1; d < depth; ++d) {
-        cout << "Level " << d << "... ";
+    if (verbose) {
+        cout << "* remaining edges:" << endl;
+        network->PrintEachEdgeWithName();
+    }
 
-        bool more = SearchAtDepth(d);
+    for (int d = 1; d < depth; ++d) {
+        cout << "Level " << d << "... " << endl;
+
+        bool more = SearchAtDepth(d, verbose);
+
+        if (verbose) {
+            cout << "* remaining edges:" << endl;
+            network->PrintEachEdgeWithName();
+        }
 
         if (!more) {
             break;
@@ -135,15 +162,17 @@ void PCStable::StructLearnByPCStable(bool print_struct) {
     OrientImplied();
     timer.Stop("pc-stable step 3");
 
-//    if (print_struct) {
+    if (print_struct) {
+        cout << endl;
 //        network->PrintEachEdgeWithIndex();
-//    }
+        network->PrintEachEdgeWithName();
+    }
 }
 
 /**
  * @brief: search for each level (c_depth, c_depth > 0) except for level 0
  */
-bool PCStable::SearchAtDepth(int c_depth) {
+bool PCStable::SearchAtDepth(int c_depth, bool verbose) {
     /**
      * the copied adjacency sets of all nodes are used and kept unchanged at each particular level c_depth
      * consequently, an edge deletion at one level does not affect the conditioning sets of the other nodes
@@ -159,8 +188,13 @@ bool PCStable::SearchAtDepth(int c_depth) {
         Node* x = (*edge_it).GetNode1();
         Node* y = (*edge_it).GetNode2();
 
-        if (CheckSide(adjacencies_copy, c_depth, x, y) ||
-            CheckSide(adjacencies_copy, c_depth, y, x)) {
+        if (verbose) {
+            cout << "--------------------------------------------------" << endl
+                 << "* investigating " << edge_it->GetNode1()->node_name << " -- "
+                 << edge_it->GetNode2()->node_name << ", conditioning sets of size " << c_depth << "." << endl;
+        }
+        if (CheckSide(adjacencies_copy, c_depth, x, y, verbose) ||
+            CheckSide(adjacencies_copy, c_depth, y, x, verbose)) {
             /**
              * the edge x -- y  should be removed
              * note that the sepsets have already been added,
@@ -185,74 +219,59 @@ bool PCStable::SearchAtDepth(int c_depth) {
  *            lower p-value indicates stronger dependence and stronger association between the variables
  * @return true if such a Z can be found, which means edge x -- y should be deleted
  */
-bool PCStable::CheckSide(const map<int, map<int, double>> &adjacencies, int c_depth, Node* x, Node* y) {
+bool PCStable::CheckSide(const map<int, map<int, double>> &adjacencies, int c_depth, Node* x, Node* y, bool verbose) {
     int x_idx = x->GetNodeIndex();
     int y_idx = y->GetNodeIndex();
 
+    if (verbose) {
+        cout << "  > neighbours of " << network->FindNodePtrByIndex(x_idx)->node_name << ": ";
+    }
+
     //----------------------------- traditional method -----------------------------//
-//    set<int> set_adjx;
-//    for (auto it = adjacencies.at(x_idx).begin(); it != adjacencies.at(x_idx).end(); ++it) {
-//        set_adjx.insert((*it).first);
-//    }
-//    set_adjx.erase(y_idx);
-//    // copy to a vector to access by position, which will be used for choice generating
-//    vector<int> vec_adjx;
-//    for (const auto &adjx : set_adjx) {
-//        vec_adjx.push_back(adjx);
-//    }
-//
-//    if (vec_adjx.size() >= c_depth) {
-//        ChoiceGenerator cg (vec_adjx.size(), c_depth);
-//
-//        vector<int> choice;
-//        while (!(choice = cg.Next()).empty()) {
-//            set<int> Z;
-//            for (int i = 0; i < c_depth; ++i) {
-//                Z.insert(vec_adjx[choice[i]]);
-//            }
-//            num_ci_test++;
-//            bool independent = ci_test->IsIndependent(x_idx, y_idx, Z, "g square");
-//            if (!independent) {
-//                num_dependence_judgement++;
-//            } else {
-//                // add conditioning set to sepset
-//                ci_test->sepset.insert(make_pair(make_pair(x_idx, y_idx), Z));
-//                ci_test->sepset.insert(make_pair(make_pair(y_idx, x_idx), Z));
-//                return true;
-//            }
-//        }
-//    }
-    //---------------------------- traditional method -----------------------------//
-
-    //------------------------------ extra heuristic -------------------------------//
-    map<int, double> map_adjx_w(adjacencies.at(x_idx));
-    map_adjx_w.erase(y_idx);
-
+    set<int> set_adjx;
+    for (auto it = adjacencies.at(x_idx).begin(); it != adjacencies.at(x_idx).end(); ++it) {
+        set_adjx.insert((*it).first);
+    }
+    set_adjx.erase(y_idx);
     // copy to a vector to access by position, which will be used for choice generating
-    vector<pair<int, double>> vec_adjx_w(map_adjx_w.begin(), map_adjx_w.end());
+    vector<int> vec_adjx;
+    for (const auto &adjx : set_adjx) {
+        vec_adjx.push_back(adjx);
+        if (verbose) {
+            cout << network->FindNodePtrByIndex(adjx)->node_name << " ";
+        }
+    }
+    if (verbose) {
+        cout << endl;
+    }
 
-    if (vec_adjx_w.size() >= c_depth) {
-        ChoiceGenerator cg (vec_adjx_w.size(), c_depth);
+    if (vec_adjx.size() >= c_depth) {
+        ChoiceGenerator cg (vec_adjx.size(), c_depth);
 
-        vector<pair<vector<int>, double>> vec_choice_w;
         vector<int> choice;
         while (!(choice = cg.Next()).empty()) {
-            double weight = 0.0;
-            for (int i = 0; i < choice.size(); ++i) {
-                weight += vec_adjx_w.at(choice[i]).second;
-            }
-            vec_choice_w.push_back(make_pair(choice, weight));
-        }
-
-        sort(vec_choice_w.begin(), vec_choice_w.end(), CmpByValue());
-
-        for (int j = 0; j < vec_choice_w.size(); ++j) {
             set<int> Z;
             for (int i = 0; i < c_depth; ++i) {
-                Z.insert(vec_adjx_w.at(vec_choice_w.at(j).first.at(i)).first);
+                Z.insert(vec_adjx[choice[i]]);
             }
+
             num_ci_test++;
-            bool independent = ci_test->IsIndependent(x_idx, y_idx, Z, "g square");
+            IndependenceTest::Result result = ci_test->IndependenceResult(x_idx, y_idx, Z,"g square", verbose);
+            bool independent = result.is_independent;
+            if (verbose) {
+                cout << "    > node " << network->FindNodePtrByIndex(x_idx)->node_name << " is ";
+                if (independent) {
+                    cout << "independent";
+                } else {
+                    cout << "dependent";
+                }
+                cout << " on " << network->FindNodePtrByIndex(y_idx)->node_name << " given ";
+                for (const auto &z_idx : Z) {
+                    cout << network->FindNodePtrByIndex(z_idx)->node_name << " ";
+                }
+                cout << "(p-value: " << result.p_value << ")." << endl;
+            }
+
             if (!independent) {
                 num_dependence_judgement++;
             } else {
@@ -263,7 +282,95 @@ bool PCStable::CheckSide(const map<int, map<int, double>> &adjacencies, int c_de
             }
         }
     }
-    //------------------------------ extra heuristic -------------------------------//
+    //---------------------------- traditional method -----------------------------//
+
+    //-------------------------------- heuristic ---------------------------------//
+//    map<int, double> map_adjx_w(adjacencies.at(x_idx));
+//    map_adjx_w.erase(y_idx);
+//
+//    // copy to a vector to access by position, which will be used for choice generating
+//    vector<pair<int, double>> vec_adjx_w(map_adjx_w.begin(), map_adjx_w.end());
+
+    //-------------------------------- heuristic1 ---------------------------------//
+//    sort(vec_adjx_w.begin(), vec_adjx_w.end(), CmpByValue());
+//
+//    if (vec_adjx_w.size() >= c_depth) {
+//        ChoiceGenerator cg (vec_adjx_w.size(), c_depth);
+//
+//        vector<int> choice;
+//        while (!(choice = cg.Next()).empty()) {
+//            set<int> Z;
+//            for (int i = 0; i < c_depth; ++i) {
+//                Z.insert(vec_adjx_w.at(choice.at(i)).first);
+//            }
+//            num_ci_test++;
+//            IndependenceTest::Result result = ci_test->IndependenceResult(x_idx, y_idx, Z,"g square", verbose);
+//            bool independent = result.is_independent;
+//            if (!independent) {
+//                num_dependence_judgement++;
+//            } else {
+//                // add conditioning set to sepset
+//                ci_test->sepset.insert(make_pair(make_pair(x_idx, y_idx), Z));
+//                ci_test->sepset.insert(make_pair(make_pair(y_idx, x_idx), Z));
+//                return true;
+//            }
+//        }
+//    }
+    //-------------------------------- heuristic ---------------------------------//
+
+    //-------------------------------- heuristic2 ---------------------------------//
+
+    //-------------------------------- two associations ---------------------------------//
+////    map<int, double> map_adjy_w(adjacencies.at(y_idx));
+////    map_adjy_w.erase(x_idx);
+////    vector<pair<int, double>> vec_adjy_w(map_adjy_w.begin(), map_adjy_w.end());
+//    //-------------------------------- two associations ---------------------------------//
+//
+//    if (vec_adjx_w.size() >= c_depth) {
+//        ChoiceGenerator cg (vec_adjx_w.size(), c_depth);
+//
+//        vector<pair<vector<int>, double>> vec_choice_w;
+//        vector<int> choice;
+//        while (!(choice = cg.Next()).empty()) {
+//            double weight = 0.0;
+//            for (int i = 0; i < choice.size(); ++i) {
+//                weight  += vec_adjx_w.at(choice[i]).second;
+//
+//    //-------------------------------- two associations ---------------------------------//
+////                int adjx = vec_adjx_w.at(choice[i]).first; // index of this node of x's adj
+////                auto iter = map_adjy_w.find(adjx); // find this x's adj in y's adj
+////                if (iter != map_adjy_w.end()) { // if y has this node as adj
+////                    weight += iter->second;
+////                } else {
+////                    weight += 1.0;
+////                }
+//    //-------------------------------- two associations ---------------------------------//
+//            }
+//            vec_choice_w.push_back(make_pair(choice, weight));
+//        }
+//
+//        sort(vec_choice_w.begin(), vec_choice_w.end(), CmpByValue());
+//
+//        for (int j = 0; j < vec_choice_w.size(); ++j) {
+//            set<int> Z;
+//            for (int i = 0; i < c_depth; ++i) {
+//                Z.insert(vec_adjx_w.at(vec_choice_w.at(j).first.at(i)).first);
+//            }
+//            num_ci_test++;
+//            IndependenceTest::Result result = ci_test->IndependenceResult(x_idx, y_idx, Z,"g square", verbose);
+//            bool independent = result.is_independent;
+//            if (!independent) {
+//                num_dependence_judgement++;
+//            } else {
+//                // add conditioning set to sepset
+//                ci_test->sepset.insert(make_pair(make_pair(x_idx, y_idx), Z));
+//                ci_test->sepset.insert(make_pair(make_pair(y_idx, x_idx), Z));
+//                return true;
+//            }
+//        }
+//    }
+    //-------------------------------- heuristic2 ---------------------------------//
+    //-------------------------------- heuristic ---------------------------------//
     return false;
 }
 
