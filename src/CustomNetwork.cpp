@@ -140,7 +140,7 @@ void CustomNetwork::LoadBIFFile(string path) {
                 }
 
                 // 3) add an edge between one parent node -> the child node
-                for (auto parent_node : parent_nodes) {
+                for (const auto &parent_node : parent_nodes) {
                     SetParentChild(parent_node, child_node); // set parent and child relationship
                     Edge edge(parent_node, child_node, TAIL, ARROW);
                     vec_edges.push_back(edge);

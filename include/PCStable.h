@@ -31,10 +31,11 @@ public:
     IndependenceTest* ci_test;
     int num_ci_test;
     int num_dependence_judgement;
-    Timer timer;
+    Timer *timer;
 
     PCStable(Network *net, Dataset *dataset, double alpha);
     PCStable(Network *net, int d, Dataset *dataset, double alpha);
+    ~PCStable();
 
     virtual void StructLearnCompData(Dataset *dts, bool print_struct, bool verbose);
     void StructLearnByPCStable(bool print_struct, bool verbose);

@@ -110,7 +110,7 @@ void Network::ConstructNaiveBayesNetwork(Dataset *dts) {
 
     //set the potential values for this node
     node_ptr->SetDomainSize(dts->num_of_possible_values_of_disc_vars[i]);
-    for (auto v : dts->map_disc_vars_possible_values[i]) {
+    for (const auto &v : dts->map_disc_vars_possible_values[i]) {
       node_ptr->vec_potential_vals.push_back(v);//TODO: keep name convention consistent (i.e. possible vs potential)
     }
 #pragma omp critical
@@ -627,8 +627,10 @@ vector<int> Network::GenTopoOrd() {
 
     for (int i=0; i<num_nodes; ++i) {
       delete[] graph[i];
+      graph[i] = nullptr;
     }
     delete[] graph;
+    graph = nullptr;
 
   }
   else { // TODO: double-check, not check for the continuous cases
@@ -1059,7 +1061,7 @@ void Network::FindCompelled() {
         Node* y = edge_order.at(0).GetNode2();
 
         bool tmp1 = false; // to label whether the IF conditions are satisfied
-        for (int w_idx : x->set_parent_indexes) {
+        for (const int &w_idx : x->set_parent_indexes) {
             Node* w = FindNodePtrByIndex(w_idx);
             if (vec_edges.at(GetDirectedEdge(w, x)).label == COMPELLED) {
                 // For every edge w->x labelled "compelled"
@@ -1073,7 +1075,7 @@ void Network::FindCompelled() {
                     vec_edges.at(GetDirectedEdge(x, y)).label = COMPELLED;
                     edge_order.erase(edge_order.begin());
                     // 2. every edge incident into y
-                    for (int par_y_idx : y->set_parent_indexes) {
+                    for (const int &par_y_idx : y->set_parent_indexes) {
                         Node* par_y = FindNodePtrByIndex(par_y_idx);
                         int pos_edge_order = GetDirectedEdgeFromEdgeOrder(par_y, y);
                         if (pos_edge_order != -1) { // this edge has not been labeled
@@ -1097,7 +1099,7 @@ void Network::FindCompelled() {
 
         if (!tmp1) { // otherwise, directly go to the while loop and do not
             bool tmp2 = false; // to label whether the IF conditions are satisfied
-            for (int z_idx : y->set_parent_indexes) {
+            for (const int &z_idx : y->set_parent_indexes) {
                 if (z_idx != x->GetNodeIndex()) {
                     Node* z = FindNodePtrByIndex(z_idx);
                     if (!x->IsParentOfThisNode(z)) {
@@ -1110,7 +1112,7 @@ void Network::FindCompelled() {
                         vec_edges.at(GetDirectedEdge(x, y)).label = COMPELLED;
                         edge_order.erase(edge_order.begin());
                         // 2. every "unknown" edge incident into y
-                        for (int par_y_idx : y->set_parent_indexes) {
+                        for (const int &par_y_idx : y->set_parent_indexes) {
                             Node* par_y = FindNodePtrByIndex(par_y_idx);
                             int pos_edge_order = GetDirectedEdgeFromEdgeOrder(par_y, y);
                             if (pos_edge_order != -1) { // this edge has not been labeled
@@ -1127,7 +1129,7 @@ void Network::FindCompelled() {
                 vec_edges.at(GetDirectedEdge(x, y)).label = REVERSIBLE;
                 edge_order.erase(edge_order.begin());
                 // 2. every "unknown" edge incident into y
-                for (int par_y_idx : y->set_parent_indexes) {
+                for (const int &par_y_idx : y->set_parent_indexes) {
                     Node* par_y = FindNodePtrByIndex(par_y_idx);
                     int pos_edge_order = GetDirectedEdgeFromEdgeOrder(par_y, y);
                     if (pos_edge_order != -1) { // this edge has not been labeled

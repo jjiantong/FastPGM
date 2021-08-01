@@ -32,7 +32,7 @@ class IndependenceTest {
 public:
     Dataset *dataset;
     double alpha;
-    Timer timer;
+    Timer *timer;
     /**
      * note that "dims" is not equal to "cell_table->dims":
      * "dims" contains the dimensions of all variables in the data set
@@ -55,7 +55,7 @@ public:
     public:
         double g_square; // the g square value itself
         double p_value; // the p value of the result
-        int df; // the adjusted degrees of fredoom
+        int df; // the adjusted degrees of freedom
         bool is_independent; // whether the conditional independence holds or not
         // constructs a new g square result using the given parameters
         Result(double g_square, double p_value, int df, bool is_dependent) {
@@ -68,9 +68,10 @@ public:
 
 //    IndependenceTest(){};
     IndependenceTest(Dataset *dataset, double alpha);
+    ~IndependenceTest();
 
     Result IndependenceResult(int x_idx, int y_idx, const set<int> &z, string metric, bool verbose);
-    Result ComputeGSquare(int* test_idx, int size, bool verbose);
+    Result ComputeGSquare(const vector<int> &test_idx, int size, bool verbose);
 //    Result ComputeGSquare2(int* test_idx, int size);
 //    vector<int> Common(const vector<int> &subset, int index, int value);
 };

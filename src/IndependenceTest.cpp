@@ -24,6 +24,12 @@ IndependenceTest::IndependenceTest(Dataset *dataset, double alpha) {
         int dim = dataset->num_of_possible_values_of_disc_vars.at(i);
         dims.push_back(dim);
     }
+
+    this->timer = new Timer();
+}
+
+IndependenceTest::~IndependenceTest() {
+    delete timer;
 }
 
 /**
@@ -40,12 +46,11 @@ IndependenceTest::Result IndependenceTest::IndependenceResult(int x_idx, int y_i
      * for testing x, y given z1,...,zn,
      * set up an array of length n + 2 containing the indices of these variables in order
      */
-    int* test_idx = new int[z.size() + 2];
-    test_idx[0] = x_idx;
-    test_idx[1] = y_idx;
-    int index = 2;
-    for (auto it = z.begin(); it != z.end(); ++it) {
-        test_idx[index++] = *it;
+    vector<int> test_idx;
+    test_idx.push_back(x_idx);
+    test_idx.push_back(y_idx);
+    for (const auto &z_idx : z) {
+        test_idx.push_back(z_idx);
     }
 
     if (metric.compare("g square") == 0) {
@@ -53,7 +58,7 @@ IndependenceTest::Result IndependenceTest::IndependenceResult(int x_idx, int y_i
     } else if (metric.compare("mutual information") == 0) {}
     else {}
 
-    delete [] test_idx;
+//    delete [] test_idx;
 }
 
 /**
@@ -63,8 +68,8 @@ IndependenceTest::Result IndependenceTest::IndependenceResult(int x_idx, int y_i
  * @param test_idx: x, y, z1, z2 ...
  * @param size: number of test_idx
  */
-IndependenceTest::Result IndependenceTest::ComputeGSquare(int* test_idx, int size, bool verbose) {
-    timer.Start("counting1");
+IndependenceTest::Result IndependenceTest::ComputeGSquare(const vector<int> &test_idx, int size, bool verbose) {
+    timer->Start("counting1");
     // reset the cell table for the columns referred to in 'test_idx', do cell coefs for those columns
     vector<int> dims;
     for (int i = 0; i < size; ++i) {
@@ -75,9 +80,9 @@ IndependenceTest::Result IndependenceTest::ComputeGSquare(int* test_idx, int siz
 
     cell_table = new CellTable(dims);
     cell_table->AddToTable(dataset, test_idx, size);
-    timer.Stop("counting1");
+    timer->Stop("counting1");
 
-    timer.Start("counting2");
+    timer->Start("counting2");
     // indicator vectors to tell the cell table which margins to calculate
     // for x _||_ y | z1, z2, ..., we want to calculate the margin for x, the margin for y, and the margin for x and y
     int first_var[1] = {0};
@@ -186,10 +191,13 @@ IndependenceTest::Result IndependenceTest::ComputeGSquare(int* test_idx, int siz
         }
     }
 
+    delete cell_table;
+    cell_table = nullptr;
     delete [] cond_dims;
-    timer.Stop("counting2");
+    cond_dims = nullptr;
+    timer->Stop("counting2");
 
-    timer.Start("computing p-value");
+    timer->Start("computing p-value");
     if (df == 0) { // if df == 0, this is definitely an independent table
         double p_value = 1.0;
         IndependenceTest::Result result(g2, p_value, df, true);
@@ -200,7 +208,7 @@ IndependenceTest::Result IndependenceTest::ComputeGSquare(int* test_idx, int siz
     // if p > alpha, accept the null hypothesis: independent
     double p_value = 1.0 - stats::pchisq(g2, df, false);
     bool indep = (p_value > alpha);
-    timer.Stop("computing p-value");
+    timer->Stop("computing p-value");
     return IndependenceTest::Result(g2, p_value, df, indep);
 }
 
@@ -279,6 +287,7 @@ IndependenceTest::Result IndependenceTest::ComputeGSquare(int* test_idx, int siz
 //    }
 //
 //    delete [] cond_dims;
+//    cond_dims = nullptr;
 //
 //    if (df == 0) { // if df == 0, this is definitely an independent table
 //        double p_value = 1.0;
@@ -300,7 +309,7 @@ IndependenceTest::Result IndependenceTest::ComputeGSquare(int* test_idx, int siz
 // */
 //vector<int> IndependenceTest::Common(const vector<int> &subset, int index, int value) {
 //    vector<int> result;
-//    for (int i : subset) {
+//    for (const int &i : subset) {
 //        if (dataset->dataset_all_vars[i][index] == value) {
 //            result.push_back(i);
 //        }

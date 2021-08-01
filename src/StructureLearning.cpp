@@ -13,7 +13,7 @@ void StructureLearning::AssignNodeInformation(Dataset *dts) {
     network->num_nodes = dts->num_vars;
 
     // Assign an index for each node.
-#pragma omp parallel for
+//#pragma omp parallel for
     for (int i = 0; i < network->num_nodes; ++i) {
         // construct a node in the network
         DiscreteNode *node_ptr = new DiscreteNode(i);  // For now, only support discrete node.
@@ -31,10 +31,10 @@ void StructureLearning::AssignNodeInformation(Dataset *dts) {
         for (auto v : dts->map_disc_vars_possible_values[i]) {
             node_ptr->vec_potential_vals.push_back(v);
         }
-#pragma omp critical
-        {
+//#pragma omp critical
+//        {
             network->map_idx_node_ptr[i] = node_ptr;
-        }
+//        }
     }
 }
 

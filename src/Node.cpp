@@ -328,7 +328,7 @@ void Node::GenDiscParCombs(set<Node*> set_parent_ptrs) {
   // Preprocess. Construct set of sets.
   set<DiscreteConfig> all_config_of_each_parent;
 
-  for (auto par_ptr : set_parent_ptrs) {
+  for (const auto &par_ptr : set_parent_ptrs) {
     if (!par_ptr->is_discrete) { //no parent configuration for continuous nodes
       continue;
     }

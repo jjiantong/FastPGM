@@ -35,7 +35,7 @@ CellTable::CellTable(const vector<int> &dims) {
  * construct a new cell for given indices, and traverse the data set to count the occurrence numbers
  * @param indices indices of a subset of features (nodes in the network structure) of the data set
  */
-void CellTable::AddToTable(Dataset *dataset, int* indices, int size) {
+void CellTable::AddToTable(Dataset *dataset, const vector<int> &indices, int size) {
     vector<int> config;
     config.resize(size);
 

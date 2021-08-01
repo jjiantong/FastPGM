@@ -93,20 +93,17 @@ protected:
 
     void SetUp() override {
         trainer = new Dataset();
-        tester = new Dataset();
         network = new Network(true);
 
         string train_set_file_path = "../../data/alarm_s10000.txt";
 
         trainer->LoadCSVData(train_set_file_path, true, true, 0);
-        tester->LoadCSVData(train_set_file_path, true, true, 0);
 
 //        ParameterLearning *bnpl = new ParameterLearning(network);
 //        bnpl->LearnParamsKnowStructCompData(trainer, true);
     }
 
     Dataset *trainer;
-    Dataset *tester;
     Network *network;
 };
 
@@ -132,28 +129,23 @@ TEST_F(ExperimentBNSLOnAlarm, pc_stable) {
 //
 //    void SetUp() override {
 //        trainer = new Dataset();
-//        tester = new Dataset();
 //        network = new Network(true);
 //
 //        string train_set_file_path = "../../data/insurance_s10000.txt";
 //
 //        trainer->LoadCSVData(train_set_file_path, true, true, 0);
-//        tester->LoadCSVData(train_set_file_path, true, true, 0);
 //
 ////        ParameterLearning *bnpl = new ParameterLearning(network);
 ////        bnpl->LearnParamsKnowStructCompData(trainer, true);
 //    }
 //
 //    Dataset *trainer;
-//    Dataset *tester;
 //    Network *network;
 //};
 //
 //TEST_F(ExperimentBNSLOnInsurance, pc_stable) {
 //    StructureLearning *bnsl = new PCStable(network, trainer, 0.05);
-//    bnsl->StructLearnCompData(trainer, true);
-////    network->PrintEachEdgeWithIndex();
-//    network->PrintEachEdgeWithName();
+//    bnsl->StructLearnCompData(trainer, true, false);
 //
 //    CustomNetwork *ref_net = new CustomNetwork();
 //    ref_net->LoadBIFFile("../../data/insurance.bif");
@@ -172,28 +164,23 @@ TEST_F(ExperimentBNSLOnAlarm, pc_stable) {
 //
 //    void SetUp() override {
 //        trainer = new Dataset();
-//        tester = new Dataset();
 //        network = new Network(true);
 //
 //        string train_set_file_path = "../../data/win95pts_s100000.txt";
 //
 //        trainer->LoadCSVData(train_set_file_path, true, true, 0);
-//        tester->LoadCSVData(train_set_file_path, true, true, 0);
 //
 ////        ParameterLearning *bnpl = new ParameterLearning(network);
 ////        bnpl->LearnParamsKnowStructCompData(trainer, true);
 //    }
 //
 //    Dataset *trainer;
-//    Dataset *tester;
 //    Network *network;
 //};
 //
 //TEST_F(ExperimentBNSLOnWin95pts, pc_stable) {
 //    StructureLearning *bnsl = new PCStable(network, trainer, 0.05);
-//    bnsl->StructLearnCompData(trainer, false);
-////    network->PrintEachEdgeWithIndex();
-//    network->PrintEachEdgeWithName();
+//    bnsl->StructLearnCompData(trainer, true, false);
 //
 //    CustomNetwork *ref_net = new CustomNetwork();
 //    ref_net->LoadBIFFile("../../data/win95pts.bif");
@@ -213,20 +200,17 @@ TEST_F(ExperimentBNSLOnAlarm, pc_stable) {
 //
 //    void SetUp() override {
 //        trainer = new Dataset();
-//        tester = new Dataset();
 //        network = new Network(true);
 //
 //        string train_set_file_path = "../../data/hailfinder_s10000.txt";
 //
 //        trainer->LoadCSVData(train_set_file_path, true, true, 0);
-//        tester->LoadCSVData(train_set_file_path, true, true, 0);
 //
 ////        ParameterLearning *bnpl = new ParameterLearning(network);
 ////        bnpl->LearnParamsKnowStructCompData(trainer, true);
 //    }
 //
 //    Dataset *trainer;
-//    Dataset *tester;
 //    Network *network;
 //};
 //
@@ -327,20 +311,17 @@ TEST_F(ExperimentBNSLOnAlarm, pc_stable) {
 //
 //    void SetUp() override {
 //        trainer = new Dataset();
-//        tester = new Dataset();
 //        network = new Network(true);
 //
 //        string train_set_file_path = "../../data/pigs_s10000.txt";
 //
 //        trainer->LoadCSVData(train_set_file_path, true, true, 0);
-//        tester->LoadCSVData(train_set_file_path, true, true, 0);
 //
 ////        ParameterLearning *bnpl = new ParameterLearning(network);
 ////        bnpl->LearnParamsKnowStructCompData(trainer, true);
 //    }
 //
 //    Dataset *trainer;
-//    Dataset *tester;
 //    Network *network;
 //};
 //

@@ -9,6 +9,15 @@
 
 Dataset::Dataset() {}
 
+Dataset::~Dataset() {
+    for (int i = 0; i < num_instance; ++i) {
+        delete [] dataset_all_vars[i];
+        dataset_all_vars[i] = nullptr;
+    }
+    delete [] dataset_all_vars;
+    dataset_all_vars = nullptr;
+}
+
 /**
  * @brief: load data file with libsvm format
  * 1, read the data file and store with the representation of std::vector.
@@ -144,7 +153,7 @@ void Dataset::LoadLIBSVMData(string data_file_path, set<int> cont_vars) {
 void Dataset::ConvertVectorDatasetIntoIntArrayDataset() {//storing the data set using int only
   // Initialize to be all zero. (dataset_all_vars: int **)
   dataset_all_vars = new int *[num_instance];
-#pragma omp parallel for
+//#pragma omp parallel for
   for (int s=0; s<num_instance; ++s) {
     dataset_all_vars[s] = new int[num_vars]();
     vector<VarVal> vec_instance = vector_dataset_all_vars.at(s);

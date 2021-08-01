@@ -9,6 +9,7 @@ PCStable::PCStable(Network *net, Dataset *dataset, double alpha) {
     ci_test = new IndependenceTest(dataset, alpha);
     num_ci_test = 0;
     num_dependence_judgement = 0;
+    timer = new Timer();
 }
 
 PCStable::PCStable(Network *net, int d, Dataset *dataset, double alpha) {
@@ -17,6 +18,11 @@ PCStable::PCStable(Network *net, int d, Dataset *dataset, double alpha) {
     num_ci_test = 0;
     num_dependence_judgement = 0;
     depth = d;
+    timer = new Timer();
+}
+
+PCStable::~PCStable() {
+    delete timer;
 }
 
 void PCStable::StructLearnCompData(Dataset *dts, bool print_struct, bool verbose) {
@@ -24,28 +30,28 @@ void PCStable::StructLearnCompData(Dataset *dts, bool print_struct, bool verbose
          << "Begin structural learning with PC-stable" << endl;
 
     // record time
-    timer.Start("pc-stable");
+    timer->Start("pc-stable");
 
     depth = (depth == -1) ? 1000 : depth; // depth = -1 means no limitation
     AssignNodeInformation(dts);
     StructLearnByPCStable(print_struct, verbose);
 
-    timer.Stop("pc-stable");
+    timer->Stop("pc-stable");
     setlocale(LC_NUMERIC, "");
 
     cout << "==================================================" << endl;
     cout << "# of CI-tests is " << num_ci_test << ", # of dependence judgements is " << num_dependence_judgement << endl;
-    timer.Print("pc-stable");
-    timer.Print("pc-stable step 1");
-    timer.Print("pc-stable step 2");
-    timer.Print("pc-stable step 3");
-    ci_test->timer.Print("counting1");
-    ci_test->timer.Print("counting2");
-    ci_test->timer.Print("computing p-value");
+    timer->Print("pc-stable");
+    timer->Print("pc-stable step 1");
+    timer->Print("pc-stable step 2");
+    timer->Print("pc-stable step 3");
+    ci_test->timer->Print("counting1");
+    ci_test->timer->Print("counting2");
+    ci_test->timer->Print("computing p-value");
 }
 
 void PCStable::StructLearnByPCStable(bool print_struct, bool verbose) {
-    timer.Start("pc-stable step 1");
+    timer->Start("pc-stable step 1");
     cout << "==================================================" << '\n'
          << "Generating complete undirected graph" << endl;
 
@@ -114,7 +120,7 @@ void PCStable::StructLearnByPCStable(bool print_struct, bool verbose) {
             network->adjacencies[node_idx2].erase(node_idx1);
             // 3. add conditioning set (an empty set for level 0) to sepset
             ci_test->sepset.insert(make_pair(make_pair(node_idx1, node_idx2), empty_set));
-            ci_test->sepset.insert(make_pair(make_pair(node_idx2, node_idx1), empty_set));
+//            ci_test->sepset.insert(make_pair(make_pair(node_idx2, node_idx1), empty_set));
         }
     }
 
@@ -138,7 +144,7 @@ void PCStable::StructLearnByPCStable(bool print_struct, bool verbose) {
         }
     }
 
-    timer.Stop("pc-stable step 1");
+    timer->Stop("pc-stable step 1");
 
 //    if (print_struct) {
 //        network->PrintEachEdgeWithIndex();
@@ -147,9 +153,9 @@ void PCStable::StructLearnByPCStable(bool print_struct, bool verbose) {
     cout << "\n==================================================" << '\n'
          << "Begin orienting v-structure" << endl;
 
-    timer.Start("pc-stable step 2");
+    timer->Start("pc-stable step 2");
     OrientVStructure();
-    timer.Stop("pc-stable step 2");
+    timer->Stop("pc-stable step 2");
 
 //    if (print_struct) {
 //        network->PrintEachEdgeWithIndex();
@@ -158,9 +164,9 @@ void PCStable::StructLearnByPCStable(bool print_struct, bool verbose) {
     cout << "==================================================" << '\n'
          << "Begin orienting other undirected edges" << endl;
 
-    timer.Start("pc-stable step 3");
+    timer->Start("pc-stable step 3");
     OrientImplied();
-    timer.Stop("pc-stable step 3");
+    timer->Stop("pc-stable step 3");
 
     if (print_struct) {
         cout << endl;
@@ -276,8 +282,17 @@ bool PCStable::CheckSide(const map<int, map<int, double>> &adjacencies, int c_de
                 num_dependence_judgement++;
             } else {
                 // add conditioning set to sepset
-                ci_test->sepset.insert(make_pair(make_pair(x_idx, y_idx), Z));
-                ci_test->sepset.insert(make_pair(make_pair(y_idx, x_idx), Z));
+                int node_idx1, node_idx2;
+                if (x_idx > y_idx) {
+                    node_idx1 = y_idx;
+                    node_idx2 = x_idx;
+                } else {
+                    node_idx1 = x_idx;
+                    node_idx2 = y_idx;
+                }
+                ci_test->sepset.insert(make_pair(make_pair(node_idx1, node_idx2), Z));
+//                ci_test->sepset.insert(make_pair(make_pair(x_idx, y_idx), Z));
+//                ci_test->sepset.insert(make_pair(make_pair(y_idx, x_idx), Z));
                 return true;
             }
         }
@@ -399,11 +414,9 @@ int PCStable::FreeDegree(const map<int, map<int, double>> &adjacencies) {
  */
 void PCStable::OrientVStructure() {
     for (int b = 0; b < network->num_nodes; ++b) { // for all nodes in the graph
-//        set<int> set_adjacent_nodes = network->adjacencies[b];
-        int* adjacent_nodes = new int[network->adjacencies[b].size()];
-        int index = 0;
+        vector<int> vec_adjacent_nodes;
         for (const auto &adj_w : network->adjacencies[b]) {
-            adjacent_nodes[index++] = adj_w.first;
+            vec_adjacent_nodes.push_back(adj_w.first);
         }
 
         if (network->adjacencies[b].size() < 2) {
@@ -413,8 +426,8 @@ void PCStable::OrientVStructure() {
         vector<int> combination;
 
         while (!(combination = cg.Next()).empty()) {
-            int a = adjacent_nodes[combination[0]];
-            int c = adjacent_nodes[combination[1]];
+            int a = vec_adjacent_nodes[combination[0]];
+            int c = vec_adjacent_nodes[combination[1]];
 
             // 1) a is not adjacent to c; skip if a is adjacent to c
             if (network->IsAdjacentTo(a, c)) {
@@ -491,8 +504,6 @@ void PCStable::OrientVStructure() {
                 }
             }
         }
-//        delete [] combination;
-        delete [] adjacent_nodes;
     }
 }
 

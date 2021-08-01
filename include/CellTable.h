@@ -43,7 +43,7 @@ public:
 
     CellTable(const vector<int> &dims);
 
-    void AddToTable(Dataset *dataset, int* indices, int size);
+    void AddToTable(Dataset *dataset, const vector<int> &indices, int size);
     int inline GetCellIndex(const vector<int> &config);
     long GetValue(const vector<int> &config);
     long ComputeMargin(const vector<int> &config);
