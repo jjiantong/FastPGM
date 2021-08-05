@@ -89,7 +89,7 @@ void CustomNetwork::LoadBIFFile(string path) {
             DiscreteNode *node_ptr = new DiscreteNode(node_idx);
             // give this node a name, mainly for print
             node_ptr->node_name = parsed_line.at(1);
-            map_idx_node_ptr.insert(pair<int, Node*>(node_idx, node_ptr));
+            map_idx_node_ptr.insert(pair<int, Node*>(node_idx, node_ptr)); // todo
             node_idx++;
         } else if (parsed_line.at(0).compare("type") == 0) {
             if (parsed_line.at(1).compare("discrete") != 0) { // it is not a discrete variable

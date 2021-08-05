@@ -91,8 +91,7 @@ void PCStable::StructLearnByPCStable(bool print_struct, bool verbose) {
                  << ", conditioning sets of size 0." << endl;
         }
         num_ci_test++;
-        IndependenceTest::Result result = ci_test->IndependenceResult(node_idx1, node_idx2, empty_set,
-                                                                      "g square", verbose);
+        IndependenceTest::Result result = ci_test->IndependenceResult(node_idx1, node_idx2, empty_set,"g square");
         bool independent = result.is_independent;
         if (verbose) {
             cout << "    > node " << network->FindNodePtrByIndex(node_idx1)->node_name << " is ";
@@ -262,7 +261,7 @@ bool PCStable::CheckSide(const map<int, map<int, double>> &adjacencies, int c_de
             }
 
             num_ci_test++;
-            IndependenceTest::Result result = ci_test->IndependenceResult(x_idx, y_idx, Z,"g square", verbose);
+            IndependenceTest::Result result = ci_test->IndependenceResult(x_idx, y_idx, Z,"g square");
             bool independent = result.is_independent;
             if (verbose) {
                 cout << "    > node " << network->FindNodePtrByIndex(x_idx)->node_name << " is ";
@@ -290,7 +289,7 @@ bool PCStable::CheckSide(const map<int, map<int, double>> &adjacencies, int c_de
                     node_idx1 = x_idx;
                     node_idx2 = y_idx;
                 }
-                ci_test->sepset.insert(make_pair(make_pair(node_idx1, node_idx2), Z));
+                ci_test->sepset.insert(make_pair(make_pair(node_idx1, node_idx2), Z)); //todo
 //                ci_test->sepset.insert(make_pair(make_pair(x_idx, y_idx), Z));
 //                ci_test->sepset.insert(make_pair(make_pair(y_idx, x_idx), Z));
                 return true;
@@ -319,7 +318,7 @@ bool PCStable::CheckSide(const map<int, map<int, double>> &adjacencies, int c_de
 //                Z.insert(vec_adjx_w.at(choice.at(i)).first);
 //            }
 //            num_ci_test++;
-//            IndependenceTest::Result result = ci_test->IndependenceResult(x_idx, y_idx, Z,"g square", verbose);
+//            IndependenceTest::Result result = ci_test->IndependenceResult(x_idx, y_idx, Z,"g square");
 //            bool independent = result.is_independent;
 //            if (!independent) {
 //                num_dependence_judgement++;
@@ -372,7 +371,7 @@ bool PCStable::CheckSide(const map<int, map<int, double>> &adjacencies, int c_de
 //                Z.insert(vec_adjx_w.at(vec_choice_w.at(j).first.at(i)).first);
 //            }
 //            num_ci_test++;
-//            IndependenceTest::Result result = ci_test->IndependenceResult(x_idx, y_idx, Z,"g square", verbose);
+//            IndependenceTest::Result result = ci_test->IndependenceResult(x_idx, y_idx, Z,"g square");
 //            bool independent = result.is_independent;
 //            if (!independent) {
 //                num_dependence_judgement++;

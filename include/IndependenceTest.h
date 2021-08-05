@@ -70,9 +70,14 @@ public:
     IndependenceTest(Dataset *dataset, double alpha);
     ~IndependenceTest();
 
-    Result IndependenceResult(int x_idx, int y_idx, const set<int> &z, string metric, bool verbose);
-    Result ComputeGSquare(const vector<int> &test_idx, int size, bool verbose);
-//    Result ComputeGSquare2(int* test_idx, int size);
+    Result IndependenceResult(int x_idx, int y_idx, const set<int> &z, string metric);
+    Result ComputeGSquareXYZ(const vector<int> &test_idx);
+    Result ComputeGSquareXY(const vector<int> &test_idx);
+
+//    Result IndependenceResult(int x_idx, int y_idx, const set<int> &z, string metric);
+//    Result ComputeGSquare(const vector<int> &test_idx);
+
+//    Result ComputeGSquare(int* test_idx, int size);
 //    vector<int> Common(const vector<int> &subset, int index, int value);
 };
 
