@@ -16,6 +16,13 @@ Dataset::~Dataset() {
     }
     delete [] dataset_all_vars;
     dataset_all_vars = nullptr;
+
+    for (int i = 0; i < num_vars; ++i) {
+        delete [] dataset_columns[i];
+        dataset_columns[i] = nullptr;
+    }
+    delete [] dataset_columns;
+    dataset_columns = nullptr;
 }
 
 /**
@@ -136,7 +143,8 @@ void Dataset::LoadLIBSVMData(string data_file_path, set<int> cont_vars) {
   // 2, convert vector "vector_dataset_all_vars" into array "dataset_all_vars" (does not erase "vector_dataset_all_vars").
   // TODO: check the two representations. remove?
   if (cont_vars.empty()) {//the data set only contains discrete variables.
-    ConvertVectorDatasetIntoIntArrayDataset();
+      Vector2IntArray();
+      RowMajor2ColumnMajor();
   }
 
   cout << "Finish loading data. " << '\n'
@@ -144,24 +152,6 @@ void Dataset::LoadLIBSVMData(string data_file_path, set<int> cont_vars) {
        << "Number of features: " << max_index_occurred << ". " << endl;
 
   in_file.close();
-}
-
-/*!
- * @brief: convert from vector ("vector_dataset_all_vars") to array ("dataset_all_vars")
- * this function is used if the data set only contains discrete variables
- */
-void Dataset::ConvertVectorDatasetIntoIntArrayDataset() {//storing the data set using int only
-  // Initialize to be all zero. (dataset_all_vars: int **)
-  dataset_all_vars = new int *[num_instance];
-//#pragma omp parallel for
-  for (int s=0; s<num_instance; ++s) {
-    dataset_all_vars[s] = new int[num_vars]();
-    vector<VarVal> vec_instance = vector_dataset_all_vars.at(s);
-    for (const VarVal &vv : vec_instance) {  // For each non-zero-value feature of this sample.
-      //change the related value if it is non-zero value in the vector representation.
-      dataset_all_vars[s][vv.first] = vv.second.GetInt();
-    }
-  }
 }
 
 /**
@@ -302,7 +292,8 @@ void Dataset::LoadCSVData(string data_file_path, bool header, bool str_val, int 
    * (does not erase "vector_dataset_all_vars").
    */
   if (cont_vars.empty()) {
-    ConvertVectorDatasetIntoIntArrayDataset();
+      Vector2IntArray();
+      RowMajor2ColumnMajor();
   }
 
   cout << "Finish loading data. " << '\n'
@@ -439,4 +430,38 @@ void Dataset::SamplesToCSVFile(vector<Configuration> &samples, string &file, vec
   }
 
   fclose(f);
+}
+
+/**
+ * @brief: convert from vector ("vector_dataset_all_vars") to array ("dataset_all_vars")
+ * this function is used if the data set only contains discrete variables
+ */
+void Dataset::Vector2IntArray() {//storing the data set using int only
+    // Initialize to be all zero. (dataset_all_vars: int **)
+    dataset_all_vars = new int *[num_instance];
+//#pragma omp parallel for
+    for (int s=0; s<num_instance; ++s) {
+        dataset_all_vars[s] = new int[num_vars]();
+        vector<VarVal> vec_instance = vector_dataset_all_vars.at(s);
+        for (const VarVal &vv : vec_instance) {  // For each non-zero-value feature of this sample.
+            //change the related value if it is non-zero value in the vector representation.
+            dataset_all_vars[s][vv.first] = vv.second.GetInt();
+        }
+    }
+}
+
+/**
+ * @brief: convert from row-major storage ("dataset_all_vars") to column-major storage ("dataset_columns")
+ * this function is used if the data set only contains discrete variables
+ */
+void Dataset::RowMajor2ColumnMajor() {
+    // Initialize to be all zero. (dataset_columns: int **)
+    dataset_columns = new int* [num_vars];
+//#pragma omp parallel for
+    for (int i = 0; i < num_vars; ++i) {
+        dataset_columns[i] = new int [num_instance];
+        for (int j = 0; j < num_instance; ++j) {
+            dataset_columns[i][j] = dataset_all_vars[j][i];
+        }
+    }
 }

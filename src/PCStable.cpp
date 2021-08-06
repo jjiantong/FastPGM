@@ -47,7 +47,6 @@ void PCStable::StructLearnCompData(Dataset *dts, bool print_struct, bool verbose
     timer->Print("pc-stable step 3");
     ci_test->timer->Print("counting1");
     ci_test->timer->Print("counting2");
-    ci_test->timer->Print("computing p-value");
 }
 
 void PCStable::StructLearnByPCStable(bool print_struct, bool verbose) {

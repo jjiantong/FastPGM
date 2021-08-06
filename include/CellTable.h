@@ -8,6 +8,7 @@
 #include "Dataset.h"
 #include <omp.h>
 
+/**----------------------------- implementations like bnlearn -----------------------------**/
 /**
  * two-dimensional contingency table.
  */
@@ -18,6 +19,7 @@ public:
     int **n;  // contingency table.
     int *ni;  // marginal counts for the first dimension.
     int *nj;  // marginal counts for the second dimension.
+
     Counts2D(int llx, int lly);
     ~Counts2D();
 };
@@ -35,15 +37,18 @@ public:
     int **ni; // marginal counts for the first dimension.
     int **nj; // marginal counts for the second dimension.
     int *nk;  // marginal counts for the third dimension.
+
     Counts3D(int llx, int lly, int llz);
     ~Counts3D();
 };
 
 /**
- * Important note: rename like Tetrad: "cell" = "configuration"!!
- *
- * storing a cell count table of arbitrary dimension
- * provide methods for incrementing particular cells and for calculating marginals
+ * @brief: this class is used for storing the counting of arbitrary dimension
+ * provide methods for mapping each configuration of Z to a configuration index (an int)
+ *             and for counting the counts for each configuration of X, Y and Z (N_{xyz})
+ *                     (storing in the contingency table table_3d->n[configuration index of Z][value of X][value of Y])
+ *             and for generating the marginal counts from the contingency table (N_{+yz}, N_{x+z}, N_{++z})
+ * also, N_{xy}, N_{x_}, N_{+y} for the case of tests X and Y given empty conditioning set (N_{++} = # of instances)
  */
 class CellTable {
 public:
@@ -59,15 +64,18 @@ public:
     CellTable(const vector<int> &dims, const vector<int> &test_index);
     ~CellTable();
 
+    // column-major vs. row-major problem in the following 3 methods:
+    // https://stackoverflow.com/questions/68683273/access-efficiency-of-c-2d-array/68683495#68683495
     void FastConfig(Dataset *dataset);
     void FillTable3D(Dataset *dataset);
     void FillTable2D(Dataset *dataset);
+};
+/**----------------------------- implementations like bnlearn -----------------------------**/
 
-
-
-
-
-//    Dataset *dataset; //todo
+/**----------------------------- implementations like Tetrad -----------------------------**/
+//class CellTable {
+//public:
+//    Dataset *dataset; // todo: remove, no-use
 //    /**
 //     * store a copy of config for temporary use (reused)
 //     */
@@ -99,6 +107,7 @@ public:
 //    long GetValue(const vector<int> &config);
 //    long ComputeMargin(const vector<int> &config);
 //    long ComputeMargin(const vector<int> &config, int* margin_vars, int margin_size);
-};
+//};
+/**----------------------------- implementations like Tetrad -----------------------------**/
 
 #endif //BAYESIANNETWORK_CELLTABLE_H

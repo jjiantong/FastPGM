@@ -4,6 +4,7 @@
 
 #include "CellTable.h"
 
+/**----------------------------- implementations like bnlearn -----------------------------**/
 Counts3D::Counts3D(int llx, int lly, int llz) {
     dimx = llx;
     dimy = lly;
@@ -174,7 +175,8 @@ void CellTable::FastConfig(Dataset *dataset) {
         int cell_index = 0;
         for (int j = 0; j < cond_dims.size(); ++j) {
             cell_index *= cond_dims[j];
-            cell_index += dataset->dataset_all_vars[i][cond_indices[j]];
+//            cell_index += dataset->dataset_all_vars[i][cond_indices[j]];
+            cell_index += dataset->dataset_columns[cond_indices[j]][i];
         }
         configurations[i] = cell_index;
     }
@@ -188,8 +190,10 @@ void CellTable::FillTable3D(Dataset *dataset) {
      * compute the joint frequency of x, y, and z (Nxyz)
      */
     for (int k = 0; k < dataset->num_instance; ++k) {
-        int x = dataset->dataset_all_vars[k][indices[0]];
-        int y = dataset->dataset_all_vars[k][indices[1]];
+//        int x = dataset->dataset_all_vars[k][indices[0]];
+//        int y = dataset->dataset_all_vars[k][indices[1]];
+        int x = dataset->dataset_columns[indices[0]][k];
+        int y = dataset->dataset_columns[indices[1]][k];
         int z = configurations[k];
         table_3d->n[z][x][y]++;
     }
@@ -213,8 +217,10 @@ void CellTable::FillTable2D(Dataset *dataset) {
      * compute the joint frequency of x, y, and z (Nxyz)
      */
     for (int k = 0; k < dataset->num_instance; ++k) {
-        int x = dataset->dataset_all_vars[k][indices[0]];
-        int y = dataset->dataset_all_vars[k][indices[1]];
+//        int x = dataset->dataset_all_vars[k][indices[0]];
+//        int y = dataset->dataset_all_vars[k][indices[1]];
+        int x = dataset->dataset_columns[indices[0]][k];
+        int y = dataset->dataset_columns[indices[1]][k];
         table_2d->n[x][y]++;
     }
 
@@ -228,11 +234,9 @@ void CellTable::FillTable2D(Dataset *dataset) {
         }
     }
 }
+/**----------------------------- implementations like bnlearn -----------------------------**/
 
-
-
-
-
+/**----------------------------- implementations like Tetrad -----------------------------**/
 ///**
 // * construct a new cell table using the given (fixed) dimensions
 // * each dimension must be an integer greater than zero
@@ -363,3 +367,4 @@ void CellTable::FillTable2D(Dataset *dataset) {
 //    long ret = ComputeMargin(config_copy);
 //    return ret;
 //}
+/**----------------------------- implementations like Tetrad -----------------------------**/

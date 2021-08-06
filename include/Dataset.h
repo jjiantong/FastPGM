@@ -17,7 +17,6 @@
 
 using namespace std;
 
-
 class Dataset {
 public:
   int num_instance;
@@ -36,11 +35,12 @@ public:
   vector<int> num_of_possible_values_of_disc_vars;
 
   int **dataset_all_vars;//a matrix storing the whole data set; [#samples][#features] TODO: the matrix is used; need to be replaced to improve quality
+  int **dataset_columns; // column-major storage; it is the transposed matrix of "dataset_all_vars"
   vector<vector<VarVal>> vector_dataset_all_vars;//a vector storing the whole data set, label + features
-
 
   Dataset();
   ~Dataset();
+
   void LoadLIBSVMData(string data_file_path, set<int> cont_vars={});
   void SamplesToLIBSVMFile(vector<DiscreteConfig> &samples, string &file) const;
   void SamplesToLIBSVMFile(vector<Configuration> &samples, string &file) const;
@@ -49,7 +49,8 @@ public:
   void SamplesToCSVFile(vector<DiscreteConfig> &samples, string &file, vector<string> header={}) const;
   void SamplesToCSVFile(vector<Configuration> &samples, string &file, vector<string> header={}) const;
 
-  void ConvertVectorDatasetIntoIntArrayDataset();
+  void Vector2IntArray();
+  void RowMajor2ColumnMajor();
 };
 
 

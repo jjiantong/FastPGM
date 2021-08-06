@@ -32,6 +32,7 @@ IndependenceTest::~IndependenceTest() {
     delete timer;
 }
 
+/**----------------------------- implementations like bnlearn -----------------------------**/
 /**
  * @brief: CI test TEST (x, y | z)
  * @param x_idx the one variable index being compared
@@ -76,9 +77,11 @@ IndependenceTest::Result IndependenceTest::ComputeGSquareXYZ(const vector<int> &
         dims.push_back(dim);
     }
 
+    timer->Start("counting1");
     cell_table = new CellTable(dims, test_idx);
     cell_table->FastConfig(dataset);
     cell_table->FillTable3D(dataset);
+    timer->Stop("counting1");
 
     /**
      * compute df: two ways are commonly used to compute the degree of freedom
@@ -91,6 +94,7 @@ IndependenceTest::Result IndependenceTest::ComputeGSquareXYZ(const vector<int> &
      * it seems that 2 is more reasonable and it can obtain smaller SHD in practice
      * we also use 2 in our implementation
      */
+    timer->Start("counting2");
     double g2 = 0.0;
     int df = 0;
     for (int k = 0; k < cell_table->table_3d->dimz; ++k) { // for each config of z
@@ -136,6 +140,7 @@ IndependenceTest::Result IndependenceTest::ComputeGSquareXYZ(const vector<int> &
     }
 
     delete cell_table;
+    timer->Stop("counting2");
 
     if (df == 0) { // if df == 0, this is definitely an independent table
         double p_value = 1.0;
@@ -165,9 +170,12 @@ IndependenceTest::Result IndependenceTest::ComputeGSquareXY(const vector<int> &t
         dims.push_back(dim);
     }
 
+    timer->Start("counting1");
     cell_table = new CellTable(dims, test_idx);
     cell_table->FillTable2D(dataset);
+    timer->Stop("counting1");
 
+    timer->Start("counting2");
     double g2 = 0.0;
     int df = 0;
 
@@ -212,6 +220,7 @@ IndependenceTest::Result IndependenceTest::ComputeGSquareXY(const vector<int> &t
     }
 
     delete cell_table;
+    timer->Stop("counting2");
 
     if (df == 0) { // if df == 0, this is definitely an independent table
         double p_value = 1.0;
@@ -223,10 +232,11 @@ IndependenceTest::Result IndependenceTest::ComputeGSquareXY(const vector<int> &t
     // if p > alpha, accept the null hypothesis: independent
     double p_value = 1.0 - stats::pchisq(g2, df, false);
     bool indep = (p_value > alpha);
-    timer->Stop("computing p-value");
     return IndependenceTest::Result(g2, p_value, df, indep);
 }
+/**----------------------------- implementations like bnlearn -----------------------------**/
 
+/**----------------------------- implementations like Tetrad -----------------------------**/
 ///**
 // * @brief: CI test TEST (x, y | z)
 // * @param x_idx the one variable index being compared
@@ -402,15 +412,15 @@ IndependenceTest::Result IndependenceTest::ComputeGSquareXY(const vector<int> &t
 //    timer->Stop("computing p-value");
 //    return IndependenceTest::Result(g2, p_value, df, indep);
 //}
-
-/**
- * calculate g square for ci-test x _||_ y | z1, z2, ..., max
- * using a DFS tree, refer to code https://github.com/asrivast28/ramBLe, and papers
- *      A parallel framework for constraint-based bayesian network learning via markov blanket discovery, 2020
- *      Fast counting in machine learning applications, 2018
- * @param test_idx: x, y, z1, z2 ...
- * @param size: number of test_idx
- */
+//
+///**
+// * calculate g square for ci-test x _||_ y | z1, z2, ..., max
+// * using a DFS tree, refer to code https://github.com/asrivast28/ramBLe, and papers
+// *      A parallel framework for constraint-based bayesian network learning via markov blanket discovery, 2020
+// *      Fast counting in machine learning applications, 2018
+// * @param test_idx: x, y, z1, z2 ...
+// * @param size: number of test_idx
+// */
 //IndependenceTest::Result IndependenceTest::ComputeGSquare(int* test_idx, int size) {
 //    double g2 = 0.0;
 //    int df = 0;
@@ -507,3 +517,4 @@ IndependenceTest::Result IndependenceTest::ComputeGSquareXY(const vector<int> &t
 //    }
 //    return result;
 //}
+/**----------------------------- implementations like Tetrad -----------------------------**/

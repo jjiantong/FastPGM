@@ -24,7 +24,7 @@ int ArgMax(map<int, double> &x) {
  * @brief: get probabilities; normalise the weights of a variable which has multiple potential values.
  * the input is the same as "ArgMax".
  */
-map<int, double> Normalize(map<int, double> &x) {
+map<int, double> Normalize(map<int, double> &x) { // TODO: move to maybe Inference
   double denominator = 0;
   for (const auto &key_value : x) {
       denominator += key_value.second;

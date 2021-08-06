@@ -66,19 +66,22 @@ public:
         }
     };
 
-//    IndependenceTest(){};
     IndependenceTest(Dataset *dataset, double alpha);
     ~IndependenceTest();
 
+    /**----------------------------- implementations like bnlearn -----------------------------**/
     Result IndependenceResult(int x_idx, int y_idx, const set<int> &z, string metric);
     Result ComputeGSquareXYZ(const vector<int> &test_idx);
     Result ComputeGSquareXY(const vector<int> &test_idx);
+    /**----------------------------- implementations like bnlearn -----------------------------**/
 
+    /**----------------------------- implementations like Tetrad -----------------------------**/
 //    Result IndependenceResult(int x_idx, int y_idx, const set<int> &z, string metric);
 //    Result ComputeGSquare(const vector<int> &test_idx);
 
 //    Result ComputeGSquare(int* test_idx, int size);
 //    vector<int> Common(const vector<int> &subset, int index, int value);
+    /**----------------------------- implementations like Tetrad -----------------------------**/
 };
 
 #endif //BAYESIANNETWORK_INDEPENDENCETEST_H
