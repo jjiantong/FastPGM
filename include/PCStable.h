@@ -28,19 +28,27 @@ struct CmpByValue {
 class PCStable : public StructureLearning {
 public:
     int depth = 1000; // The maximum number of nodes conditioned on in the search. The default it 1000.
-    IndependenceTest* ci_test;
     int num_ci_test;
     int num_dependence_judgement;
+    double alpha;
     Timer *timer;
+    /**
+     * Stores a map from pairs of nodes (key) to separating sets (value) --
+     * for each unordered pair of nodes {node1, node2} in a graph,
+     * stores a set of nodes which node1 and node2 are independent conditional on
+     * or stores null if the pair are independent conditional on the empty set
+     */
+    map<pair<int, int>, set<int>> sepset;
 
-    PCStable(Network *net, Dataset *dataset, double alpha);
-    PCStable(Network *net, int d, Dataset *dataset, double alpha);
+    PCStable(Network *net, double a);
+    PCStable(Network *net, int d, double a);
     ~PCStable();
 
     virtual void StructLearnCompData(Dataset *dts, bool print_struct, bool verbose);
-    void StructLearnByPCStable(bool print_struct, bool verbose);
-    bool SearchAtDepth(int c_depth, bool verbose);
-    bool CheckSide(const map<int, map<int, double>> &adjacencies, int c_depth, Node* x, Node* y, bool verbose);
+    void StructLearnByPCStable(Dataset *dts, bool print_struct, bool verbose);
+    bool SearchAtDepth(Dataset *dts, int c_depth, bool verbose);
+    bool CheckSide(Dataset *dts, const map<int, map<int, double>> &adjacencies,
+                   int c_depth, Node* x, Node* y, bool verbose);
     int FreeDegree(const map<int, map<int, double>> &adjacencies);
 
     void OrientVStructure();

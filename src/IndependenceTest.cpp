@@ -18,18 +18,11 @@ IndependenceTest::IndependenceTest(Dataset *dataset, double alpha) {
 
     this->dataset = dataset;
     this->alpha = alpha;
-
-    for (int i = 0; i < dataset->num_vars; i++) {
-        // get the number of possible values of each feature in indices, from Dataset.num_of_possible_values_of_disc_vars
-        int dim = dataset->num_of_possible_values_of_disc_vars.at(i);
-        dims.push_back(dim);
-    }
-
-    this->timer = new Timer();
+//    this->timer = new Timer();
 }
 
 IndependenceTest::~IndependenceTest() {
-    delete timer;
+//    delete timer;
 }
 
 /**----------------------------- implementations like bnlearn -----------------------------**/
@@ -77,11 +70,13 @@ IndependenceTest::Result IndependenceTest::ComputeGSquareXYZ(const vector<int> &
         dims.push_back(dim);
     }
 
-    timer->Start("counting1");
+//    timer->Start("counting1");
     cell_table = new CellTable(dims, test_idx);
     cell_table->FastConfig(dataset);
+//    timer->Stop("counting1");
+//    timer->Start("counting2");
     cell_table->FillTable3D(dataset);
-    timer->Stop("counting1");
+//    timer->Stop("counting2");
 
     /**
      * compute df: two ways are commonly used to compute the degree of freedom
@@ -94,7 +89,7 @@ IndependenceTest::Result IndependenceTest::ComputeGSquareXYZ(const vector<int> &
      * it seems that 2 is more reasonable and it can obtain smaller SHD in practice
      * we also use 2 in our implementation
      */
-    timer->Start("counting2");
+//    timer->Start("counting3");
     double g2 = 0.0;
     int df = 0;
     for (int k = 0; k < cell_table->table_3d->dimz; ++k) { // for each config of z
@@ -140,8 +135,9 @@ IndependenceTest::Result IndependenceTest::ComputeGSquareXYZ(const vector<int> &
     }
 
     delete cell_table;
-    timer->Stop("counting2");
+//    timer->Stop("counting3");
 
+//    timer->Start("counting4");
     if (df == 0) { // if df == 0, this is definitely an independent table
         double p_value = 1.0;
         IndependenceTest::Result result(g2, p_value, df, true);
@@ -152,7 +148,7 @@ IndependenceTest::Result IndependenceTest::ComputeGSquareXYZ(const vector<int> &
     // if p > alpha, accept the null hypothesis: independent
     double p_value = 1.0 - stats::pchisq(g2, df, false);
     bool indep = (p_value > alpha);
-    timer->Stop("computing p-value");
+//    timer->Stop("counting4");
     return IndependenceTest::Result(g2, p_value, df, indep);
 }
 
@@ -170,12 +166,14 @@ IndependenceTest::Result IndependenceTest::ComputeGSquareXY(const vector<int> &t
         dims.push_back(dim);
     }
 
-    timer->Start("counting1");
+//    timer->Start("counting1");
     cell_table = new CellTable(dims, test_idx);
+//    timer->Stop("counting1");
+//    timer->Start("counting2");
     cell_table->FillTable2D(dataset);
-    timer->Stop("counting1");
+//    timer->Stop("counting2");
 
-    timer->Start("counting2");
+//    timer->Start("counting3");
     double g2 = 0.0;
     int df = 0;
 
@@ -220,8 +218,9 @@ IndependenceTest::Result IndependenceTest::ComputeGSquareXY(const vector<int> &t
     }
 
     delete cell_table;
-    timer->Stop("counting2");
+//    timer->Stop("counting3");
 
+//    timer->Start("counting4");
     if (df == 0) { // if df == 0, this is definitely an independent table
         double p_value = 1.0;
         IndependenceTest::Result result(g2, p_value, df, true);
@@ -232,6 +231,7 @@ IndependenceTest::Result IndependenceTest::ComputeGSquareXY(const vector<int> &t
     // if p > alpha, accept the null hypothesis: independent
     double p_value = 1.0 - stats::pchisq(g2, df, false);
     bool indep = (p_value > alpha);
+//    timer->Stop("counting4");
     return IndependenceTest::Result(g2, p_value, df, indep);
 }
 /**----------------------------- implementations like bnlearn -----------------------------**/
@@ -270,7 +270,7 @@ IndependenceTest::Result IndependenceTest::ComputeGSquareXY(const vector<int> &t
 // * @param test_idx: x, y, z1, z2 ...
 // */
 //IndependenceTest::Result IndependenceTest::ComputeGSquare(const vector<int> &test_idx) {
-//    timer->Start("counting1");
+////    timer->Start("counting1");
 //    // reset the cell table for the columns referred to in 'test_idx', do cell coefs for those columns
 //    vector<int> dims;
 //    for (int i = 0; i < test_idx.size(); ++i) {
@@ -281,9 +281,9 @@ IndependenceTest::Result IndependenceTest::ComputeGSquareXY(const vector<int> &t
 //
 //    cell_table = new CellTable(dims);
 //    cell_table->AddToTable(dataset, test_idx);
-//    timer->Stop("counting1");
+////    timer->Stop("counting1");
 //
-//    timer->Start("counting2");
+////    timer->Start("counting2");
 //    // indicator vectors to tell the cell table which margins to calculate
 //    // for x _||_ y | z1, z2, ..., we want to calculate the margin for x, the margin for y, and the margin for x and y
 //    int first_var[1] = {0};
@@ -396,9 +396,9 @@ IndependenceTest::Result IndependenceTest::ComputeGSquareXY(const vector<int> &t
 //    cell_table = nullptr;
 //    delete [] cond_dims;
 //    cond_dims = nullptr;
-//    timer->Stop("counting2");
+////    timer->Stop("counting2");
 //
-//    timer->Start("computing p-value");
+////    timer->Start("computing p-value");
 //    if (df == 0) { // if df == 0, this is definitely an independent table
 //        double p_value = 1.0;
 //        IndependenceTest::Result result(g2, p_value, df, true);
@@ -409,7 +409,7 @@ IndependenceTest::Result IndependenceTest::ComputeGSquareXY(const vector<int> &t
 //    // if p > alpha, accept the null hypothesis: independent
 //    double p_value = 1.0 - stats::pchisq(g2, df, false);
 //    bool indep = (p_value > alpha);
-//    timer->Stop("computing p-value");
+////    timer->Stop("computing p-value");
 //    return IndependenceTest::Result(g2, p_value, df, indep);
 //}
 //

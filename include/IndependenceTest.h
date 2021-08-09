@@ -32,21 +32,8 @@ class IndependenceTest {
 public:
     Dataset *dataset;
     double alpha;
-    Timer *timer;
-    /**
-     * note that "dims" is not equal to "cell_table->dims":
-     * "dims" contains the dimensions of all variables in the data set
-     * while "cell_table->dims" contains the dimensions of a subset of variables (related to the cell_table)
-     */
-    vector<int> dims;
+//    Timer *timer;
     CellTable *cell_table;
-    /**
-     * Stores a map from pairs of nodes (key) to separating sets (value) --
-     * for each unordered pair of nodes {node1, node2} in a graph,
-     * stores a set of nodes which node1 and node2 are independent conditional on
-     * or stores null if the pair are independent conditional on the empty set
-     */
-    map<pair<int, int>, set<int>> sepset;
 
     /**
      * an inner class Result is used to store the parameters of the result returned by the G Square test

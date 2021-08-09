@@ -171,6 +171,8 @@ CellTable::~CellTable() {
  */
 void CellTable::FastConfig(Dataset *dataset) {
     configurations = new int[dataset->num_instance];
+//    omp_set_num_threads(8);
+//#pragma omp parallel for
     for (int i = 0; i < dataset->num_instance; ++i) {
         int cell_index = 0;
         for (int j = 0; j < cond_dims.size(); ++j) {
@@ -201,9 +203,9 @@ void CellTable::FillTable3D(Dataset *dataset) {
     /**
      * compute the marginals (Nx+z, N+yz, N++z)
      */
-    for (int i = 0; i < table_3d->dimx; i++) {
-        for (int j = 0; j < table_3d->dimy; j++) {
-            for (int k = 0; k < table_3d->dimz; k++) {
+    for (int k = 0; k < table_3d->dimz; k++) {
+        for (int i = 0; i < table_3d->dimx; i++) {
+            for (int j = 0; j < table_3d->dimy; j++) {
                 table_3d->ni[k][i] += table_3d->n[k][i][j];
                 table_3d->nj[k][j] += table_3d->n[k][i][j];
                 table_3d->nk[k] += table_3d->n[k][i][j];

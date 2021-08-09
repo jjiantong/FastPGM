@@ -4,20 +4,20 @@
 
 #include "PCStable.h"
 
-PCStable::PCStable(Network *net, Dataset *dataset, double alpha) {
+PCStable::PCStable(Network *net, double a) {
     network = net;
-    ci_test = new IndependenceTest(dataset, alpha);
     num_ci_test = 0;
     num_dependence_judgement = 0;
+    alpha = a;
     timer = new Timer();
 }
 
-PCStable::PCStable(Network *net, int d, Dataset *dataset, double alpha) {
+PCStable::PCStable(Network *net, int d, double a) {
     network = net;
-    ci_test = new IndependenceTest(dataset, alpha);
     num_ci_test = 0;
     num_dependence_judgement = 0;
     depth = d;
+    alpha = a;
     timer = new Timer();
 }
 
@@ -34,7 +34,7 @@ void PCStable::StructLearnCompData(Dataset *dts, bool print_struct, bool verbose
 
     depth = (depth == -1) ? 1000 : depth; // depth = -1 means no limitation
     AssignNodeInformation(dts);
-    StructLearnByPCStable(print_struct, verbose);
+    StructLearnByPCStable(dts, print_struct, verbose);
 
     timer->Stop("pc-stable");
     setlocale(LC_NUMERIC, "");
@@ -45,11 +45,9 @@ void PCStable::StructLearnCompData(Dataset *dts, bool print_struct, bool verbose
     timer->Print("pc-stable step 1");
     timer->Print("pc-stable step 2");
     timer->Print("pc-stable step 3");
-    ci_test->timer->Print("counting1");
-    ci_test->timer->Print("counting2");
 }
 
-void PCStable::StructLearnByPCStable(bool print_struct, bool verbose) {
+void PCStable::StructLearnByPCStable(Dataset *dts, bool print_struct, bool verbose) {
     timer->Start("pc-stable step 1");
     cout << "==================================================" << '\n'
          << "Generating complete undirected graph" << endl;
@@ -73,14 +71,11 @@ void PCStable::StructLearnByPCStable(bool print_struct, bool verbose) {
         network->adjacencies.insert(make_pair(i, adjacency));
     }
 
-    /**
-     * note that the for loop does not have "edge_it++", "edge_it++" only happens when (*edge_it) is not erased
-     * for the case of erasing (*edge_it), the iterator will point to the next edge after erasing the current edge
-     * (erasing operation is in Network::DeleteUndirectedEdge)
-     */
-    for (auto edge_it = network->vec_edges.begin(); edge_it != network->vec_edges.end();) {
-        int node_idx1 = (*edge_it).GetNode1()->GetNodeIndex();
-        int node_idx2 = (*edge_it).GetNode2()->GetNodeIndex();
+    omp_set_num_threads(2);
+#pragma omp parallel for
+    for (int i = 0; i < network->num_edges; ++i) {
+        int node_idx1 = network->vec_edges.at(i).GetNode1()->GetNodeIndex();
+        int node_idx2 = network->vec_edges.at(i).GetNode2()->GetNodeIndex();
         set<int> empty_set;
 
         if (verbose) {
@@ -89,8 +84,12 @@ void PCStable::StructLearnByPCStable(bool print_struct, bool verbose) {
                  << " -- " << network->FindNodePtrByIndex(node_idx2)->node_name
                  << ", conditioning sets of size 0." << endl;
         }
+
+#pragma omp atomic
         num_ci_test++;
+        IndependenceTest *ci_test = new IndependenceTest(dts, alpha);
         IndependenceTest::Result result = ci_test->IndependenceResult(node_idx1, node_idx2, empty_set,"g square");
+        delete ci_test;
         bool independent = result.is_independent;
         if (verbose) {
             cout << "    > node " << network->FindNodePtrByIndex(node_idx1)->node_name << " is ";
@@ -104,21 +103,39 @@ void PCStable::StructLearnByPCStable(bool print_struct, bool verbose) {
         }
 
         if (!independent) { // the edge remains
+#pragma omp atomic
             num_dependence_judgement++;
+            //-------------------------------- heuristic ---------------------------------//
             // store the p value - smaller means a stronger association
-            network->adjacencies.at(node_idx1).at(node_idx2) = result.p_value;
-            network->adjacencies.at(node_idx2).at(node_idx1) = result.p_value;
-            edge_it++;
+//            network->adjacencies.at(node_idx1).at(node_idx2) = result.p_value;
+//            network->adjacencies.at(node_idx2).at(node_idx1) = result.p_value;
+            //-------------------------------- heuristic ---------------------------------//
         } else {
+            network->vec_edges.at(i).need_remove = true;
+            // the edge node1 -- node2 should be removed
+            // 1. delete the edge 2. remove each other from adjacency set
+            // (1 and 2 will be done in the loop below)
+            // 3. add conditioning set (an empty set for level 0) to sepset
+            sepset.insert(make_pair(make_pair(node_idx1, node_idx2), empty_set));
+//            sepset.insert(make_pair(make_pair(node_idx2, node_idx1), empty_set));
+        }
+    }
+
+    for (int i = 0; i < network->num_edges; ++i) {
+        int node_idx1 = network->vec_edges.at(i).GetNode1()->GetNodeIndex();
+        int node_idx2 = network->vec_edges.at(i).GetNode2()->GetNodeIndex();
+
+        if (network->vec_edges.at(i).need_remove) {
             // the edge node1 -- node2 should be removed
             // 1. delete the edge
-            network->DeleteUndirectedEdge(node_idx1, node_idx2);
+            // note that using "DeleteUndirectedEdge(node_idx1, node_idx2)" will cause some (slight) extra computations
+            network->vec_edges.erase(network->vec_edges.begin() + i);
+            --network->num_edges;
             // 2. remove each other from adjacency set
             network->adjacencies[node_idx1].erase(node_idx2);
             network->adjacencies[node_idx2].erase(node_idx1);
-            // 3. add conditioning set (an empty set for level 0) to sepset
-            ci_test->sepset.insert(make_pair(make_pair(node_idx1, node_idx2), empty_set));
-//            ci_test->sepset.insert(make_pair(make_pair(node_idx2, node_idx1), empty_set));
+            // 3. add conditioning set (an empty set for level 0) to sepset (is done in the loop above)
+            i--;
         }
     }
 
@@ -130,7 +147,7 @@ void PCStable::StructLearnByPCStable(bool print_struct, bool verbose) {
     for (int d = 1; d < depth; ++d) {
         cout << "Level " << d << "... " << endl;
 
-        bool more = SearchAtDepth(d, verbose);
+        bool more = SearchAtDepth(dts, d, verbose);
 
         if (verbose) {
             cout << "* remaining edges:" << endl;
@@ -144,10 +161,6 @@ void PCStable::StructLearnByPCStable(bool print_struct, bool verbose) {
 
     timer->Stop("pc-stable step 1");
 
-//    if (print_struct) {
-//        network->PrintEachEdgeWithIndex();
-//    }
-
     cout << "\n==================================================" << '\n'
          << "Begin orienting v-structure" << endl;
 
@@ -155,9 +168,6 @@ void PCStable::StructLearnByPCStable(bool print_struct, bool verbose) {
     OrientVStructure();
     timer->Stop("pc-stable step 2");
 
-//    if (print_struct) {
-//        network->PrintEachEdgeWithIndex();
-//    }
 
     cout << "==================================================" << '\n'
          << "Begin orienting other undirected edges" << endl;
@@ -176,41 +186,48 @@ void PCStable::StructLearnByPCStable(bool print_struct, bool verbose) {
 /**
  * @brief: search for each level (c_depth, c_depth > 0) except for level 0
  */
-bool PCStable::SearchAtDepth(int c_depth, bool verbose) {
+bool PCStable::SearchAtDepth(Dataset *dts, int c_depth, bool verbose) {
     /**
      * the copied adjacency sets of all nodes are used and kept unchanged at each particular level c_depth
      * consequently, an edge deletion at one level does not affect the conditioning sets of the other nodes
      * and thus the output is independent with the variable ordering, called PC-stable
      */
     map<int, map<int, double>> adjacencies_copy = network->adjacencies;
-    /**
-     * note that the for loop does not have "edge_it++", "edge_it++" only happens when (*edge_it) is not erased
-     * for the case of erasing (*edge_it), the iterator will point to the next edge after erasing the current edge
-     * (erasing operation is in Network::DeleteUndirectedEdge)
-     */
-    for (auto edge_it = network->vec_edges.begin(); edge_it != network->vec_edges.end();) {
-        Node* x = (*edge_it).GetNode1();
-        Node* y = (*edge_it).GetNode2();
+
+    omp_set_num_threads(2);
+#pragma omp parallel for
+    for (int i = 0; i < network->num_edges; ++i) {
+        Node *x = network->vec_edges.at(i).GetNode1();
+        Node *y = network->vec_edges.at(i).GetNode2();
 
         if (verbose) {
             cout << "--------------------------------------------------" << endl
-                 << "* investigating " << edge_it->GetNode1()->node_name << " -- "
-                 << edge_it->GetNode2()->node_name << ", conditioning sets of size " << c_depth << "." << endl;
+                 << "* investigating " << network->vec_edges.at(i).GetNode1()->node_name << " -- "
+                 << network->vec_edges.at(i).GetNode2()->node_name << ", conditioning sets of size " << c_depth << "." << endl;
         }
-        if (CheckSide(adjacencies_copy, c_depth, x, y, verbose) ||
-            CheckSide(adjacencies_copy, c_depth, y, x, verbose)) {
-            /**
-             * the edge x -- y  should be removed
-             * note that the sepsets have already been added,
-             * so we only need to 1) delete the edge; 2) remove each other from adjacency set
-             */
-            network->DeleteUndirectedEdge(x->GetNodeIndex(), y->GetNodeIndex());
-            network->adjacencies[x->GetNodeIndex()].erase(y->GetNodeIndex());
-            network->adjacencies[y->GetNodeIndex()].erase(x->GetNodeIndex());
-        } else { // the edge x -- y remains
-            edge_it++;
+
+        network->vec_edges.at(i).need_remove = CheckSide(dts, adjacencies_copy, c_depth, x, y, verbose) ||
+                                               CheckSide(dts, adjacencies_copy, c_depth, y, x, verbose);
+    }
+
+    for (int i = 0; i < network->num_edges; ++i) {
+        int node_idx1 = network->vec_edges.at(i).GetNode1()->GetNodeIndex();
+        int node_idx2 = network->vec_edges.at(i).GetNode2()->GetNodeIndex();
+
+        if (network->vec_edges.at(i).need_remove) {
+            // the edge x -- y should be removed
+            // 1. delete the edge
+            // note that using "DeleteUndirectedEdge(x->GetNodeIndex(), y->GetNodeIndex())" will cause some (slight) extra computations
+            network->vec_edges.erase(network->vec_edges.begin() + i);
+            --network->num_edges;
+            // 2. remove each other from adjacency set
+            network->adjacencies[node_idx1].erase(node_idx2);
+            network->adjacencies[node_idx2].erase(node_idx1);
+            // 3. add conditioning set (an empty set for level 0) to sepset (is done in the loop above)
+            i--;
         }
     }
+
     return (FreeDegree(network->adjacencies) > c_depth);
 }
 
@@ -223,7 +240,8 @@ bool PCStable::SearchAtDepth(int c_depth, bool verbose) {
  *            lower p-value indicates stronger dependence and stronger association between the variables
  * @return true if such a Z can be found, which means edge x -- y should be deleted
  */
-bool PCStable::CheckSide(const map<int, map<int, double>> &adjacencies, int c_depth, Node* x, Node* y, bool verbose) {
+bool PCStable::CheckSide(Dataset *dts, const map<int, map<int, double>> &adjacencies,
+                         int c_depth, Node* x, Node* y, bool verbose) {
     int x_idx = x->GetNodeIndex();
     int y_idx = y->GetNodeIndex();
 
@@ -259,8 +277,11 @@ bool PCStable::CheckSide(const map<int, map<int, double>> &adjacencies, int c_de
                 Z.insert(vec_adjx[choice[i]]);
             }
 
+#pragma omp atomic
             num_ci_test++;
+            IndependenceTest *ci_test = new IndependenceTest(dts, alpha);
             IndependenceTest::Result result = ci_test->IndependenceResult(x_idx, y_idx, Z,"g square");
+            delete ci_test;
             bool independent = result.is_independent;
             if (verbose) {
                 cout << "    > node " << network->FindNodePtrByIndex(x_idx)->node_name << " is ";
@@ -277,6 +298,7 @@ bool PCStable::CheckSide(const map<int, map<int, double>> &adjacencies, int c_de
             }
 
             if (!independent) {
+#pragma omp atomic
                 num_dependence_judgement++;
             } else {
                 // add conditioning set to sepset
@@ -288,9 +310,9 @@ bool PCStable::CheckSide(const map<int, map<int, double>> &adjacencies, int c_de
                     node_idx1 = x_idx;
                     node_idx2 = y_idx;
                 }
-                ci_test->sepset.insert(make_pair(make_pair(node_idx1, node_idx2), Z)); //todo
-//                ci_test->sepset.insert(make_pair(make_pair(x_idx, y_idx), Z));
-//                ci_test->sepset.insert(make_pair(make_pair(y_idx, x_idx), Z));
+                sepset.insert(make_pair(make_pair(node_idx1, node_idx2), Z)); //todo
+//                sepset.insert(make_pair(make_pair(x_idx, y_idx), Z));
+//                sepset.insert(make_pair(make_pair(y_idx, x_idx), Z));
                 return true;
             }
         }
@@ -317,14 +339,16 @@ bool PCStable::CheckSide(const map<int, map<int, double>> &adjacencies, int c_de
 //                Z.insert(vec_adjx_w.at(choice.at(i)).first);
 //            }
 //            num_ci_test++;
+//            IndependenceTest *ci_test = new IndependenceTest(dts, alpha);
 //            IndependenceTest::Result result = ci_test->IndependenceResult(x_idx, y_idx, Z,"g square");
+//            delete ci_test;
 //            bool independent = result.is_independent;
 //            if (!independent) {
 //                num_dependence_judgement++;
 //            } else {
 //                // add conditioning set to sepset
-//                ci_test->sepset.insert(make_pair(make_pair(x_idx, y_idx), Z));
-//                ci_test->sepset.insert(make_pair(make_pair(y_idx, x_idx), Z));
+//                sepset.insert(make_pair(make_pair(x_idx, y_idx), Z));//todo
+//                sepset.insert(make_pair(make_pair(y_idx, x_idx), Z));
 //                return true;
 //            }
 //        }
@@ -370,14 +394,16 @@ bool PCStable::CheckSide(const map<int, map<int, double>> &adjacencies, int c_de
 //                Z.insert(vec_adjx_w.at(vec_choice_w.at(j).first.at(i)).first);
 //            }
 //            num_ci_test++;
+//            IndependenceTest *ci_test = new IndependenceTest(dts, alpha);
 //            IndependenceTest::Result result = ci_test->IndependenceResult(x_idx, y_idx, Z,"g square");
+//            delete ci_test;
 //            bool independent = result.is_independent;
 //            if (!independent) {
 //                num_dependence_judgement++;
 //            } else {
 //                // add conditioning set to sepset
-//                ci_test->sepset.insert(make_pair(make_pair(x_idx, y_idx), Z));
-//                ci_test->sepset.insert(make_pair(make_pair(y_idx, x_idx), Z));
+//                sepset.insert(make_pair(make_pair(x_idx, y_idx), Z));//todo
+//                sepset.insert(make_pair(make_pair(y_idx, x_idx), Z));
 //                return true;
 //            }
 //        }
@@ -432,7 +458,7 @@ void PCStable::OrientVStructure() {
                 continue;
             }
             // 2) b is not in the sepset of (a, c)
-            set<int> sepset = ci_test->sepset[make_pair(a, c)];
+            set<int> sepset = this->sepset[make_pair(a, c)];
             if (sepset.find(b) == sepset.end()) {
                 /**
                  * the original code causes problems when adding a new edge generates a circle,

@@ -88,40 +88,40 @@
 
 
 
-class ExperimentBNSLOnAlarm : public ::testing::Test {
-protected:
-
-    void SetUp() override {
-        trainer = new Dataset();
-        network = new Network(true);
-
-        string train_set_file_path = "../../data/alarm_s10000.txt";
-
-        trainer->LoadCSVData(train_set_file_path, true, true, 0);
-
-//        ParameterLearning *bnpl = new ParameterLearning(network);
-//        bnpl->LearnParamsKnowStructCompData(trainer, true);
-    }
-
-    Dataset *trainer;
-    Network *network;
-};
-
-TEST_F(ExperimentBNSLOnAlarm, pc_stable) {
-    StructureLearning *bnsl = new PCStable(network, trainer, 0.05);
-    bnsl->StructLearnCompData(trainer, true, false);
-
-    CustomNetwork *ref_net = new CustomNetwork();
-    ref_net->LoadBIFFile("../../data/alarm.bif");
-//    ref_net->PrintEachEdgeWithIndex();
-
-    BNSLComparison comp(ref_net, network);
-    int shd = comp.GetSHD();
-    cout << "SHD = " << shd << endl;
-//    EXPECT_EQ(shd, 3);
-//    EXPECT_EQ(((PCStable*)bnsl)->num_ci_test, 6265);
-//    EXPECT_EQ(((PCStable*)bnsl)->num_dependence_judgement, 5643);
-}
+//class ExperimentBNSLOnAlarm : public ::testing::Test {
+//protected:
+//
+//    void SetUp() override {
+//        trainer = new Dataset();
+//        network = new Network(true);
+//
+//        string train_set_file_path = "../../data/alarm_s10000.txt";
+//
+//        trainer->LoadCSVData(train_set_file_path, true, true, 0);
+//
+////        ParameterLearning *bnpl = new ParameterLearning(network);
+////        bnpl->LearnParamsKnowStructCompData(trainer, true);
+//    }
+//
+//    Dataset *trainer;
+//    Network *network;
+//};
+//
+//TEST_F(ExperimentBNSLOnAlarm, pc_stable) {
+//    StructureLearning *bnsl = new PCStable(network, 0.05);
+//    bnsl->StructLearnCompData(trainer, true, false);
+//
+//    CustomNetwork *ref_net = new CustomNetwork();
+//    ref_net->LoadBIFFile("../../data/alarm.bif");
+////    ref_net->PrintEachEdgeWithIndex();
+//
+//    BNSLComparison comp(ref_net, network);
+//    int shd = comp.GetSHD();
+//    cout << "SHD = " << shd << endl;
+////    EXPECT_EQ(shd, 3);
+////    EXPECT_EQ(((PCStable*)bnsl)->num_ci_test, 6265);
+////    EXPECT_EQ(((PCStable*)bnsl)->num_dependence_judgement, 5643);
+//}
 
 
 //class ExperimentBNSLOnInsurance : public ::testing::Test {
@@ -144,7 +144,7 @@ TEST_F(ExperimentBNSLOnAlarm, pc_stable) {
 //};
 //
 //TEST_F(ExperimentBNSLOnInsurance, pc_stable) {
-//    StructureLearning *bnsl = new PCStable(network, trainer, 0.05);
+//    StructureLearning *bnsl = new PCStable(network, 0.05);
 //    bnsl->StructLearnCompData(trainer, true, false);
 //
 //    CustomNetwork *ref_net = new CustomNetwork();
@@ -179,7 +179,7 @@ TEST_F(ExperimentBNSLOnAlarm, pc_stable) {
 //};
 //
 //TEST_F(ExperimentBNSLOnWin95pts, pc_stable) {
-//    StructureLearning *bnsl = new PCStable(network, trainer, 0.05);
+//    StructureLearning *bnsl = new PCStable(network, 0.05);
 //    bnsl->StructLearnCompData(trainer, true, false);
 //
 //    CustomNetwork *ref_net = new CustomNetwork();
@@ -215,7 +215,7 @@ TEST_F(ExperimentBNSLOnAlarm, pc_stable) {
 //};
 //
 //TEST_F(ExperimentBNSLOnHailfinder, pc_stable) {
-//    StructureLearning *bnsl = new PCStable(network, trainer, 0.05);
+//    StructureLearning *bnsl = new PCStable(network, 0.05);
 //    bnsl->StructLearnCompData(trainer, true, false);
 //
 //    CustomNetwork *ref_net = new CustomNetwork();
@@ -253,7 +253,7 @@ TEST_F(ExperimentBNSLOnAlarm, pc_stable) {
 //};
 //
 //TEST_F(ExperimentBNSLOnAndes, pc_stable) {
-//    StructureLearning *bnsl = new PCStable(network, trainer, 0.05);
+//    StructureLearning *bnsl = new PCStable(network, 0.05);
 //    bnsl->StructLearnCompData(trainer, true, false);
 //
 //    CustomNetwork *ref_net = new CustomNetwork();
@@ -268,14 +268,49 @@ TEST_F(ExperimentBNSLOnAlarm, pc_stable) {
 ////    EXPECT_EQ(((PCStable*)bnsl)->num_dependence_judgement, 5643);
 //}
 
-class ExperimentBNSLOnPigs : public ::testing::Test {
+//class ExperimentBNSLOnPigs : public ::testing::Test {
+//protected:
+//
+//    void SetUp() override {
+//        trainer = new Dataset();
+//        network = new Network(true);
+//
+//        string train_set_file_path = "../../data/pigs_s10000.txt";
+//
+//        trainer->LoadCSVData(train_set_file_path, true, true, 0);
+//
+////        ParameterLearning *bnpl = new ParameterLearning(network);
+////        bnpl->LearnParamsKnowStructCompData(trainer, true);
+//    }
+//
+//    Dataset *trainer;
+//    Network *network;
+//};
+//
+//TEST_F(ExperimentBNSLOnPigs, pc_stable) {
+//    StructureLearning *bnsl = new PCStable(network, 0.05);
+//    bnsl->StructLearnCompData(trainer, true, false);
+//
+//    CustomNetwork *ref_net = new CustomNetwork();
+//    ref_net->LoadBIFFile("../../data/pigs.bif");
+////    ref_net->PrintEachEdgeWithIndex();
+//
+//    BNSLComparison comp(ref_net, network);
+//    int shd = comp.GetSHD();
+//    cout << "SHD = " << shd << endl;
+////    EXPECT_EQ(shd, 3);
+////    EXPECT_EQ(((PCStable*)bnsl)->num_ci_test, 6265);
+////    EXPECT_EQ(((PCStable*)bnsl)->num_dependence_judgement, 5643);
+//}
+
+class ExperimentBNSLOnMunin1 : public ::testing::Test {
 protected:
 
     void SetUp() override {
         trainer = new Dataset();
         network = new Network(true);
 
-        string train_set_file_path = "../../data/pigs_s10000.txt";
+        string train_set_file_path = "../../data/munin1_s10000.txt";
 
         trainer->LoadCSVData(train_set_file_path, true, true, 0);
 
@@ -287,12 +322,12 @@ protected:
     Network *network;
 };
 
-TEST_F(ExperimentBNSLOnPigs, pc_stable) {
-    StructureLearning *bnsl = new PCStable(network, trainer, 0.05);
-    bnsl->StructLearnCompData(trainer, true, true);
+TEST_F(ExperimentBNSLOnMunin1, pc_stable) {
+    StructureLearning *bnsl = new PCStable(network, 0.05);
+    bnsl->StructLearnCompData(trainer, true, false);
 
     CustomNetwork *ref_net = new CustomNetwork();
-    ref_net->LoadBIFFile("../../data/pigs.bif");
+    ref_net->LoadBIFFile("../../data/munin1.bif");
 //    ref_net->PrintEachEdgeWithIndex();
 
     BNSLComparison comp(ref_net, network);

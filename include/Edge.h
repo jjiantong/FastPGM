@@ -16,6 +16,7 @@ public:
     Node* node2;
     EndPoint end_point1;
     EndPoint end_point2;
+    bool need_remove;
     /**
      * are used for converting DAG to CPDAG
      * an edge e is labeled as COMPELLED means e is in every graph of the equivalence class
