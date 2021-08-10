@@ -202,12 +202,20 @@ void Dataset::LoadCSVData(string data_file_path, bool header, bool str_val, int 
   /**
    * 2, read the data file and store with the representation of std::vector.
    */
-  // they are used if some discrete variables contain string values
-  // key: discrete variable id
-  // value: a set of the possible string values of the variable
-  map<int,set<string>> map_disc_vars_string_values;
-  // to map the string values with different numbers
+  /**
+   * are used if some discrete variables contain string values
+   *   - map<int, set<string>> map_disc_vars_string_values
+   *     key: discrete variable id; value: a set of possible string values
+   *     value is set<string>, used to check whether the string is repeated or not, by just inserting into the set
+   *   - vector<int> counter
+   *     size = num_vars, used to map the string values with different numbers
+   *   - vector<map<string, int>> map_string_values_numbers
+   *     for each variable, use a map to map string values with different numbers
+   *     todo: move to class variable if required for post-processing
+   */
+  map<int, set<string>> map_disc_vars_string_values;
   vector<int> counter(num_vars, -1);
+  vector<map<string, int>> map_string_values_numbers;
   map_string_values_numbers.resize(num_vars);
 
   while (!in_file.eof()) { // for all instances
@@ -224,7 +232,6 @@ void Dataset::LoadCSVData(string data_file_path, bool header, bool str_val, int 
             if (map_disc_vars_string_values[i].insert(s_value).second) {
                 value = ++counter[i]; // get a new int value
                 map_string_values_numbers.at(i).insert(pair<string, int> (s_value, value)); // map
-//                cout << "variable " << i << ": (" << s_value << ", " << value << ")" << endl;
             } else { // failed to insert -- it is an old value
                 value = map_string_values_numbers.at(i)[s_value];
             }
@@ -241,7 +248,7 @@ void Dataset::LoadCSVData(string data_file_path, bool header, bool str_val, int 
       VarVal var_value(i, v);
       single_sample_vector.push_back(var_value);
     }
-    vector_dataset_all_vars.push_back(single_sample_vector); // TODO
+    vector_dataset_all_vars.push_back(single_sample_vector);
     getline(in_file, sample);
     sample = TrimRight(sample);
   }
@@ -260,7 +267,6 @@ void Dataset::LoadCSVData(string data_file_path, bool header, bool str_val, int 
         if (map_disc_vars_string_values[i].insert(s_value).second) {
           value = ++counter[i]; // get a new int value
           map_string_values_numbers.at(i).insert(pair<string, int> (s_value, value)); // map
-//          cout << "variable " << i << ": (" << s_value << ", " << value << ")" << endl;
         } else { // failed to insert -- it is an old value
           value = map_string_values_numbers.at(i)[s_value];
         }
@@ -438,10 +444,10 @@ void Dataset::SamplesToCSVFile(vector<Configuration> &samples, string &file, vec
  */
 void Dataset::Vector2IntArray() {//storing the data set using int only
     // Initialize to be all zero. (dataset_all_vars: int **)
-    dataset_all_vars = new int *[num_instance];
+    dataset_all_vars = new int* [num_instance];
 //#pragma omp parallel for
     for (int s=0; s<num_instance; ++s) {
-        dataset_all_vars[s] = new int[num_vars]();
+        dataset_all_vars[s] = new int [num_vars];
         vector<VarVal> vec_instance = vector_dataset_all_vars.at(s);
         for (const VarVal &vv : vec_instance) {  // For each non-zero-value feature of this sample.
             //change the related value if it is non-zero value in the vector representation.

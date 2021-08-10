@@ -143,7 +143,7 @@ CellTable::~CellTable() {
     if (indices.size() > 2) {
         delete table_3d;
         table_3d = nullptr;
-        delete configurations;
+        delete [] configurations;
         configurations = nullptr;
     } else {
         delete table_2d;

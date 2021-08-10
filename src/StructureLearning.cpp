@@ -29,7 +29,7 @@ void StructureLearning::AssignNodeInformation(Dataset *dts) {
         //set the potential values for this node
         node_ptr->SetDomainSize(dts->num_of_possible_values_of_disc_vars[i]);
         for (auto v : dts->map_disc_vars_possible_values[i]) {
-            node_ptr->vec_potential_vals.push_back(v);
+            node_ptr->vec_potential_vals.push_back(v); // todo!! memory leakage
         }
 //#pragma omp critical
 //        {

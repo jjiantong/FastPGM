@@ -35,7 +35,13 @@ Network::Network(Network &net) {
     }
     map_idx_node_ptr[i] = n;
   }
+}
 
+Network::~Network() {
+    for (int i = 0; i < num_nodes; ++i) {
+        delete map_idx_node_ptr[i];
+        map_idx_node_ptr[i] = nullptr;
+    }
 }
 
 //TODO: double-check correctness
@@ -292,7 +298,6 @@ bool Network::AddDirectedEdge(int p_index, int c_index) {
     return !contain_circle;
 }
 
-// TODO: double check, refer to undirected edge
 bool Network::DeleteDirectedEdge(int p_index, int c_index) {
     // first check the two nodes
     if(!(NodeIsInNetwork(p_index) && NodeIsInNetwork(c_index))) {

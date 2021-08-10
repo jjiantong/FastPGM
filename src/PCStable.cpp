@@ -22,6 +22,7 @@ PCStable::PCStable(Network *net, int d, double a) {
 }
 
 PCStable::~PCStable() {
+    delete network;
     delete timer;
 }
 
@@ -72,7 +73,7 @@ void PCStable::StructLearnByPCStable(Dataset *dts, bool print_struct, bool verbo
     }
 
     omp_set_num_threads(2);
-#pragma omp parallel for
+#pragma omp parallel for schedule(dynamic)
     for (int i = 0; i < network->num_edges; ++i) {
         int node_idx1 = network->vec_edges.at(i).GetNode1()->GetNodeIndex();
         int node_idx2 = network->vec_edges.at(i).GetNode2()->GetNodeIndex();
@@ -195,7 +196,7 @@ bool PCStable::SearchAtDepth(Dataset *dts, int c_depth, bool verbose) {
     map<int, map<int, double>> adjacencies_copy = network->adjacencies;
 
     omp_set_num_threads(2);
-#pragma omp parallel for
+#pragma omp parallel for schedule(dynamic)
     for (int i = 0; i < network->num_edges; ++i) {
         Node *x = network->vec_edges.at(i).GetNode1();
         Node *y = network->vec_edges.at(i).GetNode2();
@@ -310,7 +311,7 @@ bool PCStable::CheckSide(Dataset *dts, const map<int, map<int, double>> &adjacen
                     node_idx1 = x_idx;
                     node_idx2 = y_idx;
                 }
-                sepset.insert(make_pair(make_pair(node_idx1, node_idx2), Z)); //todo
+                sepset.insert(make_pair(make_pair(node_idx1, node_idx2), Z)); //todo!! memory leakage
 //                sepset.insert(make_pair(make_pair(x_idx, y_idx), Z));
 //                sepset.insert(make_pair(make_pair(y_idx, x_idx), Z));
                 return true;

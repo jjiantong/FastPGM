@@ -26,9 +26,6 @@ public:
   vector<bool> is_vars_discrete;
   vector<string> vec_var_names;
 
-  // it is used if some discrete variables contain string values
-  // use a map to map string values with different numbers
-  vector<map<string, int>> map_string_values_numbers;
   // key: discrete variable id
   // value: a set of the possible values or mapped numbers of the variable
   map<int,set<int>> map_disc_vars_possible_values;

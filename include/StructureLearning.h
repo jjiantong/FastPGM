@@ -13,10 +13,9 @@ class StructureLearning {
 public:
     Network *network; // the network to be learned
 
-    virtual void StructLearnCompData(Dataset *dts, bool print_struct, bool verbose) = 0;
-
     virtual ~StructureLearning() {};
 
+    virtual void StructLearnCompData(Dataset *dts, bool print_struct, bool verbose) = 0;
     void AssignNodeInformation(Dataset *dts);
     vector<int> AssignNodeOrder(string topo_ord_constraint);
 };

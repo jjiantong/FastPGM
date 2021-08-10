@@ -112,12 +112,9 @@ void Node::SetNodeIndex(int i) {
  * update:  "set_children_indexes"
  */
 void Node::AddChild(Node *c) {
-  //TODO: Reduce redundancy: combine this function with "AddChild" in ContinuousNode
-  int c_idx = c->GetNodeIndex();
-  if (set_children_indexes.find(c_idx) == set_children_indexes.end()) {
-    // c is not a child of the current node
+    //TODO: Reduce redundancy: combine this function with "AddChild" in ContinuousNode
+    int c_idx = c->GetNodeIndex();
     set_children_indexes.insert(c_idx);
-  }
 }
 
 ///**
@@ -262,13 +259,23 @@ void Node::RemoveParent(Node *p) {
     // Update possible parent configurations
     auto dp = (DiscreteNode*) p;
     set<DiscreteConfig> new_par_combs;
-    //TODO: potential bug here; may need to switch the two loops
-    //TODO: erase each vv(corresponding to each potential value of p) to each old_par_comb is wrong!
-    //TODO: because each old_par_comb contains only one vv
-    //TODO: and this will finally insert # of potential values times more combs to new_par_combs
-    //TODO: just erase one config corresponding to p_idx for each old_par_comb will also insert more combs
-    //TODO: maybe choose combs from set_discrete_parents_combinations that have one specific [p_idx, one of the value]
-    //TODO: then erase [p_idx, one of the value] and insert to new_par_combs
+    /**
+     * TODO: erase each vv(corresponding to each potential value of p) to each old_par_comb is wrong!
+     * because each old_par_comb contains only one vv
+     * and this will finally insert # of potential values times more combs to new_par_combs
+     * just erase one config corresponding to p_idx for each old_par_comb will also insert more combs
+     * (set, no repeated, so ok, but take more time)
+     * maybe choose combs from set_discrete_parents_combinations that have one specific [p_idx, one of the value]
+     * then erase [p_idx, one of the value] and insert to new_par_combs
+     */
+//    int val = dp->vec_potential_vals[0]; // just use (any) one possible value of p
+//    DiscVarVal vv(p_idx, val);
+//    for (auto old_par_comb : set_discrete_parents_combinations) {
+//        if (old_par_comb.find(vv) != old_par_comb.end()) { // old_par_comb contains vv
+//            old_par_comb.erase(vv);
+//            new_par_combs.insert(old_par_comb);
+//        }
+//    }
     for (const auto &val : dp->vec_potential_vals) {
       DiscVarVal vv(p_idx, val); // get [idx of p, each value of p]
       for (auto old_par_comb : set_discrete_parents_combinations) {
@@ -276,24 +283,7 @@ void Node::RemoveParent(Node *p) {
         new_par_combs.insert(old_par_comb);
       }
     }
-    this->set_discrete_parents_combinations = new_par_combs;
-
-//    // comparison: add parent:
-//    // Update possible parent configurations
-//    set<DiscreteConfig> new_par_combs;
-//    for (const auto &val : dp->vec_potential_vals) {
-//      DiscVarVal vv(p_idx, val); // get [idx of p, each value of p]
-//      for (auto old_par_comb : set_discrete_parents_combinations) {
-//        // set_discrete_parents_combinations: set< set< pair<int, int> > >
-//        // new_par_combs: set< set< pair<int, int> > >
-//        // old_par_comb: set< pair<int, int> >
-//        // vv: pair<int, int>
-//        // add each vv(corresponding to each potential value of p) to each old_par_comb
-//        old_par_comb.insert(vv);//insert the new parent with a potential value to the old configuration
-//        new_par_combs.insert(old_par_comb);
-//      } // finish adding one vv to all old_par_comb
-//    } // finish adding all potential vv to all old_par_comb
-//    this->set_discrete_parents_combinations = new_par_combs;
+    set_discrete_parents_combinations = new_par_combs;
   }
 }
 

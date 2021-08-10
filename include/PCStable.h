@@ -11,12 +11,12 @@
 #include "Timer.h"
 #include <algorithm>
 
-struct CmpByValue {
-    template <typename T>
-    bool operator()(const T &lhs, const T &rhs) {
-        return lhs.second < rhs.second;
-    }
-};
+//struct CmpByValue {
+//    template <typename T>
+//    bool operator()(const T &lhs, const T &rhs) {
+//        return lhs.second < rhs.second;
+//    }
+//};
 
 /**
  * @brief: Implementation the PC-stable (Peter & Clark) algorithm

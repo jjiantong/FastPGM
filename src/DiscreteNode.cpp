@@ -42,7 +42,7 @@ int DiscreteNode::GetDomainSize() const {
 
 void DiscreteNode::SetDomainSize(int size) {
   num_potential_vals = size;
-  vec_potential_vals.reserve(size);
+//  vec_potential_vals.reserve(size);
 }
 
 void DiscreteNode::AddParent(Node *p) {

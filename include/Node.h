@@ -58,6 +58,7 @@ class Node {
   Node() = default;
   explicit Node(int index);
   Node(int index, string name);
+
   int GetNodeIndex() const;
   void SetNodeIndex(int index);
   bool HasParents() const;
