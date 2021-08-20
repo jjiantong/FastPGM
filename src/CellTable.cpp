@@ -187,10 +187,11 @@ void CellTable::FastConfig(Dataset *dataset) {
 /**
  * initialize a three-dimensional contingency table and the marginals.
  */
-void CellTable::FillTable3D(Dataset *dataset) {
+void CellTable::FillTable3D(Dataset *dataset, Timer *timer) {
     /**
      * compute the joint frequency of x, y, and z (Nxyz)
      */
+    timer->Start("count");
     for (int k = 0; k < dataset->num_instance; ++k) {
 //        int x = dataset->dataset_all_vars[k][indices[0]];
 //        int y = dataset->dataset_all_vars[k][indices[1]];
@@ -199,10 +200,12 @@ void CellTable::FillTable3D(Dataset *dataset) {
         int z = configurations[k];
         table_3d->n[z][x][y]++;
     }
+    timer->Stop("count");
 
     /**
      * compute the marginals (Nx+z, N+yz, N++z)
      */
+    timer->Start("marginals");
     for (int k = 0; k < table_3d->dimz; k++) {
         for (int i = 0; i < table_3d->dimx; i++) {
             for (int j = 0; j < table_3d->dimy; j++) {
@@ -212,12 +215,14 @@ void CellTable::FillTable3D(Dataset *dataset) {
             }
         }
     }
+    timer->Stop("marginals");
 }
 
-void CellTable::FillTable2D(Dataset *dataset) {
+void CellTable::FillTable2D(Dataset *dataset, Timer *timer) {
     /**
      * compute the joint frequency of x, y, and z (Nxyz)
      */
+    timer->Start("count");
     for (int k = 0; k < dataset->num_instance; ++k) {
 //        int x = dataset->dataset_all_vars[k][indices[0]];
 //        int y = dataset->dataset_all_vars[k][indices[1]];
@@ -225,16 +230,19 @@ void CellTable::FillTable2D(Dataset *dataset) {
         int y = dataset->dataset_columns[indices[1]][k];
         table_2d->n[x][y]++;
     }
+    timer->Stop("count");
 
     /**
      * compute the marginals (Nx+, N+y)
      */
+    timer->Start("marginals");
     for (int i = 0; i < table_2d->dimx; i++) {
         for (int j = 0; j < table_2d->dimy; j++) {
             table_2d->ni[i] += table_2d->n[i][j];
             table_2d->nj[j] += table_2d->n[i][j];
         }
     }
+    timer->Stop("marginals");
 }
 /**----------------------------- implementations like bnlearn -----------------------------**/
 

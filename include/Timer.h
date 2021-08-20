@@ -33,7 +33,7 @@ public:
     }
 
     void Print (string name) {
-        cout << "The time spent for " << name << " is " << time[name] / CLOCKS_PER_SEC << " seconds" << endl;
+        cout << endl << name << ": " << time[name] / CLOCKS_PER_SEC << " s";
     }
 
     double GetTime (string name) {

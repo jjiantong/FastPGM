@@ -88,40 +88,40 @@
 
 
 
-class ExperimentBNSLOnAlarm : public ::testing::Test {
-protected:
-
-    void SetUp() override {
-        trainer = new Dataset();
-        network = new Network(true);
-
-        string train_set_file_path = "../../data/alarm_s10000.txt";
-
-        trainer->LoadCSVData(train_set_file_path, true, true, 0);
-
-//        ParameterLearning *bnpl = new ParameterLearning(network);
-//        bnpl->LearnParamsKnowStructCompData(trainer, true);
-    }
-
-    Dataset *trainer;
-    Network *network;
-};
-
-TEST_F(ExperimentBNSLOnAlarm, pc_stable) {
-    StructureLearning *bnsl = new PCStable(network, 0.05);
-    bnsl->StructLearnCompData(trainer, true, false);
-    delete trainer;
-
-    CustomNetwork *ref_net = new CustomNetwork();
-    ref_net->LoadBIFFile("../../data/alarm.bif");
-//    ref_net->PrintEachEdgeWithIndex();
-
-    BNSLComparison comp(ref_net, network);
-    int shd = comp.GetSHD();
-    cout << "SHD = " << shd << endl;
-    delete network;
-    delete ref_net;
-}
+//class ExperimentBNSLOnAlarm : public ::testing::Test {
+//protected:
+//
+//    void SetUp() override {
+//        trainer = new Dataset();
+//        network = new Network(true);
+//
+//        string train_set_file_path = "../../data/alarm_s10000.txt";
+//
+//        trainer->LoadCSVData(train_set_file_path, true, true, 0);
+//
+////        ParameterLearning *bnpl = new ParameterLearning(network);
+////        bnpl->LearnParamsKnowStructCompData(trainer, true);
+//    }
+//
+//    Dataset *trainer;
+//    Network *network;
+//};
+//
+//TEST_F(ExperimentBNSLOnAlarm, pc_stable) {
+//    StructureLearning *bnsl = new PCStable(network, 0.05);
+//    bnsl->StructLearnCompData(trainer, true, false);
+//    delete trainer;
+//
+//    CustomNetwork *ref_net = new CustomNetwork();
+//    ref_net->LoadBIFFile("../../data/alarm.bif");
+////    ref_net->PrintEachEdgeWithIndex();
+//
+//    BNSLComparison comp(ref_net, network);
+//    int shd = comp.GetSHD();
+//    cout << "SHD = " << shd << endl;
+//    delete network;
+//    delete ref_net;
+//}
 
 
 //class ExperimentBNSLOnInsurance : public ::testing::Test {
@@ -303,37 +303,37 @@ TEST_F(ExperimentBNSLOnAlarm, pc_stable) {
 ////    EXPECT_EQ(((PCStable*)bnsl)->num_dependence_judgement, 5643);
 //}
 
-//class ExperimentBNSLOnMunin1 : public ::testing::Test {
-//protected:
-//
-//    void SetUp() override {
-//        trainer = new Dataset();
-//        network = new Network(true);
-//
-//        string train_set_file_path = "../../data/munin1_s10000.txt";
-//
-//        trainer->LoadCSVData(train_set_file_path, true, true, 0);
-//
-////        ParameterLearning *bnpl = new ParameterLearning(network);
-////        bnpl->LearnParamsKnowStructCompData(trainer, true);
-//    }
-//
-//    Dataset *trainer;
-//    Network *network;
-//};
-//
-//TEST_F(ExperimentBNSLOnMunin1, pc_stable) {
-//    StructureLearning *bnsl = new PCStable(network, 0.05);
-//    bnsl->StructLearnCompData(trainer, true, false);
-//    delete trainer;
-//
-//    CustomNetwork *ref_net = new CustomNetwork();
-//    ref_net->LoadBIFFile("../../data/munin1.bif");
-////    ref_net->PrintEachEdgeWithIndex();
-//
-//    BNSLComparison comp(ref_net, network);
-//    int shd = comp.GetSHD();
-//    cout << "SHD = " << shd << endl;
-//    delete network;
-//    delete ref_net;
-//}
+class ExperimentBNSLOnMunin1 : public ::testing::Test {
+protected:
+
+    void SetUp() override {
+        trainer = new Dataset();
+        network = new Network(true);
+
+        string train_set_file_path = "../../data/munin1_s10000.txt";
+
+        trainer->LoadCSVData(train_set_file_path, true, true, 0);
+
+//        ParameterLearning *bnpl = new ParameterLearning(network);
+//        bnpl->LearnParamsKnowStructCompData(trainer, true);
+    }
+
+    Dataset *trainer;
+    Network *network;
+};
+
+TEST_F(ExperimentBNSLOnMunin1, pc_stable) {
+    StructureLearning *bnsl = new PCStable(network, 0.05);
+    bnsl->StructLearnCompData(trainer, true, false);
+    delete trainer;
+
+    CustomNetwork *ref_net = new CustomNetwork();
+    ref_net->LoadBIFFile("../../data/munin1.bif");
+//    ref_net->PrintEachEdgeWithIndex();
+
+    BNSLComparison comp(ref_net, network);
+    int shd = comp.GetSHD();
+    cout << "SHD = " << shd << endl;
+    delete network;
+    delete ref_net;
+}

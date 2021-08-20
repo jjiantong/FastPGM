@@ -32,7 +32,7 @@ class IndependenceTest {
 public:
     Dataset *dataset;
     double alpha;
-//    Timer *timer;
+    Timer *timer;
     CellTable *cell_table;
 
     /**
@@ -57,9 +57,9 @@ public:
     ~IndependenceTest();
 
     /**----------------------------- implementations like bnlearn -----------------------------**/
-    Result IndependenceResult(int x_idx, int y_idx, const set<int> &z, string metric);
-    Result ComputeGSquareXYZ(const vector<int> &test_idx);
-    Result ComputeGSquareXY(const vector<int> &test_idx);
+    Result IndependenceResult(int x_idx, int y_idx, const set<int> &z, string metric, Timer *timer);
+    Result ComputeGSquareXYZ(const vector<int> &test_idx, Timer *timer);
+    Result ComputeGSquareXY(const vector<int> &test_idx, Timer *timer);
     /**----------------------------- implementations like bnlearn -----------------------------**/
 
     /**----------------------------- implementations like Tetrad -----------------------------**/

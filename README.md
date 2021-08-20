@@ -73,11 +73,7 @@ Clone the repo.
 git clone https://github.com/jjiantong/Bayesian-network
 cd Bayesian-network/lib
 #under the directory of lib
-git submodule init ARFF && git submodule update
-git submodule init googletest && git submodule update
-git submodule init tinyxml2 && git submodule update
-git submodule init stats && git submodule update
-git submodule init gcem && git submodule update
+git submodule init ARFF && git submodule init googletest && git submodule init tinyxml2 && git submodule init stats && git submodule init gcem && git submodule update
 ```
 
 Build the project. 

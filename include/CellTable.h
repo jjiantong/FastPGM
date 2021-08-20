@@ -6,6 +6,7 @@
 #define BAYESIANNETWORK_CELLTABLE_H
 
 #include "Dataset.h"
+#include "Timer.h"
 #include <omp.h>
 
 /**----------------------------- implementations like bnlearn -----------------------------**/
@@ -65,10 +66,10 @@ public:
     ~CellTable();
 
     // column-major vs. row-major problem in the following 3 methods:
-    // https://stackoverflow.com/questions/68683273/access-efficiency-of-c-2d-array/68683495#68683495
+    // https://stackoverflow.com/questions/68683273/access-efficiency-of-c-2d-array
     void FastConfig(Dataset *dataset);
-    void FillTable3D(Dataset *dataset);
-    void FillTable2D(Dataset *dataset);
+    void FillTable3D(Dataset *dataset, Timer *timer);
+    void FillTable2D(Dataset *dataset, Timer *timer);
 };
 /**----------------------------- implementations like bnlearn -----------------------------**/
 

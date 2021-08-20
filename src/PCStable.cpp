@@ -43,9 +43,19 @@ void PCStable::StructLearnCompData(Dataset *dts, bool print_struct, bool verbose
     cout << "==================================================" << endl;
     cout << "# of CI-tests is " << num_ci_test << ", # of dependence judgements is " << num_dependence_judgement << endl;
     timer->Print("pc-stable");
-    timer->Print("pc-stable step 1");
-    timer->Print("pc-stable step 2");
-    timer->Print("pc-stable step 3");
+    timer->Print("pc-stable step 1"); cout << " (" << timer->time["pc-stable step 1"] / timer->time["pc-stable"] * 100 << "%)";
+    timer->Print("pc-stable step 2"); cout << " (" << timer->time["pc-stable step 2"] / timer->time["pc-stable"] * 100 << "%)";
+    timer->Print("pc-stable step 3"); cout << " (" << timer->time["pc-stable step 3"] / timer->time["pc-stable"] * 100 << "%)";
+
+    timer->Print("new & delete"); cout << " (" << timer->time["new & delete"] / timer->time["pc-stable step 1"] * 100 << "%)";
+    timer->Print("config"); cout << " (" << timer->time["config"] / timer->time["pc-stable step 1"] * 100 << "%)";
+    timer->Print("count"); cout << " (" << timer->time["count"] / timer->time["pc-stable step 1"] * 100 << "%)";
+    timer->Print("marginals"); cout << " (" << timer->time["marginals"] / timer->time["pc-stable step 1"] * 100 << "%)";
+    timer->Print("g2 & df"); cout << " (" << timer->time["g2 & df"] / timer->time["pc-stable step 1"] * 100 << "%)";
+    timer->Print("p value"); cout << " (" << timer->time["p value"] / timer->time["pc-stable step 1"] * 100 << "%)";
+    double time_other = timer->time["pc-stable step 1"] - timer->time["new table"] - timer->time["config"] - timer->time["count"]
+                      - timer->time["marginals"] - timer->time["g2 & df"] - timer->time["p value"];
+    cout << endl << "other: " << time_other / CLOCKS_PER_SEC << " s (" << time_other / timer->time["pc-stable step 1"] * 100 << "%)" << endl;
 }
 
 void PCStable::StructLearnByPCStable(Dataset *dts, bool print_struct, bool verbose) {
@@ -72,8 +82,8 @@ void PCStable::StructLearnByPCStable(Dataset *dts, bool print_struct, bool verbo
         network->adjacencies.insert(make_pair(i, adjacency));
     }
 
-    omp_set_num_threads(2);
-#pragma omp parallel for schedule(dynamic)
+//    omp_set_num_threads(2);
+//#pragma omp parallel for schedule(dynamic)
     for (int i = 0; i < network->num_edges; ++i) {
         int node_idx1 = network->vec_edges.at(i).GetNode1()->GetNodeIndex();
         int node_idx2 = network->vec_edges.at(i).GetNode2()->GetNodeIndex();
@@ -86,10 +96,11 @@ void PCStable::StructLearnByPCStable(Dataset *dts, bool print_struct, bool verbo
                  << ", conditioning sets of size 0." << endl;
         }
 
-#pragma omp atomic
+//#pragma omp atomic
         num_ci_test++;
         IndependenceTest *ci_test = new IndependenceTest(dts, alpha);
-        IndependenceTest::Result result = ci_test->IndependenceResult(node_idx1, node_idx2, empty_set,"g square");
+        IndependenceTest::Result result = ci_test->IndependenceResult(node_idx1, node_idx2, empty_set,
+                                                                      "g square", timer);
         delete ci_test;
         bool independent = result.is_independent;
         if (verbose) {
@@ -104,7 +115,7 @@ void PCStable::StructLearnByPCStable(Dataset *dts, bool print_struct, bool verbo
         }
 
         if (!independent) { // the edge remains
-#pragma omp atomic
+//#pragma omp atomic
             num_dependence_judgement++;
             //-------------------------------- heuristic ---------------------------------//
             // store the p value - smaller means a stronger association
@@ -195,8 +206,8 @@ bool PCStable::SearchAtDepth(Dataset *dts, int c_depth, bool verbose) {
      */
     map<int, map<int, double>> adjacencies_copy = network->adjacencies;
 
-    omp_set_num_threads(2);
-#pragma omp parallel for schedule(dynamic)
+//    omp_set_num_threads(2);
+//#pragma omp parallel for schedule(dynamic)
     for (int i = 0; i < network->num_edges; ++i) {
         Node *x = network->vec_edges.at(i).GetNode1();
         Node *y = network->vec_edges.at(i).GetNode2();
@@ -278,10 +289,11 @@ bool PCStable::CheckSide(Dataset *dts, const map<int, map<int, double>> &adjacen
                 Z.insert(vec_adjx[choice[i]]);
             }
 
-#pragma omp atomic
+//#pragma omp atomic
             num_ci_test++;
             IndependenceTest *ci_test = new IndependenceTest(dts, alpha);
-            IndependenceTest::Result result = ci_test->IndependenceResult(x_idx, y_idx, Z,"g square");
+            IndependenceTest::Result result = ci_test->IndependenceResult(x_idx, y_idx, Z,
+                                                                          "g square", timer);
             delete ci_test;
             bool independent = result.is_independent;
             if (verbose) {
@@ -299,7 +311,7 @@ bool PCStable::CheckSide(Dataset *dts, const map<int, map<int, double>> &adjacen
             }
 
             if (!independent) {
-#pragma omp atomic
+//#pragma omp atomic
                 num_dependence_judgement++;
             } else {
                 // add conditioning set to sepset
