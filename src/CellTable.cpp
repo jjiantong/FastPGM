@@ -143,8 +143,6 @@ CellTable::~CellTable() {
     if (indices.size() > 2) {
         delete table_3d;
         table_3d = nullptr;
-        delete [] configurations;
-        configurations = nullptr;
     } else {
         delete table_2d;
         table_2d = nullptr;
@@ -152,8 +150,9 @@ CellTable::~CellTable() {
 }
 
 /**
- * @brief: get all configurations of the conditioning set z
- * @example: 3 features, dims = {2, 3, 2}
+ * @brief: 1) get a mapped index z of each conditioning set z1, z2 ..., then
+ *         2) count and generate a three-dimensional contingency table and the marginals
+ * @example of 1): 3 features, dims = {2, 3, 2}
  *  cell table: 0 0 0 (row 0)
  *              0 0 1
  *              0 1 0
@@ -169,38 +168,28 @@ CellTable::~CellTable() {
  *  given config (x, y, z), the cell index should be (((0 * 2) + x) * 3 + y) * 2 + z
  *  given config (1, 1, 1), the cell index = (((0 * 2) + 1) * 3 + 1) * 2 + 1 = 9
  */
-void CellTable::FastConfig(Dataset *dataset) {
-    configurations = new int[dataset->num_instance];
-//    omp_set_num_threads(8);
-//#pragma omp parallel for
-    for (int i = 0; i < dataset->num_instance; ++i) {
-        int cell_index = 0;
-        for (int j = 0; j < cond_dims.size(); ++j) {
-            cell_index *= cond_dims[j];
-//            cell_index += dataset->dataset_all_vars[i][cond_indices[j]];
-            cell_index += dataset->dataset_columns[cond_indices[j]][i];
-        }
-        configurations[i] = cell_index;
-    }
-}
-
-/**
- * initialize a three-dimensional contingency table and the marginals.
- */
 void CellTable::FillTable3D(Dataset *dataset, Timer *timer) {
     /**
      * compute the joint frequency of x, y, and z (Nxyz)
      */
-    timer->Start("count");
+    timer->Start("config + count");
     for (int k = 0; k < dataset->num_instance; ++k) {
 //        int x = dataset->dataset_all_vars[k][indices[0]];
 //        int y = dataset->dataset_all_vars[k][indices[1]];
         int x = dataset->dataset_columns[indices[0]][k];
         int y = dataset->dataset_columns[indices[1]][k];
-        int z = configurations[k];
+        /**
+         * map z1, z2 ... to z
+         */
+        int z = dataset->dataset_columns[cond_indices[0]][k];
+        for (int j = 1; j < cond_dims.size(); ++j) {
+            z *= cond_dims[j];
+//            z += dataset->dataset_all_vars[k][cond_indices[j]];
+            z += dataset->dataset_columns[cond_indices[j]][k];
+        }
         table_3d->n[z][x][y]++;
     }
-    timer->Stop("count");
+    timer->Stop("config + count");
 
     /**
      * compute the marginals (Nx+z, N+yz, N++z)
@@ -222,7 +211,7 @@ void CellTable::FillTable2D(Dataset *dataset, Timer *timer) {
     /**
      * compute the joint frequency of x, y, and z (Nxyz)
      */
-    timer->Start("count");
+    timer->Start("config + count");
     for (int k = 0; k < dataset->num_instance; ++k) {
 //        int x = dataset->dataset_all_vars[k][indices[0]];
 //        int y = dataset->dataset_all_vars[k][indices[1]];
@@ -230,7 +219,7 @@ void CellTable::FillTable2D(Dataset *dataset, Timer *timer) {
         int y = dataset->dataset_columns[indices[1]][k];
         table_2d->n[x][y]++;
     }
-    timer->Stop("count");
+    timer->Stop("config + count");
 
     /**
      * compute the marginals (Nx+, N+y)

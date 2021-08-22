@@ -60,14 +60,14 @@ public:
 
     Counts2D *table_2d;
     Counts3D *table_3d;
-    int *configurations;
+//    int *configurations;
 
     CellTable(const vector<int> &dims, const vector<int> &test_index);
     ~CellTable();
 
     // column-major vs. row-major problem in the following 3 methods:
     // https://stackoverflow.com/questions/68683273/access-efficiency-of-c-2d-array
-    void FastConfig(Dataset *dataset);
+//    void FastConfig(Dataset *dataset);
     void FillTable3D(Dataset *dataset, Timer *timer);
     void FillTable2D(Dataset *dataset, Timer *timer);
 };

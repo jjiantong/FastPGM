@@ -73,10 +73,6 @@ IndependenceTest::Result IndependenceTest::ComputeGSquareXYZ(const vector<int> &
     cell_table = new CellTable(dims, test_idx);
     timer->Stop("new & delete");
 
-    timer->Start("config");
-    cell_table->FastConfig(dataset);
-    timer->Stop("config");
-
     cell_table->FillTable3D(dataset, timer);
 
     /**
