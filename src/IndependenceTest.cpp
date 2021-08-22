@@ -106,27 +106,25 @@ IndependenceTest::Result IndependenceTest::ComputeGSquareXYZ(const vector<int> &
         df += (alx - 1) * (aly - 1);
 
         long total = cell_table->table_3d->nk[k]; // N_{++z}
-        vector<double> e;
-        vector<double> o;
-        for (int i = 0; i < cell_table->dims[0]; ++i) { // for each possible value of x
-            for (int j = 0; j < cell_table->dims[1]; ++j) { // for each possible value of y
-                long sum_row = cell_table->table_3d->ni[k][i]; // N_{x+z}
-                long sum_col = cell_table->table_3d->nj[k][j]; // N_{+yz}
-                long observed = cell_table->table_3d->n[k][i][j]; // N_{xyz}
-
-                if (sum_row == 0 || sum_col == 0) {
-                    continue;
-                }
-                e.push_back(sum_col * sum_row); // N_{x+z} * N_{+yz}
-                o.push_back(observed); // N_{xyz}
-            }
+        if (total == 0) {
+            continue;
         }
 
-        for (int i = 0; i < o.size(); ++i) {
-            double expected = e.at(i) / (double) total; // E_{xyz} = (N_{x+z} * N_{+yz}) / N_{++z}
+        for (int i = 0; i < cell_table->dims[0]; ++i) { // for each possible value of x
+            long sum_row = cell_table->table_3d->ni[k][i]; // N_{x+z}
+            if (sum_row == 0) {
+                continue;
+            }
 
-            if (o.at(i) != 0) {
-                g2 += 2.0 * o.at(i) * log(o.at(i) / expected); // 2 * N_{xyz} * log (N_{xyz} / E_{xyz})
+            for (int j = 0; j < cell_table->dims[1]; ++j) { // for each possible value of y
+                long sum_col = cell_table->table_3d->nj[k][j]; // N_{+yz}
+                long observed = cell_table->table_3d->n[k][i][j]; // N_{xyz}
+                if (sum_col == 0 || observed == 0) {
+                    continue;
+                }
+
+                double expected = (double)sum_col * (double)sum_row / (double) total; // E_{xyz} = (N_{x+} * N_{+y}) / N_{++}
+                g2 += 2.0 * observed * log(observed / expected); // 2 * N_{xy} * log (N_{xy} / E_{xy})
             }
         }
     }
@@ -200,19 +198,12 @@ IndependenceTest::Result IndependenceTest::ComputeGSquareXY(const vector<int> &t
             long sum_col = cell_table->table_2d->nj[j]; // N_{+y}
             long observed = cell_table->table_2d->n[i][j]; // N_{xy}
 
-            if (sum_row == 0 || sum_col == 0) {
+            if (sum_row == 0 || sum_col == 0 || observed == 0) {
                 continue;
             }
-            e.push_back(sum_col * sum_row); // N_{x+} * N_{+y}
-            o.push_back(observed); // N_{xy}
-        }
-    }
 
-    for (int i = 0; i < o.size(); ++i) {
-        double expected = e.at(i) / (double) total; // E_{xyz} = (N_{x+} * N_{+y}) / N_{++}
-
-        if (o.at(i) != 0) {
-            g2 += 2.0 * o.at(i) * log(o.at(i) / expected); // 2 * N_{xy} * log (N_{xy} / E_{xy})
+            double expected = (double)sum_col * (double)sum_row / (double) total; // E_{xyz} = (N_{x+} * N_{+y}) / N_{++}
+            g2 += 2.0 * observed * log(observed / expected); // 2 * N_{xy} * log (N_{xy} / E_{xy})
         }
     }
     timer->Stop("g2 & df");
