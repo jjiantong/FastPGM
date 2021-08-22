@@ -190,15 +190,18 @@ IndependenceTest::Result IndependenceTest::ComputeGSquareXY(const vector<int> &t
     df += (alx - 1) * (aly - 1);
 
     long total = dataset->num_instance; // N_{++}
-    vector<double> e;
-    vector<double> o;
+
     for (int i = 0; i < cell_table->dims[0]; ++i) { // for each possible value of x
+        long sum_row = cell_table->table_2d->ni[i]; // N_{x+}
+        if (sum_row == 0) {
+            continue;
+        }
+
         for (int j = 0; j < cell_table->dims[1]; ++j) { // for each possible value of y
-            long sum_row = cell_table->table_2d->ni[i]; // N_{x+}
             long sum_col = cell_table->table_2d->nj[j]; // N_{+y}
             long observed = cell_table->table_2d->n[i][j]; // N_{xy}
 
-            if (sum_row == 0 || sum_col == 0 || observed == 0) {
+            if (sum_col == 0 || observed == 0) {
                 continue;
             }
 
