@@ -265,6 +265,7 @@ bool PCStable::CheckSide(Dataset *dts, const map<int, map<int, double>> &adjacen
     set_adjx.erase(y_idx);
     // copy to a vector to access by position, which will be used for choice generating
     vector<int> vec_adjx;
+    vec_adjx.reserve(set_adjx.size());
     for (const auto &adjx : set_adjx) {
         vec_adjx.push_back(adjx);
         if (verbose) {

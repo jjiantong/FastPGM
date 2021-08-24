@@ -66,7 +66,9 @@ IndependenceTest::Result IndependenceTest::ComputeGSquareXYZ(int x_idx, int y_id
     int dimy = dataset->num_of_possible_values_of_disc_vars.at(y_idx);
 
     vector<int> cond_indices;
+    cond_indices.reserve(z.size());
     vector<int> cond_dims;
+    cond_dims.reserve(z.size());
     for (const auto &z_idx : z) {
         cond_indices.push_back(z_idx);
         int dim = dataset->num_of_possible_values_of_disc_vars.at(z_idx);

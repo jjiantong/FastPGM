@@ -26,20 +26,12 @@ ChoiceGenerator::ChoiceGenerator (int a, int b) {
      * set the value at the last index one less than it would be ([0 1 2 ... b-2 b-2])
      * so that on the first call to next() correctly returns the first combination ([0 1 2 ... b - 1])
      */
+    choice.reserve(b);
     for (int i = 0; i < b - 1; i++) {
         choice.push_back(i);
     }
     choice.push_back(b-2);
-//    choice = new int[b];
-//    for (int i = 0; i < b - 1; ++i) {
-//        choice[i] = i;
-//    }
-//    choice[b - 1] = b - 2;
 }
-
-//ChoiceGenerator::~ChoiceGenerator() {
-//    delete [] choice;
-//}
 
 /**
  * @return the next combination in the series, or null if the series is finished
@@ -98,16 +90,3 @@ int ChoiceGenerator::ComputeCombination(int m, int n) {
     }
     return numerator / denominator;
 }
-
-//vector<int*> ChoiceGenerator::GenerateAllChoices() {
-//    vector<int*> choices;
-//
-//    int* c;
-//    while ((c = Next()) != nullptr) {
-//        choices.push_back(c);
-//    }
-//
-//    if (choices.size() != GetNumChoice()) {
-//        cout << "error!! num choice = " << GetNumChoice() << " but size = " << choices.size() << endl;
-//    }
-//}
