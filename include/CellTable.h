@@ -54,13 +54,11 @@ public:
 class CellTable {
 public:
     vector<int> cond_dims;
-    vector<int> dims;
     vector<int> cond_indices;
     vector<int> indices;
 
     Counts2D *table_2d;
     Counts3D *table_3d;
-//    int *configurations;
 
     CellTable(const vector<int> &dims, const vector<int> &test_index);
     ~CellTable();

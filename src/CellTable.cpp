@@ -118,12 +118,11 @@ Counts2D::~Counts2D() {
  * @param dims: an array of length > 0, each element specifies the number of possible values of that dimension (> 0)
  */
 CellTable::CellTable(const vector<int> &dims, const vector<int> &test_index) {
-    this->dims = dims;
     this->indices = test_index;
-    if (this->dims.size() > 2) { // conditioning set is not empty
+    if (dims.size() > 2) { // conditioning set is not empty
         // dimensions and indices of z1, z2, ...; copy from dims and indices
-        for (int i = 2; i < this->dims.size(); ++i) {
-            cond_dims.push_back(this->dims[i]);
+        for (int i = 2; i < dims.size(); ++i) {
+            cond_dims.push_back(dims[i]);
             cond_indices.push_back(indices[i]);
         }
 

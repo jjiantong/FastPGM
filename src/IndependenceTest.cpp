@@ -93,10 +93,10 @@ IndependenceTest::Result IndependenceTest::ComputeGSquareXYZ(const vector<int> &
         int alx = 0;
         int aly = 0;
 
-        for (int i = 0; i < cell_table->dims[0]; ++i) {
+        for (int i = 0; i < dims[0]; ++i) {
             alx += (cell_table->table_3d->ni[k][i] > 0);
         }
-        for (int j = 0; j < cell_table->dims[1]; ++j) {
+        for (int j = 0; j < dims[1]; ++j) {
             aly += (cell_table->table_3d->nj[k][j] > 0);
         }
 
@@ -110,13 +110,13 @@ IndependenceTest::Result IndependenceTest::ComputeGSquareXYZ(const vector<int> &
             continue;
         }
 
-        for (int i = 0; i < cell_table->dims[0]; ++i) { // for each possible value of x
+        for (int i = 0; i < dims[0]; ++i) { // for each possible value of x
             long sum_row = cell_table->table_3d->ni[k][i]; // N_{x+z}
             if (sum_row == 0) {
                 continue;
             }
 
-            for (int j = 0; j < cell_table->dims[1]; ++j) { // for each possible value of y
+            for (int j = 0; j < dims[1]; ++j) { // for each possible value of y
                 long sum_col = cell_table->table_3d->nj[k][j]; // N_{+yz}
                 long observed = cell_table->table_3d->n[k][i][j]; // N_{xyz}
                 if (sum_col == 0 || observed == 0) {
@@ -177,10 +177,10 @@ IndependenceTest::Result IndependenceTest::ComputeGSquareXY(const vector<int> &t
     int alx = 0;
     int aly = 0;
 
-    for (int i = 0; i < cell_table->dims[0]; ++i) {
+    for (int i = 0; i < dims[0]; ++i) {
         alx += (cell_table->table_2d->ni[i] > 0);
     }
-    for (int j = 0; j < cell_table->dims[1]; ++j) {
+    for (int j = 0; j < dims[1]; ++j) {
         aly += (cell_table->table_2d->nj[j] > 0);
     }
 
@@ -191,13 +191,13 @@ IndependenceTest::Result IndependenceTest::ComputeGSquareXY(const vector<int> &t
 
     long total = dataset->num_instance; // N_{++}
 
-    for (int i = 0; i < cell_table->dims[0]; ++i) { // for each possible value of x
+    for (int i = 0; i < dims[0]; ++i) { // for each possible value of x
         long sum_row = cell_table->table_2d->ni[i]; // N_{x+}
         if (sum_row == 0) {
             continue;
         }
 
-        for (int j = 0; j < cell_table->dims[1]; ++j) { // for each possible value of y
+        for (int j = 0; j < dims[1]; ++j) { // for each possible value of y
             long sum_col = cell_table->table_2d->nj[j]; // N_{+y}
             long observed = cell_table->table_2d->n[i][j]; // N_{xy}
 
