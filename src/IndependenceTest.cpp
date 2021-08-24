@@ -34,22 +34,22 @@ IndependenceTest::~IndependenceTest() {
  */
 IndependenceTest::Result IndependenceTest::IndependenceResult(int x_idx, int y_idx, const set<int> &z,
                                                               string metric, Timer *timer) {
-    /**
-     * for testing x, y given z1,...,zn,
-     * set up an array of length n + 2 containing the indices of these variables in order
-     */
-    vector<int> test_idx;
-    test_idx.push_back(x_idx);
-    test_idx.push_back(y_idx);
-    for (const auto &z_idx : z) {
-        test_idx.push_back(z_idx);
-    }
+//    /**
+//     * for testing x, y given z1,...,zn,
+//     * set up an array of length n + 2 containing the indices of these variables in order
+//     */
+//    vector<int> test_idx;
+//    test_idx.push_back(x_idx);
+//    test_idx.push_back(y_idx);
+//    for (const auto &z_idx : z) {
+//        test_idx.push_back(z_idx);
+//    }
 
     if (metric.compare("g square") == 0) {
         if (z.empty()) {
-            return ComputeGSquareXY(test_idx, timer);
+            return ComputeGSquareXY(x_idx, y_idx, timer);
         } else {
-            return ComputeGSquareXYZ(test_idx, timer);
+            return ComputeGSquareXYZ(x_idx, y_idx, z, timer);
         }
     } else if (metric.compare("mutual information") == 0) {}
     else {}
@@ -61,19 +61,23 @@ IndependenceTest::Result IndependenceTest::IndependenceResult(int x_idx, int y_i
  * it first computes the counts by scanning the complete data set to fill up a contingency table / cell table
  * @param test_idx: x, y, z1, z2 ...
  */
-IndependenceTest::Result IndependenceTest::ComputeGSquareXYZ(const vector<int> &test_idx, Timer *timer) {
-    vector<int> dims;
-    for (int i = 0; i < test_idx.size(); ++i) {
-        // get the number of possible values of each feature in indices, from Dataset.num_of_possible_values_of_disc_vars
-        int dim = dataset->num_of_possible_values_of_disc_vars.at(test_idx[i]);
-        dims.push_back(dim);
+IndependenceTest::Result IndependenceTest::ComputeGSquareXYZ(int x_idx, int y_idx, const set<int> &z, Timer *timer) {
+    int dimx = dataset->num_of_possible_values_of_disc_vars.at(x_idx);
+    int dimy = dataset->num_of_possible_values_of_disc_vars.at(y_idx);
+
+    vector<int> cond_indices;
+    vector<int> cond_dims;
+    for (const auto &z_idx : z) {
+        cond_indices.push_back(z_idx);
+        int dim = dataset->num_of_possible_values_of_disc_vars.at(z_idx);
+        cond_dims.push_back(dim);
     }
 
     timer->Start("new & delete");
-    cell_table = new CellTable(dims, test_idx);
+    table_3d = new Counts3D(dimx, dimy, x_idx, y_idx, cond_dims, cond_indices);
     timer->Stop("new & delete");
 
-    cell_table->FillTable3D(dataset, timer);
+    table_3d->FillTable(dataset, timer);
 
     /**
      * compute df: two ways are commonly used to compute the degree of freedom
@@ -89,15 +93,15 @@ IndependenceTest::Result IndependenceTest::ComputeGSquareXYZ(const vector<int> &
     timer->Start("g2 & df");
     double g2 = 0.0;
     int df = 0;
-    for (int k = 0; k < cell_table->table_3d->dimz; ++k) { // for each config of z
+    for (int k = 0; k < table_3d->dimz; ++k) { // for each config of z
         int alx = 0;
         int aly = 0;
 
-        for (int i = 0; i < dims[0]; ++i) {
-            alx += (cell_table->table_3d->ni[k][i] > 0);
+        for (int i = 0; i < dimx; ++i) {
+            alx += (table_3d->ni[k][i] > 0);
         }
-        for (int j = 0; j < dims[1]; ++j) {
-            aly += (cell_table->table_3d->nj[k][j] > 0);
+        for (int j = 0; j < dimy; ++j) {
+            aly += (table_3d->nj[k][j] > 0);
         }
 
         // ensure the degrees of freedom will not be negative.
@@ -105,20 +109,20 @@ IndependenceTest::Result IndependenceTest::ComputeGSquareXYZ(const vector<int> &
         aly = (aly >= 1) ? aly : 1;
         df += (alx - 1) * (aly - 1);
 
-        long total = cell_table->table_3d->nk[k]; // N_{++z}
+        long total = table_3d->nk[k]; // N_{++z}
         if (total == 0) {
             continue;
         }
 
-        for (int i = 0; i < dims[0]; ++i) { // for each possible value of x
-            long sum_row = cell_table->table_3d->ni[k][i]; // N_{x+z}
+        for (int i = 0; i < dimx; ++i) { // for each possible value of x
+            long sum_row = table_3d->ni[k][i]; // N_{x+z}
             if (sum_row == 0) {
                 continue;
             }
 
-            for (int j = 0; j < dims[1]; ++j) { // for each possible value of y
-                long sum_col = cell_table->table_3d->nj[k][j]; // N_{+yz}
-                long observed = cell_table->table_3d->n[k][i][j]; // N_{xyz}
+            for (int j = 0; j < dimy; ++j) { // for each possible value of y
+                long sum_col = table_3d->nj[k][j]; // N_{+yz}
+                long observed = table_3d->n[k][i][j]; // N_{xyz}
                 if (sum_col == 0 || observed == 0) {
                     continue;
                 }
@@ -131,14 +135,12 @@ IndependenceTest::Result IndependenceTest::ComputeGSquareXYZ(const vector<int> &
     timer->Stop("g2 & df");
 
     timer->Start("new & delete");
-    delete cell_table;
+    delete table_3d;
     timer->Stop("new & delete");
 
     timer->Start("p value");
     if (df == 0) { // if df == 0, this is definitely an independent table
-        double p_value = 1.0;
-        IndependenceTest::Result result(g2, p_value, df, true);
-        return result;
+        return IndependenceTest::Result(1.0, true);
     }
 
     // if p < alpha, reject the null hypothesis: dependent
@@ -147,7 +149,7 @@ IndependenceTest::Result IndependenceTest::ComputeGSquareXYZ(const vector<int> &
     timer->Stop("p value");
 
     bool indep = (p_value > alpha);
-    return IndependenceTest::Result(g2, p_value, df, indep);
+    return IndependenceTest::Result(p_value, indep);
 }
 
 /**
@@ -156,19 +158,15 @@ IndependenceTest::Result IndependenceTest::ComputeGSquareXYZ(const vector<int> &
  * it first computes the counts by scanning the complete data set to fill up a contingency table / cell table
  * @param test_idx: x, y
  */
-IndependenceTest::Result IndependenceTest::ComputeGSquareXY(const vector<int> &test_idx, Timer *timer) {
-    vector<int> dims;
-    for (int i = 0; i < test_idx.size(); ++i) {
-        // get the number of possible values of each feature in indices, from Dataset.num_of_possible_values_of_disc_vars
-        int dim = dataset->num_of_possible_values_of_disc_vars.at(test_idx[i]);
-        dims.push_back(dim);
-    }
+IndependenceTest::Result IndependenceTest::ComputeGSquareXY(int x_idx, int y_idx, Timer *timer) {
+    int dimx = dataset->num_of_possible_values_of_disc_vars.at(x_idx);
+    int dimy = dataset->num_of_possible_values_of_disc_vars.at(y_idx);
 
     timer->Start("new & delete");
-    cell_table = new CellTable(dims, test_idx);
+    table_2d = new Counts2D(dimx, dimy, x_idx, y_idx);
     timer->Stop("new & delete");
 
-    cell_table->FillTable2D(dataset, timer);
+    table_2d->FillTable(dataset, timer);
 
     timer->Start("g2 & df");
     double g2 = 0.0;
@@ -177,11 +175,11 @@ IndependenceTest::Result IndependenceTest::ComputeGSquareXY(const vector<int> &t
     int alx = 0;
     int aly = 0;
 
-    for (int i = 0; i < dims[0]; ++i) {
-        alx += (cell_table->table_2d->ni[i] > 0);
+    for (int i = 0; i < dimx; ++i) {
+        alx += (table_2d->ni[i] > 0);
     }
-    for (int j = 0; j < dims[1]; ++j) {
-        aly += (cell_table->table_2d->nj[j] > 0);
+    for (int j = 0; j < dimy; ++j) {
+        aly += (table_2d->nj[j] > 0);
     }
 
     // ensure the degrees of freedom will not be negative.
@@ -191,15 +189,15 @@ IndependenceTest::Result IndependenceTest::ComputeGSquareXY(const vector<int> &t
 
     long total = dataset->num_instance; // N_{++}
 
-    for (int i = 0; i < dims[0]; ++i) { // for each possible value of x
-        long sum_row = cell_table->table_2d->ni[i]; // N_{x+}
+    for (int i = 0; i < dimx; ++i) { // for each possible value of x
+        long sum_row = table_2d->ni[i]; // N_{x+}
         if (sum_row == 0) {
             continue;
         }
 
-        for (int j = 0; j < dims[1]; ++j) { // for each possible value of y
-            long sum_col = cell_table->table_2d->nj[j]; // N_{+y}
-            long observed = cell_table->table_2d->n[i][j]; // N_{xy}
+        for (int j = 0; j < dimy; ++j) { // for each possible value of y
+            long sum_col = table_2d->nj[j]; // N_{+y}
+            long observed = table_2d->n[i][j]; // N_{xy}
 
             if (sum_col == 0 || observed == 0) {
                 continue;
@@ -212,14 +210,12 @@ IndependenceTest::Result IndependenceTest::ComputeGSquareXY(const vector<int> &t
     timer->Stop("g2 & df");
 
     timer->Start("new & delete");
-    delete cell_table;
+    delete table_2d;
     timer->Stop("new & delete");
 
     timer->Start("p value");
     if (df == 0) { // if df == 0, this is definitely an independent table
-        double p_value = 1.0;
-        IndependenceTest::Result result(g2, p_value, df, true);
-        return result;
+        return IndependenceTest::Result(1.0, true);
     }
 
     // if p < alpha, reject the null hypothesis: dependent
@@ -228,7 +224,7 @@ IndependenceTest::Result IndependenceTest::ComputeGSquareXY(const vector<int> &t
     timer->Stop("p value");
 
     bool indep = (p_value > alpha);
-    return IndependenceTest::Result(g2, p_value, df, indep);
+    return IndependenceTest::Result(p_value, indep);
 }
 /**----------------------------- implementations like bnlearn -----------------------------**/
 
@@ -396,9 +392,7 @@ IndependenceTest::Result IndependenceTest::ComputeGSquareXY(const vector<int> &t
 //
 ////    timer->Start("computing p-value");
 //    if (df == 0) { // if df == 0, this is definitely an independent table
-//        double p_value = 1.0;
-//        IndependenceTest::Result result(g2, p_value, df, true);
-//        return result;
+//        return IndependenceTest::Result result(1.0, true);
 //    }
 //
 //    // if p < alpha, reject the null hypothesis: dependent
@@ -406,7 +400,7 @@ IndependenceTest::Result IndependenceTest::ComputeGSquareXY(const vector<int> &t
 //    double p_value = 1.0 - stats::pchisq(g2, df, false);
 //    bool indep = (p_value > alpha);
 ////    timer->Stop("computing p-value");
-//    return IndependenceTest::Result(g2, p_value, df, indep);
+//    return IndependenceTest::Result(p_value, indep);
 //}
 //
 ///**
@@ -487,16 +481,14 @@ IndependenceTest::Result IndependenceTest::ComputeGSquareXY(const vector<int> &t
 //    cond_dims = nullptr;
 //
 //    if (df == 0) { // if df == 0, this is definitely an independent table
-//        double p_value = 1.0;
-//        IndependenceTest::Result result(g2, p_value, df, true);
-//        return result;
+//        return IndependenceTest::Result(1.0, true);
 //    }
 //
 //    // if p < alpha, reject the null hypothesis: dependent
 //    // if p > alpha, accept the null hypothesis: independent
 //    double p_value = 1.0 - stats::pchisq(g2, df, false);
 //    bool indep = (p_value > alpha);
-//    return IndependenceTest::Result(g2, p_value, df, indep);
+//    return IndependenceTest::Result(p_value, indep);
 //}
 //
 ///**

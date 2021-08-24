@@ -5,10 +5,27 @@
 #include "CellTable.h"
 
 /**----------------------------- implementations like bnlearn -----------------------------**/
-Counts3D::Counts3D(int llx, int lly, int llz) {
-    dimx = llx;
-    dimy = lly;
-    dimz = llz;
+/**
+ * construct a new counting table using the given (fixed) dimensions
+ * each dimension must be an integer greater than zero
+ * all cells are reset to zero
+ * @param dims: an array of length > 0, each element specifies the number of possible values of that dimension (> 0)
+ */
+Counts3D::Counts3D(int dimx, int dimy, int indexx, int indexy,
+                   const vector<int> &cond_dims, const vector<int> &cond_indices) {
+    this->indexx = indexx;
+    this->indexy = indexy;
+    this->dimx   = dimx;
+    this->dimy   = dimy;
+    this->cond_indices = cond_indices;
+    this->cond_dims    = cond_dims;
+
+    // compute the number of possible configurations of z
+    int num_cells = 1;
+    for (int i = 0; i < cond_dims.size(); ++i) {
+        num_cells *= cond_dims[i];
+    }
+    dimz = num_cells;
 
     n = new int**[dimz];
     for (int i = 0; i < dimz; ++i) {
@@ -73,9 +90,11 @@ Counts3D::~Counts3D() {
     nk = nullptr;
 }
 
-Counts2D::Counts2D(int llx, int lly) {
-    dimx = llx;
-    dimy = lly;
+Counts2D::Counts2D(int dimx, int dimy, int indexx, int indexy) {
+    this->indexx = indexx;
+    this->indexy = indexy;
+    this->dimx   = dimx;
+    this->dimy   = dimy;
 
     n = new int*[dimx];
     for (int i = 0; i < dimx; ++i) {
@@ -112,43 +131,6 @@ Counts2D::~Counts2D() {
 }
 
 /**
- * construct a new cell table using the given (fixed) dimensions
- * each dimension must be an integer greater than zero
- * all cells are reset to zero
- * @param dims: an array of length > 0, each element specifies the number of possible values of that dimension (> 0)
- */
-CellTable::CellTable(const vector<int> &dims, const vector<int> &test_index) {
-    this->indices = test_index;
-    if (dims.size() > 2) { // conditioning set is not empty
-        // dimensions and indices of z1, z2, ...; copy from dims and indices
-        for (int i = 2; i < dims.size(); ++i) {
-            cond_dims.push_back(dims[i]);
-            cond_indices.push_back(indices[i]);
-        }
-
-        // compute the number of possible configurations of z
-        int num_cells = 1;
-        for (int i = 0; i < cond_dims.size(); ++i) {
-            num_cells *= cond_dims[i];
-        }
-        table_3d = new Counts3D(dims[0], dims[1], num_cells);
-
-    } else { // conditioning set is empty
-        table_2d = new Counts2D(dims[0], dims[1]);
-    }
-}
-
-CellTable::~CellTable() {
-    if (indices.size() > 2) {
-        delete table_3d;
-        table_3d = nullptr;
-    } else {
-        delete table_2d;
-        table_2d = nullptr;
-    }
-}
-
-/**
  * @brief: 1) get a mapped index z of each conditioning set z1, z2 ..., then
  *         2) count and generate a three-dimensional contingency table and the marginals
  * @example of 1): 3 features, dims = {2, 3, 2}
@@ -167,7 +149,7 @@ CellTable::~CellTable() {
  *  given config (x, y, z), the cell index should be (((0 * 2) + x) * 3 + y) * 2 + z
  *  given config (1, 1, 1), the cell index = (((0 * 2) + 1) * 3 + 1) * 2 + 1 = 9
  */
-void CellTable::FillTable3D(Dataset *dataset, Timer *timer) {
+void Counts3D::FillTable(Dataset *dataset, Timer *timer) {
     /**
      * compute the joint frequency of x, y, and z (Nxyz)
      */
@@ -175,8 +157,8 @@ void CellTable::FillTable3D(Dataset *dataset, Timer *timer) {
     for (int k = 0; k < dataset->num_instance; ++k) {
 //        int x = dataset->dataset_all_vars[k][indices[0]];
 //        int y = dataset->dataset_all_vars[k][indices[1]];
-        int x = dataset->dataset_columns[indices[0]][k];
-        int y = dataset->dataset_columns[indices[1]][k];
+        int x = dataset->dataset_columns[indexx][k];
+        int y = dataset->dataset_columns[indexy][k];
         /**
          * map z1, z2 ... to z
          */
@@ -186,7 +168,7 @@ void CellTable::FillTable3D(Dataset *dataset, Timer *timer) {
 //            z += dataset->dataset_all_vars[k][cond_indices[j]];
             z += dataset->dataset_columns[cond_indices[j]][k];
         }
-        table_3d->n[z][x][y]++;
+        n[z][x][y]++;
     }
     timer->Stop("config + count");
 
@@ -194,19 +176,19 @@ void CellTable::FillTable3D(Dataset *dataset, Timer *timer) {
      * compute the marginals (Nx+z, N+yz, N++z)
      */
     timer->Start("marginals");
-    for (int k = 0; k < table_3d->dimz; k++) {
-        for (int i = 0; i < table_3d->dimx; i++) {
-            for (int j = 0; j < table_3d->dimy; j++) {
-                table_3d->ni[k][i] += table_3d->n[k][i][j];
-                table_3d->nj[k][j] += table_3d->n[k][i][j];
-                table_3d->nk[k] += table_3d->n[k][i][j];
+    for (int k = 0; k < dimz; k++) {
+        for (int i = 0; i < dimx; i++) {
+            for (int j = 0; j < dimy; j++) {
+                ni[k][i] += n[k][i][j];
+                nj[k][j] += n[k][i][j];
+                nk[k] += n[k][i][j];
             }
         }
     }
     timer->Stop("marginals");
 }
 
-void CellTable::FillTable2D(Dataset *dataset, Timer *timer) {
+void Counts2D::FillTable(Dataset *dataset, Timer *timer) {
     /**
      * compute the joint frequency of x, y, and z (Nxyz)
      */
@@ -214,9 +196,9 @@ void CellTable::FillTable2D(Dataset *dataset, Timer *timer) {
     for (int k = 0; k < dataset->num_instance; ++k) {
 //        int x = dataset->dataset_all_vars[k][indices[0]];
 //        int y = dataset->dataset_all_vars[k][indices[1]];
-        int x = dataset->dataset_columns[indices[0]][k];
-        int y = dataset->dataset_columns[indices[1]][k];
-        table_2d->n[x][y]++;
+        int x = dataset->dataset_columns[indexx][k];
+        int y = dataset->dataset_columns[indexy][k];
+        n[x][y]++;
     }
     timer->Stop("config + count");
 
@@ -224,10 +206,10 @@ void CellTable::FillTable2D(Dataset *dataset, Timer *timer) {
      * compute the marginals (Nx+, N+y)
      */
     timer->Start("marginals");
-    for (int i = 0; i < table_2d->dimx; i++) {
-        for (int j = 0; j < table_2d->dimy; j++) {
-            table_2d->ni[i] += table_2d->n[i][j];
-            table_2d->nj[j] += table_2d->n[i][j];
+    for (int i = 0; i < dimx; i++) {
+        for (int j = 0; j < dimy; j++) {
+            ni[i] += n[i][j];
+            nj[j] += n[i][j];
         }
     }
     timer->Stop("marginals");

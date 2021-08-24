@@ -11,26 +11,19 @@
 
 /**----------------------------- implementations like bnlearn -----------------------------**/
 /**
- * two-dimensional contingency table.
- */
-class Counts2D {
-public:
-    int dimx; // first dimension.
-    int dimy; // second dimension
-    int **n;  // contingency table.
-    int *ni;  // marginal counts for the first dimension.
-    int *nj;  // marginal counts for the second dimension.
-
-    Counts2D(int llx, int lly);
-    ~Counts2D();
-};
-
-/**
- * three-dimensional contingency table, as an array of two-dimensional tables
- * spanning the third dimension.
+ * three-dimensional contingency table
+ * @brief: this class is used for storing the counting of arbitrary dimension
+ * provide a method for mapping each configuration of Z to a configuration index (an int)
+ *                  and counting the counts for each configuration of X, Y and Z (N_{xyz})
+ *                     (storing in the contingency table n[configuration index of Z][value of X][value of Y])
+ *                  and generating the marginal counts from the contingency table (N_{+yz}, N_{x+z}, N_{++z})
  */
 class Counts3D {
 public:
+    vector<int> cond_indices;
+    int indexx;
+    int indexy;
+    vector<int> cond_dims;
     int dimx; // first dimension.
     int dimy; // second dimension
     int dimz; // third dimension.
@@ -39,35 +32,32 @@ public:
     int **nj; // marginal counts for the second dimension.
     int *nk;  // marginal counts for the third dimension.
 
-    Counts3D(int llx, int lly, int llz);
+    Counts3D(int dimx, int dimy, int indexx, int indexy,
+             const vector<int> &cond_dims, const vector<int> &cond_indices);
     ~Counts3D();
-};
-
-/**
- * @brief: this class is used for storing the counting of arbitrary dimension
- * provide methods for mapping each configuration of Z to a configuration index (an int)
- *             and for counting the counts for each configuration of X, Y and Z (N_{xyz})
- *                     (storing in the contingency table table_3d->n[configuration index of Z][value of X][value of Y])
- *             and for generating the marginal counts from the contingency table (N_{+yz}, N_{x+z}, N_{++z})
- * also, N_{xy}, N_{x_}, N_{+y} for the case of tests X and Y given empty conditioning set (N_{++} = # of instances)
- */
-class CellTable {
-public:
-    vector<int> cond_dims;
-    vector<int> cond_indices;
-    vector<int> indices;
-
-    Counts2D *table_2d;
-    Counts3D *table_3d;
-
-    CellTable(const vector<int> &dims, const vector<int> &test_index);
-    ~CellTable();
 
     // column-major vs. row-major problem in the following 3 methods:
     // https://stackoverflow.com/questions/68683273/access-efficiency-of-c-2d-array
-//    void FastConfig(Dataset *dataset);
-    void FillTable3D(Dataset *dataset, Timer *timer);
-    void FillTable2D(Dataset *dataset, Timer *timer);
+    void FillTable(Dataset *dataset, Timer *timer);
+};
+
+/**
+ * two-dimensional contingency table.
+ */
+class Counts2D {
+public:
+    int indexx;
+    int indexy;
+    int dimx; // first dimension.
+    int dimy; // second dimension
+    int **n;  // contingency table.
+    int *ni;  // marginal counts for the first dimension.
+    int *nj;  // marginal counts for the second dimension.
+
+    Counts2D(int dimx, int dimy, int indexx, int indexy);
+    ~Counts2D();
+
+    void FillTable(Dataset *dataset, Timer *timer);
 };
 /**----------------------------- implementations like bnlearn -----------------------------**/
 
