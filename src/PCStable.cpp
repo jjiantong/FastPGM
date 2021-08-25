@@ -81,8 +81,8 @@ void PCStable::StructLearnByPCStable(Dataset *dts, bool print_struct, bool verbo
 //    omp_set_num_threads(2);
 //#pragma omp parallel for schedule(dynamic)
     for (int i = 0; i < network->num_edges; ++i) {
-        int node_idx1 = network->vec_edges.at(i).GetNode1()->GetNodeIndex();
-        int node_idx2 = network->vec_edges.at(i).GetNode2()->GetNodeIndex();
+        int node_idx1 = network->vec_edges[i].GetNode1()->GetNodeIndex();
+        int node_idx2 = network->vec_edges[i].GetNode2()->GetNodeIndex();
         set<int> empty_set;
 
         if (verbose) {
@@ -115,11 +115,11 @@ void PCStable::StructLearnByPCStable(Dataset *dts, bool print_struct, bool verbo
             num_dependence_judgement++;
             //-------------------------------- heuristic ---------------------------------//
             // store the p value - smaller means a stronger association
-//            network->adjacencies.at(node_idx1).at(node_idx2) = result.p_value;
-//            network->adjacencies.at(node_idx2).at(node_idx1) = result.p_value;
+//            network->adjacencies[node_idx1][node_idx2] = result.p_value;
+//            network->adjacencies[node_idx2][node_idx1] = result.p_value;
             //-------------------------------- heuristic ---------------------------------//
         } else {
-            network->vec_edges.at(i).need_remove = true;
+            network->vec_edges[i].need_remove = true;
             // the edge node1 -- node2 should be removed
             // 1. delete the edge 2. remove each other from adjacency set
             // (1 and 2 will be done in the loop below)
@@ -130,10 +130,10 @@ void PCStable::StructLearnByPCStable(Dataset *dts, bool print_struct, bool verbo
     }
 
     for (int i = 0; i < network->num_edges; ++i) {
-        int node_idx1 = network->vec_edges.at(i).GetNode1()->GetNodeIndex();
-        int node_idx2 = network->vec_edges.at(i).GetNode2()->GetNodeIndex();
+        int node_idx1 = network->vec_edges[i].GetNode1()->GetNodeIndex();
+        int node_idx2 = network->vec_edges[i].GetNode2()->GetNodeIndex();
 
-        if (network->vec_edges.at(i).need_remove) {
+        if (network->vec_edges[i].need_remove) {
             // the edge node1 -- node2 should be removed
             // 1. delete the edge
             // note that using "DeleteUndirectedEdge(node_idx1, node_idx2)" will cause some (slight) extra computations
@@ -205,24 +205,24 @@ bool PCStable::SearchAtDepth(Dataset *dts, int c_depth, bool verbose) {
 //    omp_set_num_threads(2);
 //#pragma omp parallel for schedule(dynamic)
     for (int i = 0; i < network->num_edges; ++i) {
-        Node *x = network->vec_edges.at(i).GetNode1();
-        Node *y = network->vec_edges.at(i).GetNode2();
+        Node *x = network->vec_edges[i].GetNode1();
+        Node *y = network->vec_edges[i].GetNode2();
 
         if (verbose) {
             cout << "--------------------------------------------------" << endl
-                 << "* investigating " << network->vec_edges.at(i).GetNode1()->node_name << " -- "
-                 << network->vec_edges.at(i).GetNode2()->node_name << ", conditioning sets of size " << c_depth << "." << endl;
+                 << "* investigating " << network->vec_edges[i].GetNode1()->node_name << " -- "
+                 << network->vec_edges[i].GetNode2()->node_name << ", conditioning sets of size " << c_depth << "." << endl;
         }
 
-        network->vec_edges.at(i).need_remove = CheckSide(dts, adjacencies_copy, c_depth, x, y, verbose) ||
+        network->vec_edges[i].need_remove = CheckSide(dts, adjacencies_copy, c_depth, x, y, verbose) ||
                                                CheckSide(dts, adjacencies_copy, c_depth, y, x, verbose);
     }
 
     for (int i = 0; i < network->num_edges; ++i) {
-        int node_idx1 = network->vec_edges.at(i).GetNode1()->GetNodeIndex();
-        int node_idx2 = network->vec_edges.at(i).GetNode2()->GetNodeIndex();
+        int node_idx1 = network->vec_edges[i].GetNode1()->GetNodeIndex();
+        int node_idx2 = network->vec_edges[i].GetNode2()->GetNodeIndex();
 
-        if (network->vec_edges.at(i).need_remove) {
+        if (network->vec_edges[i].need_remove) {
             // the edge x -- y should be removed
             // 1. delete the edge
             // note that using "DeleteUndirectedEdge(x->GetNodeIndex(), y->GetNodeIndex())" will cause some (slight) extra computations
@@ -330,7 +330,7 @@ bool PCStable::CheckSide(Dataset *dts, const map<int, map<int, double>> &adjacen
     //---------------------------- traditional method -----------------------------//
 
     //-------------------------------- heuristic ---------------------------------//
-//    map<int, double> map_adjx_w(adjacencies.at(x_idx));
+//    map<int, double> map_adjx_w(adjacencies[x_idx]);
 //    map_adjx_w.erase(y_idx);
 //
 //    // copy to a vector to access by position, which will be used for choice generating
@@ -346,7 +346,7 @@ bool PCStable::CheckSide(Dataset *dts, const map<int, map<int, double>> &adjacen
 //        while (!(choice = cg.Next()).empty()) {
 //            set<int> Z;
 //            for (int i = 0; i < c_depth; ++i) {
-//                Z.insert(vec_adjx_w.at(choice.at(i)).first);
+//                Z.insert(vec_adjx_w[choice[i]].first);
 //            }
 //            num_ci_test++;
 //            IndependenceTest *ci_test = new IndependenceTest(dts, alpha);
@@ -368,7 +368,7 @@ bool PCStable::CheckSide(Dataset *dts, const map<int, map<int, double>> &adjacen
     //-------------------------------- heuristic2 ---------------------------------//
 
     //-------------------------------- two associations ---------------------------------//
-////    map<int, double> map_adjy_w(adjacencies.at(y_idx));
+////    map<int, double> map_adjy_w(adjacencies[y_idx]);
 ////    map_adjy_w.erase(x_idx);
 ////    vector<pair<int, double>> vec_adjy_w(map_adjy_w.begin(), map_adjy_w.end());
 //    //-------------------------------- two associations ---------------------------------//
@@ -381,10 +381,10 @@ bool PCStable::CheckSide(Dataset *dts, const map<int, map<int, double>> &adjacen
 //        while (!(choice = cg.Next()).empty()) {
 //            double weight = 0.0;
 //            for (int i = 0; i < choice.size(); ++i) {
-//                weight  += vec_adjx_w.at(choice[i]).second;
+//                weight  += vec_adjx_w[choice[i]].second;
 //
 //    //-------------------------------- two associations ---------------------------------//
-////                int adjx = vec_adjx_w.at(choice[i]).first; // index of this node of x's adj
+////                int adjx = vec_adjx_w[choice[i]].first; // index of this node of x's adj
 ////                auto iter = map_adjy_w.find(adjx); // find this x's adj in y's adj
 ////                if (iter != map_adjy_w.end()) { // if y has this node as adj
 ////                    weight += iter->second;
@@ -401,7 +401,7 @@ bool PCStable::CheckSide(Dataset *dts, const map<int, map<int, double>> &adjacen
 //        for (int j = 0; j < vec_choice_w.size(); ++j) {
 //            set<int> Z;
 //            for (int i = 0; i < c_depth; ++i) {
-//                Z.insert(vec_adjx_w.at(vec_choice_w.at(j).first.at(i)).first);
+//                Z.insert(vec_adjx_w[vec_choice_w[j].first[i]].first);
 //            }
 //            num_ci_test++;
 //            IndependenceTest *ci_test = new IndependenceTest(dts, alpha);

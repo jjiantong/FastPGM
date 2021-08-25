@@ -35,7 +35,7 @@ vector<int> CombinationGenerator::Next() {
     int i;
     // start from the last position to find an element that can +1
     for (i = num_values - 1; i >= 0; i--) {
-        if (values.at(i) + 1 < max_values[i]) {
+        if (values[i] + 1 < max_values[i]) {
             break;
         }
     }
@@ -43,7 +43,7 @@ vector<int> CombinationGenerator::Next() {
     if (i < 0) { // cannot find the next combination
         has_next = false;
     } else { // position i can +1
-        values.at(i)++;
+        values[i]++;
         for (int j = i + 1; j < num_values; j++) {
             values[j] = 0;
         }

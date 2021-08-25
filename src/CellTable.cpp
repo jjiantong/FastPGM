@@ -154,6 +154,9 @@ void Counts3D::FillTable(Dataset *dataset, Timer *timer) {
      * compute the joint frequency of x, y, and z (Nxyz)
      */
     timer->Start("config + count");
+
+//    omp_set_num_threads(2);
+//#pragma omp parallel for schedule(static)
     for (int k = 0; k < dataset->num_instance; ++k) {
 //        int x = dataset->dataset_all_vars[k][indices[0]];
 //        int y = dataset->dataset_all_vars[k][indices[1]];
@@ -168,6 +171,7 @@ void Counts3D::FillTable(Dataset *dataset, Timer *timer) {
 //            z += dataset->dataset_all_vars[k][cond_indices[j]];
             z += dataset->dataset_columns[cond_indices[j]][k];
         }
+//#pragma omp atomic
         n[z][x][y]++;
     }
     timer->Stop("config + count");
@@ -257,7 +261,7 @@ void Counts2D::FillTable(Dataset *dataset, Timer *timer) {
 //    for (int i = 0; i < dataset->num_instance; ++i) { // for each instance
 //        for (int j = 0; j < indices.size(); ++j) { // for each feature in indices
 //            config[j] = dataset->dataset_all_vars[i][indices[j]];
-////            coords.at(j) = dataset->vector_dataset_all_vars.at(i).at(indices.at(j)).second.GetInt();
+////            coords[j] = dataset->vector_dataset_all_vars[i][indices[j]].second.GetInt();
 //        }
 //        // increment the counting value at the given configuration by 1
 //        int cell_index = GetCellIndex(config);

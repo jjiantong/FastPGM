@@ -66,14 +66,14 @@ void Dataset::LoadLIBSVMData(string data_file_path, set<int> cont_vars) {
     // check whether the label is continuous
     if (cont_vars.find(0) == cont_vars.end()) {
       //the label is not continuous (i.e., classification task)
-      int value = stoi(parsed_sample.at(it)); // the value of label
+      int value = stoi(parsed_sample[it]); // the value of label
       v.SetInt(value);
       // insert the value of label of one sample into "map_disc_vars_possible_values"
       map_disc_vars_possible_values[class_var_index].insert(value);
     }
     else {
       //the label is continuous (i.e., regression task)
-      float value = stof(parsed_sample.at(it)); // the value of label
+      float value = stof(parsed_sample[it]); // the value of label
       v.SetFloat(value);
     }
     dataset_y_vector.push_back(v); // insert the value of label into "dataset_y_vector"
@@ -81,7 +81,7 @@ void Dataset::LoadLIBSVMData(string data_file_path, set<int> cont_vars) {
     vector<VarVal> single_sample_vector; // one instance
     for (++it; it < parsed_sample.size(); ++it) {
       // Each element is in the form of "feature_index:feature_value".
-      string feature_val = parsed_sample.at(it);
+      string feature_val = parsed_sample[it];
 
       // split the feature index and the feature value using ":"
       vector<string> parsed_feature_val = Split(feature_val, ":");
@@ -112,9 +112,9 @@ void Dataset::LoadLIBSVMData(string data_file_path, set<int> cont_vars) {
   vector_dataset_all_vars = dataset_X_vector;
   //insert label to the beginning of each instance
   for (int i = 0; i < vector_dataset_all_vars.size(); ++i) {
-    vector_dataset_all_vars.at(i).insert(
-            vector_dataset_all_vars.at(i).begin(),
-            VarVal(class_var_index,dataset_y_vector.at(i))
+    vector_dataset_all_vars[i].insert(
+            vector_dataset_all_vars[i].begin(),
+            VarVal(class_var_index,dataset_y_vector[i])
     );
   }
 
@@ -227,22 +227,22 @@ void Dataset::LoadCSVData(string data_file_path, bool header, bool str_val, int 
       // check whether the variable is continuous
       if (cont_vars.find(i) == cont_vars.end()) { //the label is discrete (i.e., classification task)
         if (str_val) { // if some discrete variables contain string values
-            string s_value = parsed_sample.at(i);
+            string s_value = parsed_sample[i];
             // insert successfully -- it is a new possible value
             if (map_disc_vars_string_values[i].insert(s_value).second) {
                 value = ++counter[i]; // get a new int value
-                map_string_values_numbers.at(i).insert(pair<string, int> (s_value, value)); // map
+                map_string_values_numbers[i].insert(pair<string, int> (s_value, value)); // map
             } else { // failed to insert -- it is an old value
-                value = map_string_values_numbers.at(i)[s_value];
+                value = map_string_values_numbers[i][s_value];
             }
         } else { // if no variable contains the string value
-            value = stoi(parsed_sample.at(i)); // the value of the variable
+            value = stoi(parsed_sample[i]); // the value of the variable
         }
         v.SetInt(value);
         // insert the value of one variable the mapped number of one variable of one sample
         map_disc_vars_possible_values[i].insert(value);
       } else { //the label is continuous (i.e., regression task)
-        float value = stof(parsed_sample.at(i)); // the value of the variable
+        float value = stof(parsed_sample[i]); // the value of the variable
         v.SetFloat(value);
       }
       VarVal var_value(i, v);
@@ -262,22 +262,22 @@ void Dataset::LoadCSVData(string data_file_path, bool header, bool str_val, int 
     // check whether the variable is continuous
     if (cont_vars.find(i) == cont_vars.end()) { //the label is discrete (i.e., classification task)
       if (str_val) { // if some discrete variables contain string values
-        string s_value = parsed_sample.at(i);
+        string s_value = parsed_sample[i];
         // insert successfully -- it is a new possible value
         if (map_disc_vars_string_values[i].insert(s_value).second) {
           value = ++counter[i]; // get a new int value
-          map_string_values_numbers.at(i).insert(pair<string, int> (s_value, value)); // map
+          map_string_values_numbers[i].insert(pair<string, int> (s_value, value)); // map
         } else { // failed to insert -- it is an old value
-          value = map_string_values_numbers.at(i)[s_value];
+          value = map_string_values_numbers[i][s_value];
         }
       } else { // if no variable contains the string value
-        value = stoi(parsed_sample.at(i)); // the value of the variable
+        value = stoi(parsed_sample[i]); // the value of the variable
       }
       v.SetInt(value);
       // insert the value of one variable the mapped number of one variable of one sample
       map_disc_vars_possible_values[i].insert(value);
     } else { //the label is continuous (i.e., regression task)
-      float value = stof(parsed_sample.at(i)); // the value of the variable
+      float value = stof(parsed_sample[i]); // the value of the variable
       v.SetFloat(value);
     }
     VarVal var_value(i, v);
@@ -448,7 +448,7 @@ void Dataset::Vector2IntArray() {//storing the data set using int only
 //#pragma omp parallel for
     for (int s=0; s<num_instance; ++s) {
         dataset_all_vars[s] = new int [num_vars];
-        vector<VarVal> vec_instance = vector_dataset_all_vars.at(s);
+        vector<VarVal> vec_instance = vector_dataset_all_vars[s];
         for (const VarVal &vv : vec_instance) {  // For each non-zero-value feature of this sample.
             //change the related value if it is non-zero value in the vector representation.
             dataset_all_vars[s][vv.first] = vv.second.GetInt();

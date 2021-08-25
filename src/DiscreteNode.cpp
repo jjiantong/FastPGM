@@ -101,7 +101,7 @@ void DiscreteNode::PrintProbabilityTable() {//checked
   if (this->HasParents()) {    // If this node has parents
 
     for(int i = 0; i<GetDomainSize(); ++i) {    // For each head variable of CPT (i.e., value of child)
-      int query = vec_potential_vals.at(i);
+      int query = vec_potential_vals[i];
       auto it = set_discrete_parents_combinations.begin();
       for (int j = 0; j < GetNumParentsConfig(); ++j){  // For tail variables of CPT (i.e., parent configuration)
         DiscreteConfig parcfg = *it;
@@ -116,7 +116,7 @@ void DiscreteNode::PrintProbabilityTable() {//checked
 
     DiscreteConfig parcfg;
     for(int i = 0; i < GetDomainSize(); ++i) {    // For each row of CPT
-      int query = vec_potential_vals.at(i);
+      int query = vec_potential_vals[i];
       cout << "P(" << query << ")=" << GetProbability(query, parcfg) << '\t';
     }
     cout << endl;
@@ -146,7 +146,7 @@ int DiscreteNode::SampleNodeGivenParents(DiscreteConfig &evidence) {
   // every potential value of this node has a weight (type int)
   vector<int> weights;
   for (int i = 0; i < GetDomainSize(); ++i) {
-    int query_value = vec_potential_vals.at(i);//potential value of the current node
+    int query_value = vec_potential_vals[i];//potential value of the current node
     // get the probability P(node=query_value|par_evi) and convert it into int for calling API
     int w = (int) (GetProbability(query_value, par_evi) * 10000);
     weights.push_back(w);
@@ -157,7 +157,7 @@ int DiscreteNode::SampleNodeGivenParents(DiscreteConfig &evidence) {
   // understand: "this distribution" contains indexes of "weights"/"vec_potential_vals"
   discrete_distribution<int> this_distribution(weights.begin(),weights.end());
   // understand: randomly pick one index and output the value
-  return vec_potential_vals.at(this_distribution(rand_gen));//get the final value
+  return vec_potential_vals[this_distribution(rand_gen)];//get the final value
 }
 
 
@@ -179,7 +179,7 @@ void DiscreteNode::AddInstanceOfVarVal(DiscreteConfig instance_of_var_val) {
   // store the new instance in a map
   std::map<int, int> discreteConfigMap = DiscreteConfigToMap(instance_of_var_val);
   // GetNodeIndex() get the id of the current node, the current node is the query variable
-  int query_value = discreteConfigMap.at(GetNodeIndex());
+  int query_value = discreteConfigMap[GetNodeIndex()];
   //update probability table of the node with the query value
   AddCount(query_value, parents_config, 1);
 }
@@ -193,13 +193,13 @@ void DiscreteNode::InitializeCPT() {
     DiscreteConfig par_config;
     map_total_count_under_parents_config[par_config] = 0;
     for (int i = 0; i < GetDomainSize(); ++i) {
-      map_cond_prob_table_statistics[vec_potential_vals.at(i)][par_config] = 0;
+      map_cond_prob_table_statistics[vec_potential_vals[i]][par_config] = 0;
     }
   } else {
     for (const auto &par_config : set_discrete_parents_combinations) {
       map_total_count_under_parents_config[par_config] = 0;
       for (int i = 0; i < GetDomainSize(); ++i) {
-        map_cond_prob_table_statistics[vec_potential_vals.at(i)][par_config] = 0;
+        map_cond_prob_table_statistics[vec_potential_vals[i]][par_config] = 0;
       }
     }
   }
@@ -250,7 +250,7 @@ double DiscreteNode:: GetProbability(int query_val, DiscreteConfig &parents_conf
     return prob;
   }
 
-  int frequency_count =  map_cond_prob_table_statistics.at(query_val).at(parents_config); // P(AB)
+  int frequency_count =  map_cond_prob_table_statistics[query_val][parents_config]; // P(AB)
   int total = map_total_count_under_parents_config[parents_config]; // P(B)
   double prob = (frequency_count + laplace_smooth) / (total + laplace_smooth * GetDomainSize()); // P(A|B) = P(AB) / P(B)
   return prob;

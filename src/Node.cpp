@@ -93,7 +93,7 @@ DiscreteConfig Node::GetDiscParConfigGivenAllVarValue(vector<int> &all_var_val) 
   assert(all_var_val.size() >= GetNumDiscParents());
 
   for (auto const par : vec_disc_parent_indexes) { // for all parents(index)
-    int parent_value = all_var_val.at(par); // get the value according to the index
+    int parent_value = all_var_val[par]; // get the value according to the index
     par_var_val.insert(DiscVarVal(par, parent_value));
   }
   return par_var_val;
@@ -329,7 +329,7 @@ void Node::GenDiscParCombs(set<Node*> set_parent_ptrs) {
 
     for (int i = 0; i < d_par_ptr->GetDomainSize(); ++i) {
       varId_val.first = par_ptr->node_index;
-      varId_val.second = ((DiscreteNode*)par_ptr)->vec_potential_vals.at(i);
+      varId_val.second = ((DiscreteNode*)par_ptr)->vec_potential_vals[i];
       all_config_of_a_parent.insert(varId_val);
     }
     all_config_of_each_parent.insert(all_config_of_a_parent);

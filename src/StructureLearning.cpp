@@ -20,7 +20,7 @@ void StructureLearning::AssignNodeInformation(Dataset *dts) {
 
         // give this node a name, mainly for print
         if (dts->vec_var_names.size() == network->num_nodes) {
-            node_ptr->node_name = dts->vec_var_names.at(i);
+            node_ptr->node_name = dts->vec_var_names[i];
         }
         else {
             node_ptr->node_name = to_string(i);//use id as name

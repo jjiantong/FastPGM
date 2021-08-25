@@ -62,8 +62,8 @@ IndependenceTest::Result IndependenceTest::IndependenceResult(int x_idx, int y_i
  * @param test_idx: x, y, z1, z2 ...
  */
 IndependenceTest::Result IndependenceTest::ComputeGSquareXYZ(int x_idx, int y_idx, const set<int> &z, Timer *timer) {
-    int dimx = dataset->num_of_possible_values_of_disc_vars.at(x_idx);
-    int dimy = dataset->num_of_possible_values_of_disc_vars.at(y_idx);
+    int dimx = dataset->num_of_possible_values_of_disc_vars[x_idx];
+    int dimy = dataset->num_of_possible_values_of_disc_vars[y_idx];
 
     vector<int> cond_indices;
     cond_indices.reserve(z.size());
@@ -71,7 +71,7 @@ IndependenceTest::Result IndependenceTest::ComputeGSquareXYZ(int x_idx, int y_id
     cond_dims.reserve(z.size());
     for (const auto &z_idx : z) {
         cond_indices.push_back(z_idx);
-        int dim = dataset->num_of_possible_values_of_disc_vars.at(z_idx);
+        int dim = dataset->num_of_possible_values_of_disc_vars[z_idx];
         cond_dims.push_back(dim);
     }
 
@@ -161,8 +161,8 @@ IndependenceTest::Result IndependenceTest::ComputeGSquareXYZ(int x_idx, int y_id
  * @param test_idx: x, y
  */
 IndependenceTest::Result IndependenceTest::ComputeGSquareXY(int x_idx, int y_idx, Timer *timer) {
-    int dimx = dataset->num_of_possible_values_of_disc_vars.at(x_idx);
-    int dimy = dataset->num_of_possible_values_of_disc_vars.at(y_idx);
+    int dimx = dataset->num_of_possible_values_of_disc_vars[x_idx];
+    int dimy = dataset->num_of_possible_values_of_disc_vars[y_idx];
 
     timer->Start("new & delete");
     table_2d = new Counts2D(dimx, dimy, x_idx, y_idx);
@@ -269,7 +269,7 @@ IndependenceTest::Result IndependenceTest::ComputeGSquareXY(int x_idx, int y_idx
 //    vector<int> dims;
 //    for (int i = 0; i < test_idx.size(); ++i) {
 //        // get the number of possible values of each feature in indices, from Dataset.num_of_possible_values_of_disc_vars
-//        int dim = dataset->num_of_possible_values_of_disc_vars.at(test_idx[i]);
+//        int dim = dataset->num_of_possible_values_of_disc_vars[test_idx[i]];
 //        dims.push_back(dim);
 //    }
 //
@@ -317,7 +317,7 @@ IndependenceTest::Result IndependenceTest::ComputeGSquareXY(int x_idx, int y_idx
 //    while (cg.has_next) {
 //        vector<int> combination = cg.Next();
 //        for (int i = 0; i < test_idx.size() - 2; ++i) {
-//            config[i + 2] = combination.at(i);
+//            config[i + 2] = combination[i];
 //        }
 //        attested_rows.assign(num_rows, true);
 //        attested_cols.assign(num_cols, true);
@@ -356,10 +356,10 @@ IndependenceTest::Result IndependenceTest::ComputeGSquareXY(int x_idx, int y_idx
 //        }
 //
 //        for (int i = 0; i < o.size(); ++i) {
-//            double expected = e.at(i) / (double) total; // E_{xyz} = (N_{x+z} * N_{+yz}) / N_{++z}
+//            double expected = e[i] / (double) total; // E_{xyz} = (N_{x+z} * N_{+yz}) / N_{++z}
 //
-//            if (o.at(i) != 0) {
-//                local_g2 += 2.0 * o.at(i) * log(o.at(i) / expected); // 2 * N_{xyz} * log (N_{xyz} / E_{xyz})
+//            if (o[i] != 0) {
+//                local_g2 += 2.0 * o[i] * log(o[i] / expected); // 2 * N_{xyz} * log (N_{xyz} / E_{xyz})
 //            }
 //        }
 //
@@ -420,7 +420,7 @@ IndependenceTest::Result IndependenceTest::ComputeGSquareXY(int x_idx, int y_idx
 //    vector<int> dims;
 //    for (int i = 0; i < size; ++i) {
 //        // get the number of possible values of each feature in indices, from Dataset.num_of_possible_values_of_disc_vars
-//        int dim = dataset->num_of_possible_values_of_disc_vars.at(test_idx[i]);
+//        int dim = dataset->num_of_possible_values_of_disc_vars[test_idx[i]];
 //        dims.push_back(dim);
 //    }
 //
@@ -443,7 +443,7 @@ IndependenceTest::Result IndependenceTest::ComputeGSquareXY(int x_idx, int y_idx
 //        }
 //
 //        for (int i = 0; i < combination.size(); ++i) { // for z1, z2, ...
-//            base = Common(base, test_idx[i + 2], combination.at(i));
+//            base = Common(base, test_idx[i + 2], combination[i]);
 //        }
 //        long total = base.size(); // N_{++z}
 //        if (total == 0)
