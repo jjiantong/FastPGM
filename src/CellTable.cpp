@@ -155,8 +155,6 @@ void Counts3D::FillTable(Dataset *dataset, Timer *timer) {
      */
     timer->Start("config + count");
 
-//    omp_set_num_threads(2);
-//#pragma omp parallel for schedule(static)
     for (int k = 0; k < dataset->num_instance; ++k) {
 //        int x = dataset->dataset_all_vars[k][indices[0]];
 //        int y = dataset->dataset_all_vars[k][indices[1]];
@@ -171,7 +169,6 @@ void Counts3D::FillTable(Dataset *dataset, Timer *timer) {
 //            z += dataset->dataset_all_vars[k][cond_indices[j]];
             z += dataset->dataset_columns[cond_indices[j]][k];
         }
-//#pragma omp atomic
         n[z][x][y]++;
     }
     timer->Stop("config + count");

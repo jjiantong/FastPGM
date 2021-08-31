@@ -29,6 +29,7 @@ public:
     ChoiceGenerator (int a, int b);
 //    ~ChoiceGenerator();
 
+    vector<vector<int>> NextN(int n);
     vector<int> Next();
     void Fill(int index);
 

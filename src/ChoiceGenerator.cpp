@@ -24,7 +24,7 @@ ChoiceGenerator::ChoiceGenerator (int a, int b) {
     /**
      * initialize the choice array with successive b int [0 1 2 ...]
      * set the value at the last index one less than it would be ([0 1 2 ... b-2 b-2])
-     * so that on the first call to next() correctly returns the first combination ([0 1 2 ... b - 1])
+     * so that on the first call to next() correctly returns the first combination ([0 1 2 ... b-1])
      */
     choice.reserve(b);
     for (int i = 0; i < b - 1; i++) {
@@ -34,9 +34,30 @@ ChoiceGenerator::ChoiceGenerator (int a, int b) {
 }
 
 /**
+ * generate multiple choice at one time
+ * @param n: the number of choices to be generated at one time
+ * @return the next n choices, or null
+ */
+vector<vector<int>> ChoiceGenerator::NextN(int n) {
+    vector<vector<int>> choices;
+    choices.reserve(n);
+
+    for (int i = 0; i < n; ++i) {
+        vector<int> c = Next();
+        choices.push_back(c);
+    }
+    return choices;
+}
+
+/**
  * @return the next combination in the series, or null if the series is finished
  */
 vector<int> ChoiceGenerator::Next() {
+    //-------------------- multiple ci tests at one time -------------------//
+    if (choice.empty()) {
+        return vector<int>();
+    }
+    //-------------------- multiple ci tests at one time -------------------//
     int i = b;
 
     // Scan from the right, find the first index whose value is less than its expected maximum (i + diff),
