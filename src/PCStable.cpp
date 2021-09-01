@@ -84,7 +84,7 @@ void PCStable::StructLearnByPCStable(Dataset *dts, bool print_struct, bool verbo
 //#pragma omp atomic
         num_ci_test++;
         IndependenceTest *ci_test = new IndependenceTest(dts, alpha);
-        IndependenceTest::Result result = ci_test->IndependenceResult(node_idx1, node_idx2, empty_set,
+        IndependenceTest::Result result = ci_test->IndependenceResult(node_idx1, node_idx2, vector<int>(),
                                                                       "g square", timer);
         delete ci_test;
         bool independent = result.is_independent;
@@ -271,9 +271,9 @@ bool PCStable::CheckSide(Dataset *dts, const map<int, map<int, double>> &adjacen
 //        //----------------------------- one by one -----------------------------//
 //        vector<int> choice;
 //        while (!(choice = cg.Next()).empty()) {
-//            set<int> Z;
-//            for (int i = 0; i < c_depth; ++i) {
-//                Z.insert(vec_adjx[choice[i]]);
+//            vector<int> Z;
+//            for (int j = 0; j < c_depth; ++j) {
+//                Z.push_back(vec_adjx[choices[i][j]]);
 //            }
 //
 //            num_ci_test++;
@@ -326,9 +326,9 @@ bool PCStable::CheckSide(Dataset *dts, const map<int, map<int, double>> &adjacen
                     ind[i] = false;
                     continue;
                 }
-                set<int> Z;
+                vector<int> Z;
                 for (int j = 0; j < c_depth; ++j) {
-                    Z.insert(vec_adjx[choices[i][j]]);
+                    Z.push_back(vec_adjx[choices[i][j]]);
                 }
 
                 num_ci_test++;
@@ -415,9 +415,9 @@ bool PCStable::CheckSide(Dataset *dts, const map<int, map<int, double>> &adjacen
 //
 //        vector<int> choice;
 //        while (!(choice = cg.Next()).empty()) {
-//            set<int> Z;
+//            vector<int> Z;
 //            for (int i = 0; i < c_depth; ++i) {
-//                Z.insert(vec_adjx_w[choice[i]].first);
+//                Z.push_back(vec_adjx_w[choice[i]].first);
 //            }
 //            num_ci_test++;
 //            IndependenceTest *ci_test = new IndependenceTest(dts, alpha);
@@ -470,9 +470,9 @@ bool PCStable::CheckSide(Dataset *dts, const map<int, map<int, double>> &adjacen
 //        sort(vec_choice_w.begin(), vec_choice_w.end(), CmpByValue());
 //
 //        for (int j = 0; j < vec_choice_w.size(); ++j) {
-//            set<int> Z;
+//            vector<int> Z;
 //            for (int i = 0; i < c_depth; ++i) {
-//                Z.insert(vec_adjx_w[vec_choice_w[j].first[i]].first);
+//                Z.push_back(vec_adjx_w[vec_choice_w[j].first[i]].first);
 //            }
 //            num_ci_test++;
 //            IndependenceTest *ci_test = new IndependenceTest(dts, alpha);

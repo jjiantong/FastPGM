@@ -32,7 +32,7 @@ IndependenceTest::~IndependenceTest() {
  * @param metric the conditional independence test method
  * @return CI test result, including g-square statistic, degree of freedom, p value, independent judgement
  */
-IndependenceTest::Result IndependenceTest::IndependenceResult(int x_idx, int y_idx, const set<int> &z,
+IndependenceTest::Result IndependenceTest::IndependenceResult(int x_idx, int y_idx, const vector<int> &z,
                                                               string metric, Timer *timer) {
 //    /**
 //     * for testing x, y given z1,...,zn,
@@ -60,22 +60,19 @@ IndependenceTest::Result IndependenceTest::IndependenceResult(int x_idx, int y_i
  * by a commonly used approach, which also used by bnlearn and Tetrad -- for given test_idx,
  * it first computes the counts by scanning the complete data set to fill up a contingency table / cell table
  */
-IndependenceTest::Result IndependenceTest::ComputeGSquareXYZ(int x_idx, int y_idx, const set<int> &z, Timer *timer) {
+IndependenceTest::Result IndependenceTest::ComputeGSquareXYZ(int x_idx, int y_idx, const vector<int> &z, Timer *timer) {
     int dimx = dataset->num_of_possible_values_of_disc_vars[x_idx];
     int dimy = dataset->num_of_possible_values_of_disc_vars[y_idx];
 
-    vector<int> cond_indices;
-    cond_indices.reserve(z.size());
     vector<int> cond_dims;
     cond_dims.reserve(z.size());
     for (const auto &z_idx : z) {
-        cond_indices.push_back(z_idx);
         int dim = dataset->num_of_possible_values_of_disc_vars[z_idx];
         cond_dims.push_back(dim);
     }
 
     timer->Start("new & delete");
-    table_3d = new Counts3D(dimx, dimy, x_idx, y_idx, cond_dims, cond_indices);
+    table_3d = new Counts3D(dimx, dimy, x_idx, y_idx, cond_dims, z);
     timer->Stop("new & delete");
 
     table_3d->FillTable(dataset, timer);
