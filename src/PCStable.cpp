@@ -4,15 +4,7 @@
 
 #include "PCStable.h"
 
-PCStable::PCStable(Network *net, double a) {
-    network = net;
-    num_ci_test = 0;
-    num_dependence_judgement = 0;
-    alpha = a;
-    timer = new Timer();
-}
-
-PCStable::PCStable(Network *net, int d, double a) {
+PCStable::PCStable(Network *net, double a, int d) {
     network = net;
     num_ci_test = 0;
     num_dependence_judgement = 0;
@@ -32,11 +24,8 @@ void PCStable::StructLearnCompData(Dataset *dts, bool print_struct, bool verbose
 
     // record time
     timer->Start("pc-stable");
-
-    depth = (depth == -1) ? 1000 : depth; // depth = -1 means no limitation
     AssignNodeInformation(dts);
     StructLearnByPCStable(dts, print_struct, verbose);
-
     timer->Stop("pc-stable");
     setlocale(LC_NUMERIC, "");
 
@@ -215,7 +204,7 @@ bool PCStable::SearchAtDepth(Dataset *dts, int c_depth, bool verbose) {
         }
 
         network->vec_edges[i].need_remove = CheckSide(dts, adjacencies_copy, c_depth, x, y, verbose) ||
-                                               CheckSide(dts, adjacencies_copy, c_depth, y, x, verbose);
+                                            CheckSide(dts, adjacencies_copy, c_depth, y, x, verbose);
     }
 
     for (int i = 0; i < network->num_edges; ++i) {

@@ -20,12 +20,26 @@ Counts3D::Counts3D(int dimx, int dimy, int indexx, int indexy,
     this->cond_indices = cond_indices;
     this->cond_dims    = cond_dims;
 
-    // compute the number of possible configurations of z
-    int num_cells = 1;
-    for (int i = 0; i < cond_dims.size(); ++i) {
-        num_cells *= cond_dims[i];
+//    // compute the number of possible configurations of z
+//    int num_cells = 1;
+//    for (int i = 0; i < cond_dims.size(); ++i) {
+//        num_cells *= cond_dims[i];
+//    }
+//    dimz = num_cells;
+
+    if (cond_dims.size() > 1) {
+        cum_levels = new int[cond_dims.size() - 1];
+        // set the right-most one ... (in fact omit the right-most one which is 1)
+        cum_levels[cond_dims.size() - 2] = cond_dims[cond_dims.size() - 1];
+        // ... then compute the left ones
+        for (int i = cond_dims.size() - 3; i >= 0; --i) {
+            cum_levels[i] = cum_levels[i + 1] * cond_dims[i + 1];
+        }
+        // compute the number of possible configurations of z
+        dimz = cum_levels[0] * cond_dims[0];
+    } else {
+        dimz = cond_dims[0];
     }
-    dimz = num_cells;
 
     n = new int**[dimz];
     for (int i = 0; i < dimz; ++i) {
@@ -61,6 +75,11 @@ Counts3D::Counts3D(int dimx, int dimy, int indexx, int indexy,
 }
 
 Counts3D::~Counts3D() {
+    if (cond_dims.size() > 1) {
+        delete[] cum_levels;
+        cum_levels = nullptr;
+    }
+
     for (int i = 0; i < dimz; i++) {
         for (int j = 0; j < dimx; j++) {
             delete[] n[i][j];
@@ -163,12 +182,18 @@ void Counts3D::FillTable(Dataset *dataset, Timer *timer) {
         /**
          * map z1, z2 ... to z
          */
-        int z = dataset->dataset_columns[cond_indices[0]][k];
-        for (int j = 1; j < cond_dims.size(); ++j) {
-            z *= cond_dims[j];
-//            z += dataset->dataset_all_vars[k][cond_indices[j]];
-            z += dataset->dataset_columns[cond_indices[j]][k];
+        int z = dataset->dataset_columns[cond_indices[cond_dims.size() - 1]][k];
+//#pragma omp simd reduction(+:z)
+        for (int j = 0; j < cond_dims.size() - 1; ++j) {
+            z += dataset->dataset_columns[cond_indices[j]][k] * cum_levels[j];
         }
+
+//        int z = dataset->dataset_columns[cond_indices[0]][k];
+//        for (int j = 1; j < cond_dims.size(); ++j) {
+//            z *= cond_dims[j];
+////            z += dataset->dataset_all_vars[k][cond_indices[j]];
+//            z += dataset->dataset_columns[cond_indices[j]][k];
+//        }
         n[z][x][y]++;
     }
     timer->Stop("config + count");

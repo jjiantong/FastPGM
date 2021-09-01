@@ -59,7 +59,6 @@ IndependenceTest::Result IndependenceTest::IndependenceResult(int x_idx, int y_i
  * calculate g square for ci-test x _||_ y | z1, z2, ..., for discrete data
  * by a commonly used approach, which also used by bnlearn and Tetrad -- for given test_idx,
  * it first computes the counts by scanning the complete data set to fill up a contingency table / cell table
- * @param test_idx: x, y, z1, z2 ...
  */
 IndependenceTest::Result IndependenceTest::ComputeGSquareXYZ(int x_idx, int y_idx, const set<int> &z, Timer *timer) {
     int dimx = dataset->num_of_possible_values_of_disc_vars[x_idx];

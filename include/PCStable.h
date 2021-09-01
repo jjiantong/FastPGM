@@ -40,8 +40,7 @@ public:
      */
     map<pair<int, int>, set<int>> sepset;
 
-    PCStable(Network *net, double a);
-    PCStable(Network *net, int d, double a);
+    PCStable(Network *net, double a, int d = 1000);
     ~PCStable();
 
     virtual void StructLearnCompData(Dataset *dts, bool print_struct, bool verbose);

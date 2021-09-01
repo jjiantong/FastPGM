@@ -12,6 +12,7 @@
 #include <iostream>
 #include <cstdlib>
 #include <ctime>
+#include <stdint.h>
 #include "Dataset.h"
 #include "CellTable.h"
 #include "CombinationGenerator.h"
