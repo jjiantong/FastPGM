@@ -45,10 +45,12 @@ public:
     public:
         double p_value; // the p value of the result
         bool is_independent; // whether the conditional independence holds or not
+        int first; // the first independent one, used only for computing a group of ci tests (in parallel)
         // constructs a new g square result using the given parameters
-        Result(double p_value, bool is_dependent) {
+        Result(double p_value, bool is_dependent, int first = -1) {
             this->p_value = p_value;
             this->is_independent = is_dependent;
+            this->first = first;
         }
     };
 
@@ -56,8 +58,11 @@ public:
     ~IndependenceTest();
 
     /**----------------------------- implementations like bnlearn -----------------------------**/
-    Result IndependenceResult(int x_idx, int y_idx, const vector<int> &z, string metric, Timer *timer);
+    Result IndependenceResult(int x_idx, int y_idx, const vector<int> &z, string metric, Timer *timer,
+                              int group_size = 1);
+
     Result ComputeGSquareXYZ(int x_idx, int y_idx, const vector<int> &z, Timer *timer);
+    Result ComputeGSquareXYZGroup(int x_idx, int y_idx, const vector<int> &z, int group_size, Timer *timer);
     Result ComputeGSquareXY(int x_idx, int y_idx, Timer *timer);
     /**----------------------------- implementations like bnlearn -----------------------------**/
 
