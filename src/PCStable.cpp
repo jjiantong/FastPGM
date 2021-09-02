@@ -319,81 +319,68 @@ bool PCStable::CheckSide(Dataset *dts, const map<int, map<int, double>> &adjacen
         //-------------------- multiple ci tests at one time -------------------//
         vector<vector<int>> choices = cg.NextN(8);
         while (!choices[0].empty()) { // the first is not empty means we need to test this group
-
-            bool ind[8];
-            for (int i = 0; i < 8; ++i) {
-                if (choices[i].empty()) {
-                    ind[i] = false;
-                    continue;
-                }
-                vector<int> Z;
-                for (int j = 0; j < c_depth; ++j) {
-                    Z.push_back(vec_adjx[choices[i][j]]);
-                }
-
-                num_ci_test++;
-                IndependenceTest *ci_test = new IndependenceTest(dts, alpha);
-                IndependenceTest::Result result = ci_test->IndependenceResult(x_idx, y_idx, Z,
-                                                                              "g square", timer);
-                delete ci_test;
-                ind[i] = result.is_independent;
-                if (verbose) {
-                    cout << "    > node " << network->FindNodePtrByIndex(x_idx)->node_name << " is ";
-                    if (ind[i]) {
-                        cout << "independent";
-                    } else {
-                        cout << "dependent";
-                    }
-                    cout << " on " << network->FindNodePtrByIndex(y_idx)->node_name << " given ";
-                    for (const auto &z_idx : Z) {
-                        cout << network->FindNodePtrByIndex(z_idx)->node_name << " ";
-                    }
-                    cout << "(p-value: " << result.p_value << ")." << endl;
-                }
-                if (!ind[i]) {
-                    num_dependence_judgement++;
-                }
-            }
-
-            for (int i = 0; i < 8; ++i) {
-                if (ind[i]) { // find the first independent one
-                    // add conditioning set to sepset
-                    int node_idx1, node_idx2;
-                    if (x_idx > y_idx) {
-                        node_idx1 = y_idx;
-                        node_idx2 = x_idx;
-                    } else {
-                        node_idx1 = x_idx;
-                        node_idx2 = y_idx;
-                    }
-                    set<int> Z;
+            // vector Z contains a group of conditioning set elements
+            vector<int> Z;
+            Z.reserve(8 * c_depth);
+            int i;
+            for (i = 0; i < 8; ++i) {
+                if (!choices[i].empty()) {
                     for (int j = 0; j < c_depth; ++j) {
-                        Z.insert(vec_adjx[choices[i][j]]);
+                        Z.push_back(vec_adjx[choices[i][j]]);
                     }
-                    sepset.insert(make_pair(make_pair(node_idx1, node_idx2), Z));
+                } else {
+                    break;
+                }
+            } // i means the number of valid conditioning set in this group when existing the loop
+              // i != 8 (i < 8) only when for the last group of the edge
+
+            num_ci_test += i;
+            IndependenceTest *ci_test = new IndependenceTest(dts, alpha);
+            IndependenceTest::Result result = ci_test->IndependenceResult(x_idx, y_idx, Z, "g square", timer, i);
+            delete ci_test;
+            bool independent = result.is_independent;
+            if (independent) {
+                int first_id = result.first; // get the first independent one
+
+                int node_idx1, node_idx2;
+                if (x_idx > y_idx) {
+                    node_idx1 = y_idx;
+                    node_idx2 = x_idx;
+                } else {
+                    node_idx1 = x_idx;
+                    node_idx2 = y_idx;
+                }
+                set<int> conditioning_set;
+                for (int j = 0; j < c_depth; ++j) {
+                    conditioning_set.insert(vec_adjx[choices[first_id][j]]);
+                }
+                sepset.insert(make_pair(make_pair(node_idx1, node_idx2), conditioning_set));
 //                sepset.insert(make_pair(make_pair(x_idx, y_idx), Z));
 //                sepset.insert(make_pair(make_pair(y_idx, x_idx), Z));
 
-                    if (verbose) {
-                        cout << "    **** finish this group: ";
-                        cout << "node " << network->FindNodePtrByIndex(x_idx)->node_name << " is independent";
-                        cout << " on " << network->FindNodePtrByIndex(y_idx)->node_name << " given ";
-                        for (const auto &z_idx : Z) {
-                            cout << network->FindNodePtrByIndex(z_idx)->node_name << " ";
-                        }
-                        cout << "(group id = " << i << ")." << endl;
+                if (verbose) {
+                    cout << "    **** finish this group: ";
+                    cout << "node " << network->FindNodePtrByIndex(x_idx)->node_name << " is independent";
+                    cout << " on " << network->FindNodePtrByIndex(y_idx)->node_name << " given ";
+                    for (const auto &z_idx : conditioning_set) {
+                        cout << network->FindNodePtrByIndex(z_idx)->node_name << " ";
                     }
-
-                    return true;
+                    cout << "(group id = " << first_id << ")." << endl;
                 }
+                return true;
             }
 
-            choices = cg.NextN(8);
-
+            // dependent
             if (verbose) {
                 cout << "    **** finish this group: ";
                 cout << "node " << network->FindNodePtrByIndex(x_idx)->node_name << " is dependent";
-                cout << " on " << network->FindNodePtrByIndex(y_idx)->node_name << "in this group." << endl;
+                cout << " on " << network->FindNodePtrByIndex(y_idx)->node_name << " in this group." << endl;
+            }
+
+            if (i == 8) {
+                choices = cg.NextN(8);
+            } else {
+                return false;
             }
         }
         //-------------------- multiple ci tests at one time -------------------//

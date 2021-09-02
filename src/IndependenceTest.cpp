@@ -140,7 +140,7 @@ IndependenceTest::Result IndependenceTest::ComputeGSquareXYZ(int x_idx, int y_id
 
     timer->Start("p value");
     if (df == 0) { // if df == 0, this is definitely an independent table
-        return IndependenceTest::Result(1.0, true);
+        return IndependenceTest::Result(1.0, true, 0);
     }
 
     // if p < alpha, reject the null hypothesis: dependent
@@ -149,7 +149,7 @@ IndependenceTest::Result IndependenceTest::ComputeGSquareXYZ(int x_idx, int y_id
     timer->Stop("p value");
 
     bool indep = (p_value > alpha);
-    return IndependenceTest::Result(p_value, indep);
+    return IndependenceTest::Result(p_value, indep, 0);
 }
 
 /**
@@ -160,93 +160,127 @@ IndependenceTest::Result IndependenceTest::ComputeGSquareXYZ(int x_idx, int y_id
  */
 IndependenceTest::Result IndependenceTest::ComputeGSquareXYZGroup(int x_idx, int y_idx, const vector<int> &z,
                                                                   int group_size, Timer *timer) {
+    int c_depth = z.size() / group_size; // compute which the level is currently
+
     int dimx = dataset->num_of_possible_values_of_disc_vars[x_idx];
     int dimy = dataset->num_of_possible_values_of_disc_vars[y_idx];
 
-    vector<int> cond_dims;
-    cond_dims.reserve(z.size());
-    for (const auto &z_idx : z) {
-        int dim = dataset->num_of_possible_values_of_disc_vars[z_idx];
-        cond_dims.push_back(dim);
+    bool results[8];
+    for (int i = 0; i < 8; ++i) {
+        results[i] = false;
     }
 
-    timer->Start("new & delete");
-    table_3d = new Counts3D(dimx, dimy, x_idx, y_idx, cond_dims, z);
-    timer->Stop("new & delete");
-
-    table_3d->FillTable(dataset, timer);
-
-    /**
-     * compute df: two ways are commonly used to compute the degree of freedom
-     *      1. |Z| * (|X|-1) * (|Y|-1), where |Z| means # of combinations of Z
-     *         so it equals (dim(x)-1) * (dim(y)-1) * dim(z1) * dim(z2) * ...
-     *      2. just like 1, but |X| and |Y| only count for non-zero cases
-     *         as in Fienberg, The Analysis of Cross-Classified Categorical Data, 2nd Edition, 142
-     *         Tetrad uses this way; bnlearn calls this way as "adjusted degree of freedom"
-     * bnlearn uses both the ways (test = "mi" and test = "mi-adf")
-     * it seems that 2 is more reasonable and it can obtain smaller SHD in practice
-     * we also use 2 in our implementation
-     */
-    timer->Start("g2 & df");
-    double g2 = 0.0;
-    int df = 0;
-    for (int k = 0; k < table_3d->dimz; ++k) { // for each config of z
-        int alx = 0;
-        int aly = 0;
-
-        for (int i = 0; i < dimx; ++i) {
-            alx += (table_3d->ni[k][i] > 0);
-        }
-        for (int j = 0; j < dimy; ++j) {
-            aly += (table_3d->nj[k][j] > 0);
+    for (int i = 0; i < group_size; ++i) {
+        vector<int> Z;
+        for (int j = 0; j < c_depth; ++j) {
+            Z.push_back(z[i * c_depth + j]);
         }
 
-        // ensure the degrees of freedom will not be negative.
-        alx = (alx >= 1) ? alx : 1;
-        aly = (aly >= 1) ? aly : 1;
-        df += (alx - 1) * (aly - 1);
-
-        long total = table_3d->nk[k]; // N_{++z}
-        if (total == 0) {
-            continue;
+        vector<int> cond_dims;
+        cond_dims.reserve(z.size());
+        for (const auto &z_idx : Z) {
+            int dim = dataset->num_of_possible_values_of_disc_vars[z_idx];
+            cond_dims.push_back(dim);
         }
 
-        for (int i = 0; i < dimx; ++i) { // for each possible value of x
-            long sum_row = table_3d->ni[k][i]; // N_{x+z}
-            if (sum_row == 0) {
+        timer->Start("new & delete");
+        table_3d = new Counts3D(dimx, dimy, x_idx, y_idx, cond_dims, Z);
+        timer->Stop("new & delete");
+
+        table_3d->FillTable(dataset, timer);
+
+        /**
+         * compute df: two ways are commonly used to compute the degree of freedom
+         *      1. |Z| * (|X|-1) * (|Y|-1), where |Z| means # of combinations of Z
+         *         so it equals (dim(x)-1) * (dim(y)-1) * dim(z1) * dim(z2) * ...
+         *      2. just like 1, but |X| and |Y| only count for non-zero cases
+         *         as in Fienberg, The Analysis of Cross-Classified Categorical Data, 2nd Edition, 142
+         *         Tetrad uses this way; bnlearn calls this way as "adjusted degree of freedom"
+         * bnlearn uses both the ways (test = "mi" and test = "mi-adf")
+         * it seems that 2 is more reasonable and it can obtain smaller SHD in practice
+         * we also use 2 in our implementation
+         */
+        timer->Start("g2 & df");
+        double g2 = 0.0;
+        int df = 0;
+        for (int k = 0; k < table_3d->dimz; ++k) { // for each config of z
+            int alx = 0;
+            int aly = 0;
+
+            for (int i = 0; i < dimx; ++i) {
+                alx += (table_3d->ni[k][i] > 0);
+            }
+            for (int j = 0; j < dimy; ++j) {
+                aly += (table_3d->nj[k][j] > 0);
+            }
+
+            // ensure the degrees of freedom will not be negative.
+            alx = (alx >= 1) ? alx : 1;
+            aly = (aly >= 1) ? aly : 1;
+            df += (alx - 1) * (aly - 1);
+
+            long total = table_3d->nk[k]; // N_{++z}
+            if (total == 0) {
                 continue;
             }
 
-            for (int j = 0; j < dimy; ++j) { // for each possible value of y
-                long sum_col = table_3d->nj[k][j]; // N_{+yz}
-                long observed = table_3d->n[k][i][j]; // N_{xyz}
-                if (sum_col == 0 || observed == 0) {
+            for (int i = 0; i < dimx; ++i) { // for each possible value of x
+                long sum_row = table_3d->ni[k][i]; // N_{x+z}
+                if (sum_row == 0) {
                     continue;
                 }
 
-                double expected = (double)sum_col * (double)sum_row / (double) total; // E_{xyz} = (N_{x+} * N_{+y}) / N_{++}
-                g2 += 2.0 * observed * log(observed / expected); // 2 * N_{xy} * log (N_{xy} / E_{xy})
+                for (int j = 0; j < dimy; ++j) { // for each possible value of y
+                    long sum_col = table_3d->nj[k][j]; // N_{+yz}
+                    long observed = table_3d->n[k][i][j]; // N_{xyz}
+                    if (sum_col == 0 || observed == 0) {
+                        continue;
+                    }
+
+                    double expected = (double)sum_col * (double)sum_row / (double) total; // E_{xyz} = (N_{x+} * N_{+y}) / N_{++}
+                    g2 += 2.0 * observed * log(observed / expected); // 2 * N_{xy} * log (N_{xy} / E_{xy})
+                }
             }
         }
+        timer->Stop("g2 & df");
+
+        timer->Start("new & delete");
+        delete table_3d;
+        timer->Stop("new & delete");
+
+        timer->Start("p value");
+        if (df == 0) { // if df == 0, this is definitely an independent table
+            results[i] = true;
+        }
+
+        // if p < alpha, reject the null hypothesis: dependent
+        // if p > alpha, accept the null hypothesis: independent
+        double p_value = 1.0 - stats::pchisq(g2, df, false);
+        timer->Stop("p value");
+
+        bool indep = (p_value > alpha);
+        results[i] = indep;
+
+        // TODO: verbose
+//        cout << "    > node " << x_idx << " is ";
+//        if (indep) {
+//            cout << "independent";
+//        } else {
+//            cout << "dependent";
+//        }
+//        cout << " on " << y_idx << " given ";
+//        for (const auto &z_idx : Z) {
+//            cout << z_idx << " ";
+//        }
+//        cout << endl;
     }
-    timer->Stop("g2 & df");
 
-    timer->Start("new & delete");
-    delete table_3d;
-    timer->Stop("new & delete");
-
-    timer->Start("p value");
-    if (df == 0) { // if df == 0, this is definitely an independent table
-        return IndependenceTest::Result(1.0, true);
+    for (int i = 0; i < group_size; ++i) {
+        if (results[i]) { // find the first independent one
+            return IndependenceTest::Result(555.0, true, i);
+        }
     }
-
-    // if p < alpha, reject the null hypothesis: dependent
-    // if p > alpha, accept the null hypothesis: independent
-    double p_value = 1.0 - stats::pchisq(g2, df, false);
-    timer->Stop("p value");
-
-    bool indep = (p_value > alpha);
-    return IndependenceTest::Result(p_value, indep);
+    return IndependenceTest::Result(0.0, false);
 }
 
 /**
