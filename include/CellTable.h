@@ -8,6 +8,7 @@
 #include "Dataset.h"
 #include "Timer.h"
 #include <omp.h>
+#include <stdint.h>
 
 /**----------------------------- implementations like bnlearn -----------------------------**/
 /**
@@ -38,7 +39,7 @@ public:
              const vector<int> &cond_dims, const vector<int> &cond_indices);
     ~Counts3D();
 
-    // column-major vs. row-major problem in the following 3 methods:
+    // column-major vs. row-major problem in the following method:
     // https://stackoverflow.com/questions/68683273/access-efficiency-of-c-2d-array
     void FillTable(Dataset *dataset, Timer *timer);
 };
@@ -61,6 +62,32 @@ public:
 
     void FillTable(Dataset *dataset, Timer *timer);
 };
+
+class Counts3DGroup {
+public:
+    vector<int> cond_indices;
+    int indexx;
+    int indexy;
+    vector<int> cond_dims;
+    int dimx; // first dimension.
+    int dimy; // second dimension
+    vector<int> dimz;
+    int c_depth;
+    int group_size;
+    int *cum_levels;
+    int ****n; // contingency table.
+    int ***ni; // marginal counts for the first dimension.
+    int ***nj; // marginal counts for the second dimension.
+    int **nk;  // marginal counts for the third dimension.
+
+
+    Counts3DGroup(int dimx, int dimy, int indexx, int indexy,
+                  const vector<int> &cond_dims, const vector<int> &cond_indices, int group_size);
+    ~Counts3DGroup();
+
+    void FillTableGroup(Dataset *dataset, Timer *timer);
+};
+
 /**----------------------------- implementations like bnlearn -----------------------------**/
 
 /**----------------------------- implementations like Tetrad -----------------------------**/

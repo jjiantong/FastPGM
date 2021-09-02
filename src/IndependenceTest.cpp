@@ -170,25 +170,20 @@ IndependenceTest::Result IndependenceTest::ComputeGSquareXYZGroup(int x_idx, int
         results[i] = false;
     }
 
-    for (int i = 0; i < group_size; ++i) {
-        vector<int> Z;
-        for (int j = 0; j < c_depth; ++j) {
-            Z.push_back(z[i * c_depth + j]);
-        }
+    vector<int> cond_dims;
+    cond_dims.reserve(z.size());
+    for (const auto &z_idx : z) {
+        int dim = dataset->num_of_possible_values_of_disc_vars[z_idx];
+        cond_dims.push_back(dim);
+    }
 
-        vector<int> cond_dims;
-        cond_dims.reserve(z.size());
-        for (const auto &z_idx : Z) {
-            int dim = dataset->num_of_possible_values_of_disc_vars[z_idx];
-            cond_dims.push_back(dim);
-        }
+    timer->Start("new & delete");
+    table_3d_group = new Counts3DGroup(dimx, dimy, x_idx, y_idx, cond_dims, z, group_size);
+    timer->Stop("new & delete");
 
-        timer->Start("new & delete");
-        table_3d = new Counts3D(dimx, dimy, x_idx, y_idx, cond_dims, Z);
-        timer->Stop("new & delete");
+    table_3d_group->FillTableGroup(dataset, timer);
 
-        table_3d->FillTable(dataset, timer);
-
+    for (int m = 0; m < group_size; ++m) {
         /**
          * compute df: two ways are commonly used to compute the degree of freedom
          *      1. |Z| * (|X|-1) * (|Y|-1), where |Z| means # of combinations of Z
@@ -203,15 +198,16 @@ IndependenceTest::Result IndependenceTest::ComputeGSquareXYZGroup(int x_idx, int
         timer->Start("g2 & df");
         double g2 = 0.0;
         int df = 0;
-        for (int k = 0; k < table_3d->dimz; ++k) { // for each config of z
+
+        for (int k = 0; k < table_3d_group->dimz[m]; ++k) { // for each config of z
             int alx = 0;
             int aly = 0;
 
             for (int i = 0; i < dimx; ++i) {
-                alx += (table_3d->ni[k][i] > 0);
+                alx += (table_3d_group->ni[m][k][i] > 0);
             }
             for (int j = 0; j < dimy; ++j) {
-                aly += (table_3d->nj[k][j] > 0);
+                aly += (table_3d_group->nj[m][k][j] > 0);
             }
 
             // ensure the degrees of freedom will not be negative.
@@ -219,20 +215,20 @@ IndependenceTest::Result IndependenceTest::ComputeGSquareXYZGroup(int x_idx, int
             aly = (aly >= 1) ? aly : 1;
             df += (alx - 1) * (aly - 1);
 
-            long total = table_3d->nk[k]; // N_{++z}
+            long total = table_3d_group->nk[m][k]; // N_{++z}
             if (total == 0) {
                 continue;
             }
 
             for (int i = 0; i < dimx; ++i) { // for each possible value of x
-                long sum_row = table_3d->ni[k][i]; // N_{x+z}
+                long sum_row = table_3d_group->ni[m][k][i]; // N_{x+z}
                 if (sum_row == 0) {
                     continue;
                 }
 
                 for (int j = 0; j < dimy; ++j) { // for each possible value of y
-                    long sum_col = table_3d->nj[k][j]; // N_{+yz}
-                    long observed = table_3d->n[k][i][j]; // N_{xyz}
+                    long sum_col = table_3d_group->nj[m][k][j]; // N_{+yz}
+                    long observed = table_3d_group->n[m][k][i][j]; // N_{xyz}
                     if (sum_col == 0 || observed == 0) {
                         continue;
                     }
@@ -244,13 +240,9 @@ IndependenceTest::Result IndependenceTest::ComputeGSquareXYZGroup(int x_idx, int
         }
         timer->Stop("g2 & df");
 
-        timer->Start("new & delete");
-        delete table_3d;
-        timer->Stop("new & delete");
-
         timer->Start("p value");
         if (df == 0) { // if df == 0, this is definitely an independent table
-            results[i] = true;
+            results[m] = true;
         }
 
         // if p < alpha, reject the null hypothesis: dependent
@@ -259,7 +251,7 @@ IndependenceTest::Result IndependenceTest::ComputeGSquareXYZGroup(int x_idx, int
         timer->Stop("p value");
 
         bool indep = (p_value > alpha);
-        results[i] = indep;
+        results[m] = indep;
 
         // TODO: verbose
 //        cout << "    > node " << x_idx << " is ";
@@ -274,6 +266,10 @@ IndependenceTest::Result IndependenceTest::ComputeGSquareXYZGroup(int x_idx, int
 //        }
 //        cout << endl;
     }
+
+    timer->Start("new & delete");
+    delete table_3d_group;
+    timer->Stop("new & delete");
 
     for (int i = 0; i < group_size; ++i) {
         if (results[i]) { // find the first independent one
