@@ -372,13 +372,13 @@ void Counts3DGroup::FillTableGroup(Dataset *dataset, Timer *timer) {
      * for the second time, just traverse the partial data set
      * do: 1 config; 2 count
      */
-    for (int k = 0; k < dataset->num_instance; ++k) {
+//#pragma omp parallel for num_threads(2)
+    for (int i = 0; i < group_size; ++i) { // for each ci test
+        for (int k = 0; k < dataset->num_instance; ++k) {
 //        int x = dataset->dataset_all_vars[k][indices[0]];
 //        int y = dataset->dataset_all_vars[k][indices[1]];
-        int x = dataset->dataset_columns[indexx][k];
-        int y = dataset->dataset_columns[indexy][k];
-
-        for (int i = 0; i < group_size; ++i) {
+            int x = dataset->dataset_columns[indexx][k];
+            int y = dataset->dataset_columns[indexy][k];
             /**
              * map each group of z1, z2 ... to z
              */
@@ -399,6 +399,35 @@ void Counts3DGroup::FillTableGroup(Dataset *dataset, Timer *timer) {
             n[i][z][x][y]++;
         }
     }
+
+
+//    for (int k = 0; k < dataset->num_instance; ++k) {
+////        int x = dataset->dataset_all_vars[k][indices[0]];
+////        int y = dataset->dataset_all_vars[k][indices[1]];
+//        int x = dataset->dataset_columns[indexx][k];
+//        int y = dataset->dataset_columns[indexy][k];
+//
+//        for (int i = 0; i < group_size; ++i) {
+//            /**
+//             * map each group of z1, z2 ... to z
+//             */
+//            int z = 0;
+//            if (c_depth == 1) {
+////                z = pdata[k * group_size + i];
+//                z = dataset->dataset_columns[cond_indices[i]][k];
+//            } else {
+//                for (int j = 0; j < c_depth; ++j) {
+//                    /**
+//                     * view as z += pdata[k][i][j] * cum_levels[i][j]
+//                     * where group_size * c_depth = cond_dims.size()
+//                     */
+////                    z += pdata[k * cond_dims.size() + i * c_depth + j] * cum_levels[i * c_depth + j];
+//                    z += dataset->dataset_columns[cond_indices[i * c_depth + j]][k] * cum_levels[i * c_depth + j];
+//                }
+//            }
+//            n[i][z][x][y]++;
+//        }
+//    }
 //    delete[] pdata;
 //    delete[] xy;
     timer->Stop("config + count 2");
