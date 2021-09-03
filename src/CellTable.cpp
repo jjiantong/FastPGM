@@ -340,30 +340,34 @@ void Counts3D::FillTable(Dataset *dataset, Timer *timer) {
 }
 
 void Counts3DGroup::FillTableGroup(Dataset *dataset, Timer *timer) {
-    timer->Start("config + count");
-
+    timer->Start("config + count 1");
     /**
      * traverse the whole data set, store the partial data which is required by a group of z
      * using uint8 to improve the memory accesses
-     * TODO: also store x and y
      */
-    uint8_t *pdata = new uint8_t[dataset->num_instance * group_size * c_depth];
+//    uint8_t *pdata = new uint8_t[dataset->num_instance * cond_dims.size()];
+//
+//    for (int k = 0; k < dataset->num_instance; ++k) {
+//        for (int i = 0; i < group_size; ++i) {
+//            for (int j = 0; j < c_depth; ++j) {
+//                /**
+//                 * view as pdata[num_instance][group_size][c_depth],
+//                 * where group_size * c_depth = cond_dims.size()
+//                 * do: pdata[k][i][j] = dataset[cond_indices[i][j]][k]
+//                 */
+////                pdata[k * cond_dims.size() + i * c_depth + j] = dataset->dataset_all_vars[k][cond_indices[i * c_depth + j]];
+//                pdata[k * cond_dims.size() + i * c_depth + j] =
+//                        dataset->dataset_columns[cond_indices[i * c_depth + j]][k];
+////                xy[k * 2 + 0] = dataset->dataset_all_vars[k][indexx];
+////                xy[k * 2 + 1] = dataset->dataset_all_vars[k][indexy];
+//                xy[k * 2 + 0] = dataset->dataset_columns[indexx][k];
+//                xy[k * 2 + 1] = dataset->dataset_columns[indexy][k];
+//            }
+//        }
+//    }
+    timer->Stop("config + count 1");
 
-    for (int k = 0; k < dataset->num_instance; ++k) {
-        for (int i = 0; i < group_size; ++i) {
-            for (int j = 0; j < c_depth; ++j) {
-                /**
-                 * view as pdata[num_instance][group_size][c_depth],
-                 * where group_size * c_depth = cond_dims.size()
-                 * do: pdata[k][i][j] = dataset[cond_indices[i][j]][k]
-                 */
-//                pdata[k * cond_dims.size() + i * c_depth + j] = dataset->dataset_all_vars[k][cond_indices[i * c_depth + j]];
-                pdata[k * cond_dims.size() + i * c_depth + j] =
-                        dataset->dataset_columns[cond_indices[i * c_depth + j]][k];
-            }
-        }
-    }
-
+    timer->Start("config + count 2");
     /**
      * for the second time, just traverse the partial data set
      * do: 1 config; 2 count
@@ -380,21 +384,24 @@ void Counts3DGroup::FillTableGroup(Dataset *dataset, Timer *timer) {
              */
             int z = 0;
             if (c_depth == 1) {
-                z = pdata[k * group_size + i];
+//                z = pdata[k * group_size + i];
+                z = dataset->dataset_columns[cond_indices[i]][k];
             } else {
-                //#pragma omp simd reduction(+:z)
                 for (int j = 0; j < c_depth; ++j) {
                     /**
                      * view as z += pdata[k][i][j] * cum_levels[i][j]
                      * where group_size * c_depth = cond_dims.size()
                      */
-                    z += pdata[k * cond_dims.size() + i * c_depth + j] * cum_levels[i * c_depth + j];
+//                    z += pdata[k * cond_dims.size() + i * c_depth + j] * cum_levels[i * c_depth + j];
+                    z += dataset->dataset_columns[cond_indices[i * c_depth + j]][k] * cum_levels[i * c_depth + j];
                 }
             }
             n[i][z][x][y]++;
         }
     }
-    timer->Stop("config + count");
+//    delete[] pdata;
+//    delete[] xy;
+    timer->Stop("config + count 2");
 
     /**
      * compute the marginals (Nx+z, N+yz, N++z)

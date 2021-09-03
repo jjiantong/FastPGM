@@ -80,7 +80,6 @@ public:
     int ***nj; // marginal counts for the second dimension.
     int **nk;  // marginal counts for the third dimension.
 
-
     Counts3DGroup(int dimx, int dimy, int indexx, int indexy,
                   const vector<int> &cond_dims, const vector<int> &cond_indices, int group_size);
     ~Counts3DGroup();

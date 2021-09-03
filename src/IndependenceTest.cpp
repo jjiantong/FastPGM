@@ -254,17 +254,6 @@ IndependenceTest::Result IndependenceTest::ComputeGSquareXYZGroup(int x_idx, int
         results[m] = indep;
 
         // TODO: verbose
-//        cout << "    > node " << x_idx << " is ";
-//        if (indep) {
-//            cout << "independent";
-//        } else {
-//            cout << "dependent";
-//        }
-//        cout << " on " << y_idx << " given ";
-//        for (const auto &z_idx : Z) {
-//            cout << z_idx << " ";
-//        }
-//        cout << endl;
     }
 
     timer->Start("new & delete");
@@ -273,7 +262,7 @@ IndependenceTest::Result IndependenceTest::ComputeGSquareXYZGroup(int x_idx, int
 
     for (int i = 0; i < group_size; ++i) {
         if (results[i]) { // find the first independent one
-            return IndependenceTest::Result(555.0, true, i);
+            return IndependenceTest::Result(-1, true, i);
         }
     }
     return IndependenceTest::Result(0.0, false);

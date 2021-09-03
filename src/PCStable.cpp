@@ -37,7 +37,8 @@ void PCStable::StructLearnCompData(Dataset *dts, bool print_struct, bool verbose
     timer->Print("pc-stable step 3"); cout << " (" << timer->time["pc-stable step 3"] / timer->time["pc-stable"] * 100 << "%)";
 
     timer->Print("new & delete"); cout << " (" << timer->time["new & delete"] / timer->time["pc-stable step 1"] * 100 << "%)";
-    timer->Print("config + count"); cout << " (" << timer->time["config + count"] / timer->time["pc-stable step 1"] * 100 << "%)";
+    timer->Print("config + count 1"); cout << " (" << timer->time["config + count 1"] / timer->time["pc-stable step 1"] * 100 << "%)";
+    timer->Print("config + count 2"); cout << " (" << timer->time["config + count 2"] / timer->time["pc-stable step 1"] * 100 << "%)";
     timer->Print("marginals"); cout << " (" << timer->time["marginals"] / timer->time["pc-stable step 1"] * 100 << "%)";
     timer->Print("g2 & df"); cout << " (" << timer->time["g2 & df"] / timer->time["pc-stable step 1"] * 100 << "%)";
     timer->Print("p value"); cout << " (" << timer->time["p value"] / timer->time["pc-stable step 1"] * 100 << "%)" << endl;
@@ -272,8 +273,10 @@ bool PCStable::CheckSide(Dataset *dts, const map<int, map<int, double>> &adjacen
 //        vector<int> choice;
 //        while (!(choice = cg.Next()).empty()) {
 //            vector<int> Z;
+//            set<int> conditioning_set;
 //            for (int j = 0; j < c_depth; ++j) {
-//                Z.push_back(vec_adjx[choices[i][j]]);
+//                Z.push_back(vec_adjx[choice[j]]);
+//                conditioning_set.insert(vec_adjx[choice[j]]);
 //            }
 //
 //            num_ci_test++;
@@ -308,7 +311,7 @@ bool PCStable::CheckSide(Dataset *dts, const map<int, map<int, double>> &adjacen
 //                    node_idx1 = x_idx;
 //                    node_idx2 = y_idx;
 //                }
-//                sepset.insert(make_pair(make_pair(node_idx1, node_idx2), Z));
+//                sepset.insert(make_pair(make_pair(node_idx1, node_idx2), conditioning_set));
 ////                sepset.insert(make_pair(make_pair(x_idx, y_idx), Z));
 ////                sepset.insert(make_pair(make_pair(y_idx, x_idx), Z));
 //                return true;
