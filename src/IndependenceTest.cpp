@@ -90,7 +90,7 @@ IndependenceTest::Result IndependenceTest::ComputeGSquareXYZ(int x_idx, int y_id
      * it seems that 2 is more reasonable and it can obtain smaller SHD in practice
      * we also use 2 in our implementation
      */
-    timer->Start("g2 & df");
+    timer->Start("g2 & df + p value");
     double g2 = 0.0;
     int df = 0;
     for (int k = 0; k < table_3d->dimz; ++k) { // for each config of z
@@ -132,13 +132,7 @@ IndependenceTest::Result IndependenceTest::ComputeGSquareXYZ(int x_idx, int y_id
             }
         }
     }
-    timer->Stop("g2 & df");
 
-    timer->Start("new & delete");
-    delete table_3d;
-    timer->Stop("new & delete");
-
-    timer->Start("p value");
     if (df == 0) { // if df == 0, this is definitely an independent table
         return IndependenceTest::Result(1.0, true, 0);
     }
@@ -146,7 +140,11 @@ IndependenceTest::Result IndependenceTest::ComputeGSquareXYZ(int x_idx, int y_id
     // if p < alpha, reject the null hypothesis: dependent
     // if p > alpha, accept the null hypothesis: independent
     double p_value = 1.0 - stats::pchisq(g2, df, false);
-    timer->Stop("p value");
+    timer->Stop("g2 & df + p value");
+
+    timer->Start("new & delete");
+    delete table_3d;
+    timer->Stop("new & delete");
 
     bool indep = (p_value > alpha);
     return IndependenceTest::Result(p_value, indep, 0);
@@ -183,6 +181,8 @@ IndependenceTest::Result IndependenceTest::ComputeGSquareXYZGroup(int x_idx, int
 
     table_3d_group->FillTableGroup(dataset, timer);
 
+    timer->Start("g2 & df + p value");
+//#pragma omp parallel for num_threads(2) schedule(dynamic)
     for (int m = 0; m < group_size; ++m) {
         /**
          * compute df: two ways are commonly used to compute the degree of freedom
@@ -195,7 +195,6 @@ IndependenceTest::Result IndependenceTest::ComputeGSquareXYZGroup(int x_idx, int
          * it seems that 2 is more reasonable and it can obtain smaller SHD in practice
          * we also use 2 in our implementation
          */
-        timer->Start("g2 & df");
         double g2 = 0.0;
         int df = 0;
 
@@ -238,9 +237,7 @@ IndependenceTest::Result IndependenceTest::ComputeGSquareXYZGroup(int x_idx, int
                 }
             }
         }
-        timer->Stop("g2 & df");
 
-        timer->Start("p value");
         if (df == 0) { // if df == 0, this is definitely an independent table
             results[m] = true;
         }
@@ -248,13 +245,13 @@ IndependenceTest::Result IndependenceTest::ComputeGSquareXYZGroup(int x_idx, int
         // if p < alpha, reject the null hypothesis: dependent
         // if p > alpha, accept the null hypothesis: independent
         double p_value = 1.0 - stats::pchisq(g2, df, false);
-        timer->Stop("p value");
 
         bool indep = (p_value > alpha);
         results[m] = indep;
 
         // TODO: verbose
     }
+    timer->Stop("g2 & df + p value");
 
     timer->Start("new & delete");
     delete table_3d_group;
@@ -284,7 +281,7 @@ IndependenceTest::Result IndependenceTest::ComputeGSquareXY(int x_idx, int y_idx
 
     table_2d->FillTable(dataset, timer);
 
-    timer->Start("g2 & df");
+    timer->Start("g2 & df + p value");
     double g2 = 0.0;
     int df = 0;
 
@@ -323,13 +320,7 @@ IndependenceTest::Result IndependenceTest::ComputeGSquareXY(int x_idx, int y_idx
             g2 += 2.0 * observed * log(observed / expected); // 2 * N_{xy} * log (N_{xy} / E_{xy})
         }
     }
-    timer->Stop("g2 & df");
 
-    timer->Start("new & delete");
-    delete table_2d;
-    timer->Stop("new & delete");
-
-    timer->Start("p value");
     if (df == 0) { // if df == 0, this is definitely an independent table
         return IndependenceTest::Result(1.0, true);
     }
@@ -337,7 +328,11 @@ IndependenceTest::Result IndependenceTest::ComputeGSquareXY(int x_idx, int y_idx
     // if p < alpha, reject the null hypothesis: dependent
     // if p > alpha, accept the null hypothesis: independent
     double p_value = 1.0 - stats::pchisq(g2, df, false);
-    timer->Stop("p value");
+    timer->Stop("g2 & df & p value");
+
+    timer->Start("new & delete");
+    delete table_2d;
+    timer->Stop("new & delete");
 
     bool indep = (p_value > alpha);
     return IndependenceTest::Result(p_value, indep);

@@ -37,11 +37,9 @@ void PCStable::StructLearnCompData(Dataset *dts, bool print_struct, bool verbose
     timer->Print("pc-stable step 3"); cout << " (" << timer->time["pc-stable step 3"] / timer->time["pc-stable"] * 100 << "%)";
 
     timer->Print("new & delete"); cout << " (" << timer->time["new & delete"] / timer->time["pc-stable step 1"] * 100 << "%)";
-    timer->Print("config + count 1"); cout << " (" << timer->time["config + count 1"] / timer->time["pc-stable step 1"] * 100 << "%)";
-    timer->Print("config + count 2"); cout << " (" << timer->time["config + count 2"] / timer->time["pc-stable step 1"] * 100 << "%)";
+    timer->Print("config + count"); cout << " (" << timer->time["config + count"] / timer->time["pc-stable step 1"] * 100 << "%)";
     timer->Print("marginals"); cout << " (" << timer->time["marginals"] / timer->time["pc-stable step 1"] * 100 << "%)";
-    timer->Print("g2 & df"); cout << " (" << timer->time["g2 & df"] / timer->time["pc-stable step 1"] * 100 << "%)";
-    timer->Print("p value"); cout << " (" << timer->time["p value"] / timer->time["pc-stable step 1"] * 100 << "%)" << endl;
+    timer->Print("g2 & df + p value"); cout << " (" << timer->time["g2 & df + p value"] / timer->time["pc-stable step 1"] * 100 << "%)" << endl;
 }
 
 void PCStable::StructLearnByPCStable(Dataset *dts, bool print_struct, bool verbose) {
