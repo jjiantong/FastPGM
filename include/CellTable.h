@@ -75,9 +75,9 @@ public:
     int c_depth;
     int group_size;
     int *cum_levels;
-    int ****n; // contingency table.
-    int ***ni; // marginal counts for the first dimension.
-    int ***nj; // marginal counts for the second dimension.
+    int **n; // contingency table.
+    int **ni; // marginal counts for the first dimension.
+    int **nj; // marginal counts for the second dimension.
     int **nk;  // marginal counts for the third dimension.
 
     Counts3DGroup(int dimx, int dimy, int indexx, int indexy,

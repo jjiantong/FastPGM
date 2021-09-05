@@ -204,10 +204,10 @@ IndependenceTest::Result IndependenceTest::ComputeGSquareXYZGroup(int x_idx, int
             int aly = 0;
 
             for (int i = 0; i < dimx; ++i) {
-                alx += (table_3d_group->ni[m][k][i] > 0);
+                alx += (table_3d_group->ni[m][k * dimx + i] > 0); // ni[m][k][i]
             }
             for (int j = 0; j < dimy; ++j) {
-                aly += (table_3d_group->nj[m][k][j] > 0);
+                aly += (table_3d_group->nj[m][k * dimy + j] > 0); //nj[m][k][j]
             }
 
             // ensure the degrees of freedom will not be negative.
@@ -221,14 +221,14 @@ IndependenceTest::Result IndependenceTest::ComputeGSquareXYZGroup(int x_idx, int
             }
 
             for (int i = 0; i < dimx; ++i) { // for each possible value of x
-                long sum_row = table_3d_group->ni[m][k][i]; // N_{x+z}
+                long sum_row = table_3d_group->ni[m][k * dimx + i]; // N_{x+z}
                 if (sum_row == 0) {
                     continue;
                 }
 
                 for (int j = 0; j < dimy; ++j) { // for each possible value of y
-                    long sum_col = table_3d_group->nj[m][k][j]; // N_{+yz}
-                    long observed = table_3d_group->n[m][k][i][j]; // N_{xyz}
+                    long sum_col = table_3d_group->nj[m][k * dimy + j]; // N_{+yz}
+                    long observed = table_3d_group->n[m][k * dimx * dimy + i * dimy + j]; // N_{xyz}
                     if (sum_col == 0 || observed == 0) {
                         continue;
                     }

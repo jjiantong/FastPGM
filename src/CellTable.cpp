@@ -138,39 +138,27 @@ Counts3DGroup::Counts3DGroup(int dimx, int dimy, int indexx, int indexy,
         }
     }
 
-    n = new int***[group_size];
+    n = new int*[group_size];
     for (int m = 0; m < group_size; ++m) {
-        n[m] = new int**[dimz[m]];
-        for (int i = 0; i < dimz[m]; ++i) {
-            n[m][i] = new int*[dimx];
-            for (int j = 0; j < dimx; ++j) {
-                n[m][i][j] = new int[dimy];
-                for (int k = 0; k < dimy; ++k) {
-                    n[m][i][j][k] = 0;
-                }
-            }
+        n[m] = new int[dimz[m] * dimx * dimy];
+        for (int i = 0; i < dimz[m] * dimx * dimy; ++i) {
+            n[m][i] = 0;
         }
     }
 
-    ni = new int**[group_size];
+    ni = new int*[group_size];
     for (int m = 0; m < group_size; ++m) {
-        ni[m] = new int*[dimz[m]];
-        for (int i = 0; i < dimz[m]; ++i) {
-            ni[m][i] = new int[dimx];
-            for (int j = 0; j < dimx; ++j) {
-                ni[m][i][j] = 0;
-            }
+        ni[m] = new int[dimz[m] * dimx];
+        for (int i = 0; i < dimz[m] * dimx; ++i) {
+            ni[m][i] = 0;
         }
     }
 
-    nj = new int**[group_size];
+    nj = new int*[group_size];
     for (int m = 0; m < group_size; ++m) {
-        nj[m] = new int*[dimz[m]];
-        for (int i = 0; i < dimz[m]; ++i) {
-            nj[m][i] = new int[dimy];
-            for (int j = 0; j < dimy; ++j) {
-                nj[m][i][j] = 0;
-            }
+        nj[m] = new int[dimz[m] * dimy];
+        for (int i = 0; i < dimz[m] * dimy; ++i) {
+            nj[m][i] = 0;
         }
     }
 
@@ -190,14 +178,6 @@ Counts3DGroup::~Counts3DGroup() {
     }
 
     for (int m = 0; m < group_size; ++m) {
-        for (int i = 0; i < dimz[m]; i++) {
-            for (int j = 0; j < dimx; j++) {
-                delete[] n[m][i][j];
-                n[m][i][j] = nullptr;
-            }
-            delete[] n[m][i];
-            n[m][i] = nullptr;
-        }
         delete[] n[m];
         n[m] = nullptr;
     }
@@ -205,10 +185,6 @@ Counts3DGroup::~Counts3DGroup() {
     n = nullptr;
 
     for (int m = 0; m < group_size; ++m) {
-        for (int i = 0; i < dimz[m]; ++i) {
-            delete [] ni[m][i];
-            ni[m][i] = nullptr;
-        }
         delete[] ni[m];
         ni[m] = nullptr;
     }
@@ -216,10 +192,6 @@ Counts3DGroup::~Counts3DGroup() {
     ni = nullptr;
 
     for (int m = 0; m < group_size; ++m) {
-        for (int i = 0; i < dimz[m]; ++i) {
-            delete [] nj[m][i];
-            nj[m][i] = nullptr;
-        }
         delete[] nj[m];
         nj[m] = nullptr;
     }
@@ -346,25 +318,31 @@ void Counts3DGroup::FillTableGroup(Dataset *dataset, Timer *timer) {
      * using uint8 to improve the memory accesses
      */
 //    uint8_t *pdata = new uint8_t[dataset->num_instance * cond_dims.size()];
-//
-//    for (int k = 0; k < dataset->num_instance; ++k) {
+//    uint8_t *xy    = new uint8_t[dataset->num_instance * 2];
+
+    for (int k = 0; k < dataset->num_instance; ++k) {
+        /**
+         * view as xy[2][num_instance]
+         * do: pdata[0][k] = dataset[indexx][k]
+         *     pdata[1][k] = dataset[indexy][k]
+         */
+//        xy[k] = dataset->dataset_columns[indexx][k];
+//        xy[dataset->num_instance + k] = dataset->dataset_columns[indexy][k];
+//        xy[k * 2 + 0] = dataset->dataset_columns[indexx][k];
+//        xy[k * 2 + 1] = dataset->dataset_columns[indexy][k];
+
 //        for (int i = 0; i < group_size; ++i) {
 //            for (int j = 0; j < c_depth; ++j) {
 //                /**
-//                 * view as pdata[num_instance][group_size][c_depth],
-//                 * where group_size * c_depth = cond_dims.size()
-//                 * do: pdata[k][i][j] = dataset[cond_indices[i][j]][k]
+//                 * (view as pdata[group_size][num_instance][c_depth])
+//                 * view as pdata[group_size][c_depth][num_instance],
+//                 * do: pdata[i][j][k] = dataset[cond_indices[i][j]][k]
 //                 */
-////                pdata[k * cond_dims.size() + i * c_depth + j] = dataset->dataset_all_vars[k][cond_indices[i * c_depth + j]];
-//                pdata[k * cond_dims.size() + i * c_depth + j] =
+//                pdata[i * c_depth * dataset->num_instance + j * dataset->num_instance + k] =
 //                        dataset->dataset_columns[cond_indices[i * c_depth + j]][k];
-////                xy[k * 2 + 0] = dataset->dataset_all_vars[k][indexx];
-////                xy[k * 2 + 1] = dataset->dataset_all_vars[k][indexy];
-//                xy[k * 2 + 0] = dataset->dataset_columns[indexx][k];
-//                xy[k * 2 + 1] = dataset->dataset_columns[indexy][k];
 //            }
 //        }
-//    }
+    }
     timer->Stop("config + count 1");
 
     timer->Start("config + count 2");
@@ -379,55 +357,32 @@ void Counts3DGroup::FillTableGroup(Dataset *dataset, Timer *timer) {
 //        int y = dataset->dataset_all_vars[k][indices[1]];
             int x = dataset->dataset_columns[indexx][k];
             int y = dataset->dataset_columns[indexy][k];
+//            int x = xy[k];
+//            int y = xy[dataset->num_instance + k];
+//            int x = xy[k * 2 + 0];
+//            int y = xy[k * 2 + 1];
+
             /**
              * map each group of z1, z2 ... to z
              */
             int z = 0;
             if (c_depth == 1) {
-//                z = pdata[k * group_size + i];
+//                z = pdata[i * dataset->num_instance + k];
                 z = dataset->dataset_columns[cond_indices[i]][k];
             } else {
                 for (int j = 0; j < c_depth; ++j) {
                     /**
-                     * view as z += pdata[k][i][j] * cum_levels[i][j]
+                     * pdata[group_size][c_depth][num_instance]
+                     * view as z += pdata[i][j][k] * cum_levels[i][j]
                      * where group_size * c_depth = cond_dims.size()
                      */
-//                    z += pdata[k * cond_dims.size() + i * c_depth + j] * cum_levels[i * c_depth + j];
+//                    z += pdata[i * c_depth * dataset->num_instance + j * dataset->num_instance + k] * cum_levels[i * c_depth + j];
                     z += dataset->dataset_columns[cond_indices[i * c_depth + j]][k] * cum_levels[i * c_depth + j];
                 }
             }
-            n[i][z][x][y]++;
+            n[i][z * dimx * dimy + x * dimy + y]++; //n[i][z][x][y]++;
         }
     }
-
-
-//    for (int k = 0; k < dataset->num_instance; ++k) {
-////        int x = dataset->dataset_all_vars[k][indices[0]];
-////        int y = dataset->dataset_all_vars[k][indices[1]];
-//        int x = dataset->dataset_columns[indexx][k];
-//        int y = dataset->dataset_columns[indexy][k];
-//
-//        for (int i = 0; i < group_size; ++i) {
-//            /**
-//             * map each group of z1, z2 ... to z
-//             */
-//            int z = 0;
-//            if (c_depth == 1) {
-////                z = pdata[k * group_size + i];
-//                z = dataset->dataset_columns[cond_indices[i]][k];
-//            } else {
-//                for (int j = 0; j < c_depth; ++j) {
-//                    /**
-//                     * view as z += pdata[k][i][j] * cum_levels[i][j]
-//                     * where group_size * c_depth = cond_dims.size()
-//                     */
-////                    z += pdata[k * cond_dims.size() + i * c_depth + j] * cum_levels[i * c_depth + j];
-//                    z += dataset->dataset_columns[cond_indices[i * c_depth + j]][k] * cum_levels[i * c_depth + j];
-//                }
-//            }
-//            n[i][z][x][y]++;
-//        }
-//    }
 //    delete[] pdata;
 //    delete[] xy;
     timer->Stop("config + count 2");
@@ -440,9 +395,9 @@ void Counts3DGroup::FillTableGroup(Dataset *dataset, Timer *timer) {
         for (int k = 0; k < dimz[m]; k++) {
             for (int i = 0; i < dimx; i++) {
                 for (int j = 0; j < dimy; j++) {
-                    ni[m][k][i] += n[m][k][i][j];
-                    nj[m][k][j] += n[m][k][i][j];
-                    nk[m][k] += n[m][k][i][j];
+                    ni[m][k * dimx + i] += n[m][k * dimx * dimy + i * dimy + j]; //ni[m][k][i] += n[m][k][i][j];
+                    nj[m][k * dimy + j] += n[m][k * dimx * dimy + i * dimy + j]; //nj[m][k][j] += n[m][k][i][j];
+                    nk[m][k] += n[m][k * dimx * dimy + i * dimy + j]; //nk[m][k] += n[m][k][i][j];
                 }
             }
         }
