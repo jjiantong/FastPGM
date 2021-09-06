@@ -59,10 +59,11 @@ public:
 
     /**----------------------------- implementations like bnlearn -----------------------------**/
     Result IndependenceResult(int x_idx, int y_idx, const vector<int> &z, string metric, Timer *timer,
-                              int group_size = 1);
+                              int group_size = 1, int num_threads = 1, int c_size = 1);
 
     Result ComputeGSquareXYZ(int x_idx, int y_idx, const vector<int> &z, Timer *timer);
-    Result ComputeGSquareXYZGroup(int x_idx, int y_idx, const vector<int> &z, int group_size, Timer *timer);
+    Result ComputeGSquareXYZGroup(int x_idx, int y_idx, const vector<int> &z, int group_size,
+                                  int num_threads, int c_size, Timer *timer);
     Result ComputeGSquareXY(int x_idx, int y_idx, Timer *timer);
     /**----------------------------- implementations like bnlearn -----------------------------**/
 

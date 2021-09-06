@@ -25,7 +25,7 @@ void PCStable::StructLearnCompData(Dataset *dts, bool print_struct, bool verbose
     // record time
     timer->Start("pc-stable");
     AssignNodeInformation(dts);
-    StructLearnByPCStable(dts, print_struct, verbose);
+    StructLearnByPCStable(dts, 2, 8, print_struct, verbose);
     timer->Stop("pc-stable");
     setlocale(LC_NUMERIC, "");
 
@@ -42,7 +42,7 @@ void PCStable::StructLearnCompData(Dataset *dts, bool print_struct, bool verbose
     timer->Print("g2 & df + p value"); cout << " (" << timer->time["g2 & df + p value"] / timer->time["pc-stable step 1"] * 100 << "%)" << endl;
 }
 
-void PCStable::StructLearnByPCStable(Dataset *dts, bool print_struct, bool verbose) {
+void PCStable::StructLearnByPCStable(Dataset *dts, int num_threads, int group_size, bool print_struct, bool verbose) {
     timer->Start("pc-stable step 1");
     cout << "==================================================" << '\n'
          << "Generating complete undirected graph" << endl;
@@ -143,7 +143,7 @@ void PCStable::StructLearnByPCStable(Dataset *dts, bool print_struct, bool verbo
     for (int d = 1; d < depth; ++d) {
         cout << "Level " << d << "... " << endl;
 
-        bool more = SearchAtDepth(dts, d, verbose);
+        bool more = SearchAtDepth(dts, d, num_threads, group_size, verbose);
 
         if (verbose) {
             cout << "* remaining edges:" << endl;
@@ -182,7 +182,7 @@ void PCStable::StructLearnByPCStable(Dataset *dts, bool print_struct, bool verbo
 /**
  * @brief: search for each level (c_depth, c_depth > 0) except for level 0
  */
-bool PCStable::SearchAtDepth(Dataset *dts, int c_depth, bool verbose) {
+bool PCStable::SearchAtDepth(Dataset *dts, int c_depth, int num_threads, int group_size, bool verbose) {
     /**
      * the copied adjacency sets of all nodes are used and kept unchanged at each particular level c_depth
      * consequently, an edge deletion at one level does not affect the conditioning sets of the other nodes
@@ -202,8 +202,8 @@ bool PCStable::SearchAtDepth(Dataset *dts, int c_depth, bool verbose) {
                  << network->vec_edges[i].GetNode2()->node_name << ", conditioning sets of size " << c_depth << "." << endl;
         }
 
-        network->vec_edges[i].need_remove = CheckSide(dts, adjacencies_copy, c_depth, x, y, verbose) ||
-                                            CheckSide(dts, adjacencies_copy, c_depth, y, x, verbose);
+        network->vec_edges[i].need_remove = CheckSide(dts, adjacencies_copy, c_depth, x, y, num_threads, group_size, verbose) ||
+                                            CheckSide(dts, adjacencies_copy, c_depth, y, x, num_threads, group_size, verbose);
     }
 
     for (int i = 0; i < network->num_edges; ++i) {
@@ -236,8 +236,8 @@ bool PCStable::SearchAtDepth(Dataset *dts, int c_depth, bool verbose) {
  *            lower p-value indicates stronger dependence and stronger association between the variables
  * @return true if such a Z can be found, which means edge x -- y should be deleted
  */
-bool PCStable::CheckSide(Dataset *dts, const map<int, map<int, double>> &adjacencies,
-                         int c_depth, Node* x, Node* y, bool verbose) {
+bool PCStable::CheckSide(Dataset *dts, const map<int, map<int, double>> &adjacencies, int c_depth,
+                         Node* x, Node* y, int num_threads, int group_size, bool verbose) {
     int x_idx = x->GetNodeIndex();
     int y_idx = y->GetNodeIndex();
 
@@ -318,13 +318,13 @@ bool PCStable::CheckSide(Dataset *dts, const map<int, map<int, double>> &adjacen
 //        //----------------------------- one by one -----------------------------//
 
         //-------------------- multiple ci tests at one time -------------------//
-        vector<vector<int>> choices = cg.NextN(8);
+        vector<vector<int>> choices = cg.NextN(group_size);
         while (!choices[0].empty()) { // the first is not empty means we need to test this group
             // vector Z contains a group of conditioning set elements
             vector<int> Z;
-            Z.reserve(8 * c_depth);
+            Z.reserve(group_size * c_depth);
             int i;
-            for (i = 0; i < 8; ++i) {
+            for (i = 0; i < group_size; ++i) {
                 if (!choices[i].empty()) {
                     for (int j = 0; j < c_depth; ++j) {
                         Z.push_back(vec_adjx[choices[i][j]]);
@@ -333,11 +333,12 @@ bool PCStable::CheckSide(Dataset *dts, const map<int, map<int, double>> &adjacen
                     break;
                 }
             } // i means the number of valid conditioning set in this group when existing the loop
-              // i != 8 (i < 8) only when for the last group of the edge
+              // i != group_size (i < group_size) only when for the last group of the edge
 
             num_ci_test += i;
             IndependenceTest *ci_test = new IndependenceTest(dts, alpha);
-            IndependenceTest::Result result = ci_test->IndependenceResult(x_idx, y_idx, Z, "g square", timer, i);
+            IndependenceTest::Result result = ci_test->IndependenceResult(x_idx, y_idx, Z, "g square", timer,
+                                                                          group_size, num_threads, i);
             delete ci_test;
             bool independent = result.is_independent;
             if (independent) {
@@ -378,8 +379,8 @@ bool PCStable::CheckSide(Dataset *dts, const map<int, map<int, double>> &adjacen
                 cout << " on " << network->FindNodePtrByIndex(y_idx)->node_name << " in this group." << endl;
             }
 
-            if (i == 8) {
-                choices = cg.NextN(8);
+            if (i == group_size) {
+                choices = cg.NextN(group_size);
             } else {
                 return false;
             }

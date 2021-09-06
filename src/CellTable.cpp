@@ -118,14 +118,14 @@ Counts3DGroup::Counts3DGroup(int dimx, int dimy, int indexx, int indexy,
     this->cond_indices = cond_indices; // group
     this->cond_dims    = cond_dims;    // group
     this->c_depth    = cond_dims.size() / group_size;
-    this->group_size = group_size;
+    this->num_ci_tests = group_size;
 
     dimz.reserve(group_size);
     if (c_depth == 1) {
         dimz = cond_dims;
     } else {
         cum_levels = new int[cond_dims.size()];
-        for (int j = 0; j < group_size; ++j) { // for each group
+        for (int j = 0; j < group_size; ++j) { // for each element in the group
             // set the right-most one of each group to 1 ...
             cum_levels[(j + 1) * c_depth - 1] = 1;
             // ... then compute the left ones
@@ -177,28 +177,28 @@ Counts3DGroup::~Counts3DGroup() {
         cum_levels = nullptr;
     }
 
-    for (int m = 0; m < group_size; ++m) {
+    for (int m = 0; m < num_ci_tests; ++m) {
         delete[] n[m];
         n[m] = nullptr;
     }
     delete[] n;
     n = nullptr;
 
-    for (int m = 0; m < group_size; ++m) {
+    for (int m = 0; m < num_ci_tests; ++m) {
         delete[] ni[m];
         ni[m] = nullptr;
     }
     delete[] ni;
     ni = nullptr;
 
-    for (int m = 0; m < group_size; ++m) {
+    for (int m = 0; m < num_ci_tests; ++m) {
         delete[] nj[m];
         nj[m] = nullptr;
     }
     delete[] nj;
     nj = nullptr;
 
-    for (int m = 0; m < group_size; ++m) {
+    for (int m = 0; m < num_ci_tests; ++m) {
         delete[] nk[m];
         nk[m] = nullptr;
     }
@@ -311,64 +311,65 @@ void Counts3D::FillTable(Dataset *dataset, Timer *timer) {
     timer->Stop("marginals");
 }
 
-void Counts3DGroup::FillTableGroup(Dataset *dataset, Timer *timer) {
+void Counts3DGroup::FillTableGroup(Dataset *dataset, int num_threads, Timer *timer) {
     timer->Start("config + count");
     /**
      * for the second time, just traverse the partial data set
      * do: 1 config; 2 count
      */
-//#pragma omp parallel for num_threads(2)
-    for (int i = 0; i < group_size; ++i) { // for each ci test
-        for (int k = 0; k < dataset->num_instance; ++k) {
-//            int x = dataset->dataset_all_vars[k][indices[0]];
-//            int y = dataset->dataset_all_vars[k][indices[1]];
-            int x = dataset->dataset_columns[indexx][k];
-            int y = dataset->dataset_columns[indexy][k];
-
-            /**
-             * map each group of z1, z2 ... to z
-             */
-            int z = 0;
-            if (c_depth == 1) {
-//                z = dataset->dataset_all_vars[k][cond_indices[i]];
-                z = dataset->dataset_columns[cond_indices[i]][k];
-            } else {
-                for (int j = 0; j < c_depth; ++j) {
-//                    z += dataset->dataset_all_vars[k][cond_indices[i * c_depth + j]] * cum_levels[i * c_depth + j];
-                    z += dataset->dataset_columns[cond_indices[i * c_depth + j]][k] * cum_levels[i * c_depth + j];
-                }
-            }
-            n[i][z * dimx * dimy + x * dimy + y]++; //n[i][z][x][y]++;
-        }
-    }
-
-//    int group_per_thread = 4;
-//    int tmp = (group_size + 3) / group_per_thread;
-//#pragma omp parallel for num_threads(2)
-//    for (int m = 0; m < tmp; ++m) { // for each ci test
+//#pragma omp parallel for num_threads(num_threads)
+//    for (int i = 0; i < num_ci_tests; ++i) { // for each ci test
 //        for (int k = 0; k < dataset->num_instance; ++k) {
 ////            int x = dataset->dataset_all_vars[k][indices[0]];
 ////            int y = dataset->dataset_all_vars[k][indices[1]];
 //            int x = dataset->dataset_columns[indexx][k];
 //            int y = dataset->dataset_columns[indexy][k];
 //
-//            for (int nn = 0; nn < group_per_thread; ++nn) {
-//                if (m * group_per_thread + nn < group_size) {
-//                    int z = 0;
-//                    if (c_depth == 1) {
+//            /**
+//             * map each group of z1, z2 ... to z
+//             */
+//            int z = 0;
+//            if (c_depth == 1) {
 ////                z = dataset->dataset_all_vars[k][cond_indices[i]];
-//                        z = dataset->dataset_columns[cond_indices[m * group_per_thread + nn]][k];
-//                    } else {
-//                        for (int j = 0; j < c_depth; ++j) {
+//                z = dataset->dataset_columns[cond_indices[i]][k];
+//            } else {
+//#pragma omp simd reduction(+:z)
+//                for (int j = 0; j < c_depth; ++j) {
 ////                    z += dataset->dataset_all_vars[k][cond_indices[i * c_depth + j]] * cum_levels[i * c_depth + j];
-//                            z += dataset->dataset_columns[cond_indices[(m * group_per_thread + nn) * c_depth + j]][k] * cum_levels[(m * group_per_thread + nn) * c_depth + j];
-//                        }
-//                    }
-//                    n[m * group_per_thread + nn][z * dimx * dimy + x * dimy + y]++; //n[i][z][x][y]++;
+//                    z += dataset->dataset_columns[cond_indices[i * c_depth + j]][k] * cum_levels[i * c_depth + j];
 //                }
 //            }
+//            n[i][z * dimx * dimy + x * dimy + y]++; //n[i][z][x][y]++;
 //        }
 //    }
+
+    int group_per_thread = (num_ci_tests + num_threads - 1) / num_threads;
+//#pragma omp parallel for num_threads(num_threads)
+    for (int mm = 0; mm < num_threads; ++mm) { // for each thread
+        for (int k = 0; k < dataset->num_instance; ++k) {
+//            int x = dataset->dataset_all_vars[k][indices[0]];
+//            int y = dataset->dataset_all_vars[k][indices[1]];
+            int x = dataset->dataset_columns[indexx][k];
+            int y = dataset->dataset_columns[indexy][k];
+
+            for (int nn = 0; nn < group_per_thread; ++nn) {
+                int test_id = mm * group_per_thread + nn;
+                if (test_id < num_ci_tests) {
+                    int z = 0;
+                    if (c_depth == 1) {
+                        z = dataset->dataset_columns[cond_indices[test_id]][k];
+                    } else {
+//#pragma omp simd reduction(+:z)
+                        for (int j = 0; j < c_depth; ++j) {
+                            z += dataset->dataset_columns[cond_indices[(test_id) * c_depth + j]][k] *
+                                 cum_levels[(test_id) * c_depth + j];
+                        }
+                    }
+                    n[test_id][z * dimx * dimy + x * dimy + y]++; //n[i][z][x][y]++;
+                }
+            }
+        }
+    }
 
     timer->Stop("config + count");
 
@@ -376,7 +377,7 @@ void Counts3DGroup::FillTableGroup(Dataset *dataset, Timer *timer) {
      * compute the marginals (Nx+z, N+yz, N++z)
      */
     timer->Start("marginals");
-    for (int m = 0; m < group_size; ++m) {
+    for (int m = 0; m < num_ci_tests; ++m) {
         for (int k = 0; k < dimz[m]; k++) {
             for (int i = 0; i < dimx; i++) {
                 for (int j = 0; j < dimy; j++) {

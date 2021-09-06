@@ -73,7 +73,7 @@ public:
     int dimy; // second dimension
     vector<int> dimz;
     int c_depth;
-    int group_size;
+    int num_ci_tests;
     int *cum_levels;
     int **n; // contingency table.
     int **ni; // marginal counts for the first dimension.
@@ -84,7 +84,7 @@ public:
                   const vector<int> &cond_dims, const vector<int> &cond_indices, int group_size);
     ~Counts3DGroup();
 
-    void FillTableGroup(Dataset *dataset, Timer *timer);
+    void FillTableGroup(Dataset *dataset, int num_threads, Timer *timer);
 };
 
 /**----------------------------- implementations like bnlearn -----------------------------**/
