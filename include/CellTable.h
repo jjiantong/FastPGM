@@ -66,15 +66,20 @@ public:
 class Counts3DGroup {
 public:
     vector<int> cond_indices;
+//    vector<int> cond_indices_unique;
+//    vector<int> mappings;
     int indexx;
     int indexy;
+
     vector<int> cond_dims;
     int dimx; // first dimension.
     int dimy; // second dimension
     vector<int> dimz;
+
     int c_depth;
     int num_ci_tests;
     int *cum_levels;
+
     int **n; // contingency table.
     int **ni; // marginal counts for the first dimension.
     int **nj; // marginal counts for the second dimension.
@@ -85,7 +90,11 @@ public:
     ~Counts3DGroup();
 
     void FillTableGroup(Dataset *dataset, int num_threads, Timer *timer);
+    void CountLevel1(Dataset *dataset, int num_threads);
+    void CountLevelN(Dataset *dataset, int num_threads);
 };
+
+//int Is_exist (int item, const vector<int> &list);
 
 /**----------------------------- implementations like bnlearn -----------------------------**/
 

@@ -16,7 +16,7 @@ public:
     K2(Network *net) {network = net;};
     K2(Network *net, string oc, int mnp) {network = net; order_constraint = oc; max_num_parents = mnp;};
 
-    virtual void StructLearnCompData(Dataset *dts, bool print_struct, bool verbose);
+    virtual void StructLearnCompData(Dataset *dts, int group_size, int num_threads, bool print_struct, bool verbose);
 
     void StructLearnByK2Weka(Dataset *dts);
 };

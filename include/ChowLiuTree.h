@@ -44,7 +44,7 @@ class ChowLiuTree : public StructureLearning {
   ChowLiuTree(Network *net) {network = net;};
 
   double ComputeMutualInformation(Node *Xi, Node *Xj, const Dataset *dts);
-  virtual void StructLearnCompData(Dataset *dts, bool print_struct, bool verbose);
+  virtual void StructLearnCompData(Dataset *dts, int group_size, int num_threads, bool print_struct, bool verbose);
   void StructLearnChowLiuTreeCompData(Dataset *dts, bool print_struct=true);
 
 

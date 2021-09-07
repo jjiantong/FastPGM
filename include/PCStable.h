@@ -43,7 +43,7 @@ public:
     PCStable(Network *net, double a, int d = 1000);
     ~PCStable();
 
-    virtual void StructLearnCompData(Dataset *dts, bool print_struct, bool verbose);
+    virtual void StructLearnCompData(Dataset *dts, int group_size, int num_threads, bool print_struct, bool verbose);
     void StructLearnByPCStable(Dataset *dts, int num_threads, int group_size, bool print_struct, bool verbose);
     bool SearchAtDepth(Dataset *dts, int c_depth, int num_threads, int group_size, bool verbose);
     bool CheckSide(Dataset *dts, const map<int, map<int, double>> &adjacencies, int c_depth,

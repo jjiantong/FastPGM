@@ -15,7 +15,10 @@ public:
 
     virtual ~StructureLearning() {};
 
-    virtual void StructLearnCompData(Dataset *dts, bool print_struct, bool verbose) = 0;
+    /**
+     * @param group_size and @param num_threads are used only for PCStable
+     */
+    virtual void StructLearnCompData(Dataset *dts, int group_size, int num_threads, bool print_struct, bool verbose) = 0;
     void AssignNodeInformation(Dataset *dts);
     vector<int> AssignNodeOrder(string topo_ord_constraint);
 };

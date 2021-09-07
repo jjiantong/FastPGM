@@ -18,14 +18,14 @@ PCStable::~PCStable() {
     delete timer;
 }
 
-void PCStable::StructLearnCompData(Dataset *dts, bool print_struct, bool verbose) {
+void PCStable::StructLearnCompData(Dataset *dts, int group_size, int num_threads, bool print_struct, bool verbose) {
     cout << "==================================================" << '\n'
          << "Begin structural learning with PC-stable" << endl;
 
     // record time
     timer->Start("pc-stable");
     AssignNodeInformation(dts);
-    StructLearnByPCStable(dts, 2, 8, print_struct, verbose);
+    StructLearnByPCStable(dts, num_threads, group_size, print_struct, verbose);
     timer->Stop("pc-stable");
     setlocale(LC_NUMERIC, "");
 
