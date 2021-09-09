@@ -199,15 +199,24 @@ IndependenceTest::Result IndependenceTest::ComputeGSquareXYZGroup(int x_idx, int
         double g2 = 0.0;
         int df = 0;
 
+        int *offset_xy = new int[group_size];
+        int *offset_x  = new int[group_size];
+        int *offset_y  = new int[group_size];
+        for (int i = 0; i < group_size; ++i) {
+            offset_xy[i] = table_3d_group->cum_dims[i] * dimx * dimy;
+            offset_x[i]  = table_3d_group->cum_dims[i] * dimx;
+            offset_y[i]  = table_3d_group->cum_dims[i] * dimy;
+        }
+
         for (int k = 0; k < table_3d_group->dimz[m]; ++k) { // for each config of z
             int alx = 0;
             int aly = 0;
 
             for (int i = 0; i < dimx; ++i) {
-                alx += (table_3d_group->ni[m][k * dimx + i] > 0); // ni[m][k][i]
+                alx += (table_3d_group->ni[k * dimx + i + offset_x[m]] > 0); // ni[m][k][i]
             }
             for (int j = 0; j < dimy; ++j) {
-                aly += (table_3d_group->nj[m][k * dimy + j] > 0); //nj[m][k][j]
+                aly += (table_3d_group->nj[k * dimy + j + offset_y[m]] > 0); //nj[m][k][j]
             }
 
             // ensure the degrees of freedom will not be negative.
@@ -215,20 +224,21 @@ IndependenceTest::Result IndependenceTest::ComputeGSquareXYZGroup(int x_idx, int
             aly = (aly >= 1) ? aly : 1;
             df += (alx - 1) * (aly - 1);
 
-            long total = table_3d_group->nk[m][k]; // N_{++z}
+            long total = table_3d_group->nk[k + table_3d_group->cum_dims[m]]; // N_{++z}
             if (total == 0) {
                 continue;
             }
 
             for (int i = 0; i < dimx; ++i) { // for each possible value of x
-                long sum_row = table_3d_group->ni[m][k * dimx + i]; // N_{x+z}
+                long sum_row = table_3d_group->ni[k * dimx + i + offset_x[m]]; // N_{x+z}
                 if (sum_row == 0) {
                     continue;
                 }
 
                 for (int j = 0; j < dimy; ++j) { // for each possible value of y
-                    long sum_col = table_3d_group->nj[m][k * dimy + j]; // N_{+yz}
-                    long observed = table_3d_group->n[m][k * dimx * dimy + i * dimy + j]; // N_{xyz}
+                    long sum_col = table_3d_group->nj[k * dimy + j + offset_y[m]]; // N_{+yz}
+//                    long observed = table_3d_group->n[m][k * dimx * dimy + i * dimy + j]; // N_{xyz}
+                    long observed = table_3d_group->n[k * dimx * dimy + i * dimy + j + offset_xy[m]]; // N_{xyz}
                     if (sum_col == 0 || observed == 0) {
                         continue;
                     }
@@ -238,6 +248,13 @@ IndependenceTest::Result IndependenceTest::ComputeGSquareXYZGroup(int x_idx, int
                 }
             }
         }
+
+        delete[] offset_xy;
+        offset_xy = nullptr;
+        delete[] offset_x;
+        offset_x = nullptr;
+        delete[] offset_y;
+        offset_y = nullptr;
 
         if (df == 0) { // if df == 0, this is definitely an independent table
             results[m] = true;

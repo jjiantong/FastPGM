@@ -145,50 +145,36 @@ Counts3DGroup::Counts3DGroup(int dimx, int dimy, int indexx, int indexy,
 //            dimz[j] = cum_levels[j * c_depth] * cond_dims[j * c_depth];
             dimz.push_back(cum_levels[j * c_depth] * cond_dims[j * c_depth]);
         }
-
-//        cond_indices_unique.reserve(cond_dims.size());
-//        mappings.reserve(cond_dims.size());
-//        for (int i = 0; i < cond_indices.size(); ++i) { // for each conditioning index
-//            int index = Is_exist(cond_indices[i], cond_indices_unique);
-//            if (index >= 0) { // if this index already exists in "cond_indices_unique"
-//                mappings[i] = index; // get its index
-//            } else { // if this index is not in "cond_indices_unique"
-//                cond_indices_unique.push_back(cond_indices[i]); // add this index into "cond_indices_unique"
-//                mappings[i] = cond_indices_unique.size() - 1; // get its index as the last one of "cond_indices_unique"
-//            }
-//        }
     }
 
-    n = new int*[group_size];
-    for (int m = 0; m < group_size; ++m) {
-        n[m] = new int[dimz[m] * dimx * dimy];
-        for (int i = 0; i < dimz[m] * dimx * dimy; ++i) {
-            n[m][i] = 0;
-        }
+    cum_dims = new int[group_size];
+    cum_dims[0] = 0;
+    for (int m = 1; m < group_size; ++m) {
+        cum_dims[m] = cum_dims[m - 1] + dimz[m - 1];
+    }
+    int dimz_total = cum_dims[group_size - 1] + dimz[group_size - 1];
+
+    int n_size = dimz_total * dimx * dimy;
+    n = new int[n_size];
+    for (int m = 0; m < n_size; ++m) {
+        n[m] = 0;
     }
 
-    ni = new int*[group_size];
-    for (int m = 0; m < group_size; ++m) {
-        ni[m] = new int[dimz[m] * dimx];
-        for (int i = 0; i < dimz[m] * dimx; ++i) {
-            ni[m][i] = 0;
-        }
+    int ni_size = dimz_total * dimx;
+    ni = new int[ni_size];
+    for (int m = 0; m < ni_size; ++m) {
+        ni[m] = 0;
     }
 
-    nj = new int*[group_size];
-    for (int m = 0; m < group_size; ++m) {
-        nj[m] = new int[dimz[m] * dimy];
-        for (int i = 0; i < dimz[m] * dimy; ++i) {
-            nj[m][i] = 0;
-        }
+    int nj_size = dimz_total * dimy;
+    nj = new int[nj_size];
+    for (int m = 0; m < nj_size; ++m) {
+        nj[m] = 0;
     }
 
-    nk = new int*[group_size];
-    for (int m = 0; m < group_size; ++m) {
-        nk[m] = new int[dimz[m]];
-        for (int i = 0; i < dimz[m]; ++i) {
-            nk[m][i] = 0;
-        }
+    nk = new int[dimz_total];
+    for (int m = 0; m < dimz_total; ++m) {
+        nk[m] = 0;
     }
 }
 
@@ -198,31 +184,18 @@ Counts3DGroup::~Counts3DGroup() {
         cum_levels = nullptr;
     }
 
-    for (int m = 0; m < num_ci_tests; ++m) {
-        delete[] n[m];
-        n[m] = nullptr;
-    }
+    delete[] cum_dims;
+    cum_dims = nullptr;
+
     delete[] n;
     n = nullptr;
 
-    for (int m = 0; m < num_ci_tests; ++m) {
-        delete[] ni[m];
-        ni[m] = nullptr;
-    }
     delete[] ni;
     ni = nullptr;
 
-    for (int m = 0; m < num_ci_tests; ++m) {
-        delete[] nj[m];
-        nj[m] = nullptr;
-    }
     delete[] nj;
     nj = nullptr;
 
-    for (int m = 0; m < num_ci_tests; ++m) {
-        delete[] nk[m];
-        nk[m] = nullptr;
-    }
     delete[] nk;
     nk = nullptr;
 }
@@ -345,17 +318,36 @@ void Counts3DGroup::FillTableGroup(Dataset *dataset, int num_threads, Timer *tim
      * compute the marginals (Nx+z, N+yz, N++z)
      */
     timer->Start("marginals");
+    int *offset_xy = new int[num_ci_tests];
+    int *offset_x  = new int[num_ci_tests];
+    int *offset_y  = new int[num_ci_tests];
+    for (int i = 0; i < num_ci_tests; ++i) {
+        offset_xy[i] = cum_dims[i] * dimx * dimy;
+        offset_x[i]  = cum_dims[i] * dimx;
+        offset_y[i]  = cum_dims[i] * dimy;
+    }
     for (int m = 0; m < num_ci_tests; ++m) {
         for (int k = 0; k < dimz[m]; k++) {
             for (int i = 0; i < dimx; i++) {
                 for (int j = 0; j < dimy; j++) {
-                    ni[m][k * dimx + i] += n[m][k * dimx * dimy + i * dimy + j]; //ni[m][k][i] += n[m][k][i][j];
-                    nj[m][k * dimy + j] += n[m][k * dimx * dimy + i * dimy + j]; //nj[m][k][j] += n[m][k][i][j];
-                    nk[m][k] += n[m][k * dimx * dimy + i * dimy + j]; //nk[m][k] += n[m][k][i][j];
+                    //ni[m][k][i] += n[m][k][i][j];
+                    ni[k * dimx + i + offset_x[m]] += n[k * dimx * dimy + i * dimy + j + offset_xy[m]];
+                    //nj[m][k][j] += n[m][k][i][j];
+                    nj[k * dimy + j + offset_y[m]] += n[k * dimx * dimy + i * dimy + j + offset_xy[m]];
+                    //nk[m][k] += n[m][k][i][j];
+                    nk[k + cum_dims[m]] += n[k * dimx * dimy + i * dimy + j + offset_xy[m]];
                 }
             }
         }
     }
+
+    delete[] offset_xy;
+    offset_xy = nullptr;
+    delete[] offset_x;
+    offset_x = nullptr;
+    delete[] offset_y;
+    offset_y = nullptr;
+
     timer->Stop("marginals");
 }
 
@@ -382,6 +374,10 @@ void Counts3DGroup::CountLevel1(Dataset *dataset, int num_threads) {
 //    }
 
     int group_per_thread = (num_ci_tests + num_threads - 1) / num_threads;
+    int *offset_xy = new int[num_ci_tests];
+    for (int i = 0; i < num_ci_tests; ++i) {
+        offset_xy[i] = cum_dims[i] * dimx * dimy;
+    }
 //#pragma omp parallel for num_threads(num_threads)
     for (int mm = 0; mm < num_threads; ++mm) { // for each thread
         for (int k = 0; k < dataset->num_instance; ++k) {
@@ -394,11 +390,14 @@ void Counts3DGroup::CountLevel1(Dataset *dataset, int num_threads) {
                 int test_id = mm * group_per_thread + nn;
                 if (test_id < num_ci_tests) {
                     int z = dataset->dataset_columns[cond_indices[test_id]][k];
-                    n[test_id][z * dimx * dimy + x * dimy + y]++; //n[i][z][x][y]++;
+//                    n[test_id][z * dimx * dimy + x * dimy + y]++; //n[i][z][x][y]++;
+                    n[z * dimx * dimy + x * dimy + y + offset_xy[test_id]]++; //n[i][z][x][y]++;
                 }
             }
         }
     }
+    delete[] offset_xy;
+    offset_xy = nullptr;
 }
 
 void Counts3DGroup::CountLevelN(Dataset *dataset, int num_threads) {
@@ -426,6 +425,10 @@ void Counts3DGroup::CountLevelN(Dataset *dataset, int num_threads) {
 //    }
 
     int group_per_thread = (num_ci_tests + num_threads - 1) / num_threads;
+    int *offset_xy = new int[num_ci_tests];
+    for (int i = 0; i < num_ci_tests; ++i) {
+        offset_xy[i] = cum_dims[i] * dimx * dimy;
+    }
 //#pragma omp parallel for num_threads(num_threads)
     for (int mm = 0; mm < num_threads; ++mm) { // for each thread
         for (int k = 0; k < dataset->num_instance; ++k) {
@@ -445,14 +448,15 @@ void Counts3DGroup::CountLevelN(Dataset *dataset, int num_threads) {
                     for (int j = 0; j < c_depth; ++j) {
                         z += dataset->dataset_columns[cond_indices[(test_id) * c_depth + j]][k] *
                              cum_levels[(test_id) * c_depth + j];
-//                        z += cond[mappings[(test_id) * c_depth + j]] *
-//                                cum_levels[(test_id) * c_depth + j];
                     }
-                    n[test_id][z * dimx * dimy + x * dimy + y]++; //n[i][z][x][y]++;
+//                    n[test_id][z * dimx * dimy + x * dimy + y]++; //n[i][z][x][y]++;
+                    n[z * dimx * dimy + x * dimy + y + offset_xy[test_id]]++; //n[i][z][x][y]++;
                 }
             }
         }
     }
+    delete[] offset_xy;
+    offset_xy = nullptr;
 }
 
 

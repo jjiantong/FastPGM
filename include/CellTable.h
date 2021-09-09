@@ -75,15 +75,16 @@ public:
     int dimx; // first dimension.
     int dimy; // second dimension
     vector<int> dimz;
+    int *cum_dims;
 
     int c_depth;
     int num_ci_tests;
     int *cum_levels;
 
-    int **n; // contingency table.
-    int **ni; // marginal counts for the first dimension.
-    int **nj; // marginal counts for the second dimension.
-    int **nk;  // marginal counts for the third dimension.
+    int *n; // contingency table.
+    int *ni; // marginal counts for the first dimension.
+    int *nj; // marginal counts for the second dimension.
+    int *nk;  // marginal counts for the third dimension.
 
     Counts3DGroup(int dimx, int dimy, int indexx, int indexy,
                   const vector<int> &cond_dims, const vector<int> &cond_indices, int group_size);
