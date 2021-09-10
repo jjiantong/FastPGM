@@ -183,7 +183,7 @@ IndependenceTest::Result IndependenceTest::ComputeGSquareXYZGroup(int x_idx, int
     table_3d_group->FillTableGroup(dataset, num_threads, timer);
 
     timer->Start("g2 & df + p value");
-//#pragma omp parallel for num_threads(2) schedule(dynamic)
+//#pragma omp parallel for num_threads(8) //schedule(dynamic)
     for (int m = 0; m < c_size; ++m) {
         /**
          * compute df: two ways are commonly used to compute the degree of freedom
@@ -328,7 +328,7 @@ IndependenceTest::Result IndependenceTest::ComputeGSquareXY(int x_idx, int y_idx
 
         for (int j = 0; j < dimy; ++j) { // for each possible value of y
             long sum_col = table_2d->nj[j]; // N_{+y}
-            long observed = table_2d->n[i][j]; // N_{xy}
+            long observed = table_2d->n[i * dimy + j]; // N_{xy}
 
             if (sum_col == 0 || observed == 0) {
                 continue;

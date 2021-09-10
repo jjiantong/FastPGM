@@ -24,16 +24,17 @@ public:
     vector<int> cond_indices;
     int indexx;
     int indexy;
+
     vector<int> cond_dims;
     int dimx; // first dimension.
     int dimy; // second dimension
     int dimz; // third dimension.
     int *cum_levels;
+
     int ***n; // contingency table.
     int **ni; // marginal counts for the first dimension.
     int **nj; // marginal counts for the second dimension.
     int *nk;  // marginal counts for the third dimension.
-
 
     Counts3D(int dimx, int dimy, int indexx, int indexy,
              const vector<int> &cond_dims, const vector<int> &cond_indices);
@@ -53,7 +54,7 @@ public:
     int indexy;
     int dimx; // first dimension.
     int dimy; // second dimension
-    int **n;  // contingency table.
+    int *n;  // contingency table.
     int *ni;  // marginal counts for the first dimension.
     int *nj;  // marginal counts for the second dimension.
 
@@ -66,8 +67,6 @@ public:
 class Counts3DGroup {
 public:
     vector<int> cond_indices;
-//    vector<int> cond_indices_unique;
-//    vector<int> mappings;
     int indexx;
     int indexy;
 

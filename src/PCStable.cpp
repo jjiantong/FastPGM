@@ -190,8 +190,8 @@ bool PCStable::SearchAtDepth(Dataset *dts, int c_depth, int num_threads, int gro
      */
     map<int, map<int, double>> adjacencies_copy = network->adjacencies;
 
-//    omp_set_num_threads(2);
-//#pragma omp parallel for schedule(dynamic)
+    omp_set_num_threads(2);
+#pragma omp parallel for //schedule(dynamic)
     for (int i = 0; i < network->num_edges; ++i) {
         Node *x = network->vec_edges[i].GetNode1();
         Node *y = network->vec_edges[i].GetNode2();
