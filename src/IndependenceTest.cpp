@@ -99,10 +99,10 @@ IndependenceTest::Result IndependenceTest::ComputeGSquareXYZ(int x_idx, int y_id
         int aly = 0;
 
         for (int i = 0; i < dimx; ++i) {
-            alx += (table_3d->ni[k][i] > 0);
+            alx += (table_3d->ni[k * dimx + i] > 0);
         }
         for (int j = 0; j < dimy; ++j) {
-            aly += (table_3d->nj[k][j] > 0);
+            aly += (table_3d->nj[k * dimy + j] > 0);
         }
 
         // ensure the degrees of freedom will not be negative.
@@ -116,14 +116,14 @@ IndependenceTest::Result IndependenceTest::ComputeGSquareXYZ(int x_idx, int y_id
         }
 
         for (int i = 0; i < dimx; ++i) { // for each possible value of x
-            long sum_row = table_3d->ni[k][i]; // N_{x+z}
+            long sum_row = table_3d->ni[k * dimx + i]; // N_{x+z}
             if (sum_row == 0) {
                 continue;
             }
 
             for (int j = 0; j < dimy; ++j) { // for each possible value of y
-                long sum_col = table_3d->nj[k][j]; // N_{+yz}
-                long observed = table_3d->n[k][i][j]; // N_{xyz}
+                long sum_col = table_3d->nj[k * dimy + j]; // N_{+yz}
+                long observed = table_3d->n[k * dimx * dimy + i * dimy + j]; // N_{xyz}
                 if (sum_col == 0 || observed == 0) {
                     continue;
                 }

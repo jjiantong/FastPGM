@@ -50,31 +50,19 @@ Counts3D::Counts3D(int dimx, int dimy, int indexx, int indexy,
         dimz = cond_dims[0];
     }
 
-    n = new int**[dimz];
-    for (int i = 0; i < dimz; ++i) {
-        n[i] = new int*[dimx];
-        for (int j = 0; j < dimx; ++j) {
-            n[i][j] = new int[dimy];
-            for (int k = 0; k < dimy; ++k) {
-                n[i][j][k] = 0;
-            }
-        }
+    n = new int[dimz * dimx * dimy];
+    for (int i = 0; i < dimz * dimx * dimy; ++i) {
+        n[i] = 0;
     }
 
-    ni = new int*[dimz];
-    for (int i = 0; i < dimz; ++i) {
-        ni[i] = new int[dimx];
-        for (int j = 0; j < dimx; ++j) {
-            ni[i][j] = 0;
-        }
+    ni = new int[dimz * dimx];
+    for (int i = 0; i < dimz * dimx; ++i) {
+        ni[i] = 0;
     }
 
-    nj = new int*[dimz];
-    for (int i = 0; i < dimz; ++i) {
-        nj[i] = new int[dimy];
-        for (int j = 0; j < dimy; ++j) {
-            nj[i][j] = 0;
-        }
+    nj = new int[dimz * dimy];
+    for (int i = 0; i < dimz * dimy; ++i) {
+        nj[i] = 0;
     }
 
     nk = new int[dimz];
@@ -89,28 +77,12 @@ Counts3D::~Counts3D() {
         cum_levels = nullptr;
     }
 
-    for (int i = 0; i < dimz; i++) {
-        for (int j = 0; j < dimx; j++) {
-            delete[] n[i][j];
-            n[i][j] = nullptr;
-        }
-        delete[] n[i];
-        n[i] = nullptr;
-    }
     delete[] n;
     n = nullptr;
 
-    for (int i = 0; i < dimz; ++i) {
-        delete [] ni[i];
-        ni[i] = nullptr;
-    }
     delete[] ni;
     ni = nullptr;
 
-    for (int i = 0; i < dimz; ++i) {
-        delete [] nj[i];
-        nj[i] = nullptr;
-    }
     delete[] nj;
     nj = nullptr;
 
@@ -257,7 +229,44 @@ void Counts3D::FillTable(Dataset *dataset, Timer *timer) {
      * compute the joint frequency of x, y, and z (Nxyz)
      */
     timer->Start("config + count");
+    if (cond_dims.size() == 1) {
+        CountLevel1(dataset);
+    } else {
+        CountLevelN(dataset);
+    }
+    timer->Stop("config + count");
 
+    /**
+     * compute the marginals (Nx+z, N+yz, N++z)
+     */
+    timer->Start("marginals");
+    for (int k = 0; k < dimz; k++) {
+        for (int i = 0; i < dimx; i++) {
+            for (int j = 0; j < dimy; j++) {
+                ni[k * dimx + i] += n[k * dimx * dimy + i * dimy + j];
+                nj[k * dimy + j] += n[k * dimx * dimy + i * dimy + j];
+                nk[k] += n[k * dimx * dimy + i * dimy + j];
+            }
+        }
+    }
+    timer->Stop("marginals");
+}
+
+void Counts3D::CountLevel1(Dataset *dataset) {
+    for (int k = 0; k < dataset->num_instance; ++k) {
+//        int x = dataset->dataset_all_vars[k][indices[0]];
+//        int y = dataset->dataset_all_vars[k][indices[1]];
+        int x = dataset->dataset_columns[indexx][k];
+        int y = dataset->dataset_columns[indexy][k];
+        /**
+         * map z1, z2 ... to z
+         */
+        int z = dataset->dataset_columns[cond_indices[0]][k];
+        n[z * dimx * dimy + x * dimy + y]++;
+    }
+}
+
+void Counts3D::CountLevelN(Dataset *dataset) {
     for (int k = 0; k < dataset->num_instance; ++k) {
 //        int x = dataset->dataset_all_vars[k][indices[0]];
 //        int y = dataset->dataset_all_vars[k][indices[1]];
@@ -278,24 +287,8 @@ void Counts3D::FillTable(Dataset *dataset, Timer *timer) {
 ////            z += dataset->dataset_all_vars[k][cond_indices[j]];
 //            z += dataset->dataset_columns[cond_indices[j]][k];
 //        }
-        n[z][x][y]++;
+        n[z * dimx * dimy + x * dimy + y]++;
     }
-    timer->Stop("config + count");
-
-    /**
-     * compute the marginals (Nx+z, N+yz, N++z)
-     */
-    timer->Start("marginals");
-    for (int k = 0; k < dimz; k++) {
-        for (int i = 0; i < dimx; i++) {
-            for (int j = 0; j < dimy; j++) {
-                ni[k][i] += n[k][i][j];
-                nj[k][j] += n[k][i][j];
-                nk[k] += n[k][i][j];
-            }
-        }
-    }
-    timer->Stop("marginals");
 }
 
 void Counts3DGroup::FillTableGroup(Dataset *dataset, int num_threads, Timer *timer) {

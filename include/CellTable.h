@@ -31,9 +31,9 @@ public:
     int dimz; // third dimension.
     int *cum_levels;
 
-    int ***n; // contingency table.
-    int **ni; // marginal counts for the first dimension.
-    int **nj; // marginal counts for the second dimension.
+    int *n; // contingency table.
+    int *ni; // marginal counts for the first dimension.
+    int *nj; // marginal counts for the second dimension.
     int *nk;  // marginal counts for the third dimension.
 
     Counts3D(int dimx, int dimy, int indexx, int indexy,
@@ -43,6 +43,8 @@ public:
     // column-major vs. row-major problem in the following method:
     // https://stackoverflow.com/questions/68683273/access-efficiency-of-c-2d-array
     void FillTable(Dataset *dataset, Timer *timer);
+    void CountLevel1(Dataset *dataset);
+    void CountLevelN(Dataset *dataset);
 };
 
 /**
