@@ -183,7 +183,9 @@ IndependenceTest::Result IndependenceTest::ComputeGSquareXYZGroup(int x_idx, int
     table_3d_group->FillTableGroup(dataset, num_threads, timer);
 
     timer->Start("g2 & df + p value");
-//#pragma omp parallel for num_threads(8) //schedule(dynamic)
+//    omp_set_num_threads(num_threads);
+//#pragma omp parallel for
+//    for (int m = omp_get_thread_num(); m < c_size; m += 2) {
     for (int m = 0; m < c_size; ++m) {
         /**
          * compute df: two ways are commonly used to compute the degree of freedom

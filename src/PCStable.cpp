@@ -66,8 +66,8 @@ void PCStable::StructLearnByPCStable(Dataset *dts, int num_threads, int group_si
         network->adjacencies.insert(make_pair(i, adjacency));
     }
 
-//    omp_set_num_threads(2);
-//#pragma omp parallel for schedule(dynamic)
+//    omp_set_num_threads(16);
+//#pragma omp parallel for //schedule(dynamic)
     for (int i = 0; i < network->num_edges; ++i) {
         int node_idx1 = network->vec_edges[i].GetNode1()->GetNodeIndex();
         int node_idx2 = network->vec_edges[i].GetNode2()->GetNodeIndex();
@@ -189,10 +189,23 @@ bool PCStable::SearchAtDepth(Dataset *dts, int c_depth, int num_threads, int gro
      * and thus the output is independent with the variable ordering, called PC-stable
      */
     map<int, map<int, double>> adjacencies_copy = network->adjacencies;
+//    vector<pair<int, int>> vec_edge_id_adjxy;
+//    vec_edge_id_adjxy.reserve(network->num_edges);
+//    for (int i = 0; i < network->num_edges; ++i) {
+//        int x_idx = network->vec_edges[i].GetNode1()->GetNodeIndex();
+//        int y_idx = network->vec_edges[i].GetNode2()->GetNodeIndex();
+//        int num_adjxy = adjacencies_copy.at(x_idx).size() + adjacencies_copy.at(y_idx).size();
+//        vec_edge_id_adjxy.push_back(make_pair(i, num_adjxy));
+//        sort(vec_edge_id_adjxy.begin(), vec_edge_id_adjxy.end(), CmpByValue);
+//    }
 
-//    omp_set_num_threads(2);
-//#pragma omp parallel for //schedule(dynamic)
+//    omp_set_num_threads(16);
+//#pragma omp parallel //for //schedule(dynamic)
+//    for (int i = omp_get_thread_num(); i < network->num_edges; i += 8) {
     for (int i = 0; i < network->num_edges; ++i) {
+//    for (int ord = omp_get_thread_num(); ord < network->num_edges; ord += 16) {
+//    for (int ord = 0; ord < network->num_edges; ++ord) {
+//        int i = vec_edge_id_adjxy[ord].first;
         Node *x = network->vec_edges[i].GetNode1();
         Node *y = network->vec_edges[i].GetNode2();
 

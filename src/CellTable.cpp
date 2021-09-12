@@ -346,7 +346,9 @@ void Counts3DGroup::CountLevel1(Dataset *dataset, int num_threads) {
     /**
      * do: 1 config; 2 count
      */
-//#pragma omp parallel for num_threads(num_threads)
+//    omp_set_num_threads(num_threads);
+//#pragma omp parallel for
+//    for (int i = omp_get_thread_num(); i < num_ci_tests; i += num_threads) { // for each ci test
     for (int i = 0; i < num_ci_tests; ++i) { // for each ci test
         for (int k = 0; k < dataset->num_instance; ++k) {
 //            int x = dataset->dataset_all_vars[k][indices[0]];
@@ -396,7 +398,9 @@ void Counts3DGroup::CountLevelN(Dataset *dataset, int num_threads) {
     /**
      * do: 1 config; 2 count
      */
-//#pragma omp parallel for num_threads(num_threads)
+//    omp_set_num_threads(num_threads);
+//#pragma omp parallel for
+//    for (int i = omp_get_thread_num(); i < num_ci_tests; i += 2) { // for each ci test
     for (int i = 0; i < num_ci_tests; ++i) { // for each ci test
         for (int k = 0; k < dataset->num_instance; ++k) {
 //            int x = dataset->dataset_all_vars[k][indices[0]];
