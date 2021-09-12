@@ -206,17 +206,7 @@ bool PCStable::SearchAtDepth(Dataset *dts, int c_depth, int num_threads, int gro
 //    for (int ord = omp_get_thread_num(); ord < network->num_edges; ord += 16) {
 //    for (int ord = 0; ord < network->num_edges; ++ord) {
 //        int i = vec_edge_id_adjxy[ord].first;
-        Node *x = network->vec_edges[i].GetNode1();
-        Node *y = network->vec_edges[i].GetNode2();
-
-        if (verbose) {
-            cout << "--------------------------------------------------" << endl
-                 << "* investigating " << network->vec_edges[i].GetNode1()->node_name << " -- "
-                 << network->vec_edges[i].GetNode2()->node_name << ", conditioning sets of size " << c_depth << "." << endl;
-        }
-
-        network->vec_edges[i].need_remove = CheckSide(dts, adjacencies_copy, c_depth, x, y, num_threads, group_size, verbose) ||
-                                            CheckSide(dts, adjacencies_copy, c_depth, y, x, num_threads, group_size, verbose);
+        CheckEdge(dts, adjacencies_copy, c_depth, i, num_threads, group_size, verbose);
     }
 
     for (int i = 0; i < network->num_edges; ++i) {
@@ -240,6 +230,22 @@ bool PCStable::SearchAtDepth(Dataset *dts, int c_depth, int num_threads, int gro
     return (FreeDegree(network->adjacencies) > c_depth);
 }
 
+void PCStable::CheckEdge(Dataset *dts, const map<int, map<int, double>> &adjacencies, int c_depth,
+                         int edge_id, int num_threads, int group_size, bool verbose) {
+    int x_idx = network->vec_edges[edge_id].GetNode1()->GetNodeIndex();
+    int y_idx = network->vec_edges[edge_id].GetNode2()->GetNodeIndex();
+
+    if (verbose) {
+        cout << "--------------------------------------------------" << endl
+             << "* investigating " << network->vec_edges[edge_id].GetNode1()->node_name << " -- "
+             << network->vec_edges[edge_id].GetNode2()->node_name << ", conditioning sets of size " << c_depth << "." << endl;
+    }
+
+    network->vec_edges[edge_id].need_remove =
+            CheckSide(dts, adjacencies, c_depth, edge_id, x_idx, y_idx, num_threads, group_size, verbose) ||
+            CheckSide(dts, adjacencies, c_depth, edge_id, y_idx, x_idx, num_threads, group_size, verbose);;
+}
+
 /**
  * @brief: check whether a subset Z of adjacency of x can be found,
  *         such that x _||_ y | Z, and the size of Z is "c_depth"
@@ -250,10 +256,7 @@ bool PCStable::SearchAtDepth(Dataset *dts, int c_depth, int num_threads, int gro
  * @return true if such a Z can be found, which means edge x -- y should be deleted
  */
 bool PCStable::CheckSide(Dataset *dts, const map<int, map<int, double>> &adjacencies, int c_depth,
-                         Node* x, Node* y, int num_threads, int group_size, bool verbose) {
-    int x_idx = x->GetNodeIndex();
-    int y_idx = y->GetNodeIndex();
-
+                         int edge_idx, int x_idx, int y_idx, int num_threads, int group_size, bool verbose) {
     if (verbose) {
         cout << "  > neighbours of " << network->FindNodePtrByIndex(x_idx)->node_name << ": ";
     }
@@ -278,60 +281,10 @@ bool PCStable::CheckSide(Dataset *dts, const map<int, map<int, double>> &adjacen
     }
 
     if (vec_adjx.size() >= c_depth) {
-        ChoiceGenerator cg (vec_adjx.size(), c_depth);
+        network->vec_edges[edge_idx].cg = new ChoiceGenerator(vec_adjx.size(), c_depth);
 
-//        //----------------------------- one by one -----------------------------//
-//        vector<int> choice;
-//        while (!(choice = cg.Next()).empty()) {
-//            vector<int> Z;
-//            set<int> conditioning_set;
-//            for (int j = 0; j < c_depth; ++j) {
-//                Z.push_back(vec_adjx[choice[j]]);
-//                conditioning_set.insert(vec_adjx[choice[j]]);
-//            }
-//
-//            num_ci_test++;
-//            IndependenceTest *ci_test = new IndependenceTest(dts, alpha);
-//            IndependenceTest::Result result = ci_test->IndependenceResult(x_idx, y_idx, Z,
-//                                                                          "g square", timer);
-//            delete ci_test;
-//            bool independent = result.is_independent;
-//            if (verbose) {
-//                cout << "    > node " << network->FindNodePtrByIndex(x_idx)->node_name << " is ";
-//                if (independent) {
-//                    cout << "independent";
-//                } else {
-//                    cout << "dependent";
-//                }
-//                cout << " on " << network->FindNodePtrByIndex(y_idx)->node_name << " given ";
-//                for (const auto &z_idx : Z) {
-//                    cout << network->FindNodePtrByIndex(z_idx)->node_name << " ";
-//                }
-//                cout << "(p-value: " << result.p_value << ")." << endl;
-//            }
-//
-//            if (!independent) {
-//                num_dependence_judgement++;
-//            } else {
-//                // add conditioning set to sepset
-//                int node_idx1, node_idx2;
-//                if (x_idx > y_idx) {
-//                    node_idx1 = y_idx;
-//                    node_idx2 = x_idx;
-//                } else {
-//                    node_idx1 = x_idx;
-//                    node_idx2 = y_idx;
-//                }
-//                sepset.insert(make_pair(make_pair(node_idx1, node_idx2), conditioning_set));
-////                sepset.insert(make_pair(make_pair(x_idx, y_idx), Z));
-////                sepset.insert(make_pair(make_pair(y_idx, x_idx), Z));
-//                return true;
-//            }
-//        }
-//        //----------------------------- one by one -----------------------------//
-
-        //-------------------- multiple ci tests at one time -------------------//
-        vector<vector<int>> choices = cg.NextN(group_size);
+        // fetch multiple ci tests at one time
+        vector<vector<int>> choices = network->vec_edges[edge_idx].cg->NextN(group_size);
         while (!choices[0].empty()) { // the first is not empty means we need to test this group
             // vector Z contains a group of conditioning set elements
             vector<int> Z;
@@ -355,6 +308,8 @@ bool PCStable::CheckSide(Dataset *dts, const map<int, map<int, double>> &adjacen
             delete ci_test;
             bool independent = result.is_independent;
             if (independent) {
+                delete network->vec_edges[edge_idx].cg;
+
                 int first_id = result.first; // get the first independent one
 
                 int node_idx1, node_idx2;
@@ -393,16 +348,18 @@ bool PCStable::CheckSide(Dataset *dts, const map<int, map<int, double>> &adjacen
             }
 
             if (i == group_size) {
-                choices = cg.NextN(group_size);
+                choices = network->vec_edges[edge_idx].cg->NextN(group_size);
             } else {
+                delete network->vec_edges[edge_idx].cg;
                 return false;
             }
         }
-        //-------------------- multiple ci tests at one time -------------------//
+        delete network->vec_edges[edge_idx].cg;
     }
     //---------------------------- traditional method -----------------------------//
 
     //-------------------------------- heuristic ---------------------------------//
+    // TODO: heuristic methods contain no group part or edge->cg part
 //    map<int, double> map_adjx_w(adjacencies[x_idx]);
 //    map_adjx_w.erase(y_idx);
 //
@@ -430,7 +387,7 @@ bool PCStable::CheckSide(Dataset *dts, const map<int, map<int, double>> &adjacen
 //                num_dependence_judgement++;
 //            } else {
 //                // add conditioning set to sepset
-//                sepset.insert(make_pair(make_pair(x_idx, y_idx), Z));//todo
+//                sepset.insert(make_pair(make_pair(x_idx, y_idx), Z));
 //                sepset.insert(make_pair(make_pair(y_idx, x_idx), Z));
 //                return true;
 //            }
@@ -485,7 +442,7 @@ bool PCStable::CheckSide(Dataset *dts, const map<int, map<int, double>> &adjacen
 //                num_dependence_judgement++;
 //            } else {
 //                // add conditioning set to sepset
-//                sepset.insert(make_pair(make_pair(x_idx, y_idx), Z));//todo
+//                sepset.insert(make_pair(make_pair(x_idx, y_idx), Z));
 //                sepset.insert(make_pair(make_pair(y_idx, x_idx), Z));
 //                return true;
 //            }

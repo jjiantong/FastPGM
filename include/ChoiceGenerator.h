@@ -24,10 +24,8 @@ public:
     int b; // number of objects in the desired selection
     int diff; // difference between a and b (should be non-negative)
     vector<int> choice; // internally stored choice
-//    int* choice; // internally stored choice
 
     ChoiceGenerator (int a, int b);
-//    ~ChoiceGenerator();
 
     vector<vector<int>> NextN(int n);
     vector<int> Next();
@@ -35,8 +33,6 @@ public:
 
     int GetNumChoice();
     int ComputeCombination(int m, int n);
-
-//    vector<int*> GenerateAllChoices();
 };
 
 #endif //BAYESIANNETWORK_CHOICEGENERATOR_H

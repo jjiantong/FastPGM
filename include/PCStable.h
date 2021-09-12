@@ -43,8 +43,10 @@ public:
     virtual void StructLearnCompData(Dataset *dts, int group_size, int num_threads, bool print_struct, bool verbose);
     void StructLearnByPCStable(Dataset *dts, int num_threads, int group_size, bool print_struct, bool verbose);
     bool SearchAtDepth(Dataset *dts, int c_depth, int num_threads, int group_size, bool verbose);
+    void CheckEdge(Dataset *dts, const map<int, map<int, double>> &adjacencies, int c_depth,
+                   int edge_id, int num_threads, int group_size, bool verbose);
     bool CheckSide(Dataset *dts, const map<int, map<int, double>> &adjacencies, int c_depth,
-                   Node* x, Node* y, int num_threads, int group_size, bool verbose);
+                   int edge_idx, int x_idx, int y_idx, int num_threads, int group_size, bool verbose);
     int FreeDegree(const map<int, map<int, double>> &adjacencies);
 
     void OrientVStructure();

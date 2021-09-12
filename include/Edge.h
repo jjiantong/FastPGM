@@ -6,6 +6,7 @@
 #define BAYESIANNETWORK_EDGE_H
 
 #include "Node.h"
+#include "ChoiceGenerator.h"
 
 enum EndPoint {ARROW, TAIL};
 enum Label {COMPELLED, REVERSIBLE};
@@ -17,6 +18,7 @@ public:
     EndPoint end_point1;
     EndPoint end_point2;
     bool need_remove;
+    ChoiceGenerator *cg;
     /**
      * are used for converting DAG to CPDAG
      * an edge e is labeled as COMPELLED means e is in every graph of the equivalence class
