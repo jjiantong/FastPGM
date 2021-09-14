@@ -145,8 +145,6 @@ void PCStable::StructLearnByPCStable(Dataset *dts, int num_threads, int group_si
 
         bool more = SearchAtDepth(dts, d, num_threads, group_size, verbose);
 
-        network->PrintEachEdgeWithName();
-
         if (verbose) {
             cout << "* remaining edges:" << endl;
             network->PrintEachEdgeWithName();
@@ -206,9 +204,7 @@ bool PCStable::SearchAtDepth(Dataset *dts, int c_depth, int num_threads, int gro
     stack<int> stack_edge_id;
     for (int i = network->num_edges - 1; i >= 0; --i) {
         stack_edge_id.push(i);
-//        cout << "push " << i << " ";
     }
-//    cout << endl;
 
     // pop 8 edges at one time
     int *processing_edge_id = new int[8];
@@ -240,6 +236,13 @@ bool PCStable::SearchAtDepth(Dataset *dts, int c_depth, int num_threads, int gro
             }
         }
     }
+
+    for (int i = 0; i < network->num_edges; ++i) {
+        if (!network->vec_edges[i].need_remove) {
+            cout << i << " ";
+        }
+    }
+    cout << endl;
 
     for (int i = 0; i < network->num_edges; ++i) {
         int node_idx1 = network->vec_edges[i].GetNode1()->GetNodeIndex();
@@ -286,7 +289,6 @@ void PCStable::CheckEdge(Dataset *dts, const map<int, map<int, double>> &adjacen
          */
         // get the neighbors of node x
         int num_adj = FindAdjacencies(dts, adjacencies, edge_id, x_idx, y_idx);
-//        cout << "num adj = " << num_adj << ", ";
 
         // prepare to generate choice and set "process" = NODE1
         if (num_adj >= c_depth) {
@@ -330,7 +332,7 @@ void PCStable::CheckEdge(Dataset *dts, const map<int, map<int, double>> &adjacen
          */
         // get the neighbors of node y
         int num_adj = FindAdjacencies(dts, adjacencies, edge_id, y_idx, x_idx);
-//        cout << "finish x, consider y's adj next, num adj = " << num_adj << ", ";
+//        cout << "finish x, consider y's adj next, " << ", ";
 
         // prepare to generate choice and set "process" = NODE2
         if (num_adj >= c_depth) {
@@ -340,7 +342,6 @@ void PCStable::CheckEdge(Dataset *dts, const map<int, map<int, double>> &adjacen
 //            for (int i = 0; i < c_depth; ++i) {
 //                cout << network->vec_edges[edge_id].cg->choice[i] << " ";
 //            }
-//            cout << endl;
         } else {
 //            cout << "not enough, return -- no need to push, no need to remove" << endl;
             network->vec_edges[edge_id].need_to_push = false;
@@ -362,25 +363,28 @@ void PCStable::CheckEdge(Dataset *dts, const map<int, map<int, double>> &adjacen
 //    for (int i = 0; i < c_depth; ++i) {
 //        cout << network->vec_edges[edge_id].cg->choice[i] << " ";
 //    }
-//    cout << endl;
     bool ind = Testing(dts, c_depth, edge_id, x_idx, y_idx, num_threads, group_size, verbose);
 
-//    cout << "finish testing... begin to judge"<< endl;
+//    cout << "finish testing... begin to judge... " ;
     if (ind) {
+//        cout << "ind" << endl;
         delete network->vec_edges[edge_id].cg;
         network->vec_edges[edge_id].cg = nullptr;
         network->vec_edges[edge_id].need_remove  = true;
         network->vec_edges[edge_id].need_to_push = false;
     } else {
         if (!network->vec_edges[edge_id].finish) {
+//            cout << "dk, continue" << endl;
             network->vec_edges[edge_id].need_to_push = true;
         } else {
             if (network->vec_edges[edge_id].process == NODE1) {
+//                cout << "finish node1, d" << endl;
                 delete network->vec_edges[edge_id].cg;
                 network->vec_edges[edge_id].cg = nullptr;
                 network->vec_edges[edge_id].need_to_push = true;
                 network->vec_edges[edge_id].process = ENODE1;
             } else {
+//                cout << "finish node2, d" << endl;
                 delete network->vec_edges[edge_id].cg;
                 network->vec_edges[edge_id].cg = nullptr;
                 network->vec_edges[edge_id].need_remove  = false;
