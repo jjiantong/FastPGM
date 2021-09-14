@@ -145,6 +145,8 @@ void PCStable::StructLearnByPCStable(Dataset *dts, int num_threads, int group_si
 
         bool more = SearchAtDepth(dts, d, num_threads, group_size, verbose);
 
+        network->PrintEachEdgeWithName();
+
         if (verbose) {
             cout << "* remaining edges:" << endl;
             network->PrintEachEdgeWithName();
@@ -189,24 +191,54 @@ bool PCStable::SearchAtDepth(Dataset *dts, int c_depth, int num_threads, int gro
      * and thus the output is independent with the variable ordering, called PC-stable
      */
     map<int, map<int, double>> adjacencies_copy = network->adjacencies;
-//    vector<pair<int, int>> vec_edge_id_adjxy;
-//    vec_edge_id_adjxy.reserve(network->num_edges);
+
+////    omp_set_num_threads(16);
+////#pragma omp parallel //for //schedule(dynamic)
+////    for (int i = omp_get_thread_num(); i < network->num_edges; i += 8) {
 //    for (int i = 0; i < network->num_edges; ++i) {
-//        int x_idx = network->vec_edges[i].GetNode1()->GetNodeIndex();
-//        int y_idx = network->vec_edges[i].GetNode2()->GetNodeIndex();
-//        int num_adjxy = adjacencies_copy.at(x_idx).size() + adjacencies_copy.at(y_idx).size();
-//        vec_edge_id_adjxy.push_back(make_pair(i, num_adjxy));
-//        sort(vec_edge_id_adjxy.begin(), vec_edge_id_adjxy.end(), CmpByValue);
+////    for (int ord = omp_get_thread_num(); ord < network->num_edges; ord += 16) {
+////    for (int ord = 0; ord < network->num_edges; ++ord) {
+////        int i = vec_edge_id_adjxy[ord].first;
+//        CheckEdge(dts, adjacencies_copy, c_depth, i, num_threads, group_size, verbose);
 //    }
 
-//    omp_set_num_threads(16);
-//#pragma omp parallel //for //schedule(dynamic)
-//    for (int i = omp_get_thread_num(); i < network->num_edges; i += 8) {
-    for (int i = 0; i < network->num_edges; ++i) {
-//    for (int ord = omp_get_thread_num(); ord < network->num_edges; ord += 16) {
-//    for (int ord = 0; ord < network->num_edges; ++ord) {
-//        int i = vec_edge_id_adjxy[ord].first;
-        CheckEdge(dts, adjacencies_copy, c_depth, i, num_threads, group_size, verbose);
+    // push all edges into stack
+    stack<int> stack_edge_id;
+    for (int i = network->num_edges - 1; i >= 0; --i) {
+        stack_edge_id.push(i);
+//        cout << "push " << i << " ";
+    }
+//    cout << endl;
+
+    // pop 8 edges at one time
+    int *processing_edge_id = new int[8];
+    while (stack_edge_id.size() >= 8) {
+        for (int i = 0; i < 8; ++i) {
+            processing_edge_id[i] = stack_edge_id.top();
+            stack_edge_id.pop();
+//            cout << "pop " << processing_edge_id[i] << ", ";
+            CheckEdge(dts, adjacencies_copy, c_depth, processing_edge_id[i], num_threads, group_size, verbose);
+        }
+        for (int i = 0; i < 8; ++i) {
+            if (network->vec_edges[processing_edge_id[i]].need_to_push == true) {
+                // if this edge has not been finished, push back to the stack
+                stack_edge_id.push(processing_edge_id[i]);
+            }
+        }
+    }
+    while (!stack_edge_id.empty()) { // have 1~7 left
+        int size = stack_edge_id.size();
+        for (int i = 0; i < size; ++i) {
+            processing_edge_id[i] = stack_edge_id.top();
+            stack_edge_id.pop();
+            CheckEdge(dts, adjacencies_copy, c_depth, processing_edge_id[i], num_threads, group_size, verbose);
+        }
+        for (int i = 0; i < size; ++i) {
+            if (network->vec_edges[processing_edge_id[i]].need_to_push == true) {
+                // if this edge has not been finished, push back to the stack
+                stack_edge_id.push(processing_edge_id[i]);
+            }
+        }
     }
 
     for (int i = 0; i < network->num_edges; ++i) {
@@ -234,6 +266,7 @@ void PCStable::CheckEdge(Dataset *dts, const map<int, map<int, double>> &adjacen
                          int edge_id, int num_threads, int group_size, bool verbose) {
     int x_idx = network->vec_edges[edge_id].GetNode1()->GetNodeIndex();
     int y_idx = network->vec_edges[edge_id].GetNode2()->GetNodeIndex();
+//    cout << "edge " << x_idx << " -- " << y_idx << endl;
 
     if (verbose) {
         cout << "--------------------------------------------------" << endl
@@ -241,9 +274,136 @@ void PCStable::CheckEdge(Dataset *dts, const map<int, map<int, double>> &adjacen
              << network->vec_edges[edge_id].GetNode2()->node_name << ", conditioning sets of size " << c_depth << "." << endl;
     }
 
-    network->vec_edges[edge_id].need_remove =
-            CheckSide(dts, adjacencies, c_depth, edge_id, x_idx, y_idx, num_threads, group_size, verbose) ||
-            CheckSide(dts, adjacencies, c_depth, edge_id, y_idx, x_idx, num_threads, group_size, verbose);;
+    if (network->vec_edges[edge_id].process == NO) {
+//        cout << "case 1: no. ";
+        /**
+         * case 1: this edge have not been processed
+         * a. get the neighbors of node1 and store them in "vec_adj"
+         * b. construct cg to get ready for choice generation, set "process" = NODE1
+         *   c. if the number of neighbors of node1 is less than c_depth, do a and b for node2
+         *     d. if the number of neighbors of node2 is less than c_depth:
+         *          no need to push, no need to remove, process = NO
+         */
+        // get the neighbors of node x
+        int num_adj = FindAdjacencies(dts, adjacencies, edge_id, x_idx, y_idx);
+//        cout << "num adj = " << num_adj << ", ";
+
+        // prepare to generate choice and set "process" = NODE1
+        if (num_adj >= c_depth) {
+            network->vec_edges[edge_id].cg = new ChoiceGenerator(num_adj, c_depth);
+            network->vec_edges[edge_id].process = NODE1;
+//            cout << "get ready, choice now: ";
+//            for (int i = 0; i < c_depth; ++i) {
+//                cout << network->vec_edges[edge_id].cg->choice[i] << " ";
+//            }
+//            cout << endl;
+        } else {
+            // get the neighbors of node y
+            int num_adj = FindAdjacencies(dts, adjacencies, edge_id, y_idx, x_idx);
+//            cout << "not enough, consider y's adj, num adj = " << num_adj << ", ";
+
+            // prepare to generate choice and set "process" = NODE2
+            if (num_adj >= c_depth) {
+                network->vec_edges[edge_id].cg = new ChoiceGenerator(num_adj, c_depth);
+                network->vec_edges[edge_id].process = NODE2;
+//                cout << "get ready, choice now: ";
+//                for (int i = 0; i < c_depth; ++i) {
+//                    cout << network->vec_edges[edge_id].cg->choice[i] << " ";
+//                }
+//                cout << endl;
+            } else {
+//                cout << "not enough, return -- no need to push, no need to remove" << endl;
+                network->vec_edges[edge_id].need_to_push = false;
+                network->vec_edges[edge_id].need_remove  = false;
+                network->vec_edges[edge_id].process = NO;
+                return;
+            }
+        }
+    } else if (network->vec_edges[edge_id].process == ENODE1) {
+//        cout << "case 2: enode1. ";
+        /**
+         * case 2: this edge has finished processing node1
+         * a. get the neighbors of node2 and store them in "vec_adj"
+         * b. construct cg to get ready for choice generation, set "process" = NODE2
+         *   c. if the number of neighbors of node2 is less than c_depth:
+         *          no need to push, no need to remove, process = NO
+         */
+        // get the neighbors of node y
+        int num_adj = FindAdjacencies(dts, adjacencies, edge_id, y_idx, x_idx);
+//        cout << "finish x, consider y's adj next, num adj = " << num_adj << ", ";
+
+        // prepare to generate choice and set "process" = NODE2
+        if (num_adj >= c_depth) {
+            network->vec_edges[edge_id].cg = new ChoiceGenerator(num_adj, c_depth);
+            network->vec_edges[edge_id].process = NODE2;
+//            cout << "get ready, choice now: ";
+//            for (int i = 0; i < c_depth; ++i) {
+//                cout << network->vec_edges[edge_id].cg->choice[i] << " ";
+//            }
+//            cout << endl;
+        } else {
+//            cout << "not enough, return -- no need to push, no need to remove" << endl;
+            network->vec_edges[edge_id].need_to_push = false;
+            network->vec_edges[edge_id].need_remove  = false;
+            network->vec_edges[edge_id].process = NO;
+            return;
+        }
+    }
+
+    /**
+     * do the next "group_size" ci tests
+     * if independent: delete "cg", need remove, no need to push
+     * if dependent:
+     *      if finish = false: need to push
+     *      if finish = true, process = NODE1: delete "cg", need to push, process = ENODE1
+     *      if finish = true, process = NODE2: delete "cg", no need remove, no need to push, process = NO
+     */
+//    cout << "begin testing... choice now: ";
+//    for (int i = 0; i < c_depth; ++i) {
+//        cout << network->vec_edges[edge_id].cg->choice[i] << " ";
+//    }
+//    cout << endl;
+    bool ind = Testing(dts, c_depth, edge_id, x_idx, y_idx, num_threads, group_size, verbose);
+
+//    cout << "finish testing... begin to judge"<< endl;
+    if (ind) {
+        delete network->vec_edges[edge_id].cg;
+        network->vec_edges[edge_id].cg = nullptr;
+        network->vec_edges[edge_id].need_remove  = true;
+        network->vec_edges[edge_id].need_to_push = false;
+    } else {
+        if (!network->vec_edges[edge_id].finish) {
+            network->vec_edges[edge_id].need_to_push = true;
+        } else {
+            if (network->vec_edges[edge_id].process == NODE1) {
+                delete network->vec_edges[edge_id].cg;
+                network->vec_edges[edge_id].cg = nullptr;
+                network->vec_edges[edge_id].need_to_push = true;
+                network->vec_edges[edge_id].process = ENODE1;
+            } else {
+                delete network->vec_edges[edge_id].cg;
+                network->vec_edges[edge_id].cg = nullptr;
+                network->vec_edges[edge_id].need_remove  = false;
+                network->vec_edges[edge_id].need_to_push = false;
+                network->vec_edges[edge_id].process = NO;
+            }
+        }
+    }
+}
+
+int PCStable::FindAdjacencies(Dataset *dts, const map<int, map<int, double>> &adjacencies, int edge_id, int x_idx, int y_idx) {
+    // get the neighbors of node x
+    set<int> set_adjx;
+    for (auto it = adjacencies.at(x_idx).begin(); it != adjacencies.at(x_idx).end(); ++it) {
+        set_adjx.insert((*it).first);
+    }
+    set_adjx.erase(y_idx);
+    // copy to a vector to access by position, which will be used for choice generating
+    network->vec_edges[edge_id].vec_adj.reserve(set_adjx.size());
+    for (const auto &adjx : set_adjx) {
+        network->vec_edges[edge_id].vec_adj.push_back(adjx);
+    }
+    return (set_adjx.size() - 1);
 }
 
 /**
@@ -255,201 +415,92 @@ void PCStable::CheckEdge(Dataset *dts, const map<int, map<int, double>> &adjacen
  *            lower p-value indicates stronger dependence and stronger association between the variables
  * @return true if such a Z can be found, which means edge x -- y should be deleted
  */
-bool PCStable::CheckSide(Dataset *dts, const map<int, map<int, double>> &adjacencies, int c_depth,
-                         int edge_idx, int x_idx, int y_idx, int num_threads, int group_size, bool verbose) {
-    if (verbose) {
-        cout << "  > neighbours of " << network->FindNodePtrByIndex(x_idx)->node_name << ": ";
-    }
+bool PCStable::Testing(Dataset *dts, int c_depth, int edge_idx, int x_idx, int y_idx,
+                       int num_threads, int group_size, bool verbose) {
+    // fetch multiple ci tests at one time
+    vector<vector<int>> choices = network->vec_edges[edge_idx].cg->NextN(group_size);
 
-    //----------------------------- traditional method -----------------------------//
-    set<int> set_adjx;
-    for (auto it = adjacencies.at(x_idx).begin(); it != adjacencies.at(x_idx).end(); ++it) {
-        set_adjx.insert((*it).first);
-    }
-    set_adjx.erase(y_idx);
-    // copy to a vector to access by position, which will be used for choice generating
-    vector<int> vec_adjx;
-    vec_adjx.reserve(set_adjx.size());
-    for (const auto &adjx : set_adjx) {
-        vec_adjx.push_back(adjx);
-        if (verbose) {
-            cout << network->FindNodePtrByIndex(adjx)->node_name << " ";
-        }
-    }
-    if (verbose) {
-        cout << endl;
-    }
-
-    if (vec_adjx.size() >= c_depth) {
-        network->vec_edges[edge_idx].cg = new ChoiceGenerator(vec_adjx.size(), c_depth);
-
-        // fetch multiple ci tests at one time
-        vector<vector<int>> choices = network->vec_edges[edge_idx].cg->NextN(group_size);
-        while (!choices[0].empty()) { // the first is not empty means we need to test this group
-            // vector Z contains a group of conditioning set elements
-            vector<int> Z;
-            Z.reserve(group_size * c_depth);
-            int i;
-            for (i = 0; i < group_size; ++i) {
-                if (!choices[i].empty()) {
-                    for (int j = 0; j < c_depth; ++j) {
-                        Z.push_back(vec_adjx[choices[i][j]]);
-                    }
-                } else {
-                    break;
-                }
-            } // i means the number of valid conditioning set in this group when existing the loop
-              // i != group_size (i < group_size) only when for the last group of the edge
-
-            num_ci_test += i;
-            IndependenceTest *ci_test = new IndependenceTest(dts, alpha);
-            IndependenceTest::Result result = ci_test->IndependenceResult(x_idx, y_idx, Z, "g square", timer,
-                                                                          group_size, num_threads, i);
-            delete ci_test;
-            bool independent = result.is_independent;
-            if (independent) {
-                delete network->vec_edges[edge_idx].cg;
-
-                int first_id = result.first; // get the first independent one
-
-                int node_idx1, node_idx2;
-                if (x_idx > y_idx) {
-                    node_idx1 = y_idx;
-                    node_idx2 = x_idx;
-                } else {
-                    node_idx1 = x_idx;
-                    node_idx2 = y_idx;
-                }
-                set<int> conditioning_set;
+    if (!choices[0].empty()) { // the first is not empty means we need to test this group
+//        cout << "get multiple ci tests: ";
+//        for (int i = 0; i < group_size; ++i) {
+//            if (!choices[i].empty()) {
+//                for (int j = 0; j < c_depth; ++j) {
+//                    cout << choices[i][j] << " ";
+//                }
+//            }
+//            cout << " | ";
+//        }
+//        cout << ": ";
+        // vector Z contains a group of conditioning set elements
+        vector<int> Z;
+        Z.reserve(group_size * c_depth);
+        int i;
+        for (i = 0; i < group_size; ++i) {
+            if (!choices[i].empty()) {
                 for (int j = 0; j < c_depth; ++j) {
-                    conditioning_set.insert(vec_adjx[choices[first_id][j]]);
+                    Z.push_back(network->vec_edges[edge_idx].vec_adj[choices[i][j]]);
                 }
-                sepset.insert(make_pair(make_pair(node_idx1, node_idx2), conditioning_set));
-//                sepset.insert(make_pair(make_pair(x_idx, y_idx), Z));
-//                sepset.insert(make_pair(make_pair(y_idx, x_idx), Z));
-
-                if (verbose) {
-                    cout << "    **** finish this group: ";
-                    cout << "node " << network->FindNodePtrByIndex(x_idx)->node_name << " is independent";
-                    cout << " on " << network->FindNodePtrByIndex(y_idx)->node_name << " given ";
-                    for (const auto &z_idx : conditioning_set) {
-                        cout << network->FindNodePtrByIndex(z_idx)->node_name << " ";
-                    }
-                    cout << "(group id = " << first_id << ")." << endl;
-                }
-                return true;
+            } else {
+                break;
             }
+        } // i means the number of valid conditioning set in this group when existing the loop
+        // i != group_size (i < group_size) only when for the last group of the edge
 
-            // dependent
+        num_ci_test += i;
+        IndependenceTest *ci_test = new IndependenceTest(dts, alpha);
+        IndependenceTest::Result result = ci_test->IndependenceResult(x_idx, y_idx, Z, "g square", timer,
+                                                                      group_size, num_threads, i);
+        delete ci_test;
+        bool independent = result.is_independent;
+//        cout << "independent: " << independent << ", ";
+        if (independent) {
+            int first_id = result.first; // get the first independent one
+
+            int node_idx1, node_idx2;
+            if (x_idx > y_idx) {
+                node_idx1 = y_idx;
+                node_idx2 = x_idx;
+            } else {
+                node_idx1 = x_idx;
+                node_idx2 = y_idx;
+            }
+            set<int> conditioning_set;
+            for (int j = 0; j < c_depth; ++j) {
+                conditioning_set.insert(network->vec_edges[edge_idx].vec_adj[choices[first_id][j]]);
+            }
+            sepset.insert(make_pair(make_pair(node_idx1, node_idx2), conditioning_set));
+
             if (verbose) {
                 cout << "    **** finish this group: ";
-                cout << "node " << network->FindNodePtrByIndex(x_idx)->node_name << " is dependent";
-                cout << " on " << network->FindNodePtrByIndex(y_idx)->node_name << " in this group." << endl;
+                cout << "node " << network->FindNodePtrByIndex(x_idx)->node_name << " is independent";
+                cout << " on " << network->FindNodePtrByIndex(y_idx)->node_name << " given ";
+                for (const auto &z_idx : conditioning_set) {
+                    cout << network->FindNodePtrByIndex(z_idx)->node_name << " ";
+                }
+                cout << "(group id = " << first_id << ")." << endl;
             }
-
-            if (i == group_size) {
-                choices = network->vec_edges[edge_idx].cg->NextN(group_size);
-            } else {
-                delete network->vec_edges[edge_idx].cg;
-                return false;
-            }
+//            cout << "return true" << endl;
+            return true;
         }
-        delete network->vec_edges[edge_idx].cg;
+
+        // dependent
+        if (verbose) {
+            cout << "    **** finish this group: ";
+            cout << "node " << network->FindNodePtrByIndex(x_idx)->node_name << " is dependent";
+            cout << " on " << network->FindNodePtrByIndex(y_idx)->node_name << " in this group." << endl;
+        }
+
+        if (i == group_size) {
+//            cout << "return false, not finish this node" << endl;
+            network->vec_edges[edge_idx].finish = false;
+        } else {
+//            cout << "return false, finish this node" << endl;
+            network->vec_edges[edge_idx].finish = true;
+        }
+        return false;
     }
-    //---------------------------- traditional method -----------------------------//
-
-    //-------------------------------- heuristic ---------------------------------//
-    // TODO: heuristic methods contain no group part or edge->cg part
-//    map<int, double> map_adjx_w(adjacencies[x_idx]);
-//    map_adjx_w.erase(y_idx);
-//
-//    // copy to a vector to access by position, which will be used for choice generating
-//    vector<pair<int, double>> vec_adjx_w(map_adjx_w.begin(), map_adjx_w.end());
-
-    //-------------------------------- heuristic1 ---------------------------------//
-//    sort(vec_adjx_w.begin(), vec_adjx_w.end(), CmpByValue());
-//
-//    if (vec_adjx_w.size() >= c_depth) {
-//        ChoiceGenerator cg (vec_adjx_w.size(), c_depth);
-//
-//        vector<int> choice;
-//        while (!(choice = cg.Next()).empty()) {
-//            vector<int> Z;
-//            for (int i = 0; i < c_depth; ++i) {
-//                Z.push_back(vec_adjx_w[choice[i]].first);
-//            }
-//            num_ci_test++;
-//            IndependenceTest *ci_test = new IndependenceTest(dts, alpha);
-//            IndependenceTest::Result result = ci_test->IndependenceResult(x_idx, y_idx, Z,"g square");
-//            delete ci_test;
-//            bool independent = result.is_independent;
-//            if (!independent) {
-//                num_dependence_judgement++;
-//            } else {
-//                // add conditioning set to sepset
-//                sepset.insert(make_pair(make_pair(x_idx, y_idx), Z));
-//                sepset.insert(make_pair(make_pair(y_idx, x_idx), Z));
-//                return true;
-//            }
-//        }
-//    }
-    //-------------------------------- heuristic ---------------------------------//
-
-    //-------------------------------- heuristic2 ---------------------------------//
-
-    //-------------------------------- two associations ---------------------------------//
-////    map<int, double> map_adjy_w(adjacencies[y_idx]);
-////    map_adjy_w.erase(x_idx);
-////    vector<pair<int, double>> vec_adjy_w(map_adjy_w.begin(), map_adjy_w.end());
-//    //-------------------------------- two associations ---------------------------------//
-//
-//    if (vec_adjx_w.size() >= c_depth) {
-//        ChoiceGenerator cg (vec_adjx_w.size(), c_depth);
-//
-//        vector<pair<vector<int>, double>> vec_choice_w;
-//        vector<int> choice;
-//        while (!(choice = cg.Next()).empty()) {
-//            double weight = 0.0;
-//            for (int i = 0; i < choice.size(); ++i) {
-//                weight  += vec_adjx_w[choice[i]].second;
-//
-//    //-------------------------------- two associations ---------------------------------//
-////                int adjx = vec_adjx_w[choice[i]].first; // index of this node of x's adj
-////                auto iter = map_adjy_w.find(adjx); // find this x's adj in y's adj
-////                if (iter != map_adjy_w.end()) { // if y has this node as adj
-////                    weight += iter->second;
-////                } else {
-////                    weight += 1.0;
-////                }
-//    //-------------------------------- two associations ---------------------------------//
-//            }
-//            vec_choice_w.push_back(make_pair(choice, weight));
-//        }
-//
-//        sort(vec_choice_w.begin(), vec_choice_w.end(), CmpByValue());
-//
-//        for (int j = 0; j < vec_choice_w.size(); ++j) {
-//            vector<int> Z;
-//            for (int i = 0; i < c_depth; ++i) {
-//                Z.push_back(vec_adjx_w[vec_choice_w[j].first[i]].first);
-//            }
-//            num_ci_test++;
-//            IndependenceTest *ci_test = new IndependenceTest(dts, alpha);
-//            IndependenceTest::Result result = ci_test->IndependenceResult(x_idx, y_idx, Z,"g square");
-//            delete ci_test;
-//            bool independent = result.is_independent;
-//            if (!independent) {
-//                num_dependence_judgement++;
-//            } else {
-//                // add conditioning set to sepset
-//                sepset.insert(make_pair(make_pair(x_idx, y_idx), Z));
-//                sepset.insert(make_pair(make_pair(y_idx, x_idx), Z));
-//                return true;
-//            }
-//        }
-//    }
-    //-------------------------------- heuristic2 ---------------------------------//
-    //-------------------------------- heuristic ---------------------------------//
+//    cout << "choices[0] is empty, return false, finish this node" << endl;
+    network->vec_edges[edge_idx].finish = true;
     return false;
 }
 

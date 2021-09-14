@@ -11,6 +11,7 @@ Edge::Edge(Node* node1, Node* node2, EndPoint end_point1, EndPoint end_point2) {
     this->end_point2 = end_point2;
     is_ordered = false;
     need_remove = false;
+    process = NO;
 }
 
 Edge::Edge(Node* node1, Node* node2) {
@@ -29,6 +30,7 @@ Edge::Edge(Node* node1, Node* node2) {
     this->end_point2 = TAIL;
     is_ordered = false;
     need_remove = false;
+    process = NO;
 }
 
 Node* Edge::GetNode1() {

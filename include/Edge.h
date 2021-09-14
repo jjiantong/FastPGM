@@ -10,6 +10,7 @@
 
 enum EndPoint {ARROW, TAIL};
 enum Label {COMPELLED, REVERSIBLE};
+enum Process {NO, NODE1, ENODE1, NODE2};
 
 class Edge {
 public:
@@ -18,7 +19,12 @@ public:
     EndPoint end_point1;
     EndPoint end_point2;
     bool need_remove;
+
+    Process process;
     ChoiceGenerator *cg;
+    vector<int> vec_adj;
+    bool finish;
+    bool need_to_push;
     /**
      * are used for converting DAG to CPDAG
      * an edge e is labeled as COMPELLED means e is in every graph of the equivalence class
