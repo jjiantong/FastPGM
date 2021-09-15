@@ -204,7 +204,7 @@ bool PCStable::SearchAtDepth(Dataset *dts, int c_depth, int num_threads, int gro
             stack_edge_id.pop();
         }
 
-#pragma omp parallel for num_threads(num_threads)
+//#pragma omp parallel for num_threads(num_threads)
         for (int i = 0; i < num_threads; ++i) {
             CheckEdge(dts, adjacencies_copy, c_depth, processing_edge_id[i], group_size, verbose);
         }
