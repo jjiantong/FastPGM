@@ -99,7 +99,6 @@ Counts3DGroup::Counts3DGroup(int dimx, int dimy, int indexx, int indexy,
     this->cond_indices = cond_indices; // group
     this->cond_dims    = cond_dims;    // group
     this->c_depth    = cond_dims.size() / group_size;
-    this->num_ci_tests = group_size;
 
     dimz.reserve(group_size);
     if (c_depth == 1) {
@@ -291,12 +290,12 @@ void Counts3D::CountLevelN(Dataset *dataset) {
     }
 }
 
-void Counts3DGroup::FillTableGroup(Dataset *dataset, int num_threads, Timer *timer) {
+void Counts3DGroup::FillTableGroup(Dataset *dataset, int group_size, Timer *timer) {
     timer->Start("config + count");
     if (c_depth == 1) {
-        CountLevel1(dataset, num_threads);
+        CountLevel1(dataset, group_size);
     } else {
-        CountLevelN(dataset, num_threads);
+        CountLevelN(dataset, group_size);
     }
     timer->Stop("config + count");
 
@@ -304,15 +303,15 @@ void Counts3DGroup::FillTableGroup(Dataset *dataset, int num_threads, Timer *tim
      * compute the marginals (Nx+z, N+yz, N++z)
      */
     timer->Start("marginals");
-    int *offset_xy = new int[num_ci_tests];
-    int *offset_x  = new int[num_ci_tests];
-    int *offset_y  = new int[num_ci_tests];
-    for (int i = 0; i < num_ci_tests; ++i) {
+    int *offset_xy = new int[group_size];
+    int *offset_x  = new int[group_size];
+    int *offset_y  = new int[group_size];
+    for (int i = 0; i < group_size; ++i) {
         offset_xy[i] = cum_dims[i] * dimx * dimy;
         offset_x[i]  = cum_dims[i] * dimx;
         offset_y[i]  = cum_dims[i] * dimy;
     }
-    for (int m = 0; m < num_ci_tests; ++m) {
+    for (int m = 0; m < group_size; ++m) {
         for (int k = 0; k < dimz[m]; k++) {
             for (int i = 0; i < dimx; i++) {
                 for (int j = 0; j < dimy; j++) {
@@ -337,80 +336,83 @@ void Counts3DGroup::FillTableGroup(Dataset *dataset, int num_threads, Timer *tim
     timer->Stop("marginals");
 }
 
-void Counts3DGroup::CountLevel1(Dataset *dataset, int num_threads) {
-    int *offset_xy = new int[num_ci_tests];
-    for (int i = 0; i < num_ci_tests; ++i) {
+void Counts3DGroup::CountLevel1(Dataset *dataset, int group_size) {
+    int *offset_xy = new int[group_size];
+    for (int i = 0; i < group_size; ++i) {
         offset_xy[i] = cum_dims[i] * dimx * dimy;
     }
 
     /**
      * do: 1 config; 2 count
      */
-//    omp_set_num_threads(num_threads);
-//#pragma omp parallel for
-//    for (int i = omp_get_thread_num(); i < num_ci_tests; i += num_threads) { // for each ci test
-    for (int i = 0; i < num_ci_tests; ++i) { // for each ci test
-        for (int k = 0; k < dataset->num_instance; ++k) {
-//            int x = dataset->dataset_all_vars[k][indices[0]];
-//            int y = dataset->dataset_all_vars[k][indices[1]];
-            int x = dataset->dataset_columns[indexx][k];
-            int y = dataset->dataset_columns[indexy][k];
-            /**
-             * map each group of z1, z2 ... to z
-             */
-//            int z = dataset->dataset_all_vars[k][cond_indices[i]];
-            int z = dataset->dataset_columns[cond_indices[i]][k];
+//    for (int i = 0; i < group_size; ++i) { // for each ci test
+//        for (int k = 0; k < dataset->num_instance; ++k) {
+////            int x = dataset->dataset_all_vars[k][indices[0]];
+////            int y = dataset->dataset_all_vars[k][indices[1]];
+//            int x = dataset->dataset_columns[indexx][k];
+//            int y = dataset->dataset_columns[indexy][k];
+//            /**
+//             * map each group of z1, z2 ... to z
+//             */
+////            int z = dataset->dataset_all_vars[k][cond_indices[i]];
+//            int z = dataset->dataset_columns[cond_indices[i]][k];
+//
+//            n[z * dimx * dimy + x * dimy + y + offset_xy[i]]++; //n[i][z][x][y]++;
+//        }
+//    }
 
+    for (int k = 0; k < dataset->num_instance; ++k) {
+//        int x = dataset->dataset_all_vars[k][indices[0]];
+//        int y = dataset->dataset_all_vars[k][indices[1]];
+        int x = dataset->dataset_columns[indexx][k];
+        int y = dataset->dataset_columns[indexy][k];
+
+        for (int i = 0; i < group_size; ++i) {
+            int z = dataset->dataset_columns[cond_indices[i]][k];
+//            n[i][z * dimx * dimy + x * dimy + y]++; //n[i][z][x][y]++;
             n[z * dimx * dimy + x * dimy + y + offset_xy[i]]++; //n[i][z][x][y]++;
         }
     }
 
-//    int group_per_thread = (num_ci_tests + num_threads - 1) / num_threads;
-////#pragma omp parallel for num_threads(num_threads)
-//    for (int mm = 0; mm < num_threads; ++mm) { // for each thread
+    delete[] offset_xy;
+    offset_xy = nullptr;
+}
+
+void Counts3DGroup::CountLevelN(Dataset *dataset, int group_size) {
+    int *offset_xy = new int[group_size];
+    for (int i = 0; i < group_size; ++i) {
+        offset_xy[i] = cum_dims[i] * dimx * dimy;
+    }
+
+    /**
+     * do: 1 config; 2 count
+     */
+//    for (int i = 0; i < group_size; ++i) { // for each ci test
 //        for (int k = 0; k < dataset->num_instance; ++k) {
 ////            int x = dataset->dataset_all_vars[k][indices[0]];
 ////            int y = dataset->dataset_all_vars[k][indices[1]];
 //            int x = dataset->dataset_columns[indexx][k];
 //            int y = dataset->dataset_columns[indexy][k];
 //
-//            for (int nn = 0; nn < group_per_thread; ++nn) {
-//                int test_id = mm * group_per_thread + nn;
-//                if (test_id < num_ci_tests) {
-//                    int z = dataset->dataset_columns[cond_indices[test_id]][k];
-////                    n[test_id][z * dimx * dimy + x * dimy + y]++; //n[i][z][x][y]++;
-//                    n[z * dimx * dimy + x * dimy + y + offset_xy[test_id]]++; //n[i][z][x][y]++;
-//                }
+//            /**
+//             * map each group of z1, z2 ... to z
+//             */
+//            int z = 0;
+//            for (int j = 0; j < c_depth; ++j) {
+////                z += dataset->dataset_all_vars[k][cond_indices[i * c_depth + j]] * cum_levels[i * c_depth + j];
+//                z += dataset->dataset_columns[cond_indices[i * c_depth + j]][k] * cum_levels[i * c_depth + j];
 //            }
+//            n[z * dimx * dimy + x * dimy + y + offset_xy[i]]++; //n[i][z][x][y]++;
 //        }
 //    }
 
-    delete[] offset_xy;
-    offset_xy = nullptr;
-}
+    for (int k = 0; k < dataset->num_instance; ++k) {
+//        int x = dataset->dataset_all_vars[k][indices[0]];
+//        int y = dataset->dataset_all_vars[k][indices[1]];
+        int x = dataset->dataset_columns[indexx][k];
+        int y = dataset->dataset_columns[indexy][k];
 
-void Counts3DGroup::CountLevelN(Dataset *dataset, int num_threads) {
-    int *offset_xy = new int[num_ci_tests];
-    for (int i = 0; i < num_ci_tests; ++i) {
-        offset_xy[i] = cum_dims[i] * dimx * dimy;
-    }
-
-    /**
-     * do: 1 config; 2 count
-     */
-//    omp_set_num_threads(num_threads);
-//#pragma omp parallel for
-//    for (int i = omp_get_thread_num(); i < num_ci_tests; i += 2) { // for each ci test
-    for (int i = 0; i < num_ci_tests; ++i) { // for each ci test
-        for (int k = 0; k < dataset->num_instance; ++k) {
-//            int x = dataset->dataset_all_vars[k][indices[0]];
-//            int y = dataset->dataset_all_vars[k][indices[1]];
-            int x = dataset->dataset_columns[indexx][k];
-            int y = dataset->dataset_columns[indexy][k];
-
-            /**
-             * map each group of z1, z2 ... to z
-             */
+        for (int i = 0; i < group_size; ++i) {
             int z = 0;
             for (int j = 0; j < c_depth; ++j) {
 //                z += dataset->dataset_all_vars[k][cond_indices[i * c_depth + j]] * cum_levels[i * c_depth + j];
@@ -419,34 +421,6 @@ void Counts3DGroup::CountLevelN(Dataset *dataset, int num_threads) {
             n[z * dimx * dimy + x * dimy + y + offset_xy[i]]++; //n[i][z][x][y]++;
         }
     }
-
-//    int group_per_thread = (num_ci_tests + num_threads - 1) / num_threads;
-////#pragma omp parallel for num_threads(num_threads)
-//    for (int mm = 0; mm < num_threads; ++mm) { // for each thread
-//        for (int k = 0; k < dataset->num_instance; ++k) {
-////            int x = dataset->dataset_all_vars[k][indices[0]];
-////            int y = dataset->dataset_all_vars[k][indices[1]];
-//            int x = dataset->dataset_columns[indexx][k];
-//            int y = dataset->dataset_columns[indexy][k];
-////            int* cond = new int[cond_indices_unique.size()];
-////            for (int i = 0; i < cond_indices_unique.size(); ++i) {
-////                cond[i] = dataset->dataset_columns[cond_indices_unique[i]][k];
-////            }
-//
-//            for (int nn = 0; nn < group_per_thread; ++nn) {
-//                int test_id = mm * group_per_thread + nn;
-//                if (test_id < num_ci_tests) {
-//                    int z = 0;
-//                    for (int j = 0; j < c_depth; ++j) {
-//                        z += dataset->dataset_columns[cond_indices[(test_id) * c_depth + j]][k] *
-//                             cum_levels[(test_id) * c_depth + j];
-//                    }
-////                    n[test_id][z * dimx * dimy + x * dimy + y]++; //n[i][z][x][y]++;
-//                    n[z * dimx * dimy + x * dimy + y + offset_xy[test_id]]++; //n[i][z][x][y]++;
-//                }
-//            }
-//        }
-//    }
 
     delete[] offset_xy;
     offset_xy = nullptr;

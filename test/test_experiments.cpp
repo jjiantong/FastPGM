@@ -941,8 +941,9 @@ protected:
 
 TEST_F(ExperimentBNSLOnMunin1, pc_stable) {
     StructureLearning *bnsl = new PCStable(network, 0.05);
-    bnsl->StructLearnCompData(trainer, 1, 1, false, false);
+    bnsl->StructLearnCompData(trainer, 8, 2, false, false);
     delete trainer;
+    delete bnsl;
 
     CustomNetwork *ref_net = new CustomNetwork();
     ref_net->LoadBIFFile("../../data/munin1.bif");

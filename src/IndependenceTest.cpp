@@ -33,8 +33,7 @@ IndependenceTest::~IndependenceTest() {
  * @return CI test result, including g-square statistic, degree of freedom, p value, independent judgement
  */
 IndependenceTest::Result IndependenceTest::IndependenceResult(int x_idx, int y_idx, const vector<int> &z,
-                                                              string metric, Timer *timer,
-                                                              int group_size, int num_threads, int c_size) {
+                                                              string metric, Timer *timer, int c_size) {
 //    /**
 //     * for testing x, y given z1,...,zn,
 //     * set up an array of length n + 2 containing the indices of these variables in order
@@ -49,8 +48,8 @@ IndependenceTest::Result IndependenceTest::IndependenceResult(int x_idx, int y_i
     if (metric.compare("g square") == 0) {
         if (z.empty()) {
             return ComputeGSquareXY(x_idx, y_idx, timer);
-        } else if (group_size > 1) {
-            return ComputeGSquareXYZGroup(x_idx, y_idx, z, group_size, num_threads, c_size, timer);
+        } else if (c_size > 1) {
+            return ComputeGSquareXYZGroup(x_idx, y_idx, z, c_size, timer);
         } else {
             return ComputeGSquareXYZ(x_idx, y_idx, z, timer);
         }
@@ -145,6 +144,7 @@ IndependenceTest::Result IndependenceTest::ComputeGSquareXYZ(int x_idx, int y_id
 
     timer->Start("new & delete");
     delete table_3d;
+    table_3d = nullptr;
     timer->Stop("new & delete");
 
     bool indep = (p_value > alpha);
@@ -157,8 +157,8 @@ IndependenceTest::Result IndependenceTest::ComputeGSquareXYZ(int x_idx, int y_id
  * it first computes the counts by scanning the complete data set to fill up a contingency table / cell table
  * in this function we use uint8 to re-store the partial data set required
  */
-IndependenceTest::Result IndependenceTest::ComputeGSquareXYZGroup(int x_idx, int y_idx, const vector<int> &z, int group_size,
-                                                                  int num_threads, int c_size, Timer *timer) {
+IndependenceTest::Result IndependenceTest::ComputeGSquareXYZGroup(int x_idx, int y_idx, const vector<int> &z,
+                                                                  int c_size, Timer *timer) {
     int c_depth = z.size() / c_size; // compute which the level is currently
 
     int dimx = dataset->num_of_possible_values_of_disc_vars[x_idx];
@@ -180,12 +180,9 @@ IndependenceTest::Result IndependenceTest::ComputeGSquareXYZGroup(int x_idx, int
     table_3d_group = new Counts3DGroup(dimx, dimy, x_idx, y_idx, cond_dims, z, c_size);
     timer->Stop("new & delete");
 
-    table_3d_group->FillTableGroup(dataset, num_threads, timer);
+    table_3d_group->FillTableGroup(dataset, c_size, timer);
 
     timer->Start("g2 & df + p value");
-//    omp_set_num_threads(num_threads);
-//#pragma omp parallel for
-//    for (int m = omp_get_thread_num(); m < c_size; m += 2) {
     for (int m = 0; m < c_size; ++m) {
         /**
          * compute df: two ways are commonly used to compute the degree of freedom
@@ -201,10 +198,10 @@ IndependenceTest::Result IndependenceTest::ComputeGSquareXYZGroup(int x_idx, int
         double g2 = 0.0;
         int df = 0;
 
-        int *offset_xy = new int[group_size];
-        int *offset_x  = new int[group_size];
-        int *offset_y  = new int[group_size];
-        for (int i = 0; i < group_size; ++i) {
+        int *offset_xy = new int[c_size];
+        int *offset_x  = new int[c_size];
+        int *offset_y  = new int[c_size];
+        for (int i = 0; i < c_size; ++i) {
             offset_xy[i] = table_3d_group->cum_dims[i] * dimx * dimy;
             offset_x[i]  = table_3d_group->cum_dims[i] * dimx;
             offset_y[i]  = table_3d_group->cum_dims[i] * dimy;
@@ -352,6 +349,7 @@ IndependenceTest::Result IndependenceTest::ComputeGSquareXY(int x_idx, int y_idx
 
     timer->Start("new & delete");
     delete table_2d;
+    table_2d = nullptr;
     timer->Stop("new & delete");
 
     bool indep = (p_value > alpha);

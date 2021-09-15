@@ -44,21 +44,22 @@ int BNSLComparison::GetSHD() {
 //    cout << "true cpdag: " << endl;
 //    true_graph->PrintEachEdgeWithIndex();
 
-    if (learned_graph->IsDAG()) {
-        learned_graph->OrderEdge();
-        learned_graph->FindCompelled();
-
-        for (int i = 0; i < learned_graph->num_edges; ++i) {
-            Edge edge = learned_graph->vec_edges.at(i);
-            if (edge.label == REVERSIBLE) {
-                // if reversible, convert the directed edge to undirected edge
-                Node* node1 = edge.GetNode1();
-                Node* node2 = edge.GetNode2();
-                Edge new_edge = Edge(node1, node2);
-                learned_graph->vec_edges.at(i) = new_edge;
-            }
-        }
-    }
+// TODO: just remove because we only use pc-stable now
+//    if (learned_graph->IsDAG()) {
+//        learned_graph->OrderEdge();
+//        learned_graph->FindCompelled();
+//
+//        for (int i = 0; i < learned_graph->num_edges; ++i) {
+//            Edge edge = learned_graph->vec_edges.at(i);
+//            if (edge.label == REVERSIBLE) {
+//                // if reversible, convert the directed edge to undirected edge
+//                Node* node1 = edge.GetNode1();
+//                Node* node2 = edge.GetNode2();
+//                Edge new_edge = Edge(node1, node2);
+//                learned_graph->vec_edges.at(i) = new_edge;
+//            }
+//        }
+//    }
 
     int error = 0;
     // check every pair of nodes

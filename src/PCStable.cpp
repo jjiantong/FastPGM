@@ -66,8 +66,6 @@ void PCStable::StructLearnByPCStable(Dataset *dts, int num_threads, int group_si
         network->adjacencies.insert(make_pair(i, adjacency));
     }
 
-//    omp_set_num_threads(16);
-//#pragma omp parallel for //schedule(dynamic)
     for (int i = 0; i < network->num_edges; ++i) {
         int node_idx1 = network->vec_edges[i].GetNode1()->GetNodeIndex();
         int node_idx2 = network->vec_edges[i].GetNode2()->GetNodeIndex();
@@ -80,7 +78,6 @@ void PCStable::StructLearnByPCStable(Dataset *dts, int num_threads, int group_si
                  << ", conditioning sets of size 0." << endl;
         }
 
-//#pragma omp atomic
         num_ci_test++;
         IndependenceTest *ci_test = new IndependenceTest(dts, alpha);
         IndependenceTest::Result result = ci_test->IndependenceResult(node_idx1, node_idx2, vector<int>(),
@@ -99,7 +96,6 @@ void PCStable::StructLearnByPCStable(Dataset *dts, int num_threads, int group_si
         }
 
         if (!independent) { // the edge remains
-//#pragma omp atomic
             num_dependence_judgement++;
             //-------------------------------- heuristic ---------------------------------//
             // store the p value - smaller means a stronger association
@@ -181,6 +177,10 @@ void PCStable::StructLearnByPCStable(Dataset *dts, int num_threads, int group_si
 
 /**
  * @brief: search for each level (c_depth, c_depth > 0) except for level 0
+ * use a stack "stack_edge_id" to store all edges in this level
+ * each time we pop "num_threads" edges (or less for the last times) and handle them (in parallel)
+ * according to the results, some of the edges will push back again and some will not
+ * repeat this process until the stack is empty, which means all edges in this level have been finished
  */
 bool PCStable::SearchAtDepth(Dataset *dts, int c_depth, int num_threads, int group_size, bool verbose) {
     /**
@@ -190,34 +190,25 @@ bool PCStable::SearchAtDepth(Dataset *dts, int c_depth, int num_threads, int gro
      */
     map<int, map<int, double>> adjacencies_copy = network->adjacencies;
 
-////    omp_set_num_threads(16);
-////#pragma omp parallel //for //schedule(dynamic)
-////    for (int i = omp_get_thread_num(); i < network->num_edges; i += 8) {
-//    for (int i = 0; i < network->num_edges; ++i) {
-////    for (int ord = omp_get_thread_num(); ord < network->num_edges; ord += 16) {
-////    for (int ord = 0; ord < network->num_edges; ++ord) {
-////        int i = vec_edge_id_adjxy[ord].first;
-//        CheckEdge(dts, adjacencies_copy, c_depth, i, num_threads, group_size, verbose);
-//    }
-
     // push all edges into stack
     stack<int> stack_edge_id;
     for (int i = network->num_edges - 1; i >= 0; --i) {
         stack_edge_id.push(i);
     }
 
-    // pop 8 edges at one time
-    int *processing_edge_id = new int[8];
-    while (stack_edge_id.size() >= 8) {
-        for (int i = 0; i < 8; ++i) {
+    int *processing_edge_id = new int[num_threads];
+    while (stack_edge_id.size() >= num_threads) {
+        // pop 8 edges at one time
+        for (int i = 0; i < num_threads; ++i) {
             processing_edge_id[i] = stack_edge_id.top();
             stack_edge_id.pop();
         }
-//#pragma omp parallel num_threads(8)
-        for (int i = 0; i < 8; ++i) {
-            CheckEdge(dts, adjacencies_copy, c_depth, processing_edge_id[i], num_threads, group_size, verbose);
+
+#pragma omp parallel for num_threads(num_threads)
+        for (int i = 0; i < num_threads; ++i) {
+            CheckEdge(dts, adjacencies_copy, c_depth, processing_edge_id[i], group_size, verbose);
         }
-        for (int i = 7; i >= 0; --i) {
+        for (int i = num_threads - 1; i >= 0; --i) {
             if (network->vec_edges[processing_edge_id[i]].need_to_push == true) {
                 // if this edge has not been finished, push back to the stack
                 stack_edge_id.push(processing_edge_id[i]);
@@ -231,7 +222,7 @@ bool PCStable::SearchAtDepth(Dataset *dts, int c_depth, int num_threads, int gro
             stack_edge_id.pop();
         }
         for (int i = 0; i < size; ++i) {
-            CheckEdge(dts, adjacencies_copy, c_depth, processing_edge_id[i], num_threads, group_size, verbose);
+            CheckEdge(dts, adjacencies_copy, c_depth, processing_edge_id[i], group_size, verbose);
         }
         for (int i = size - 1; i >= 0; --i) {
             if (network->vec_edges[processing_edge_id[i]].need_to_push == true) {
@@ -240,6 +231,8 @@ bool PCStable::SearchAtDepth(Dataset *dts, int c_depth, int num_threads, int gro
             }
         }
     }
+    delete[] processing_edge_id;
+    processing_edge_id = nullptr;
 
     for (int i = 0; i < network->num_edges; ++i) {
         int node_idx1 = network->vec_edges[i].GetNode1()->GetNodeIndex();
@@ -262,8 +255,16 @@ bool PCStable::SearchAtDepth(Dataset *dts, int c_depth, int num_threads, int gro
     return (FreeDegree(network->adjacencies) > c_depth);
 }
 
+/**
+ * handle one edge
+ * the core is to first construct a "cg" for this edge if necessary,
+ *                then call the function to handle a group of ci tests for this edge
+ * according to the results, determine whether the edge needs to be removed
+ *                                             the edge has been finished handling
+ *                                             the edge needs to be pushed back to the stack
+ */
 void PCStable::CheckEdge(Dataset *dts, const map<int, map<int, double>> &adjacencies, int c_depth,
-                         int edge_id, int num_threads, int group_size, bool verbose) {
+                         int edge_id, int group_size, bool verbose) {
     int x_idx = network->vec_edges[edge_id].GetNode1()->GetNodeIndex();
     int y_idx = network->vec_edges[edge_id].GetNode2()->GetNodeIndex();
 
@@ -335,7 +336,7 @@ void PCStable::CheckEdge(Dataset *dts, const map<int, map<int, double>> &adjacen
      *      if finish = true, process = NODE1: delete "cg", need to push, process = ENODE1
      *      if finish = true, process = NODE2: delete "cg", no need remove, no need to push, process = NO
      */
-    bool ind = Testing(dts, c_depth, edge_id, x_idx, y_idx, num_threads, group_size, verbose);
+    bool ind = Testing(dts, c_depth, edge_id, x_idx, y_idx, group_size, verbose);
 
     if (ind) {
         delete network->vec_edges[edge_id].cg;
@@ -362,6 +363,10 @@ void PCStable::CheckEdge(Dataset *dts, const map<int, map<int, double>> &adjacen
     }
 }
 
+/**
+ * find the adjacent nodes of node "x_idx" except for node "y_idx"
+ * store them in its "vec_adj" and return the number of its adjacent nodes
+ */
 int PCStable::FindAdjacencies(Dataset *dts, const map<int, map<int, double>> &adjacencies, int edge_id, int x_idx, int y_idx) {
     // get the neighbors of node x
     set<int> set_adjx;
@@ -388,8 +393,7 @@ int PCStable::FindAdjacencies(Dataset *dts, const map<int, map<int, double>> &ad
  *            lower p-value indicates stronger dependence and stronger association between the variables
  * @return true if such a Z can be found, which means edge x -- y should be deleted
  */
-bool PCStable::Testing(Dataset *dts, int c_depth, int edge_idx, int x_idx, int y_idx,
-                       int num_threads, int group_size, bool verbose) {
+bool PCStable::Testing(Dataset *dts, int c_depth, int edge_idx, int x_idx, int y_idx, int group_size, bool verbose) {
     // fetch multiple ci tests at one time
     vector<vector<int>> choices = network->vec_edges[edge_idx].cg->NextN(group_size);
 
@@ -411,8 +415,7 @@ bool PCStable::Testing(Dataset *dts, int c_depth, int edge_idx, int x_idx, int y
 
         num_ci_test += i;
         IndependenceTest *ci_test = new IndependenceTest(dts, alpha);
-        IndependenceTest::Result result = ci_test->IndependenceResult(x_idx, y_idx, Z, "g square", timer,
-                                                                      group_size, num_threads, i);
+        IndependenceTest::Result result = ci_test->IndependenceResult(x_idx, y_idx, Z, "g square", timer, i);
         delete ci_test;
         bool independent = result.is_independent;
 

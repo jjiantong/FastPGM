@@ -91,9 +91,9 @@ public:
                   const vector<int> &cond_dims, const vector<int> &cond_indices, int group_size);
     ~Counts3DGroup();
 
-    void FillTableGroup(Dataset *dataset, int num_threads, Timer *timer);
-    void CountLevel1(Dataset *dataset, int num_threads);
-    void CountLevelN(Dataset *dataset, int num_threads);
+    void FillTableGroup(Dataset *dataset, int group_size, Timer *timer);
+    void CountLevel1(Dataset *dataset, int group_size);
+    void CountLevelN(Dataset *dataset, int group_size);
 };
 
 //int Is_exist (int item, const vector<int> &list);
