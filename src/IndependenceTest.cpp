@@ -73,9 +73,9 @@ IndependenceTest::Result IndependenceTest::ComputeGSquareXYZ(int x_idx, int y_id
         cond_dims.push_back(dim);
     }
 
-    timer->Start("new & delete");
+//    timer->Start("new & delete");
     table_3d = new Counts3D(dimx, dimy, x_idx, y_idx, cond_dims, z);
-    timer->Stop("new & delete");
+//    timer->Stop("new & delete");
 
     table_3d->FillTable(dataset, timer);
 
@@ -90,7 +90,7 @@ IndependenceTest::Result IndependenceTest::ComputeGSquareXYZ(int x_idx, int y_id
      * it seems that 2 is more reasonable and it can obtain smaller SHD in practice
      * we also use 2 in our implementation
      */
-    timer->Start("g2 & df + p value");
+//    timer->Start("g2 & df + p value");
     double g2 = 0.0;
     int df = 0;
     for (int k = 0; k < table_3d->dimz; ++k) { // for each config of z
@@ -140,12 +140,12 @@ IndependenceTest::Result IndependenceTest::ComputeGSquareXYZ(int x_idx, int y_id
     // if p < alpha, reject the null hypothesis: dependent
     // if p > alpha, accept the null hypothesis: independent
     double p_value = 1.0 - stats::pchisq(g2, df, false);
-    timer->Stop("g2 & df + p value");
+//    timer->Stop("g2 & df + p value");
 
-    timer->Start("new & delete");
+//    timer->Start("new & delete");
     delete table_3d;
     table_3d = nullptr;
-    timer->Stop("new & delete");
+//    timer->Stop("new & delete");
 
     bool indep = (p_value > alpha);
     return IndependenceTest::Result(p_value, indep, 0);
@@ -176,13 +176,13 @@ IndependenceTest::Result IndependenceTest::ComputeGSquareXYZGroup(int x_idx, int
         cond_dims.push_back(dim);
     }
 
-    timer->Start("new & delete");
+//    timer->Start("new & delete");
     table_3d_group = new Counts3DGroup(dimx, dimy, x_idx, y_idx, cond_dims, z, c_size);
-    timer->Stop("new & delete");
+//    timer->Stop("new & delete");
 
     table_3d_group->FillTableGroup(dataset, c_size, timer);
 
-    timer->Start("g2 & df + p value");
+//    timer->Start("g2 & df + p value");
     for (int m = 0; m < c_size; ++m) {
         /**
          * compute df: two ways are commonly used to compute the degree of freedom
@@ -268,11 +268,11 @@ IndependenceTest::Result IndependenceTest::ComputeGSquareXYZGroup(int x_idx, int
 
         // TODO: verbose
     }
-    timer->Stop("g2 & df + p value");
+//    timer->Stop("g2 & df + p value");
 
-    timer->Start("new & delete");
+//    timer->Start("new & delete");
     delete table_3d_group;
-    timer->Stop("new & delete");
+//    timer->Stop("new & delete");
 
     for (int i = 0; i < c_size; ++i) {
         if (results[i]) { // find the first independent one
@@ -292,13 +292,13 @@ IndependenceTest::Result IndependenceTest::ComputeGSquareXY(int x_idx, int y_idx
     int dimx = dataset->num_of_possible_values_of_disc_vars[x_idx];
     int dimy = dataset->num_of_possible_values_of_disc_vars[y_idx];
 
-    timer->Start("new & delete");
+//    timer->Start("new & delete");
     table_2d = new Counts2D(dimx, dimy, x_idx, y_idx);
-    timer->Stop("new & delete");
+//    timer->Stop("new & delete");
 
     table_2d->FillTable(dataset, timer);
 
-    timer->Start("g2 & df + p value");
+//    timer->Start("g2 & df + p value");
     double g2 = 0.0;
     int df = 0;
 
@@ -345,12 +345,12 @@ IndependenceTest::Result IndependenceTest::ComputeGSquareXY(int x_idx, int y_idx
     // if p < alpha, reject the null hypothesis: dependent
     // if p > alpha, accept the null hypothesis: independent
     double p_value = 1.0 - stats::pchisq(g2, df, false);
-    timer->Stop("g2 & df & p value");
+//    timer->Stop("g2 & df & p value");
 
-    timer->Start("new & delete");
+//    timer->Start("new & delete");
     delete table_2d;
     table_2d = nullptr;
-    timer->Stop("new & delete");
+//    timer->Stop("new & delete");
 
     bool indep = (p_value > alpha);
     return IndependenceTest::Result(p_value, indep);

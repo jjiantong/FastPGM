@@ -227,18 +227,18 @@ void Counts3D::FillTable(Dataset *dataset, Timer *timer) {
     /**
      * compute the joint frequency of x, y, and z (Nxyz)
      */
-    timer->Start("config + count");
+//    timer->Start("config + count");
     if (cond_dims.size() == 1) {
         CountLevel1(dataset);
     } else {
         CountLevelN(dataset);
     }
-    timer->Stop("config + count");
+//    timer->Stop("config + count");
 
     /**
      * compute the marginals (Nx+z, N+yz, N++z)
      */
-    timer->Start("marginals");
+//    timer->Start("marginals");
     for (int k = 0; k < dimz; k++) {
         for (int i = 0; i < dimx; i++) {
             for (int j = 0; j < dimy; j++) {
@@ -248,7 +248,7 @@ void Counts3D::FillTable(Dataset *dataset, Timer *timer) {
             }
         }
     }
-    timer->Stop("marginals");
+//    timer->Stop("marginals");
 }
 
 void Counts3D::CountLevel1(Dataset *dataset) {
@@ -291,18 +291,18 @@ void Counts3D::CountLevelN(Dataset *dataset) {
 }
 
 void Counts3DGroup::FillTableGroup(Dataset *dataset, int group_size, Timer *timer) {
-    timer->Start("config + count");
+//    timer->Start("config + count");
     if (c_depth == 1) {
         CountLevel1(dataset, group_size);
     } else {
         CountLevelN(dataset, group_size);
     }
-    timer->Stop("config + count");
+//    timer->Stop("config + count");
 
     /**
      * compute the marginals (Nx+z, N+yz, N++z)
      */
-    timer->Start("marginals");
+//    timer->Start("marginals");
     int *offset_xy = new int[group_size];
     int *offset_x  = new int[group_size];
     int *offset_y  = new int[group_size];
@@ -333,7 +333,7 @@ void Counts3DGroup::FillTableGroup(Dataset *dataset, int group_size, Timer *time
     delete[] offset_y;
     offset_y = nullptr;
 
-    timer->Stop("marginals");
+//    timer->Stop("marginals");
 }
 
 void Counts3DGroup::CountLevel1(Dataset *dataset, int group_size) {
@@ -431,7 +431,7 @@ void Counts2D::FillTable(Dataset *dataset, Timer *timer) {
     /**
      * compute the joint frequency of x, y, and z (Nxyz)
      */
-    timer->Start("config + count");
+//    timer->Start("config + count");
     for (int k = 0; k < dataset->num_instance; ++k) {
 //        int x = dataset->dataset_all_vars[k][indices[0]];
 //        int y = dataset->dataset_all_vars[k][indices[1]];
@@ -439,19 +439,19 @@ void Counts2D::FillTable(Dataset *dataset, Timer *timer) {
         int y = dataset->dataset_columns[indexy][k];
         n[x * dimy + y]++;
     }
-    timer->Stop("config + count");
+//    timer->Stop("config + count");
 
     /**
      * compute the marginals (Nx+, N+y)
      */
-    timer->Start("marginals");
+//    timer->Start("marginals");
     for (int i = 0; i < dimx; i++) {
         for (int j = 0; j < dimy; j++) {
             ni[i] += n[i * dimy + j];
             nj[j] += n[i * dimy + j];
         }
     }
-    timer->Stop("marginals");
+//    timer->Stop("marginals");
 }
 /**----------------------------- implementations like bnlearn -----------------------------**/
 

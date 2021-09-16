@@ -32,14 +32,14 @@ void PCStable::StructLearnCompData(Dataset *dts, int group_size, int num_threads
     cout << "==================================================" << endl;
     cout << "# of CI-tests is " << num_ci_test << ", # of dependence judgements is " << num_dependence_judgement << endl;
     timer->Print("pc-stable");
-    timer->Print("pc-stable step 1"); cout << " (" << timer->time["pc-stable step 1"] / timer->time["pc-stable"] * 100 << "%)";
-    timer->Print("pc-stable step 2"); cout << " (" << timer->time["pc-stable step 2"] / timer->time["pc-stable"] * 100 << "%)";
-    timer->Print("pc-stable step 3"); cout << " (" << timer->time["pc-stable step 3"] / timer->time["pc-stable"] * 100 << "%)";
+    timer->Print("pc-stable step 1"); cout << " (" << timer->time["pc-stable step 1"] / timer->time["pc-stable"] * 100 << "%)" << endl;
+//    timer->Print("pc-stable step 2"); cout << " (" << timer->time["pc-stable step 2"] / timer->time["pc-stable"] * 100 << "%)";
+//    timer->Print("pc-stable step 3"); cout << " (" << timer->time["pc-stable step 3"] / timer->time["pc-stable"] * 100 << "%)";
 
-    timer->Print("new & delete"); cout << " (" << timer->time["new & delete"] / timer->time["pc-stable step 1"] * 100 << "%)";
-    timer->Print("config + count"); cout << " (" << timer->time["config + count"] / timer->time["pc-stable step 1"] * 100 << "%)";
-    timer->Print("marginals"); cout << " (" << timer->time["marginals"] / timer->time["pc-stable step 1"] * 100 << "%)";
-    timer->Print("g2 & df + p value"); cout << " (" << timer->time["g2 & df + p value"] / timer->time["pc-stable step 1"] * 100 << "%)" << endl;
+//    timer->Print("new & delete"); cout << " (" << timer->time["new & delete"] / timer->time["pc-stable step 1"] * 100 << "%)";
+//    timer->Print("config + count"); cout << " (" << timer->time["config + count"] / timer->time["pc-stable step 1"] * 100 << "%)";
+//    timer->Print("marginals"); cout << " (" << timer->time["marginals"] / timer->time["pc-stable step 1"] * 100 << "%)";
+//    timer->Print("g2 & df + p value"); cout << " (" << timer->time["g2 & df + p value"] / timer->time["pc-stable step 1"] * 100 << "%)" << endl;
 }
 
 void PCStable::StructLearnByPCStable(Dataset *dts, int num_threads, int group_size, bool print_struct, bool verbose) {
@@ -66,6 +66,7 @@ void PCStable::StructLearnByPCStable(Dataset *dts, int num_threads, int group_si
         network->adjacencies.insert(make_pair(i, adjacency));
     }
 
+//#pragma omp parallel for num_threads(8)
     for (int i = 0; i < network->num_edges; ++i) {
         int node_idx1 = network->vec_edges[i].GetNode1()->GetNodeIndex();
         int node_idx2 = network->vec_edges[i].GetNode2()->GetNodeIndex();
@@ -156,17 +157,17 @@ void PCStable::StructLearnByPCStable(Dataset *dts, int num_threads, int group_si
     cout << "\n==================================================" << '\n'
          << "Begin orienting v-structure" << endl;
 
-    timer->Start("pc-stable step 2");
+//    timer->Start("pc-stable step 2");
     OrientVStructure();
-    timer->Stop("pc-stable step 2");
+//    timer->Stop("pc-stable step 2");
 
 
     cout << "==================================================" << '\n'
          << "Begin orienting other undirected edges" << endl;
 
-    timer->Start("pc-stable step 3");
+//    timer->Start("pc-stable step 3");
     OrientImplied();
-    timer->Stop("pc-stable step 3");
+//    timer->Stop("pc-stable step 3");
 
     if (print_struct) {
         cout << endl;
@@ -204,7 +205,7 @@ bool PCStable::SearchAtDepth(Dataset *dts, int c_depth, int num_threads, int gro
             stack_edge_id.pop();
         }
 
-//#pragma omp parallel for num_threads(num_threads)
+//#pragma omp parallel for num_threads(32)
         for (int i = 0; i < num_threads; ++i) {
             CheckEdge(dts, adjacencies_copy, c_depth, processing_edge_id[i], group_size, verbose);
         }

@@ -941,7 +941,7 @@ protected:
 
 TEST_F(ExperimentBNSLOnMunin1, pc_stable) {
     StructureLearning *bnsl = new PCStable(network, 0.05);
-    bnsl->StructLearnCompData(trainer, 8, 8, false, false);
+    bnsl->StructLearnCompData(trainer, 8, 1, false, false);
     delete trainer;
 
     CustomNetwork *ref_net = new CustomNetwork();
