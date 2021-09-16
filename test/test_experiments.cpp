@@ -46,7 +46,7 @@
 //    Dataset *tester;
 //    Network *network;
 //};
-
+//
 //TEST_F(ExperimentOnA1a, ve) {
 //    Inference *inference = new ExactInference(network);
 //    double accuracy = inference->EvaluateAccuracy(tester, -1, "ve", true);
@@ -109,7 +109,7 @@
 //
 //TEST_F(ExperimentBNSLOnAlarm, pc_stable) {
 //    StructureLearning *bnsl = new PCStable(network, 0.05);
-//    bnsl->StructLearnCompData(trainer, 1, 1, false, false);
+//    bnsl->StructLearnCompData(trainer, 4, 64, false, false);
 //    delete trainer;
 //
 //    CustomNetwork *ref_net = new CustomNetwork();
@@ -121,134 +121,6 @@
 //    cout << "SHD = " << shd << endl;
 //    delete network;
 //    delete ref_net;
-//}
-//
-//TEST_F(ExperimentBNSLOnAlarm, pc_stable2) {
-//StructureLearning *bnsl = new PCStable(network, 0.05);
-//bnsl->StructLearnCompData(trainer, 2, 1, false, false);
-//delete trainer;
-//
-//CustomNetwork *ref_net = new CustomNetwork();
-//ref_net->LoadBIFFile("../../data/alarm.bif");
-////    ref_net->PrintEachEdgeWithIndex();
-//
-//BNSLComparison comp(ref_net, network);
-//int shd = comp.GetSHD();
-//cout << "SHD = " << shd << endl;
-//delete network;
-//delete ref_net;
-//}
-//
-//TEST_F(ExperimentBNSLOnAlarm, pc_stable4) {
-//StructureLearning *bnsl = new PCStable(network, 0.05);
-//bnsl->StructLearnCompData(trainer, 4, 1, false, false);
-//delete trainer;
-//
-//CustomNetwork *ref_net = new CustomNetwork();
-//ref_net->LoadBIFFile("../../data/alarm.bif");
-////    ref_net->PrintEachEdgeWithIndex();
-//
-//BNSLComparison comp(ref_net, network);
-//int shd = comp.GetSHD();
-//cout << "SHD = " << shd << endl;
-//delete network;
-//delete ref_net;
-//}
-//
-//TEST_F(ExperimentBNSLOnAlarm, pc_stable6) {
-//StructureLearning *bnsl = new PCStable(network, 0.05);
-//bnsl->StructLearnCompData(trainer, 6, 1, false, false);
-//delete trainer;
-//
-//CustomNetwork *ref_net = new CustomNetwork();
-//ref_net->LoadBIFFile("../../data/alarm.bif");
-////    ref_net->PrintEachEdgeWithIndex();
-//
-//BNSLComparison comp(ref_net, network);
-//int shd = comp.GetSHD();
-//cout << "SHD = " << shd << endl;
-//delete network;
-//delete ref_net;
-//}
-//
-//TEST_F(ExperimentBNSLOnAlarm, pc_stable8) {
-//StructureLearning *bnsl = new PCStable(network, 0.05);
-//bnsl->StructLearnCompData(trainer, 8, 1, false, false);
-//delete trainer;
-//
-//CustomNetwork *ref_net = new CustomNetwork();
-//ref_net->LoadBIFFile("../../data/alarm.bif");
-////    ref_net->PrintEachEdgeWithIndex();
-//
-//BNSLComparison comp(ref_net, network);
-//int shd = comp.GetSHD();
-//cout << "SHD = " << shd << endl;
-//delete network;
-//delete ref_net;
-//}
-//
-//TEST_F(ExperimentBNSLOnAlarm, pc_stable10) {
-//StructureLearning *bnsl = new PCStable(network, 0.05);
-//bnsl->StructLearnCompData(trainer, 10, 1, false, false);
-//delete trainer;
-//
-//CustomNetwork *ref_net = new CustomNetwork();
-//ref_net->LoadBIFFile("../../data/alarm.bif");
-////    ref_net->PrintEachEdgeWithIndex();
-//
-//BNSLComparison comp(ref_net, network);
-//int shd = comp.GetSHD();
-//cout << "SHD = " << shd << endl;
-//delete network;
-//delete ref_net;
-//}
-//
-//TEST_F(ExperimentBNSLOnAlarm, pc_stable12) {
-//StructureLearning *bnsl = new PCStable(network, 0.05);
-//bnsl->StructLearnCompData(trainer, 12, 1, false, false);
-//delete trainer;
-//
-//CustomNetwork *ref_net = new CustomNetwork();
-//ref_net->LoadBIFFile("../../data/alarm.bif");
-////    ref_net->PrintEachEdgeWithIndex();
-//
-//BNSLComparison comp(ref_net, network);
-//int shd = comp.GetSHD();
-//cout << "SHD = " << shd << endl;
-//delete network;
-//delete ref_net;
-//}
-//
-//TEST_F(ExperimentBNSLOnAlarm, pc_stable14) {
-//StructureLearning *bnsl = new PCStable(network, 0.05);
-//bnsl->StructLearnCompData(trainer, 14, 1, false, false);
-//delete trainer;
-//
-//CustomNetwork *ref_net = new CustomNetwork();
-//ref_net->LoadBIFFile("../../data/alarm.bif");
-////    ref_net->PrintEachEdgeWithIndex();
-//
-//BNSLComparison comp(ref_net, network);
-//int shd = comp.GetSHD();
-//cout << "SHD = " << shd << endl;
-//delete network;
-//delete ref_net;
-//}
-//
-//TEST_F(ExperimentBNSLOnAlarm, pc_stable16) {
-//StructureLearning *bnsl = new PCStable(network, 0.05);
-//bnsl->StructLearnCompData(trainer, 16, 1, false, false);
-//delete trainer;
-//
-//CustomNetwork *ref_net = new CustomNetwork();
-//ref_net->LoadBIFFile("../../data/alarm.bif");
-////    ref_net->PrintEachEdgeWithIndex();
-//
-//BNSLComparison comp(ref_net, network);
-//int shd = comp.GetSHD();
-//cout << "SHD = " << shd << endl;
-//delete network;
-//delete ref_net;
 //}
 //
 //
@@ -274,7 +146,7 @@
 //
 //TEST_F(ExperimentBNSLOnInsurance, pc_stable) {
 //    StructureLearning *bnsl = new PCStable(network, 0.05);
-//    bnsl->StructLearnCompData(trainer, 1, 1, false, false);
+//    bnsl->StructLearnCompData(trainer, 4, 64, false, false);
 //    delete trainer;
 //
 //    CustomNetwork *ref_net = new CustomNetwork();
@@ -287,135 +159,6 @@
 //    delete network;
 //    delete ref_net;
 //}
-//
-//TEST_F(ExperimentBNSLOnInsurance, pc_stable2) {
-//StructureLearning *bnsl = new PCStable(network, 0.05);
-//bnsl->StructLearnCompData(trainer, 2, 1, false, false);
-//delete trainer;
-//
-//CustomNetwork *ref_net = new CustomNetwork();
-//ref_net->LoadBIFFile("../../data/insurance.bif");
-////    ref_net->PrintEachEdgeWithIndex();
-//
-//BNSLComparison comp(ref_net, network);
-//int shd = comp.GetSHD();
-//cout << "SHD = " << shd << endl;
-//delete network;
-//delete ref_net;
-//}
-//
-//TEST_F(ExperimentBNSLOnInsurance, pc_stable4) {
-//StructureLearning *bnsl = new PCStable(network, 0.05);
-//bnsl->StructLearnCompData(trainer, 4, 1, false, false);
-//delete trainer;
-//
-//CustomNetwork *ref_net = new CustomNetwork();
-//ref_net->LoadBIFFile("../../data/insurance.bif");
-////    ref_net->PrintEachEdgeWithIndex();
-//
-//BNSLComparison comp(ref_net, network);
-//int shd = comp.GetSHD();
-//cout << "SHD = " << shd << endl;
-//delete network;
-//delete ref_net;
-//}
-//
-//TEST_F(ExperimentBNSLOnInsurance, pc_stable6) {
-//StructureLearning *bnsl = new PCStable(network, 0.05);
-//bnsl->StructLearnCompData(trainer, 6, 1, false, false);
-//delete trainer;
-//
-//CustomNetwork *ref_net = new CustomNetwork();
-//ref_net->LoadBIFFile("../../data/insurance.bif");
-////    ref_net->PrintEachEdgeWithIndex();
-//
-//BNSLComparison comp(ref_net, network);
-//int shd = comp.GetSHD();
-//cout << "SHD = " << shd << endl;
-//delete network;
-//delete ref_net;
-//}
-//
-//TEST_F(ExperimentBNSLOnInsurance, pc_stable8) {
-//StructureLearning *bnsl = new PCStable(network, 0.05);
-//bnsl->StructLearnCompData(trainer, 8, 1, false, false);
-//delete trainer;
-//
-//CustomNetwork *ref_net = new CustomNetwork();
-//ref_net->LoadBIFFile("../../data/insurance.bif");
-////    ref_net->PrintEachEdgeWithIndex();
-//
-//BNSLComparison comp(ref_net, network);
-//int shd = comp.GetSHD();
-//cout << "SHD = " << shd << endl;
-//delete network;
-//delete ref_net;
-//}
-//
-//TEST_F(ExperimentBNSLOnInsurance, pc_stable10) {
-//StructureLearning *bnsl = new PCStable(network, 0.05);
-//bnsl->StructLearnCompData(trainer, 10, 1, false, false);
-//delete trainer;
-//
-//CustomNetwork *ref_net = new CustomNetwork();
-//ref_net->LoadBIFFile("../../data/insurance.bif");
-////    ref_net->PrintEachEdgeWithIndex();
-//
-//BNSLComparison comp(ref_net, network);
-//int shd = comp.GetSHD();
-//cout << "SHD = " << shd << endl;
-//delete network;
-//delete ref_net;
-//}
-//
-//TEST_F(ExperimentBNSLOnInsurance, pc_stable12) {
-//StructureLearning *bnsl = new PCStable(network, 0.05);
-//bnsl->StructLearnCompData(trainer, 12, 1, false, false);
-//delete trainer;
-//
-//CustomNetwork *ref_net = new CustomNetwork();
-//ref_net->LoadBIFFile("../../data/insurance.bif");
-////    ref_net->PrintEachEdgeWithIndex();
-//
-//BNSLComparison comp(ref_net, network);
-//int shd = comp.GetSHD();
-//cout << "SHD = " << shd << endl;
-//delete network;
-//delete ref_net;
-//}
-//
-//TEST_F(ExperimentBNSLOnInsurance, pc_stable14) {
-//StructureLearning *bnsl = new PCStable(network, 0.05);
-//bnsl->StructLearnCompData(trainer, 14, 1, false, false);
-//delete trainer;
-//
-//CustomNetwork *ref_net = new CustomNetwork();
-//ref_net->LoadBIFFile("../../data/insurance.bif");
-////    ref_net->PrintEachEdgeWithIndex();
-//
-//BNSLComparison comp(ref_net, network);
-//int shd = comp.GetSHD();
-//cout << "SHD = " << shd << endl;
-//delete network;
-//delete ref_net;
-//}
-//
-//TEST_F(ExperimentBNSLOnInsurance, pc_stable16) {
-//StructureLearning *bnsl = new PCStable(network, 0.05);
-//bnsl->StructLearnCompData(trainer, 16, 1, false, false);
-//delete trainer;
-//
-//CustomNetwork *ref_net = new CustomNetwork();
-//ref_net->LoadBIFFile("../../data/insurance.bif");
-////    ref_net->PrintEachEdgeWithIndex();
-//
-//BNSLComparison comp(ref_net, network);
-//int shd = comp.GetSHD();
-//cout << "SHD = " << shd << endl;
-//delete network;
-//delete ref_net;
-//}
-//
 //
 //
 //
@@ -440,7 +183,7 @@
 //
 //TEST_F(ExperimentBNSLOnWin95pts, pc_stable) {
 //    StructureLearning *bnsl = new PCStable(network, 0.05);
-//    bnsl->StructLearnCompData(trainer, 1, 1, false, false);
+//    bnsl->StructLearnCompData(trainer, 4, 64, false, false);
 //    delete trainer;
 //
 //    CustomNetwork *ref_net = new CustomNetwork();
@@ -453,135 +196,6 @@
 //    delete network;
 //    delete ref_net;
 //}
-//
-//TEST_F(ExperimentBNSLOnWin95pts, pc_stable2) {
-//StructureLearning *bnsl = new PCStable(network, 0.05);
-//bnsl->StructLearnCompData(trainer, 2, 1, false, false);
-//delete trainer;
-//
-//CustomNetwork *ref_net = new CustomNetwork();
-//ref_net->LoadBIFFile("../../data/win95pts.bif");
-////    ref_net->PrintEachEdgeWithIndex();
-//
-//BNSLComparison comp(ref_net, network);
-//int shd = comp.GetSHD();
-//cout << "SHD = " << shd << endl;
-//delete network;
-//delete ref_net;
-//}
-//
-//TEST_F(ExperimentBNSLOnWin95pts, pc_stable4) {
-//StructureLearning *bnsl = new PCStable(network, 0.05);
-//bnsl->StructLearnCompData(trainer, 4, 1, false, false);
-//delete trainer;
-//
-//CustomNetwork *ref_net = new CustomNetwork();
-//ref_net->LoadBIFFile("../../data/win95pts.bif");
-////    ref_net->PrintEachEdgeWithIndex();
-//
-//BNSLComparison comp(ref_net, network);
-//int shd = comp.GetSHD();
-//cout << "SHD = " << shd << endl;
-//delete network;
-//delete ref_net;
-//}
-//
-//TEST_F(ExperimentBNSLOnWin95pts, pc_stable6) {
-//StructureLearning *bnsl = new PCStable(network, 0.05);
-//bnsl->StructLearnCompData(trainer, 6, 1, false, false);
-//delete trainer;
-//
-//CustomNetwork *ref_net = new CustomNetwork();
-//ref_net->LoadBIFFile("../../data/win95pts.bif");
-////    ref_net->PrintEachEdgeWithIndex();
-//
-//BNSLComparison comp(ref_net, network);
-//int shd = comp.GetSHD();
-//cout << "SHD = " << shd << endl;
-//delete network;
-//delete ref_net;
-//}
-//
-//TEST_F(ExperimentBNSLOnWin95pts, pc_stable8) {
-//StructureLearning *bnsl = new PCStable(network, 0.05);
-//bnsl->StructLearnCompData(trainer, 8, 1, false, false);
-//delete trainer;
-//
-//CustomNetwork *ref_net = new CustomNetwork();
-//ref_net->LoadBIFFile("../../data/win95pts.bif");
-////    ref_net->PrintEachEdgeWithIndex();
-//
-//BNSLComparison comp(ref_net, network);
-//int shd = comp.GetSHD();
-//cout << "SHD = " << shd << endl;
-//delete network;
-//delete ref_net;
-//}
-//
-//TEST_F(ExperimentBNSLOnWin95pts, pc_stable10) {
-//StructureLearning *bnsl = new PCStable(network, 0.05);
-//bnsl->StructLearnCompData(trainer, 10, 1, false, false);
-//delete trainer;
-//
-//CustomNetwork *ref_net = new CustomNetwork();
-//ref_net->LoadBIFFile("../../data/win95pts.bif");
-////    ref_net->PrintEachEdgeWithIndex();
-//
-//BNSLComparison comp(ref_net, network);
-//int shd = comp.GetSHD();
-//cout << "SHD = " << shd << endl;
-//delete network;
-//delete ref_net;
-//}
-//
-//TEST_F(ExperimentBNSLOnWin95pts, pc_stable12) {
-//StructureLearning *bnsl = new PCStable(network, 0.05);
-//bnsl->StructLearnCompData(trainer, 12, 1, false, false);
-//delete trainer;
-//
-//CustomNetwork *ref_net = new CustomNetwork();
-//ref_net->LoadBIFFile("../../data/win95pts.bif");
-////    ref_net->PrintEachEdgeWithIndex();
-//
-//BNSLComparison comp(ref_net, network);
-//int shd = comp.GetSHD();
-//cout << "SHD = " << shd << endl;
-//delete network;
-//delete ref_net;
-//}
-//
-//TEST_F(ExperimentBNSLOnWin95pts, pc_stable14) {
-//StructureLearning *bnsl = new PCStable(network, 0.05);
-//bnsl->StructLearnCompData(trainer, 14, 1, false, false);
-//delete trainer;
-//
-//CustomNetwork *ref_net = new CustomNetwork();
-//ref_net->LoadBIFFile("../../data/win95pts.bif");
-////    ref_net->PrintEachEdgeWithIndex();
-//
-//BNSLComparison comp(ref_net, network);
-//int shd = comp.GetSHD();
-//cout << "SHD = " << shd << endl;
-//delete network;
-//delete ref_net;
-//}
-//
-//TEST_F(ExperimentBNSLOnWin95pts, pc_stable16) {
-//StructureLearning *bnsl = new PCStable(network, 0.05);
-//bnsl->StructLearnCompData(trainer, 16, 1, false, false);
-//delete trainer;
-//
-//CustomNetwork *ref_net = new CustomNetwork();
-//ref_net->LoadBIFFile("../../data/win95pts.bif");
-////    ref_net->PrintEachEdgeWithIndex();
-//
-//BNSLComparison comp(ref_net, network);
-//int shd = comp.GetSHD();
-//cout << "SHD = " << shd << endl;
-//delete network;
-//delete ref_net;
-//}
-//
 //
 //
 //
@@ -606,7 +220,7 @@
 //
 //TEST_F(ExperimentBNSLOnHailfinder, pc_stable) {
 //    StructureLearning *bnsl = new PCStable(network, 0.05);
-//    bnsl->StructLearnCompData(trainer, 1, 1, false, false);
+//    bnsl->StructLearnCompData(trainer, 4, 64, false, false);
 //    delete trainer;
 //
 //    CustomNetwork *ref_net = new CustomNetwork();
@@ -619,135 +233,6 @@
 //    delete network;
 //    delete ref_net;
 //}
-//
-//TEST_F(ExperimentBNSLOnHailfinder, pc_stable2) {
-//StructureLearning *bnsl = new PCStable(network, 0.05);
-//bnsl->StructLearnCompData(trainer, 2, 1, false, false);
-//delete trainer;
-//
-//CustomNetwork *ref_net = new CustomNetwork();
-//ref_net->LoadBIFFile("../../data/hailfinder.bif");
-////    ref_net->PrintEachEdgeWithIndex();
-//
-//BNSLComparison comp(ref_net, network);
-//int shd = comp.GetSHD();
-//cout << "SHD = " << shd << endl;
-//delete network;
-//delete ref_net;
-//}
-//
-//TEST_F(ExperimentBNSLOnHailfinder, pc_stable4) {
-//StructureLearning *bnsl = new PCStable(network, 0.05);
-//bnsl->StructLearnCompData(trainer, 4, 1, false, false);
-//delete trainer;
-//
-//CustomNetwork *ref_net = new CustomNetwork();
-//ref_net->LoadBIFFile("../../data/hailfinder.bif");
-////    ref_net->PrintEachEdgeWithIndex();
-//
-//BNSLComparison comp(ref_net, network);
-//int shd = comp.GetSHD();
-//cout << "SHD = " << shd << endl;
-//delete network;
-//delete ref_net;
-//}
-//
-//TEST_F(ExperimentBNSLOnHailfinder, pc_stable6) {
-//StructureLearning *bnsl = new PCStable(network, 0.05);
-//bnsl->StructLearnCompData(trainer, 6, 1, false, false);
-//delete trainer;
-//
-//CustomNetwork *ref_net = new CustomNetwork();
-//ref_net->LoadBIFFile("../../data/hailfinder.bif");
-////    ref_net->PrintEachEdgeWithIndex();
-//
-//BNSLComparison comp(ref_net, network);
-//int shd = comp.GetSHD();
-//cout << "SHD = " << shd << endl;
-//delete network;
-//delete ref_net;
-//}
-//
-//TEST_F(ExperimentBNSLOnHailfinder, pc_stable8) {
-//StructureLearning *bnsl = new PCStable(network, 0.05);
-//bnsl->StructLearnCompData(trainer, 8, 1, false, false);
-//delete trainer;
-//
-//CustomNetwork *ref_net = new CustomNetwork();
-//ref_net->LoadBIFFile("../../data/hailfinder.bif");
-////    ref_net->PrintEachEdgeWithIndex();
-//
-//BNSLComparison comp(ref_net, network);
-//int shd = comp.GetSHD();
-//cout << "SHD = " << shd << endl;
-//delete network;
-//delete ref_net;
-//}
-//
-//TEST_F(ExperimentBNSLOnHailfinder, pc_stable10) {
-//StructureLearning *bnsl = new PCStable(network, 0.05);
-//bnsl->StructLearnCompData(trainer, 10, 1, false, false);
-//delete trainer;
-//
-//CustomNetwork *ref_net = new CustomNetwork();
-//ref_net->LoadBIFFile("../../data/hailfinder.bif");
-////    ref_net->PrintEachEdgeWithIndex();
-//
-//BNSLComparison comp(ref_net, network);
-//int shd = comp.GetSHD();
-//cout << "SHD = " << shd << endl;
-//delete network;
-//delete ref_net;
-//}
-//
-//TEST_F(ExperimentBNSLOnHailfinder, pc_stable12) {
-//StructureLearning *bnsl = new PCStable(network, 0.05);
-//bnsl->StructLearnCompData(trainer, 12, 1, false, false);
-//delete trainer;
-//
-//CustomNetwork *ref_net = new CustomNetwork();
-//ref_net->LoadBIFFile("../../data/hailfinder.bif");
-////    ref_net->PrintEachEdgeWithIndex();
-//
-//BNSLComparison comp(ref_net, network);
-//int shd = comp.GetSHD();
-//cout << "SHD = " << shd << endl;
-//delete network;
-//delete ref_net;
-//}
-//
-//TEST_F(ExperimentBNSLOnHailfinder, pc_stable14) {
-//StructureLearning *bnsl = new PCStable(network, 0.05);
-//bnsl->StructLearnCompData(trainer, 14, 1, false, false);
-//delete trainer;
-//
-//CustomNetwork *ref_net = new CustomNetwork();
-//ref_net->LoadBIFFile("../../data/hailfinder.bif");
-////    ref_net->PrintEachEdgeWithIndex();
-//
-//BNSLComparison comp(ref_net, network);
-//int shd = comp.GetSHD();
-//cout << "SHD = " << shd << endl;
-//delete network;
-//delete ref_net;
-//}
-//
-//TEST_F(ExperimentBNSLOnHailfinder, pc_stable16) {
-//StructureLearning *bnsl = new PCStable(network, 0.05);
-//bnsl->StructLearnCompData(trainer, 16, 1, false, false);
-//delete trainer;
-//
-//CustomNetwork *ref_net = new CustomNetwork();
-//ref_net->LoadBIFFile("../../data/hailfinder.bif");
-////    ref_net->PrintEachEdgeWithIndex();
-//
-//BNSLComparison comp(ref_net, network);
-//int shd = comp.GetSHD();
-//cout << "SHD = " << shd << endl;
-//delete network;
-//delete ref_net;
-//}
-//
 //
 //
 //
@@ -773,7 +258,7 @@
 //
 //TEST_F(ExperimentBNSLOnAndes, pc_stable) {
 //    StructureLearning *bnsl = new PCStable(network, 0.05);
-//    bnsl->StructLearnCompData(trainer, 1, 1, false, false);
+//    bnsl->StructLearnCompData(trainer, 4, 64, false, false);
 //    delete trainer;
 //
 //    CustomNetwork *ref_net = new CustomNetwork();
@@ -786,136 +271,6 @@
 //    delete network;
 //    delete ref_net;
 //}
-//
-//TEST_F(ExperimentBNSLOnAndes, pc_stable2) {
-//StructureLearning *bnsl = new PCStable(network, 0.05);
-//bnsl->StructLearnCompData(trainer, 2, 1, false, false);
-//delete trainer;
-//
-//CustomNetwork *ref_net = new CustomNetwork();
-//ref_net->LoadBIFFile("../../data/andes.bif");
-////    ref_net->PrintEachEdgeWithIndex();
-//
-//BNSLComparison comp(ref_net, network);
-//int shd = comp.GetSHD();
-//cout << "SHD = " << shd << endl;
-//delete network;
-//delete ref_net;
-//}
-//
-//TEST_F(ExperimentBNSLOnAndes, pc_stable4) {
-//StructureLearning *bnsl = new PCStable(network, 0.05);
-//bnsl->StructLearnCompData(trainer, 4, 1, false, false);
-//delete trainer;
-//
-//CustomNetwork *ref_net = new CustomNetwork();
-//ref_net->LoadBIFFile("../../data/andes.bif");
-////    ref_net->PrintEachEdgeWithIndex();
-//
-//BNSLComparison comp(ref_net, network);
-//int shd = comp.GetSHD();
-//cout << "SHD = " << shd << endl;
-//delete network;
-//delete ref_net;
-//}
-//
-//TEST_F(ExperimentBNSLOnAndes, pc_stable6) {
-//StructureLearning *bnsl = new PCStable(network, 0.05);
-//bnsl->StructLearnCompData(trainer, 6, 1, false, false);
-//delete trainer;
-//
-//CustomNetwork *ref_net = new CustomNetwork();
-//ref_net->LoadBIFFile("../../data/andes.bif");
-////    ref_net->PrintEachEdgeWithIndex();
-//
-//BNSLComparison comp(ref_net, network);
-//int shd = comp.GetSHD();
-//cout << "SHD = " << shd << endl;
-//delete network;
-//delete ref_net;
-//}
-//
-//TEST_F(ExperimentBNSLOnAndes, pc_stable8) {
-//StructureLearning *bnsl = new PCStable(network, 0.05);
-//bnsl->StructLearnCompData(trainer, 8, 1, false, false);
-//delete trainer;
-//
-//CustomNetwork *ref_net = new CustomNetwork();
-//ref_net->LoadBIFFile("../../data/andes.bif");
-////    ref_net->PrintEachEdgeWithIndex();
-//
-//BNSLComparison comp(ref_net, network);
-//int shd = comp.GetSHD();
-//cout << "SHD = " << shd << endl;
-//delete network;
-//delete ref_net;
-//}
-//
-//TEST_F(ExperimentBNSLOnAndes, pc_stable10) {
-//StructureLearning *bnsl = new PCStable(network, 0.05);
-//bnsl->StructLearnCompData(trainer, 10, 1, false, false);
-//delete trainer;
-//
-//CustomNetwork *ref_net = new CustomNetwork();
-//ref_net->LoadBIFFile("../../data/andes.bif");
-////    ref_net->PrintEachEdgeWithIndex();
-//
-//BNSLComparison comp(ref_net, network);
-//int shd = comp.GetSHD();
-//cout << "SHD = " << shd << endl;
-//delete network;
-//delete ref_net;
-//}
-//
-//TEST_F(ExperimentBNSLOnAndes, pc_stable12) {
-//StructureLearning *bnsl = new PCStable(network, 0.05);
-//bnsl->StructLearnCompData(trainer, 12, 1, false, false);
-//delete trainer;
-//
-//CustomNetwork *ref_net = new CustomNetwork();
-//ref_net->LoadBIFFile("../../data/andes.bif");
-////    ref_net->PrintEachEdgeWithIndex();
-//
-//BNSLComparison comp(ref_net, network);
-//int shd = comp.GetSHD();
-//cout << "SHD = " << shd << endl;
-//delete network;
-//delete ref_net;
-//}
-//
-//TEST_F(ExperimentBNSLOnAndes, pc_stable14) {
-//StructureLearning *bnsl = new PCStable(network, 0.05);
-//bnsl->StructLearnCompData(trainer, 14, 1, false, false);
-//delete trainer;
-//
-//CustomNetwork *ref_net = new CustomNetwork();
-//ref_net->LoadBIFFile("../../data/andes.bif");
-////    ref_net->PrintEachEdgeWithIndex();
-//
-//BNSLComparison comp(ref_net, network);
-//int shd = comp.GetSHD();
-//cout << "SHD = " << shd << endl;
-//delete network;
-//delete ref_net;
-//}
-//
-//TEST_F(ExperimentBNSLOnAndes, pc_stable16) {
-//StructureLearning *bnsl = new PCStable(network, 0.05);
-//bnsl->StructLearnCompData(trainer, 16, 1, false, false);
-//delete trainer;
-//
-//CustomNetwork *ref_net = new CustomNetwork();
-//ref_net->LoadBIFFile("../../data/andes.bif");
-////    ref_net->PrintEachEdgeWithIndex();
-//
-//BNSLComparison comp(ref_net, network);
-//int shd = comp.GetSHD();
-//cout << "SHD = " << shd << endl;
-//delete network;
-//delete ref_net;
-//}
-
-
 
 
 
@@ -941,7 +296,7 @@ protected:
 
 TEST_F(ExperimentBNSLOnMunin1, pc_stable) {
     StructureLearning *bnsl = new PCStable(network, 0.05);
-    bnsl->StructLearnCompData(trainer, 8, 1, false, false);
+    bnsl->StructLearnCompData(trainer, 4, 1, false, false);
     delete trainer;
 
     CustomNetwork *ref_net = new CustomNetwork();
@@ -954,134 +309,6 @@ TEST_F(ExperimentBNSLOnMunin1, pc_stable) {
     delete network;
     delete ref_net;
 }
-
-//TEST_F(ExperimentBNSLOnMunin1, pc_stable2) {
-//StructureLearning *bnsl = new PCStable(network, 0.05);
-//bnsl->StructLearnCompData(trainer, 2, 1, false, false);
-//delete trainer;
-//
-//CustomNetwork *ref_net = new CustomNetwork();
-//ref_net->LoadBIFFile("../../data/munin1.bif");
-////    ref_net->PrintEachEdgeWithIndex();
-//
-//BNSLComparison comp(ref_net, network);
-//int shd = comp.GetSHD();
-//cout << "SHD = " << shd << endl;
-//delete network;
-//delete ref_net;
-//}
-//
-//TEST_F(ExperimentBNSLOnMunin1, pc_stable4) {
-//StructureLearning *bnsl = new PCStable(network, 0.05);
-//bnsl->StructLearnCompData(trainer, 4, 1, false, false);
-//delete trainer;
-//
-//CustomNetwork *ref_net = new CustomNetwork();
-//ref_net->LoadBIFFile("../../data/munin1.bif");
-////    ref_net->PrintEachEdgeWithIndex();
-//
-//BNSLComparison comp(ref_net, network);
-//int shd = comp.GetSHD();
-//cout << "SHD = " << shd << endl;
-//delete network;
-//delete ref_net;
-//}
-//
-//TEST_F(ExperimentBNSLOnMunin1, pc_stable6) {
-//StructureLearning *bnsl = new PCStable(network, 0.05);
-//bnsl->StructLearnCompData(trainer, 6, 1, false, false);
-//delete trainer;
-//
-//CustomNetwork *ref_net = new CustomNetwork();
-//ref_net->LoadBIFFile("../../data/munin1.bif");
-////    ref_net->PrintEachEdgeWithIndex();
-//
-//BNSLComparison comp(ref_net, network);
-//int shd = comp.GetSHD();
-//cout << "SHD = " << shd << endl;
-//delete network;
-//delete ref_net;
-//}
-//
-//TEST_F(ExperimentBNSLOnMunin1, pc_stable8) {
-//StructureLearning *bnsl = new PCStable(network, 0.05);
-//bnsl->StructLearnCompData(trainer, 8, 1, false, false);
-//delete trainer;
-//
-//CustomNetwork *ref_net = new CustomNetwork();
-//ref_net->LoadBIFFile("../../data/munin1.bif");
-////    ref_net->PrintEachEdgeWithIndex();
-//
-//BNSLComparison comp(ref_net, network);
-//int shd = comp.GetSHD();
-//cout << "SHD = " << shd << endl;
-//delete network;
-//delete ref_net;
-//}
-//
-//TEST_F(ExperimentBNSLOnMunin1, pc_stable10) {
-//StructureLearning *bnsl = new PCStable(network, 0.05);
-//bnsl->StructLearnCompData(trainer, 10, 1, false, false);
-//delete trainer;
-//
-//CustomNetwork *ref_net = new CustomNetwork();
-//ref_net->LoadBIFFile("../../data/munin1.bif");
-////    ref_net->PrintEachEdgeWithIndex();
-//
-//BNSLComparison comp(ref_net, network);
-//int shd = comp.GetSHD();
-//cout << "SHD = " << shd << endl;
-//delete network;
-//delete ref_net;
-//}
-//
-//TEST_F(ExperimentBNSLOnMunin1, pc_stable12) {
-//StructureLearning *bnsl = new PCStable(network, 0.05);
-//bnsl->StructLearnCompData(trainer, 12, 1, false, false);
-//delete trainer;
-//
-//CustomNetwork *ref_net = new CustomNetwork();
-//ref_net->LoadBIFFile("../../data/munin1.bif");
-////    ref_net->PrintEachEdgeWithIndex();
-//
-//BNSLComparison comp(ref_net, network);
-//int shd = comp.GetSHD();
-//cout << "SHD = " << shd << endl;
-//delete network;
-//delete ref_net;
-//}
-//
-//TEST_F(ExperimentBNSLOnMunin1, pc_stable14) {
-//StructureLearning *bnsl = new PCStable(network, 0.05);
-//bnsl->StructLearnCompData(trainer, 14, 1, false, false);
-//delete trainer;
-//
-//CustomNetwork *ref_net = new CustomNetwork();
-//ref_net->LoadBIFFile("../../data/munin1.bif");
-////    ref_net->PrintEachEdgeWithIndex();
-//
-//BNSLComparison comp(ref_net, network);
-//int shd = comp.GetSHD();
-//cout << "SHD = " << shd << endl;
-//delete network;
-//delete ref_net;
-//}
-//
-//TEST_F(ExperimentBNSLOnMunin1, pc_stable16) {
-//StructureLearning *bnsl = new PCStable(network, 0.05);
-//bnsl->StructLearnCompData(trainer, 16, 1, false, false);
-//delete trainer;
-//
-//CustomNetwork *ref_net = new CustomNetwork();
-//ref_net->LoadBIFFile("../../data/munin1.bif");
-////    ref_net->PrintEachEdgeWithIndex();
-//
-//BNSLComparison comp(ref_net, network);
-//int shd = comp.GetSHD();
-//cout << "SHD = " << shd << endl;
-//delete network;
-//delete ref_net;
-//}
 
 
 

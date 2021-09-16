@@ -66,7 +66,7 @@ void PCStable::StructLearnByPCStable(Dataset *dts, int num_threads, int group_si
         network->adjacencies.insert(make_pair(i, adjacency));
     }
 
-//#pragma omp parallel for num_threads(8)
+//#pragma omp parallel for num_threads(32)
     for (int i = 0; i < network->num_edges; ++i) {
         int node_idx1 = network->vec_edges[i].GetNode1()->GetNodeIndex();
         int node_idx2 = network->vec_edges[i].GetNode2()->GetNodeIndex();
@@ -222,6 +222,7 @@ bool PCStable::SearchAtDepth(Dataset *dts, int c_depth, int num_threads, int gro
             processing_edge_id[i] = stack_edge_id.top();
             stack_edge_id.pop();
         }
+//#pragma omp parallel for num_threads(size)
         for (int i = 0; i < size; ++i) {
             CheckEdge(dts, adjacencies_copy, c_depth, processing_edge_id[i], group_size, verbose);
         }
@@ -234,6 +235,38 @@ bool PCStable::SearchAtDepth(Dataset *dts, int c_depth, int num_threads, int gro
     }
     delete[] processing_edge_id;
     processing_edge_id = nullptr;
+
+
+//    // push all edges into stack
+//    stack<int> stack_edge_id;
+//    for (int i = network->num_edges - 1; i >= 0; --i) {
+//        stack_edge_id.push(i);
+//    }
+//
+//    int processing_edge_id;
+//#pragma omp parallel num_threads(8)
+//    {
+//#pragma omp single
+//        {
+//            while (!stack_edge_id.empty()) {
+//                // pop one edge
+//                processing_edge_id = stack_edge_id.top();
+//                stack_edge_id.pop();
+//
+//                // handle one edge
+//#pragma omp task
+//                CheckEdge(dts, adjacencies_copy, c_depth, processing_edge_id, group_size, verbose);
+//#pragma omp taskwait
+//
+//                if (network->vec_edges[processing_edge_id].need_to_push) {
+//                    // if this edge has not been finished, push back to the stack
+//                    stack_edge_id.push(processing_edge_id);
+//                }
+//            }
+//        }
+//    }
+
+
 
     for (int i = 0; i < network->num_edges; ++i) {
         int node_idx1 = network->vec_edges[i].GetNode1()->GetNodeIndex();
