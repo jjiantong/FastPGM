@@ -25,6 +25,7 @@ public:
     int diff; // difference between a and b (should be non-negative)
     vector<int> choice; // internally stored choice
 
+//    ChoiceGenerator() {}
     ChoiceGenerator (int a, int b);
 
     vector<vector<int>> NextN(int n);

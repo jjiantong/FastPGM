@@ -45,7 +45,7 @@ public:
     void StructLearnByPCStable(Dataset *dts, int num_threads, int group_size, bool print_struct, bool verbose);
     bool SearchAtDepth(Dataset *dts, int c_depth, int num_threads, int group_size, bool verbose);
 
-    void CheckEdge(Dataset *dts, const map<int, map<int, double>> &adjacencies, int c_depth,
+    bool CheckEdge(Dataset *dts, const map<int, map<int, double>> &adjacencies, int c_depth,
                    int edge_id, int group_size, bool verbose);
     int FindAdjacencies(Dataset *dts, const map<int, map<int, double>> &adjacencies, int edge_id, int x_idx, int y_idx);
     bool Testing(Dataset *dts, int c_depth, int edge_id, int x_idx, int y_idx, int group_size, bool verbose);

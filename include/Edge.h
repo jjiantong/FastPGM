@@ -33,7 +33,7 @@ public:
     bool is_ordered;
     Label label;
 
-    Edge(){};
+    Edge(){}
     Edge(Node* node1, Node* node2, EndPoint end_point1, EndPoint end_point2); // for directed edges
     Edge(Node* node1, Node* node2); // for undirected edges
 
