@@ -24,7 +24,6 @@ public:
     ChoiceGenerator *cg;
     vector<int> vec_adj;
     bool finish;
-    bool need_to_push;
     /**
      * are used for converting DAG to CPDAG
      * an edge e is labeled as COMPELLED means e is in every graph of the equivalence class

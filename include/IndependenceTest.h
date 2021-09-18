@@ -32,7 +32,6 @@ class IndependenceTest {
 public:
     Dataset *dataset;
     double alpha;
-    Timer *timer;
 
     Counts2D *table_2d;
     Counts3D *table_3d;

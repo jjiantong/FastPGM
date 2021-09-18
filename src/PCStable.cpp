@@ -10,40 +10,45 @@ PCStable::PCStable(Network *net, double a, int d) {
     num_dependence_judgement = 0;
     depth = d;
     alpha = a;
-    timer = new Timer();
 }
 
 PCStable::~PCStable() {
     delete network;
-    delete timer;
 }
 
 void PCStable::StructLearnCompData(Dataset *dts, int group_size, int num_threads, bool print_struct, bool verbose) {
     cout << "==================================================" << '\n'
          << "Begin structural learning with PC-stable" << endl;
 
+    Timer *timer = new Timer();
     // record time
     timer->Start("pc-stable");
     AssignNodeInformation(dts);
-    StructLearnByPCStable(dts, num_threads, group_size, print_struct, verbose);
+    StructLearnByPCStable(dts, num_threads, group_size, timer, print_struct, verbose);
     timer->Stop("pc-stable");
     setlocale(LC_NUMERIC, "");
 
     cout << "==================================================" << endl;
     cout << "# of CI-tests is " << num_ci_test << ", # of dependence judgements is " << num_dependence_judgement << endl;
     timer->Print("pc-stable");
-    timer->Print("pc-stable step 1"); cout << " (" << timer->time["pc-stable step 1"] / timer->time["pc-stable"] * 100 << "%)" << endl;
+//    timer->Print("pc-stable step 1"); cout << " (" << timer->time["pc-stable step 1"] / timer->time["pc-stable"] * 100 << "%)" << endl;
 //    timer->Print("pc-stable step 2"); cout << " (" << timer->time["pc-stable step 2"] / timer->time["pc-stable"] * 100 << "%)";
 //    timer->Print("pc-stable step 3"); cout << " (" << timer->time["pc-stable step 3"] / timer->time["pc-stable"] * 100 << "%)";
+
+//    timer->Print("cg"); cout << " (" << timer->time["cg"] / timer->time["pc-stable step 1"] * 100 << "%)";
+//    timer->Print("ci"); cout << " (" << timer->time["ci"] / timer->time["pc-stable step 1"] * 100 << "%)" << endl;
 
 //    timer->Print("new & delete"); cout << " (" << timer->time["new & delete"] / timer->time["pc-stable step 1"] * 100 << "%)";
 //    timer->Print("config + count"); cout << " (" << timer->time["config + count"] / timer->time["pc-stable step 1"] * 100 << "%)";
 //    timer->Print("marginals"); cout << " (" << timer->time["marginals"] / timer->time["pc-stable step 1"] * 100 << "%)";
 //    timer->Print("g2 & df + p value"); cout << " (" << timer->time["g2 & df + p value"] / timer->time["pc-stable step 1"] * 100 << "%)" << endl;
+    delete timer;
+    timer = nullptr;
 }
 
-void PCStable::StructLearnByPCStable(Dataset *dts, int num_threads, int group_size, bool print_struct, bool verbose) {
-    timer->Start("pc-stable step 1");
+void PCStable::StructLearnByPCStable(Dataset *dts, int num_threads, int group_size,
+                                     Timer *timer, bool print_struct, bool verbose) {
+//    timer->Start("pc-stable step 1");
     cout << "==================================================" << '\n'
          << "Generating complete undirected graph" << endl;
 
@@ -66,7 +71,7 @@ void PCStable::StructLearnByPCStable(Dataset *dts, int num_threads, int group_si
         network->adjacencies.insert(make_pair(i, adjacency));
     }
 
-//#pragma omp parallel for num_threads(32)
+#pragma omp parallel for num_threads(num_threads)
     for (int i = 0; i < network->num_edges; ++i) {
         int node_idx1 = network->vec_edges[i].GetNode1()->GetNodeIndex();
         int node_idx2 = network->vec_edges[i].GetNode2()->GetNodeIndex();
@@ -138,9 +143,14 @@ void PCStable::StructLearnByPCStable(Dataset *dts, int num_threads, int group_si
     }
 
     for (int d = 1; d < depth; ++d) {
-        cout << "Level " << d << "... " << endl;
+//        cout << "Level " << d << "... " << endl;
+        cout << endl << "Level " << d << "... ";
 
-        bool more = SearchAtDepth(dts, d, num_threads, group_size, verbose);
+//        timer->Start("leveln");
+        bool more = SearchAtDepth(dts, d, num_threads, timer, group_size, verbose);
+//        timer->Stop("leveln");
+//        timer->Print("leveln");
+
 
         if (verbose) {
             cout << "* remaining edges:" << endl;
@@ -151,8 +161,7 @@ void PCStable::StructLearnByPCStable(Dataset *dts, int num_threads, int group_si
             break;
         }
     }
-
-    timer->Stop("pc-stable step 1");
+//    timer->Stop("pc-stable step 1");
 
     cout << "\n==================================================" << '\n'
          << "Begin orienting v-structure" << endl;
@@ -183,7 +192,7 @@ void PCStable::StructLearnByPCStable(Dataset *dts, int num_threads, int group_si
  * according to the results, some of the edges will push back again and some will not
  * repeat this process until the stack is empty, which means all edges in this level have been finished
  */
-bool PCStable::SearchAtDepth(Dataset *dts, int c_depth, int num_threads, int group_size, bool verbose) {
+bool PCStable::SearchAtDepth(Dataset *dts, int c_depth, int num_threads, Timer *timer, int group_size, bool verbose) {
     /**
      * the copied adjacency sets of all nodes are used and kept unchanged at each particular level c_depth
      * consequently, an edge deletion at one level does not affect the conditioning sets of the other nodes
@@ -198,44 +207,48 @@ bool PCStable::SearchAtDepth(Dataset *dts, int c_depth, int num_threads, int gro
         stack_edge_id.push(i);
     }
 
-    int *processing_edge_id = new int[num_threads];
-    while (stack_edge_id.size() >= num_threads) {
-        // pop 8 edges at one time
-        for (int i = 0; i < num_threads; ++i) {
+    int processing_edge_id[128];
+    bool need_to_push[128];
+    while (stack_edge_id.size() >= 128) {
+        // pop 128 edges at one time
+        for (int i = 0; i < 128; ++i) {
             processing_edge_id[i] = stack_edge_id.top();
             stack_edge_id.pop();
         }
 
-//#pragma omp parallel for num_threads(32)
-        for (int i = 0; i < num_threads; ++i) {
-            CheckEdge(dts, adjacencies_copy, c_depth, processing_edge_id[i], group_size, verbose);
+#pragma omp parallel for num_threads(num_threads)
+        for (int i = 0; i < 128; ++i) {
+            need_to_push[i] = CheckEdge(dts, adjacencies_copy, c_depth, processing_edge_id[i], timer, group_size, verbose);
         }
-        for (int i = num_threads - 1; i >= 0; --i) {
-            if (network->vec_edges[processing_edge_id[i]].need_to_push == true) {
+
+        for (int i = 127; i >= 0; --i) {
+            if (need_to_push[i]) {
                 // if this edge has not been finished, push back to the stack
                 stack_edge_id.push(processing_edge_id[i]);
             }
         }
     }
-    while (!stack_edge_id.empty()) { // have 1~7 left
+
+    while (!stack_edge_id.empty()) { // have 1~127 left
         int size = stack_edge_id.size();
         for (int i = 0; i < size; ++i) {
             processing_edge_id[i] = stack_edge_id.top();
             stack_edge_id.pop();
         }
-//#pragma omp parallel for num_threads(size)
+
+        int p = (size > num_threads) ? num_threads : size;
+#pragma omp parallel for num_threads(p)
         for (int i = 0; i < size; ++i) {
-            CheckEdge(dts, adjacencies_copy, c_depth, processing_edge_id[i], group_size, verbose);
+            need_to_push[i] = CheckEdge(dts, adjacencies_copy, c_depth, processing_edge_id[i], timer, group_size, verbose);
         }
+
         for (int i = size - 1; i >= 0; --i) {
-            if (network->vec_edges[processing_edge_id[i]].need_to_push == true) {
+            if (need_to_push[i]) {
                 // if this edge has not been finished, push back to the stack
                 stack_edge_id.push(processing_edge_id[i]);
             }
         }
     }
-    delete[] processing_edge_id;
-    processing_edge_id = nullptr;
 
     /**------------------- using task (with bugs), and the sequential while-loop version -------------------**/
 //#pragma omp parallel num_threads(4)
@@ -307,9 +320,10 @@ bool PCStable::SearchAtDepth(Dataset *dts, int c_depth, int num_threads, int gro
  * according to the results, determine whether the edge needs to be removed
  *                                             the edge has been finished handling
  *                                             the edge needs to be pushed back to the stack
+ * @return whether the edge need to be pushed or not
  */
 bool PCStable::CheckEdge(Dataset *dts, const map<int, map<int, double>> &adjacencies, int c_depth,
-                         int edge_id, int group_size, bool verbose) {
+                         int edge_id, Timer *timer, int group_size, bool verbose) {
     int x_idx = network->vec_edges[edge_id].GetNode1()->GetNodeIndex();
     int y_idx = network->vec_edges[edge_id].GetNode2()->GetNodeIndex();
 
@@ -319,6 +333,7 @@ bool PCStable::CheckEdge(Dataset *dts, const map<int, map<int, double>> &adjacen
              << network->vec_edges[edge_id].GetNode2()->node_name << ", conditioning sets of size " << c_depth << "." << endl;
     }
 
+//    timer->Start("cg");
     if (network->vec_edges[edge_id].process == NO) {
         /**
          * case 1: this edge have not been processed
@@ -333,9 +348,6 @@ bool PCStable::CheckEdge(Dataset *dts, const map<int, map<int, double>> &adjacen
 
         // prepare to generate choice and set "process" = NODE1
         if (num_adj >= c_depth) {
-//            cout << omp_get_thread_num() << ": C " << num_adj << " " << c_depth << endl;
-//            ChoiceGenerator cg_tmp(num_adj, c_depth);
-//            network->vec_edges[edge_id].cg = cg_tmp;
             network->vec_edges[edge_id].cg = new ChoiceGenerator(num_adj, c_depth);
             network->vec_edges[edge_id].process = NODE1;
         } else {
@@ -344,15 +356,10 @@ bool PCStable::CheckEdge(Dataset *dts, const map<int, map<int, double>> &adjacen
 
             // prepare to generate choice and set "process" = NODE2
             if (num_adj >= c_depth) {
-//                cout << omp_get_thread_num() << ": C " << num_adj << " " << c_depth << endl;
-//                ChoiceGenerator cg_tmp(num_adj, c_depth);
-//                network->vec_edges[edge_id].cg = cg_tmp;
                 network->vec_edges[edge_id].cg = new ChoiceGenerator(num_adj, c_depth);
                 network->vec_edges[edge_id].process = NODE2;
             } else {
-                network->vec_edges[edge_id].need_to_push = false;
-                network->vec_edges[edge_id].need_remove  = false;
-                network->vec_edges[edge_id].process = NO;
+                network->vec_edges[edge_id].need_remove = false;
                 return false;
             }
         }
@@ -369,19 +376,16 @@ bool PCStable::CheckEdge(Dataset *dts, const map<int, map<int, double>> &adjacen
 
         // prepare to generate choice and set "process" = NODE2
         if (num_adj >= c_depth) {
-//            cout << omp_get_thread_num() << ": C " << num_adj << " " << c_depth << endl;
-//            ChoiceGenerator cg_tmp(num_adj, c_depth);
-//            network->vec_edges[edge_id].cg = cg_tmp;
             network->vec_edges[edge_id].cg = new ChoiceGenerator(num_adj, c_depth);
             network->vec_edges[edge_id].process = NODE2;
         } else {
-            network->vec_edges[edge_id].need_to_push = false;
-            network->vec_edges[edge_id].need_remove  = false;
-            network->vec_edges[edge_id].process = NO;
+            network->vec_edges[edge_id].need_remove = false;
             return false;
         }
     }
+//    timer->Stop("cg");
 
+//    timer->Start("ci");
     /**
      * do the next "group_size" ci tests
      * if independent: delete "cg", need remove, no need to push
@@ -390,31 +394,27 @@ bool PCStable::CheckEdge(Dataset *dts, const map<int, map<int, double>> &adjacen
      *      if finish = true, process = NODE1: delete "cg", need to push, process = ENODE1
      *      if finish = true, process = NODE2: delete "cg", no need remove, no need to push, process = NO
      */
-    bool ind = Testing(dts, c_depth, edge_id, x_idx, y_idx, group_size, verbose);
+    bool ind = Testing(dts, c_depth, edge_id, x_idx, y_idx, timer, group_size, verbose);
+//    timer->Stop("ci");
 
     if (ind) {
         delete network->vec_edges[edge_id].cg;
         network->vec_edges[edge_id].cg = nullptr;
-        network->vec_edges[edge_id].need_remove  = true;
-        network->vec_edges[edge_id].need_to_push = false;
+        network->vec_edges[edge_id].need_remove = true;
         return false;
     } else {
         if (!network->vec_edges[edge_id].finish) {
-            network->vec_edges[edge_id].need_to_push = true;
             return true;
         } else {
             if (network->vec_edges[edge_id].process == NODE1) {
                 delete network->vec_edges[edge_id].cg;
                 network->vec_edges[edge_id].cg = nullptr;
-                network->vec_edges[edge_id].need_to_push = true;
                 network->vec_edges[edge_id].process = ENODE1;
                 return true;
             } else {
                 delete network->vec_edges[edge_id].cg;
                 network->vec_edges[edge_id].cg = nullptr;
                 network->vec_edges[edge_id].need_remove  = false;
-                network->vec_edges[edge_id].need_to_push = false;
-                network->vec_edges[edge_id].process = NO;
                 return false;
             }
         }
@@ -451,7 +451,7 @@ int PCStable::FindAdjacencies(Dataset *dts, const map<int, map<int, double>> &ad
  *            lower p-value indicates stronger dependence and stronger association between the variables
  * @return true if such a Z can be found, which means edge x -- y should be deleted
  */
-bool PCStable::Testing(Dataset *dts, int c_depth, int edge_idx, int x_idx, int y_idx, int group_size, bool verbose) {
+bool PCStable::Testing(Dataset *dts, int c_depth, int edge_idx, int x_idx, int y_idx, Timer *timer, int group_size, bool verbose) {
 //    cout << omp_get_thread_num() << ": current choice: ";
 //    if (!network->vec_edges[edge_idx].cg.choice.empty()) {
 //        for (int i = 0; i < c_depth; ++i) {
