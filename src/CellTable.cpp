@@ -206,7 +206,7 @@ Counts2D::~Counts2D() {
 
 /**
  * @brief: 1) get a mapped index z of each conditioning set z1, z2 ..., then
- *         2) count and generate a three-dimensional contingency table and the marginals
+ *         2) count and generate a three-dimensional conti ngency table and the marginals
  * @example of 1): 3 features, dims = {2, 3, 2}
  *  cell table: 0 0 0 (row 0)
  *              0 0 1

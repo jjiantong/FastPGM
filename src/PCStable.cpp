@@ -143,8 +143,7 @@ void PCStable::StructLearnByPCStable(Dataset *dts, int num_threads, int group_si
     }
 
     for (int d = 1; d < depth; ++d) {
-//        cout << "Level " << d << "... " << endl;
-        cout << endl << "Level " << d << "... ";
+        cout << "Level " << d << "... " << endl;
 
 //        timer->Start("leveln");
         bool more = SearchAtDepth(dts, d, num_threads, timer, group_size, verbose);

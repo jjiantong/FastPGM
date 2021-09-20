@@ -74,7 +74,7 @@ IndependenceTest::Result IndependenceTest::ComputeGSquareXYZ(int x_idx, int y_id
     }
 
 //    timer->Start("new & delete");
-    table_3d = new Counts3D(dimx, dimy, x_idx, y_idx, cond_dims, z);
+    Counts3D *table_3d = new Counts3D(dimx, dimy, x_idx, y_idx, cond_dims, z);
 //    timer->Stop("new & delete");
 
     table_3d->FillTable(dataset, timer);
@@ -177,7 +177,7 @@ IndependenceTest::Result IndependenceTest::ComputeGSquareXYZGroup(int x_idx, int
     }
 
 //    timer->Start("new & delete");
-    table_3d_group = new Counts3DGroup(dimx, dimy, x_idx, y_idx, cond_dims, z, c_size);
+    Counts3DGroup *table_3d_group = new Counts3DGroup(dimx, dimy, x_idx, y_idx, cond_dims, z, c_size);
 //    timer->Stop("new & delete");
 
     table_3d_group->FillTableGroup(dataset, c_size, timer);
@@ -293,7 +293,7 @@ IndependenceTest::Result IndependenceTest::ComputeGSquareXY(int x_idx, int y_idx
     int dimy = dataset->num_of_possible_values_of_disc_vars[y_idx];
 
 //    timer->Start("new & delete");
-    table_2d = new Counts2D(dimx, dimy, x_idx, y_idx);
+    Counts2D *table_2d = new Counts2D(dimx, dimy, x_idx, y_idx);
 //    timer->Stop("new & delete");
 
     table_2d->FillTable(dataset, timer);

@@ -33,10 +33,6 @@ public:
     Dataset *dataset;
     double alpha;
 
-    Counts2D *table_2d;
-    Counts3D *table_3d;
-    Counts3DGroup *table_3d_group;
-
     /**
      * an inner class Result is used to store the parameters of the result returned by the G Square test
      */
