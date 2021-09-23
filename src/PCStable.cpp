@@ -142,6 +142,8 @@ void PCStable::StructLearnByPCStable(Dataset *dts, int num_threads, int group_si
         network->PrintEachEdgeWithName();
     }
 
+    cout << "# remaining edges = " << network->num_edges << endl;
+
     for (int d = 1; d < depth; ++d) {
         cout << "Level " << d << "... " << endl;
 
@@ -155,6 +157,8 @@ void PCStable::StructLearnByPCStable(Dataset *dts, int num_threads, int group_si
             cout << "* remaining edges:" << endl;
             network->PrintEachEdgeWithName();
         }
+
+        cout << "# remaining edges = " << network->num_edges << endl;
 
         if (!more) {
             break;
