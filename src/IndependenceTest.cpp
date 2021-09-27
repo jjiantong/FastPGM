@@ -110,12 +110,14 @@ IndependenceTest::Result IndependenceTest::ComputeGSquareXYZ(int x_idx, int y_id
         df += (alx - 1) * (aly - 1);
 
         long total = table_3d->nk[k]; // N_{++z}
+//        int total = table_3d->nk[k]; // N_{++z}
         if (total == 0) {
             continue;
         }
 
         for (int i = 0; i < dimx; ++i) { // for each possible value of x
             long sum_row = table_3d->ni[k * dimx + i]; // N_{x+z}
+//            int sum_row = table_3d->ni[k * dimx + i]; // N_{x+z}
             if (sum_row == 0) {
                 continue;
             }
@@ -123,6 +125,8 @@ IndependenceTest::Result IndependenceTest::ComputeGSquareXYZ(int x_idx, int y_id
             for (int j = 0; j < dimy; ++j) { // for each possible value of y
                 long sum_col = table_3d->nj[k * dimy + j]; // N_{+yz}
                 long observed = table_3d->n[k * dimx * dimy + i * dimy + j]; // N_{xyz}
+//                int sum_col = table_3d->nj[k * dimy + j]; // N_{+yz}
+//                int observed = table_3d->n[k * dimx * dimy + i * dimy + j]; // N_{xyz}
                 if (sum_col == 0 || observed == 0) {
                     continue;
                 }
@@ -224,20 +228,24 @@ IndependenceTest::Result IndependenceTest::ComputeGSquareXYZGroup(int x_idx, int
             df += (alx - 1) * (aly - 1);
 
             long total = table_3d_group->nk[k + table_3d_group->cum_dims[m]]; // N_{++z}
+//            int total = table_3d_group->nk[k + table_3d_group->cum_dims[m]]; // N_{++z}
             if (total == 0) {
                 continue;
             }
 
             for (int i = 0; i < dimx; ++i) { // for each possible value of x
                 long sum_row = table_3d_group->ni[k * dimx + i + offset_x[m]]; // N_{x+z}
+//                int sum_row = table_3d_group->ni[k * dimx + i + offset_x[m]]; // N_{x+z}
                 if (sum_row == 0) {
                     continue;
                 }
 
                 for (int j = 0; j < dimy; ++j) { // for each possible value of y
                     long sum_col = table_3d_group->nj[k * dimy + j + offset_y[m]]; // N_{+yz}
+//                    int sum_col = table_3d_group->nj[k * dimy + j + offset_y[m]]; // N_{+yz}
 //                    long observed = table_3d_group->n[m][k * dimx * dimy + i * dimy + j]; // N_{xyz}
                     long observed = table_3d_group->n[k * dimx * dimy + i * dimy + j + offset_xy[m]]; // N_{xyz}
+//                    int observed = table_3d_group->n[k * dimx * dimy + i * dimy + j + offset_xy[m]]; // N_{xyz}
                     if (sum_col == 0 || observed == 0) {
                         continue;
                     }
@@ -318,9 +326,11 @@ IndependenceTest::Result IndependenceTest::ComputeGSquareXY(int x_idx, int y_idx
     df += (alx - 1) * (aly - 1);
 
     long total = dataset->num_instance; // N_{++}
+//    int total = dataset->num_instance; // N_{++}
 
     for (int i = 0; i < dimx; ++i) { // for each possible value of x
         long sum_row = table_2d->ni[i]; // N_{x+}
+//        int sum_row = table_2d->ni[i]; // N_{x+}
         if (sum_row == 0) {
             continue;
         }
@@ -328,6 +338,8 @@ IndependenceTest::Result IndependenceTest::ComputeGSquareXY(int x_idx, int y_idx
         for (int j = 0; j < dimy; ++j) { // for each possible value of y
             long sum_col = table_2d->nj[j]; // N_{+y}
             long observed = table_2d->n[i * dimy + j]; // N_{xy}
+//            int sum_col = table_2d->nj[j]; // N_{+y}
+//            int observed = table_2d->n[i * dimy + j]; // N_{xy}
 
             if (sum_col == 0 || observed == 0) {
                 continue;

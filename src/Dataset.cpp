@@ -445,9 +445,11 @@ void Dataset::SamplesToCSVFile(vector<Configuration> &samples, string &file, vec
 void Dataset::Vector2IntArray() {//storing the data set using int only
     // Initialize to be all zero. (dataset_all_vars: int **)
     dataset_all_vars = new int* [num_instance];
+//  dataset_all_vars = new uint8_t* [num_instance];
 //#pragma omp parallel for
     for (int s=0; s<num_instance; ++s) {
         dataset_all_vars[s] = new int [num_vars];
+//        dataset_all_vars[s] = new uint8_t [num_vars];
         vector<VarVal> vec_instance = vector_dataset_all_vars[s];
         for (const VarVal &vv : vec_instance) {  // For each non-zero-value feature of this sample.
             //change the related value if it is non-zero value in the vector representation.
@@ -463,9 +465,11 @@ void Dataset::Vector2IntArray() {//storing the data set using int only
 void Dataset::RowMajor2ColumnMajor() {
     // Initialize to be all zero. (dataset_columns: int **)
     dataset_columns = new int* [num_vars];
+//    dataset_columns = new uint8_t* [num_vars];
 //#pragma omp parallel for
     for (int i = 0; i < num_vars; ++i) {
         dataset_columns[i] = new int [num_instance];
+//        dataset_columns = new uint8_t* [num_vars];
         for (int j = 0; j < num_instance; ++j) {
             dataset_columns[i][j] = dataset_all_vars[j][i];
         }
