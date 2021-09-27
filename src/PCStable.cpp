@@ -31,6 +31,7 @@ void PCStable::StructLearnCompData(Dataset *dts, int group_size, int num_threads
     cout << "==================================================" << endl;
     cout << "# of CI-tests is " << num_ci_test << ", # of dependence judgements is " << num_dependence_judgement << endl;
     timer->Print("pc-stable");
+    timer->Print("pc-stable step 0"); cout << " (" << timer->time["pc-stable step 0"] / timer->time["pc-stable"] * 100 << "%)";
     timer->Print("pc-stable step 1"); cout << " (" << timer->time["pc-stable step 1"] / timer->time["pc-stable"] * 100 << "%)" << endl;
 //    timer->Print("pc-stable step 2"); cout << " (" << timer->time["pc-stable step 2"] / timer->time["pc-stable"] * 100 << "%)";
 //    timer->Print("pc-stable step 3"); cout << " (" << timer->time["pc-stable step 3"] / timer->time["pc-stable"] * 100 << "%)";
@@ -48,18 +49,22 @@ void PCStable::StructLearnCompData(Dataset *dts, int group_size, int num_threads
 
 void PCStable::StructLearnByPCStable(Dataset *dts, int num_threads, int group_size,
                                      Timer *timer, bool print_struct, bool verbose) {
-    timer->Start("pc-stable step 1");
+
     cout << "==================================================" << '\n'
          << "Generating complete undirected graph" << endl;
 
+    timer->Start("pc-stable step 0");
     for (int i = 0; i < network->num_nodes; ++i) {
         for (int j = i + 1; j < network->num_nodes; ++j) {
             network->AddUndirectedEdge(i, j);
         }
     }
+    timer->Stop("pc-stable step 0");
 
     cout << "==================================================" << '\n'
          << "Begin finding the skeleton" << endl << "Level 0... " << endl;
+
+    timer->Start("pc-stable step 1");
 
     for (int i = 0; i < network->num_nodes; ++i) { // find neighbor set of each node i
         map<int, double> adjacency;
@@ -142,7 +147,9 @@ void PCStable::StructLearnByPCStable(Dataset *dts, int num_threads, int group_si
         network->PrintEachEdgeWithName();
     }
 
-    cout << "# remaining edges = " << network->num_edges << endl;
+    double tmp = omp_get_wtime();
+    cout << "# remaining edges = " << network->num_edges
+         << ", time = " << tmp - timer->start_time["pc-stable step 1"] << endl;
 
     for (int d = 1; d < depth; ++d) {
         cout << "Level " << d << "... " << endl;
@@ -158,7 +165,9 @@ void PCStable::StructLearnByPCStable(Dataset *dts, int num_threads, int group_si
             network->PrintEachEdgeWithName();
         }
 
-        cout << "# remaining edges = " << network->num_edges << endl;
+        double tmp = omp_get_wtime();
+        cout << "# remaining edges = " << network->num_edges
+             << ", time = " << tmp - timer->start_time["pc-stable step 1"] << endl;
 
         if (!more) {
             break;
