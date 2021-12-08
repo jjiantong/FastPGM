@@ -76,11 +76,11 @@ void Network::PrintEachNodeChildren() {//print the child nodes of all the nodes
  * @brief: find node ptr by id
  */
 Node* Network::FindNodePtrByIndex(const int &index) const {
-  if (index < 0 || index >= num_nodes) {  // The node indexes are consecutive integers start at 0.
-    fprintf(stderr, "Error in function %s! \nInvalid index [%d]!", __FUNCTION__, index);
-    exit(1);
-  }
-  return map_idx_node_ptr.at(index);
+    if (index < 0 || index >= num_nodes) {  // The node indexes are consecutive integers start at 0.
+        fprintf(stderr, "Error in function %s! \nInvalid index [%d]!", __FUNCTION__, index);
+        exit(1);
+    }
+    return map_idx_node_ptr.at(index);
 }
 
 /**
@@ -273,17 +273,17 @@ int Network::GetEdge(Node *node1, Node *node2) {
  */
 bool Network::AddDirectedEdge(int p_index, int c_index) {
     // first check the two nodes
-    if(!(NodeIsInNetwork(p_index) && NodeIsInNetwork(c_index))) {
-        fprintf(stderr, "Error in function [%s].\nNode [%d] and/or [%d] do not belong to this network!",
-                __FUNCTION__, p_index, c_index);
-        exit(1);
-    }
+//    if(!(NodeIsInNetwork(p_index) && NodeIsInNetwork(c_index))) {
+//        fprintf(stderr, "Error in function [%s].\nNode [%d] and/or [%d] do not belong to this network!",
+//                __FUNCTION__, p_index, c_index);
+//        exit(1);
+//    }
 
     Node* node1 = FindNodePtrByIndex(p_index);
     Node* node2 = FindNodePtrByIndex(c_index);
     SetParentChild(node1, node2); // set parent and child relationship
 
-    if (GetDirectedEdge(node1, node2) == -1) {
+    if (GetDirectedEdge(node1, node2) == -1) { //TODO
         // vec_edges does not contain edge: add edge
         Edge edge(node1, node2, TAIL, ARROW);
         vec_edges.push_back(edge);
@@ -335,16 +335,16 @@ bool Network::ReverseDirectedEdge(int p_index, int c_index) {
  */
 void Network::AddUndirectedEdge(int p_index, int c_index) {
     // first check the two nodes
-    if(!(NodeIsInNetwork(p_index) && NodeIsInNetwork(c_index))) {
-        fprintf(stderr, "Error in function [%s].\nNode [%d] and/or [%d] do not belong to this network!",
-                __FUNCTION__, p_index, c_index);
-        exit(1);
-    }
+//    if(!(NodeIsInNetwork(p_index) && NodeIsInNetwork(c_index))) {
+//        fprintf(stderr, "Error in function [%s].\nNode [%d] and/or [%d] do not belong to this network!",
+//                __FUNCTION__, p_index, c_index);
+//        exit(1);
+//    }
 
     Node* node1 = FindNodePtrByIndex(p_index);
     Node* node2 = FindNodePtrByIndex(c_index);
 
-    if (GetUndirectedEdge(node1, node2) == -1) {
+    if (GetUndirectedEdge(node1, node2) == -1) { //TODO
         // vec_edges does not contain edge: add edge
         Edge edge(node1, node2);
         vec_edges.push_back(edge);
@@ -385,6 +385,21 @@ bool Network::DeleteEdge(int p_index, int c_index) {
                 DeleteDirectedEdge(p_index, c_index) ||
                 DeleteDirectedEdge(c_index, p_index));
     return del;
+}
+
+void Network::GenerateUndirectedCompleteGraph() {
+    // |E| = n(n-1)/2
+    num_edges = (num_nodes - 1) * num_nodes / 2;
+    vec_edges.resize(num_edges);
+
+    for (int i = 0; i < num_nodes; ++i) {
+        for (int j = i + 1; j < num_nodes; ++j) {
+            // compute the edge index in "vec_edges" according to the node indexes i and j
+            int index = (2 * num_nodes - i - 1) * i / 2 + j - i - 1;
+            Edge edge(FindNodePtrByIndex(i), FindNodePtrByIndex(j));
+            vec_edges[index] = edge;
+        }
+    }
 }
 
 /**

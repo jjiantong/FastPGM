@@ -1,13 +1,9 @@
-# bayesian-network
+# Bayesian-network
 
-Developed by Linjian Li, using Clion
-
-# Important notes
-
-
-# Feature
+## Feature
 
 * Structural learning with complete data
+  * PC-stable algorithm
   * Chow-Liu tree (Tree-Augmented Naive Bayes (TAN))
   * K2 search algorithm (Like Weka)
   * Dynamic programming method by Ott et al.
@@ -36,6 +32,7 @@ Developed by Linjian Li, using Clion
       * Gibbs sampling
     * Likelihood weighting sampling
 * Construct custom network from files
+  * BIF
   * XMLBIF (which is also supported by Weka)
 * Network structure scoring
   * K2
@@ -212,6 +209,5 @@ MultinomialNB (alpha=400), accuracy of 0.8268, 0.004 seconds.
  * [GoogleTest](https://github.com/google/googletest)
  * [TinyXML2](https://github.com/leethomason/tinyxml2)
  * [ARFF](https://github.com/LinjianLi/ARFF)
-
-
-# blah blah
+ * [StasLib](https://github.com/jjiantong/stats)
+ * [GCE-Math](https://github.com/kthohr/gcem)

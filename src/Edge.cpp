@@ -18,7 +18,7 @@ Edge::Edge(Node* node1, Node* node2) {
     int index1 = node1->GetNodeIndex();
     int index2 = node2->GetNodeIndex();
 
-    // check the order
+    // check the order TODO
     if (index1 < index2) {
         this->node1 = node1;
         this->node2 = node2;

@@ -51,15 +51,20 @@ void PCStable::StructLearnByPCStable(Dataset *dts, int num_threads, int group_si
                                      Timer *timer, bool print_struct, bool verbose) {
 
     cout << "==================================================" << '\n'
-         << "Generating complete undirected graph" << endl;
+         << "Generating undirected complete graph" << endl;
 
     timer->Start("pc-stable step 0");
-    for (int i = 0; i < network->num_nodes; ++i) {
-        for (int j = i + 1; j < network->num_nodes; ++j) {
-            network->AddUndirectedEdge(i, j);
-        }
-    }
+    network->GenerateUndirectedCompleteGraph();
+    /**
+     * it takes quite a long time for the original implementation
+     */
+//    for (int i = 0; i < network->num_nodes; ++i) {
+//        for (int j = i + 1; j < network->num_nodes; ++j) {
+//            network->AddUndirectedEdge(i, j);
+//        }
+//    }
     timer->Stop("pc-stable step 0");
+    timer->Print("pc-stable step 0");
 
     cout << "==================================================" << '\n'
          << "Begin finding the skeleton" << endl << "Level 0... " << endl;

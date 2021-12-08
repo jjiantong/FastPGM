@@ -16,13 +16,12 @@ void StructureLearning::AssignNodeInformation(Dataset *dts) {
 //#pragma omp parallel for
     for (int i = 0; i < network->num_nodes; ++i) {
         // construct a node in the network
-        DiscreteNode *node_ptr = new DiscreteNode(i);  // For now, only support discrete node.
+        DiscreteNode *node_ptr = new DiscreteNode(i);
 
         // give this node a name, mainly for print
         if (dts->vec_var_names.size() == network->num_nodes) {
             node_ptr->node_name = dts->vec_var_names[i];
-        }
-        else {
+        } else {
             node_ptr->node_name = to_string(i);//use id as name
         }
 
@@ -30,7 +29,7 @@ void StructureLearning::AssignNodeInformation(Dataset *dts) {
         int domain_size = dts->num_of_possible_values_of_disc_vars[i];
         node_ptr->SetDomainSize(domain_size);
 //        if (domain_size == 1) {cout << i+1 << endl;}
-        if (domain_size > 255) {cout << "error!!!!!!!!" << endl;}
+//        if (domain_size > 255) {cout << "error!!!!!!!!" << endl;}
         for (auto v : dts->map_disc_vars_possible_values[i]) {
             node_ptr->vec_potential_vals.push_back(v); // todo!! memory leakage
         }
