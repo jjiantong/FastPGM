@@ -12,4 +12,4 @@
 	url = https://github.com/jjiantong/stats
 [submodule "lib/gcem"]
 	path = lib/gcem
-	url = https://github.com/kthohr/gcem
+	url = https://github.com/jjiantong/gcem
