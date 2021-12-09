@@ -25,19 +25,6 @@ Dataset::~Dataset() {
     dataset_columns = nullptr;
 }
 
-ifstream Dataset::OpenFile(string data_file_path) {
-    ifstream file;
-    file.open(data_file_path);
-    if (!file.is_open()) {
-        fprintf(stderr, "Error in function %s!", __FUNCTION__);
-        fprintf(stderr, "Unable to open file %s!", data_file_path.c_str());
-        exit(1);
-    }
-    cout << "Data file opened. Begin to load data. " << endl;
-
-    return file;
-}
-
 /**
  * @brief: load data file with libsvm format
  * 1, read the data file and store with the representation of std::vector.
@@ -47,7 +34,14 @@ ifstream Dataset::OpenFile(string data_file_path) {
  */
 void Dataset::LoadLIBSVMData(string data_file_path, set<int> cont_vars) {
 
-    ifstream in_file = OpenFile(data_file_path);
+    ifstream in_file;
+    in_file.open(data_file_path);
+    if (!in_file.is_open()) {
+        fprintf(stderr, "Error in function %s!", __FUNCTION__);
+        fprintf(stderr, "Unable to open file %s!", data_file_path.c_str());
+        exit(1);
+    }
+    cout << "Data file opened. Begin to load data. " << endl;
 
     // the first element is the class variable in the LibSVN format
     class_var_index = 0;
@@ -160,7 +154,14 @@ void Dataset::LoadLIBSVMData(string data_file_path, set<int> cont_vars) {
  */
 void Dataset::LoadCSVData(string data_file_path, bool header, bool str_val, int cls_var_id, set<int> cont_vars) {
 
-    ifstream in_file = OpenFile(data_file_path);
+    ifstream in_file;
+    in_file.open(data_file_path);
+    if (!in_file.is_open()) {
+        fprintf(stderr, "Error in function %s!", __FUNCTION__);
+        fprintf(stderr, "Unable to open file %s!", data_file_path.c_str());
+        exit(1);
+    }
+    cout << "Data file opened. Begin to load data. " << endl;
 
     // we need to specify the variable interested for the CSV format
     this->class_var_index = cls_var_id;

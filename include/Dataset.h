@@ -40,8 +40,6 @@ public:
   Dataset();
   ~Dataset();
 
-    ifstream OpenFile(string data_file_path);
-
   void LoadLIBSVMData(string data_file_path, set<int> cont_vars={});
   void SamplesToLIBSVMFile(vector<DiscreteConfig> &samples, string &file) const;
   void SamplesToLIBSVMFile(vector<Configuration> &samples, string &file) const;

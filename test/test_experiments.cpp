@@ -24,6 +24,9 @@
 #include "ScoreFunction.h"
 #include "gadget.h"
 
+//string DATA_PATH = "/Users/jjt/work/research_project/BN"; // local
+string DATA_PATH = "/home/zeyiwen/jiantong/BN"; // NUS
+//string DATA_PATH = "/home/ubuntu"; // Oracle
 
 //class ExperimentOnA1a : public ::testing::Test {
 //protected:
@@ -94,7 +97,7 @@ protected:
     void SetUp() override {
         trainer = new Dataset();
         network = new Network(true);
-        string train_set_file_path = "../../../dataset/alarm/alarm_s5000.txt";
+        string train_set_file_path = DATA_PATH + "/dataset/alarm/alarm_s5000.txt";
         trainer->LoadCSVData(train_set_file_path, true, true, 0);
     }
     Dataset *trainer;
@@ -107,7 +110,7 @@ TEST_F(ExperimentBNSLOnAlarm, pc_stable) {
     delete trainer;
 
     CustomNetwork *ref_net = new CustomNetwork();
-    ref_net->LoadBIFFile("../../../dataset/alarm/alarm.bif");
+    ref_net->LoadBIFFile(DATA_PATH + "/dataset/alarm/alarm.bif");
 
     BNSLComparison comp(ref_net, network);
     int shd = comp.GetSHD();
@@ -122,7 +125,7 @@ TEST_F(ExperimentBNSLOnAlarm, pc_stable) {
 //delete trainer;
 //
 //CustomNetwork *ref_net = new CustomNetwork();
-//ref_net->LoadBIFFile("../../../dataset/alarm/alarm.bif");
+//ref_net->LoadBIFFile(DATA_PATH + "/dataset/alarm/alarm.bif");
 //
 //BNSLComparison comp(ref_net, network);
 //int shd = comp.GetSHD();
@@ -137,7 +140,7 @@ TEST_F(ExperimentBNSLOnAlarm, pc_stable) {
 //delete trainer;
 //
 //CustomNetwork *ref_net = new CustomNetwork();
-//ref_net->LoadBIFFile("../../../dataset/alarm/alarm.bif");
+//ref_net->LoadBIFFile(DATA_PATH + "/dataset/alarm/alarm.bif");
 //
 //BNSLComparison comp(ref_net, network);
 //int shd = comp.GetSHD();
@@ -152,7 +155,7 @@ TEST_F(ExperimentBNSLOnAlarm, pc_stable) {
 //delete trainer;
 //
 //CustomNetwork *ref_net = new CustomNetwork();
-//ref_net->LoadBIFFile("../../../dataset/alarm/alarm.bif");
+//ref_net->LoadBIFFile(DATA_PATH + "/dataset/alarm/alarm.bif");
 //
 //BNSLComparison comp(ref_net, network);
 //int shd = comp.GetSHD();
@@ -167,7 +170,7 @@ TEST_F(ExperimentBNSLOnAlarm, pc_stable) {
 //delete trainer;
 //
 //CustomNetwork *ref_net = new CustomNetwork();
-//ref_net->LoadBIFFile("../../../dataset/alarm/alarm.bif");
+//ref_net->LoadBIFFile(DATA_PATH + "/dataset/alarm/alarm.bif");
 //
 //BNSLComparison comp(ref_net, network);
 //int shd = comp.GetSHD();
@@ -182,7 +185,7 @@ TEST_F(ExperimentBNSLOnAlarm, pc_stable) {
 //delete trainer;
 //
 //CustomNetwork *ref_net = new CustomNetwork();
-//ref_net->LoadBIFFile("../../../dataset/alarm/alarm.bif");
+//ref_net->LoadBIFFile(DATA_PATH + "/dataset/alarm/alarm.bif");
 //
 //BNSLComparison comp(ref_net, network);
 //int shd = comp.GetSHD();
@@ -200,7 +203,7 @@ TEST_F(ExperimentBNSLOnAlarm, pc_stable) {
 //    void SetUp() override {
 //        trainer = new Dataset();
 //        network = new Network(true);
-//        string train_set_file_path = "../../../dataset/insurance/insurance_s5000.txt";
+//        string train_set_file_path = DATA_PATH + "/dataset/insurance/insurance_s5000.txt";
 //        trainer->LoadCSVData(train_set_file_path, true, true, 0);
 //    }
 //    Dataset *trainer;
@@ -213,7 +216,7 @@ TEST_F(ExperimentBNSLOnAlarm, pc_stable) {
 //    delete trainer;
 //
 //    CustomNetwork *ref_net = new CustomNetwork();
-//    ref_net->LoadBIFFile("../../../dataset/insurance/insurance.bif");
+//    ref_net->LoadBIFFile(DATA_PATH + "/dataset/insurance/insurance.bif");
 //
 //    BNSLComparison comp(ref_net, network);
 //    int shd = comp.GetSHD();
@@ -228,7 +231,7 @@ TEST_F(ExperimentBNSLOnAlarm, pc_stable) {
 //delete trainer;
 //
 //CustomNetwork *ref_net = new CustomNetwork();
-//ref_net->LoadBIFFile("../../../dataset/insurance/insurance.bif");
+//ref_net->LoadBIFFile(DATA_PATH + "/dataset/insurance/insurance.bif");
 //
 //BNSLComparison comp(ref_net, network);
 //int shd = comp.GetSHD();
@@ -243,7 +246,7 @@ TEST_F(ExperimentBNSLOnAlarm, pc_stable) {
 //delete trainer;
 //
 //CustomNetwork *ref_net = new CustomNetwork();
-//ref_net->LoadBIFFile("../../../dataset/insurance/insurance.bif");
+//ref_net->LoadBIFFile(DATA_PATH + "/dataset/insurance/insurance.bif");
 //
 //BNSLComparison comp(ref_net, network);
 //int shd = comp.GetSHD();
@@ -258,7 +261,7 @@ TEST_F(ExperimentBNSLOnAlarm, pc_stable) {
 //delete trainer;
 //
 //CustomNetwork *ref_net = new CustomNetwork();
-//ref_net->LoadBIFFile("../../../dataset/insurance/insurance.bif");
+//ref_net->LoadBIFFile(DATA_PATH + "/dataset/insurance/insurance.bif");
 //
 //BNSLComparison comp(ref_net, network);
 //int shd = comp.GetSHD();
@@ -273,7 +276,7 @@ TEST_F(ExperimentBNSLOnAlarm, pc_stable) {
 //delete trainer;
 //
 //CustomNetwork *ref_net = new CustomNetwork();
-//ref_net->LoadBIFFile("../../../dataset/insurance/insurance.bif");
+//ref_net->LoadBIFFile(DATA_PATH + "/dataset/insurance/insurance.bif");
 //
 //BNSLComparison comp(ref_net, network);
 //int shd = comp.GetSHD();
@@ -288,7 +291,7 @@ TEST_F(ExperimentBNSLOnAlarm, pc_stable) {
 //delete trainer;
 //
 //CustomNetwork *ref_net = new CustomNetwork();
-//ref_net->LoadBIFFile("../../../dataset/insurance/insurance.bif");
+//ref_net->LoadBIFFile(DATA_PATH + "/dataset/insurance/insurance.bif");
 //
 //BNSLComparison comp(ref_net, network);
 //int shd = comp.GetSHD();
@@ -306,7 +309,7 @@ TEST_F(ExperimentBNSLOnAlarm, pc_stable) {
 //    void SetUp() override {
 //        trainer = new Dataset();
 //        network = new Network(true);
-//        string train_set_file_path = "../../../dataset/hepar2/hepar2_s5000.txt";
+//        string train_set_file_path = DATA_PATH + "/dataset/hepar2/hepar2_s5000.txt";
 //        trainer->LoadCSVData(train_set_file_path, true, true, 0);
 //    }
 //    Dataset *trainer;
@@ -319,7 +322,7 @@ TEST_F(ExperimentBNSLOnAlarm, pc_stable) {
 //    delete trainer;
 //
 //    CustomNetwork *ref_net = new CustomNetwork();
-//    ref_net->LoadBIFFile("../../../dataset/hepar2/hepar2.bif");
+//    ref_net->LoadBIFFile(DATA_PATH + "/dataset/hepar2/hepar2.bif");
 //
 //    BNSLComparison comp(ref_net, network);
 //    int shd = comp.GetSHD();
@@ -334,7 +337,7 @@ TEST_F(ExperimentBNSLOnAlarm, pc_stable) {
 //delete trainer;
 //
 //CustomNetwork *ref_net = new CustomNetwork();
-//ref_net->LoadBIFFile("../../../dataset/hepar2/hepar2.bif");
+//ref_net->LoadBIFFile(DATA_PATH + "/dataset/hepar2/hepar2.bif");
 //
 //BNSLComparison comp(ref_net, network);
 //int shd = comp.GetSHD();
@@ -349,7 +352,7 @@ TEST_F(ExperimentBNSLOnAlarm, pc_stable) {
 //delete trainer;
 //
 //CustomNetwork *ref_net = new CustomNetwork();
-//ref_net->LoadBIFFile("../../../dataset/hepar2/hepar2.bif");
+//ref_net->LoadBIFFile(DATA_PATH + "/dataset/hepar2/hepar2.bif");
 //
 //BNSLComparison comp(ref_net, network);
 //int shd = comp.GetSHD();
@@ -364,7 +367,7 @@ TEST_F(ExperimentBNSLOnAlarm, pc_stable) {
 //delete trainer;
 //
 //CustomNetwork *ref_net = new CustomNetwork();
-//ref_net->LoadBIFFile("../../../dataset/hepar2/hepar2.bif");
+//ref_net->LoadBIFFile(DATA_PATH + "/dataset/hepar2/hepar2.bif");
 //
 //BNSLComparison comp(ref_net, network);
 //int shd = comp.GetSHD();
@@ -379,7 +382,7 @@ TEST_F(ExperimentBNSLOnAlarm, pc_stable) {
 //delete trainer;
 //
 //CustomNetwork *ref_net = new CustomNetwork();
-//ref_net->LoadBIFFile("../../../dataset/hepar2/hepar2.bif");
+//ref_net->LoadBIFFile(DATA_PATH + "/dataset/hepar2/hepar2.bif");
 //
 //BNSLComparison comp(ref_net, network);
 //int shd = comp.GetSHD();
@@ -394,7 +397,7 @@ TEST_F(ExperimentBNSLOnAlarm, pc_stable) {
 //delete trainer;
 //
 //CustomNetwork *ref_net = new CustomNetwork();
-//ref_net->LoadBIFFile("../../../dataset/hepar2/hepar2.bif");
+//ref_net->LoadBIFFile(DATA_PATH + "/dataset/hepar2/hepar2.bif");
 //
 //BNSLComparison comp(ref_net, network);
 //int shd = comp.GetSHD();
@@ -413,7 +416,7 @@ TEST_F(ExperimentBNSLOnAlarm, pc_stable) {
 //    void SetUp() override {
 //        trainer = new Dataset();
 //        network = new Network(true);
-//        string train_set_file_path = "../../../dataset/munin1/munin1_s5000_o.txt";
+//        string train_set_file_path = DATA_PATH + "/dataset/munin1/munin1_s5000_o.txt";
 //        trainer->LoadCSVData(train_set_file_path, true, true, 0);
 //    }
 //    Dataset *trainer;
@@ -426,7 +429,7 @@ TEST_F(ExperimentBNSLOnAlarm, pc_stable) {
 //    delete trainer;
 //
 //    CustomNetwork *ref_net = new CustomNetwork();
-//    ref_net->LoadBIFFile("../../../dataset/munin1/munin1.bif");
+//    ref_net->LoadBIFFile(DATA_PATH + "/dataset/munin1/munin1.bif");
 //
 //    BNSLComparison comp(ref_net, network);
 //    int shd = comp.GetSHD();
@@ -441,7 +444,7 @@ TEST_F(ExperimentBNSLOnAlarm, pc_stable) {
 //delete trainer;
 //
 //CustomNetwork *ref_net = new CustomNetwork();
-//ref_net->LoadBIFFile("../../../dataset/munin1/munin1.bif");
+//ref_net->LoadBIFFile(DATA_PATH + "/dataset/munin1/munin1.bif");
 //
 //BNSLComparison comp(ref_net, network);
 //int shd = comp.GetSHD();
@@ -456,7 +459,7 @@ TEST_F(ExperimentBNSLOnAlarm, pc_stable) {
 //delete trainer;
 //
 //CustomNetwork *ref_net = new CustomNetwork();
-//ref_net->LoadBIFFile("../../../dataset/munin1/munin1.bif");
+//ref_net->LoadBIFFile(DATA_PATH + "/dataset/munin1/munin1.bif");
 //
 //BNSLComparison comp(ref_net, network);
 //int shd = comp.GetSHD();
@@ -471,7 +474,7 @@ TEST_F(ExperimentBNSLOnAlarm, pc_stable) {
 //delete trainer;
 //
 //CustomNetwork *ref_net = new CustomNetwork();
-//ref_net->LoadBIFFile("../../../dataset/munin1/munin1.bif");
+//ref_net->LoadBIFFile(DATA_PATH + "/dataset/munin1/munin1.bif");
 //
 //BNSLComparison comp(ref_net, network);
 //int shd = comp.GetSHD();
@@ -486,7 +489,7 @@ TEST_F(ExperimentBNSLOnAlarm, pc_stable) {
 //delete trainer;
 //
 //CustomNetwork *ref_net = new CustomNetwork();
-//ref_net->LoadBIFFile("../../../dataset/munin1/munin1.bif");
+//ref_net->LoadBIFFile(DATA_PATH + "/dataset/munin1/munin1.bif");
 //
 //BNSLComparison comp(ref_net, network);
 //int shd = comp.GetSHD();
@@ -501,7 +504,7 @@ TEST_F(ExperimentBNSLOnAlarm, pc_stable) {
 //delete trainer;
 //
 //CustomNetwork *ref_net = new CustomNetwork();
-//ref_net->LoadBIFFile("../../../dataset/munin1/munin1.bif");
+//ref_net->LoadBIFFile(DATA_PATH + "/dataset/munin1/munin1.bif");
 //
 //BNSLComparison comp(ref_net, network);
 //int shd = comp.GetSHD();
@@ -518,7 +521,7 @@ protected:
     void SetUp() override {
         trainer = new Dataset();
         network = new Network(true);
-        string train_set_file_path = "../../../dataset/munin2/munin2_s15000.txt";
+        string train_set_file_path = DATA_PATH + "/dataset/munin2/munin2_s15000.txt";
         trainer->LoadCSVData(train_set_file_path, true, true, 0);
     }
     Dataset *trainer;
@@ -531,7 +534,7 @@ protected:
 //delete trainer;
 //
 //CustomNetwork *ref_net = new CustomNetwork();
-//ref_net->LoadBIFFile("../../../dataset/munin2/munin2.bif");
+//ref_net->LoadBIFFile(DATA_PATH + "/dataset/munin2/munin2.bif");
 //
 //BNSLComparison comp(ref_net, network);
 //int shd = comp.GetSHD();
@@ -546,7 +549,7 @@ bnsl->StructLearnCompData(trainer, 1, 2, false, false);
 delete trainer;
 
 CustomNetwork *ref_net = new CustomNetwork();
-ref_net->LoadBIFFile("../../../dataset/munin2/munin2.bif");
+ref_net->LoadBIFFile(DATA_PATH + "/dataset/munin2/munin2.bif");
 
 BNSLComparison comp(ref_net, network);
 int shd = comp.GetSHD();
@@ -561,7 +564,7 @@ delete ref_net;
 //delete trainer;
 //
 //CustomNetwork *ref_net = new CustomNetwork();
-//ref_net->LoadBIFFile("../../../dataset/munin2/munin2.bif");
+//ref_net->LoadBIFFile(DATA_PATH + "/dataset/munin2/munin2.bif");
 //
 //BNSLComparison comp(ref_net, network);
 //int shd = comp.GetSHD();
@@ -576,7 +579,7 @@ delete ref_net;
 //delete trainer;
 //
 //CustomNetwork *ref_net = new CustomNetwork();
-//ref_net->LoadBIFFile("../../../dataset/munin2/munin2.bif");
+//ref_net->LoadBIFFile(DATA_PATH + "/dataset/munin2/munin2.bif");
 //
 //BNSLComparison comp(ref_net, network);
 //int shd = comp.GetSHD();
@@ -591,7 +594,7 @@ delete ref_net;
 //delete trainer;
 //
 //CustomNetwork *ref_net = new CustomNetwork();
-//ref_net->LoadBIFFile("../../../dataset/munin2/munin2.bif");
+//ref_net->LoadBIFFile(DATA_PATH + "/dataset/munin2/munin2.bif");
 //
 //BNSLComparison comp(ref_net, network);
 //int shd = comp.GetSHD();
@@ -606,7 +609,7 @@ delete ref_net;
 //delete trainer;
 //
 //CustomNetwork *ref_net = new CustomNetwork();
-//ref_net->LoadBIFFile("../../../dataset/munin2/munin2.bif");
+//ref_net->LoadBIFFile(DATA_PATH + "/dataset/munin2/munin2.bif");
 //
 //BNSLComparison comp(ref_net, network);
 //int shd = comp.GetSHD();
@@ -623,7 +626,7 @@ delete ref_net;
 //    void SetUp() override {
 //        trainer = new Dataset();
 //        network = new Network(true);
-//        string train_set_file_path = "../../../dataset/munin3/munin3_s15000.txt";
+//        string train_set_file_path = DATA_PATH + "/dataset/munin3/munin3_s15000.txt";
 //        trainer->LoadCSVData(train_set_file_path, true, true, 0);
 //    }
 //    Dataset *trainer;
@@ -636,7 +639,7 @@ delete ref_net;
 //delete trainer;
 //
 //CustomNetwork *ref_net = new CustomNetwork();
-//ref_net->LoadBIFFile("../../../dataset/munin3/munin3.bif");
+//ref_net->LoadBIFFile(DATA_PATH + "/dataset/munin3/munin3.bif");
 //
 //BNSLComparison comp(ref_net, network);
 //int shd = comp.GetSHD();
@@ -651,7 +654,7 @@ delete ref_net;
 //delete trainer;
 //
 //CustomNetwork *ref_net = new CustomNetwork();
-//ref_net->LoadBIFFile("../../../dataset/munin3/munin3.bif");
+//ref_net->LoadBIFFile(DATA_PATH + "/dataset/munin3/munin3.bif");
 //
 //BNSLComparison comp(ref_net, network);
 //int shd = comp.GetSHD();
@@ -666,7 +669,7 @@ delete ref_net;
 //delete trainer;
 //
 //CustomNetwork *ref_net = new CustomNetwork();
-//ref_net->LoadBIFFile("../../../dataset/munin3/munin3.bif");
+//ref_net->LoadBIFFile(DATA_PATH + "/dataset/munin3/munin3.bif");
 //
 //BNSLComparison comp(ref_net, network);
 //int shd = comp.GetSHD();
@@ -681,7 +684,7 @@ delete ref_net;
 //delete trainer;
 //
 //CustomNetwork *ref_net = new CustomNetwork();
-//ref_net->LoadBIFFile("../../../dataset/munin3/munin3.bif");
+//ref_net->LoadBIFFile(DATA_PATH + "/dataset/munin3/munin3.bif");
 //
 //BNSLComparison comp(ref_net, network);
 //int shd = comp.GetSHD();
@@ -696,7 +699,7 @@ delete ref_net;
 //delete trainer;
 //
 //CustomNetwork *ref_net = new CustomNetwork();
-//ref_net->LoadBIFFile("../../../dataset/munin3/munin3.bif");
+//ref_net->LoadBIFFile(DATA_PATH + "/dataset/munin3/munin3.bif");
 //
 //BNSLComparison comp(ref_net, network);
 //int shd = comp.GetSHD();
@@ -711,7 +714,7 @@ delete ref_net;
 //delete trainer;
 //
 //CustomNetwork *ref_net = new CustomNetwork();
-//ref_net->LoadBIFFile("../../../dataset/munin3/munin3.bif");
+//ref_net->LoadBIFFile(DATA_PATH + "/dataset/munin3/munin3.bif");
 //
 //BNSLComparison comp(ref_net, network);
 //int shd = comp.GetSHD();
@@ -728,7 +731,7 @@ delete ref_net;
 //    void SetUp() override {
 //        trainer = new Dataset();
 //        network = new Network(true);
-//        string train_set_file_path = "../../../dataset/munin4/munin4_s15000.txt";
+//        string train_set_file_path = DATA_PATH + "/dataset/munin4/munin4_s15000.txt";
 //        trainer->LoadCSVData(train_set_file_path, true, true, 0);
 //    }
 //    Dataset *trainer;
@@ -741,7 +744,7 @@ delete ref_net;
 //delete trainer;
 //
 //CustomNetwork *ref_net = new CustomNetwork();
-//ref_net->LoadBIFFile("../../../dataset/munin4/munin4.bif");
+//ref_net->LoadBIFFile(DATA_PATH + "/dataset/munin4/munin4.bif");
 //
 //BNSLComparison comp(ref_net, network);
 //int shd = comp.GetSHD();
@@ -756,7 +759,7 @@ delete ref_net;
 //delete trainer;
 //
 //CustomNetwork *ref_net = new CustomNetwork();
-//ref_net->LoadBIFFile("../../../dataset/munin4/munin4.bif");
+//ref_net->LoadBIFFile(DATA_PATH + "/dataset/munin4/munin4.bif");
 //
 //BNSLComparison comp(ref_net, network);
 //int shd = comp.GetSHD();
@@ -771,7 +774,7 @@ delete ref_net;
 //delete trainer;
 //
 //CustomNetwork *ref_net = new CustomNetwork();
-//ref_net->LoadBIFFile("../../../dataset/munin4/munin4.bif");
+//ref_net->LoadBIFFile(DATA_PATH + "/dataset/munin4/munin4.bif");
 //
 //BNSLComparison comp(ref_net, network);
 //int shd = comp.GetSHD();
@@ -786,7 +789,7 @@ delete ref_net;
 //delete trainer;
 //
 //CustomNetwork *ref_net = new CustomNetwork();
-//ref_net->LoadBIFFile("../../../dataset/munin4/munin4.bif");
+//ref_net->LoadBIFFile(DATA_PATH + "/dataset/munin4/munin4.bif");
 //
 //BNSLComparison comp(ref_net, network);
 //int shd = comp.GetSHD();
@@ -801,7 +804,7 @@ delete ref_net;
 //delete trainer;
 //
 //CustomNetwork *ref_net = new CustomNetwork();
-//ref_net->LoadBIFFile("../../../dataset/munin4/munin4.bif");
+//ref_net->LoadBIFFile(DATA_PATH + "/dataset/munin4/munin4.bif");
 //
 //BNSLComparison comp(ref_net, network);
 //int shd = comp.GetSHD();
@@ -816,7 +819,7 @@ delete ref_net;
 //delete trainer;
 //
 //CustomNetwork *ref_net = new CustomNetwork();
-//ref_net->LoadBIFFile("../../../dataset/munin4/munin4.bif");
+//ref_net->LoadBIFFile(DATA_PATH + "/dataset/munin4/munin4.bif");
 //
 //BNSLComparison comp(ref_net, network);
 //int shd = comp.GetSHD();
@@ -833,7 +836,7 @@ delete ref_net;
 //    void SetUp() override {
 //        trainer = new Dataset();
 //        network = new Network(true);
-//        string train_set_file_path = "../../../dataset/link/link_s1000.txt";
+//        string train_set_file_path = DATA_PATH + "/dataset/link/link_s1000.txt";
 //        trainer->LoadCSVData(train_set_file_path, true, true, 0);
 //    }
 //
@@ -847,7 +850,7 @@ delete ref_net;
 //    delete trainer;
 //
 //    CustomNetwork *ref_net = new CustomNetwork();
-//    ref_net->LoadBIFFile("../../../dataset/link/link.bif");
+//    ref_net->LoadBIFFile(DATA_PATH + "/dataset/link/link.bif");
 //
 //    BNSLComparison comp(ref_net, network);
 //    int shd = comp.GetSHD();
@@ -862,7 +865,7 @@ delete ref_net;
 //    delete trainer;
 //
 //    CustomNetwork *ref_net = new CustomNetwork();
-//    ref_net->LoadBIFFile("../../../dataset/link/link.bif");
+//    ref_net->LoadBIFFile(DATA_PATH + "/dataset/link/link.bif");
 //
 //    BNSLComparison comp(ref_net, network);
 //    int shd = comp.GetSHD();
@@ -877,7 +880,7 @@ delete ref_net;
 //    delete trainer;
 //
 //    CustomNetwork *ref_net = new CustomNetwork();
-//    ref_net->LoadBIFFile("../../../dataset/link/link.bif");
+//    ref_net->LoadBIFFile(DATA_PATH + "/dataset/link/link.bif");
 //
 //    BNSLComparison comp(ref_net, network);
 //    int shd = comp.GetSHD();
@@ -892,7 +895,7 @@ delete ref_net;
 //    delete trainer;
 //
 //    CustomNetwork *ref_net = new CustomNetwork();
-//    ref_net->LoadBIFFile("../../../dataset/link/link.bif");
+//    ref_net->LoadBIFFile(DATA_PATH + "/dataset/link/link.bif");
 //
 //    BNSLComparison comp(ref_net, network);
 //    int shd = comp.GetSHD();
@@ -907,7 +910,7 @@ delete ref_net;
 //    delete trainer;
 //
 //    CustomNetwork *ref_net = new CustomNetwork();
-//    ref_net->LoadBIFFile("../../../dataset/link/link.bif");
+//    ref_net->LoadBIFFile(DATA_PATH + "/dataset/link/link.bif");
 //
 //    BNSLComparison comp(ref_net, network);
 //    int shd = comp.GetSHD();
@@ -922,7 +925,7 @@ delete ref_net;
 //    delete trainer;
 //
 //    CustomNetwork *ref_net = new CustomNetwork();
-//    ref_net->LoadBIFFile("../../../dataset/link/link.bif");
+//    ref_net->LoadBIFFile(DATA_PATH + "/dataset/link/link.bif");
 //
 //    BNSLComparison comp(ref_net, network);
 //    int shd = comp.GetSHD();
@@ -939,7 +942,7 @@ delete ref_net;
 //        trainer = new Dataset();
 //        network = new Network(true);
 //
-//        string train_set_file_path = "../../../dataset/diabetes/diabetes_s5000.txt";
+//        string train_set_file_path = DATA_PATH + "/dataset/diabetes/diabetes_s5000.txt";
 //
 //        trainer->LoadCSVData(train_set_file_path, true, true, 0);
 //    }
@@ -954,7 +957,7 @@ delete ref_net;
 //    delete trainer;
 //
 //    CustomNetwork *ref_net = new CustomNetwork();
-//    ref_net->LoadBIFFile("../../../dataset/diabetes/diabetes.bif");
+//    ref_net->LoadBIFFile(DATA_PATH + "/dataset/diabetes/diabetes.bif");
 //
 //    BNSLComparison comp(ref_net, network);
 //    int shd = comp.GetSHD();
@@ -969,7 +972,7 @@ delete ref_net;
 //    delete trainer;
 //
 //    CustomNetwork *ref_net = new CustomNetwork();
-//    ref_net->LoadBIFFile("../../../dataset/diabetes/diabetes.bif");
+//    ref_net->LoadBIFFile(DATA_PATH + "/dataset/diabetes/diabetes.bif");
 //
 //    BNSLComparison comp(ref_net, network);
 //    int shd = comp.GetSHD();
@@ -984,7 +987,7 @@ delete ref_net;
 //    delete trainer;
 //
 //    CustomNetwork *ref_net = new CustomNetwork();
-//    ref_net->LoadBIFFile("../../../dataset/diabetes/diabetes.bif");
+//    ref_net->LoadBIFFile(DATA_PATH + "/dataset/diabetes/diabetes.bif");
 //
 //    BNSLComparison comp(ref_net, network);
 //    int shd = comp.GetSHD();
@@ -999,7 +1002,7 @@ delete ref_net;
 //    delete trainer;
 //
 //    CustomNetwork *ref_net = new CustomNetwork();
-//    ref_net->LoadBIFFile("../../../dataset/diabetes/diabetes.bif");
+//    ref_net->LoadBIFFile(DATA_PATH + "/dataset/diabetes/diabetes.bif");
 //
 //    BNSLComparison comp(ref_net, network);
 //    int shd = comp.GetSHD();
@@ -1014,7 +1017,7 @@ delete ref_net;
 //    delete trainer;
 //
 //    CustomNetwork *ref_net = new CustomNetwork();
-//    ref_net->LoadBIFFile("../../../dataset/diabetes/diabetes.bif");
+//    ref_net->LoadBIFFile(DATA_PATH + "/dataset/diabetes/diabetes.bif");
 //
 //    BNSLComparison comp(ref_net, network);
 //    int shd = comp.GetSHD();
@@ -1029,7 +1032,7 @@ delete ref_net;
 //    delete trainer;
 //
 //    CustomNetwork *ref_net = new CustomNetwork();
-//    ref_net->LoadBIFFile("../../../dataset/diabetes/diabetes.bif");
+//    ref_net->LoadBIFFile(DATA_PATH + "/dataset/diabetes/diabetes.bif");
 //
 //    BNSLComparison comp(ref_net, network);
 //    int shd = comp.GetSHD();
