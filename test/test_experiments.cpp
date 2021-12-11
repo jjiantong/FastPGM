@@ -106,7 +106,7 @@ protected:
 
 TEST_F(ExperimentBNSLOnAlarm, pc_stable) {
     StructureLearning *bnsl = new PCStable(network, 0.05);
-    bnsl->StructLearnCompData(trainer, 1, 1, false, false);
+    bnsl->StructLearnCompData(trainer, 1, 1, true, false);
     delete trainer;
 
     CustomNetwork *ref_net = new CustomNetwork();

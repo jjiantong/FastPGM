@@ -159,11 +159,7 @@ void PCStable::StructLearnByPCStable(Dataset *dts, int num_threads, int group_si
     for (int d = 1; d < depth; ++d) {
         cout << "Level " << d << "... " << endl;
 
-//        timer->Start("leveln");
         bool more = SearchAtDepth(dts, d, num_threads, timer, group_size, verbose);
-//        timer->Stop("leveln");
-//        timer->Print("leveln");
-
 
         if (verbose) {
             cout << "* remaining edges:" << endl;
@@ -676,16 +672,13 @@ void PCStable::OrientVStructure() {
 
 /**
  * @brief: orient remaining undirected edge as much as possible according to 3 rules
- *      1) if a->b, b--c, and a not adj to c, then b->c (to avoid v-structures)
+ *      1) if a->b, b--c, and a is not adj to c, then b->c (to avoid v-structures)
  *      2) if a->b->c, a--c, then a->c (to avoid circles)
  *      3) if d--a, d--b, d--c, b->a, c->a, b and c are not adjacent, then orient d->a
  *
  * note that for PC-stable, the skeleton is estimated order-independently but not the edge orientations!
  */
 void PCStable::OrientImplied() {
-    // The initial list of nodes to visit.
-//    set<int> visited;
-
     bool oriented = true;
     /**
      * in each iteration we traverse all undirected edges and try to orient it
@@ -720,6 +713,11 @@ void PCStable::OrientImplied() {
     }
 }
 
+/**
+ * @brief: direct the edge (direction: from a to c)
+ *      1, delete undirected edge a--c
+ *      2, add directed edge a->c
+ */
 bool PCStable::Direct(int a, int c) {
     /**
      * the original code causes problems when adding a new edge generates a circle,
@@ -734,15 +732,11 @@ bool PCStable::Direct(int a, int c) {
                  // which also means whether the directed edge a->c should be added
     bool added;  // whether the directed edge a->c is successfully added (which means it does not cause a circle)
 
-    to_add = network->DeleteUndirectedEdge(a, c);
-    if (to_add) { // a->c should be added
-        added = network->AddDirectedEdge(a, c);
-    } else {
-        added = false;
-    }
+    to_add = network->DeleteUndirectedEdge(a, c); // TODO: to add is always true
+    added = network->AddDirectedEdge(a, c);
 
-    // if a->c should be added but is not successfully added, add back the undirected edge
-    if (to_add && !added) {
+    // if a->c is not successfully added, add back the undirected edge
+    if (!added) {
         network->AddUndirectedEdge(a, c);
     }
 
@@ -773,7 +767,8 @@ set<int> PCStable::GetCommonAdjacents(int x_idx, int y_idx) {
 }
 
 /**
- * orientation rule1: if a->b, b--c, and a not adj to c, then b->c (to avoid v-structures)
+ * orientation rule1: if a->b, b--c, and a is not adj to c, then b->c (to avoid v-structures)
+ * note that the edge between b and c is undirected (such that the rule will be checked)
  */
 bool PCStable::Rule1(int b_idx, int c_idx) {
     for (const Node* a : network->GetParentPtrsOfNode(b_idx)) { // for every parent a of b
@@ -788,6 +783,7 @@ bool PCStable::Rule1(int b_idx, int c_idx) {
 
 /**
  * orientation rule2: if a->b->c, a--c, then a->c (to avoid circles)
+ * note that the edge between a and c is undirected (such that the rule will be checked)
  */
 bool PCStable::Rule2(int a_idx, int c_idx) {
     // get common neighbors of a and c
@@ -799,17 +795,13 @@ bool PCStable::Rule2(int a_idx, int c_idx) {
                 return true;
             }
         }
-        else if (network->IsDirectedFromTo(c_idx, b_idx) && network->IsDirectedFromTo(b_idx, a_idx)) { // c->b && b->a
-            if (Direct(c_idx, a_idx)) { // then c->a
-                return true;
-            }
-        }
     }
     return false;
 }
 
 /**
  * orientation rule3: if d--a, d--b, d--c, b->a, c->a, b and c are not adjacent, then orient d->a
+ * note that the edge between d and a is undirected (such that the rule will be checked)
  */
 bool PCStable::Rule3(int d_idx, int a_idx) {
     // get common neighbors of a and d
@@ -840,13 +832,13 @@ bool PCStable::Rule3(int d_idx, int a_idx) {
 bool PCStable::R3Helper(int a_idx, int d_idx, int b_idx, int c_idx) {
     bool oriented = false;
 
-    bool b4 = network->IsUndirectedFromTo(d_idx, a_idx);
+//    bool b4 = network->IsUndirectedFromTo(d_idx, a_idx);
     bool b5 = network->IsUndirectedFromTo(d_idx, b_idx);
     bool b6 = network->IsUndirectedFromTo(d_idx, c_idx);
     bool b7 = network->IsDirectedFromTo(b_idx, a_idx);
     bool b8 = network->IsDirectedFromTo(c_idx, a_idx);
 
-    if (b4 && b5 && b6 && b7 && b8) {
+    if (b5 && b6 && b7 && b8) {
         oriented = Direct(d_idx, a_idx);
     }
     return oriented;

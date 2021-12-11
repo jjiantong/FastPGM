@@ -283,12 +283,16 @@ bool Network::AddDirectedEdge(int p_index, int c_index) {
     Node* node2 = FindNodePtrByIndex(c_index);
     SetParentChild(node1, node2); // set parent and child relationship
 
-    if (GetDirectedEdge(node1, node2) == -1) { //TODO
-        // vec_edges does not contain edge: add edge
-        Edge edge(node1, node2, TAIL, ARROW);
-        vec_edges.push_back(edge);
-        ++num_edges;
-    }
+    Edge edge(node1, node2, TAIL, ARROW);
+    vec_edges.push_back(edge);
+    ++num_edges;
+
+//    if (GetDirectedEdge(node1, node2) == -1) { //TODO
+//        // vec_edges does not contain edge: add edge
+//        Edge edge(node1, node2, TAIL, ARROW);
+//        vec_edges.push_back(edge);
+//        ++num_edges;
+//    }
 
     bool contain_circle = ContainCircle();
     // the edge/arc shouldn't be added, because it leads to loops in the network.
@@ -344,12 +348,16 @@ void Network::AddUndirectedEdge(int p_index, int c_index) {
     Node* node1 = FindNodePtrByIndex(p_index);
     Node* node2 = FindNodePtrByIndex(c_index);
 
-    if (GetUndirectedEdge(node1, node2) == -1) { //TODO
-        // vec_edges does not contain edge: add edge
-        Edge edge(node1, node2);
-        vec_edges.push_back(edge);
-        ++num_edges;
-    }
+    Edge edge(node1, node2);
+    vec_edges.push_back(edge);
+    ++num_edges; // TODO
+
+//    if (GetUndirectedEdge(node1, node2) == -1) {
+//        // vec_edges does not contain edge: add edge
+//        Edge edge(node1, node2);
+//        vec_edges.push_back(edge);
+//        ++num_edges;
+//    }
 }
 
 bool Network::DeleteUndirectedEdge(int p_index, int c_index) {
