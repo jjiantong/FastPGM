@@ -84,7 +84,7 @@ class Network {//this class is used by both the customized networks and networks
   bool ReverseDirectedEdge(int p_index, int c_index);
   void AddUndirectedEdge(int p_index, int c_index);
   bool DeleteUndirectedEdge(int p_index, int c_index);
-  bool DeleteEdge(int p_index, int c_index);
+//  bool DeleteEdge(int p_index, int c_index);
   void GenerateUndirectedCompleteGraph();
 
   // whether two nodes are adjacent, or say, whether an edge (either directed and undirected) between two nodes exists

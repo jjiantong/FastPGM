@@ -285,7 +285,7 @@ bool Network::AddDirectedEdge(int p_index, int c_index) {
 
     Edge edge(node1, node2, TAIL, ARROW);
     vec_edges.push_back(edge);
-    ++num_edges;
+//    ++num_edges;
 
 //    if (GetDirectedEdge(node1, node2) == -1) { //TODO
 //        // vec_edges does not contain edge: add edge
@@ -304,11 +304,11 @@ bool Network::AddDirectedEdge(int p_index, int c_index) {
 
 bool Network::DeleteDirectedEdge(int p_index, int c_index) {
     // first check the two nodes
-    if(!(NodeIsInNetwork(p_index) && NodeIsInNetwork(c_index))) {
-        fprintf(stderr, "Error in function [%s].\nNode [%d] and/or [%d] do not belong to this network!",
-                __FUNCTION__, p_index, c_index);
-        exit(1);
-    }
+//    if(!(NodeIsInNetwork(p_index) && NodeIsInNetwork(c_index))) {
+//        fprintf(stderr, "Error in function [%s].\nNode [%d] and/or [%d] do not belong to this network!",
+//                __FUNCTION__, p_index, c_index);
+//        exit(1);
+//    }
 
     Node* node1 = FindNodePtrByIndex(p_index);
     Node* node2 = FindNodePtrByIndex(c_index);
@@ -319,7 +319,7 @@ bool Network::DeleteDirectedEdge(int p_index, int c_index) {
     } else {
         RemoveParentChild(node1, node2);
         vec_edges.erase(vec_edges.begin() + pos);
-        --num_edges;
+//        --num_edges;
         return true;
     }
 }
@@ -350,7 +350,7 @@ void Network::AddUndirectedEdge(int p_index, int c_index) {
 
     Edge edge(node1, node2);
     vec_edges.push_back(edge);
-    ++num_edges; // TODO
+//    ++num_edges; // TODO
 
 //    if (GetUndirectedEdge(node1, node2) == -1) {
 //        // vec_edges does not contain edge: add edge
@@ -362,11 +362,11 @@ void Network::AddUndirectedEdge(int p_index, int c_index) {
 
 bool Network::DeleteUndirectedEdge(int p_index, int c_index) {
     // first check the two nodes
-    if(!(NodeIsInNetwork(p_index) && NodeIsInNetwork(c_index))) {
-        fprintf(stderr, "Error in function [%s].\nNode [%d] and/or [%d] do not belong to this network!",
-                __FUNCTION__, p_index, c_index);
-        exit(1);
-    }
+//    if(!(NodeIsInNetwork(p_index) && NodeIsInNetwork(c_index))) {
+//        fprintf(stderr, "Error in function [%s].\nNode [%d] and/or [%d] do not belong to this network!",
+//                __FUNCTION__, p_index, c_index);
+//        exit(1);
+//    }
 
     // then check the order
     if (p_index > c_index) {
@@ -383,17 +383,17 @@ bool Network::DeleteUndirectedEdge(int p_index, int c_index) {
         return false;
     } else {
         vec_edges.erase(vec_edges.begin() + pos);
-        --num_edges;
+//        --num_edges;
         return true;
     }
 }
 
-bool Network::DeleteEdge(int p_index, int c_index) {
-    bool del = (DeleteUndirectedEdge(p_index, c_index) ||
-                DeleteDirectedEdge(p_index, c_index) ||
-                DeleteDirectedEdge(c_index, p_index));
-    return del;
-}
+//bool Network::DeleteEdge(int p_index, int c_index) { // todo: check for usage
+//    bool del = (DeleteUndirectedEdge(p_index, c_index) ||
+//                DeleteDirectedEdge(p_index, c_index) ||
+//                DeleteDirectedEdge(c_index, p_index));
+//    return del;
+//}
 
 void Network::GenerateUndirectedCompleteGraph() {
     // |E| = n(n-1)/2
@@ -467,7 +467,7 @@ double Network::CalcuExtraScoreWithModifiedEdge(int p_index, int c_index,
 
   Node *node = new_net.FindNodePtrByIndex(c_index);
 
-  // do the modification
+  // do the modification // todo: check the changes of num_edges
   if (modification == "add") {
     if (node->set_parent_indexes.find(p_index)!=node->set_parent_indexes.end()) {
       return 0; // The parent already exists.
