@@ -513,6 +513,12 @@ double Network::CalcuExtraScoreWithModifiedEdge(int p_index, int c_index,
  * @param c_index: child index
  */
 void Network::SetParentChild(int p_index, int c_index) {
+  if (map_idx_node_ptr.find(p_index) == map_idx_node_ptr.end() ||
+      map_idx_node_ptr.find(c_index) == map_idx_node_ptr.end()) {
+    fprintf(stderr, "Error in function [%s].\nThe nodes [%d] and [%d] do not belong to this network!",
+            __FUNCTION__, p_index, c_index);
+    exit(1);
+  }//end checking whether the nodes belong to the network
   // convert the index format into node ptr format
   Node *p = FindNodePtrByIndex(p_index), *c = FindNodePtrByIndex(c_index);
   SetParentChild(p,c);
@@ -525,13 +531,6 @@ void Network::SetParentChild(int p_index, int c_index) {
  * add c to p as a child, and add p to c as a parent
  */
 void Network::SetParentChild(Node *p, Node *c) {
-//  if (map_idx_node_ptr.find(p->GetNodeIndex()) == map_idx_node_ptr.end()
-//      ||
-//      map_idx_node_ptr.find(c->GetNodeIndex())==map_idx_node_ptr.end()) {
-//    fprintf(stderr, "Error in function [%s].\nThe nodes [%d] and [%d] do not belong to this network!",
-//            __FUNCTION__, p->GetNodeIndex(), c->GetNodeIndex());
-//    exit(1);
-//  }//end checking whether the nodes belong to the network
   p->AddChild(c);
   c->AddParent(p);
 }
@@ -590,6 +589,15 @@ set<Node*> Network::GetChildrenPtrsOfNode(int node_index) {
   return set_chi_ptrs;
 }
 
+set<int> Network::GetChildrenIdxesOfNode(int node_index) {
+    set<int> set_chi_idxes;
+    Node *node = map_idx_node_ptr.at(node_index); // TODO: function "FindNodePtrByIndex"
+    for (const auto &idx : node->set_children_indexes) {
+        set_chi_idxes.insert(idx);
+    }
+    return set_chi_idxes;
+}
+
 /**
  * @brief: generate all the configurations of the parents for each node
  */
@@ -645,7 +653,7 @@ vector<int> Network::GenTopoOrd() {
     // TODO: calculate the in-degrees here instead of in "TopoSortOfDAGZeroInDegreeFirst"
     for (auto &i_n_p : map_idx_node_ptr) { // for each node
       auto n_p = i_n_p.second;
-      for (const auto &c_p : GetChildrenPtrsOfNode(n_p->GetNodeIndex())) {
+      for (const auto &c_p : GetChildrenPtrsOfNode(n_p->GetNodeIndex())) { // TODO: use "GetChildrenIdxesOfNode"
         // TODO: each time assigning 1, add 1 to the in-degree of "c_p->GetNodeIndex()"
         graph[n_p->GetNodeIndex()][c_p->GetNodeIndex()] = 1;
       }
@@ -714,7 +722,7 @@ vector<int> Network::GenTopoOrd() {
       ++cont_ord;
     }
     for (const auto &n_p : set_cont_node_ptr) {
-      for (const auto &c_p : GetChildrenPtrsOfNode(n_p->GetNodeIndex())) {
+      for (const auto &c_p : GetChildrenPtrsOfNode(n_p->GetNodeIndex())) { // TODO: use "GetChildrenIdxesOfNode"
         graph_cont[ cont_index_order[n_p->GetNodeIndex()] ]
                   [ cont_index_order[c_p->GetNodeIndex()] ] = 1;
       }
@@ -757,11 +765,16 @@ int** Network::ConvertDAGNetworkToAdjacencyMatrix() {
   // direct: node_ptr->child_ptr (i.e., graph[node_ptr][child_ptr] = 1)
   for (const auto &id_node_ptr : map_idx_node_ptr) { // for each node
     auto node_ptr = id_node_ptr.second;
+    auto node_idx = id_node_ptr.first;
 
-    for (const auto &child_ptr : GetChildrenPtrsOfNode(node_ptr->GetNodeIndex())) {
+    for (const auto &child_ptr : GetChildrenPtrsOfNode(node_ptr->GetNodeIndex())) { // TODO: use "GetChildrenIdxesOfNode"
       // TODO: each time assigning 1, add 1 to the in-degree of "child_ptr->GetNodeIndex()"
       matrix[node_ptr->GetNodeIndex()][child_ptr->GetNodeIndex()] = 1;
     }
+//      for (const auto &child_idx : GetChildrenIdxesOfNode(node_idx)) {
+//          // TODO: each time assigning 1, add 1 to the in-degree of "child_ptr->GetNodeIndex()"
+//          matrix[node_idx][child_idx] = 1;
+//      }
   }
   return matrix;
 }
@@ -1015,7 +1028,7 @@ set<int> Network::GetMarkovBlanketIndexesOfNode(Node *node_ptr) {
   }
 
   // Add children and parents of children.
-  for (const auto &chil_ptr : GetChildrenPtrsOfNode(node_ptr->GetNodeIndex())) {
+  for (const auto &chil_ptr : GetChildrenPtrsOfNode(node_ptr->GetNodeIndex())) { // TODO: use "GetChildrenIdxesOfNode"
     markov_blanket_node_index.insert(chil_ptr->GetNodeIndex());
     for (const auto &par_chil_ptr : GetParentPtrsOfNode(chil_ptr->GetNodeIndex())) {
       markov_blanket_node_index.insert(par_chil_ptr->GetNodeIndex());

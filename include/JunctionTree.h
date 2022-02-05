@@ -21,15 +21,14 @@ class JunctionTree {
   set<Clique*> set_clique_ptr_container;//store all the cliques in this Junction Tree
   set<Separator*> set_separator_ptr_container;//all the separators in the Junction tree
 
-  vector<int> elimination_ordering;//
-  map<int, Clique*> map_elim_var_to_clique;//key: main variable of a clique; value: the clique
+  vector<int> elimination_ordering;
+  map<int, Clique*> map_elim_var_to_clique; //key: main variable of a clique; value: the clique
 
 
   JunctionTree() = default;
-  explicit JunctionTree(Network *net);
-  JunctionTree(Network *net, bool elim_redundant_cliques);
-  JunctionTree(Network *net, string elim_ord_strategy, bool elim_redundant_cliques);
-  JunctionTree(Network *net, string elim_ord_strategy, bool elim_redundant_cliques, vector<int> custom_elim_ord);
+  JunctionTree(Network *net);
+  JunctionTree(Network *net, string elim_ord_strategy);
+  JunctionTree(Network *net, string elim_ord_strategy, vector<int> custom_elim_ord);
   explicit JunctionTree(JunctionTree*);
   virtual ~JunctionTree() = default;
 
@@ -55,7 +54,7 @@ class JunctionTree {
                    int &num_nodes,
                    vector<int> elim_ord,
                    set<Clique*> &cliques);
-  void ElimRedundantCliques();
+//  void ElimRedundantCliques();
   void FormListShapeJunctionTree(set<Clique*> &cliques);
   void FormJunctionTree(set<Clique*> &cliques);
   void NumberTheCliquesAndSeparators();

@@ -24,7 +24,7 @@ double ChowLiuTree::ComputeMutualInformation(Node *Xi, Node *Xj, const Dataset *
 
   // Initialize the table.
   int m = dts->num_instance;
-  // ri, rj are the possible values of variables Xi and Xj
+  // ri, rj are the number of possible values of variables Xi and Xj
   int ri = dXi->GetDomainSize();
   int rj = dXj->GetDomainSize();
   // Pij[ri][rj] is joint distribution P(Xi, Xj)
@@ -44,7 +44,8 @@ double ChowLiuTree::ComputeMutualInformation(Node *Xi, Node *Xj, const Dataset *
   for (a=0; a<ri; a++) { // for each possible value of Xi
     for (b=0; b<rj; b++) { // for each possible value of Xj
       for (s=0; s<m; s++) { // for each instance
-        if (dts->dataset_all_vars[s][xi] == dXi->vec_potential_vals.at(a) && dts->dataset_all_vars[s][xj] == dXj->vec_potential_vals.at(b)) {
+        if (dts->dataset_all_vars[s][xi] == dXi->vec_potential_vals.at(a) &&
+            dts->dataset_all_vars[s][xj] == dXj->vec_potential_vals.at(b)) {
           Pij[a][b] += 1;
         }
       }
@@ -75,19 +76,18 @@ double ChowLiuTree::ComputeMutualInformation(Node *Xi, Node *Xj, const Dataset *
     Pj[b] /= m;
   }
 
-  // Calculate mutual information.
-  // I(Xi,Xj) = ∑_{xi,xj} P(xi,xj)*log{P(xi,xj)/[P(xi)*P(xj)]}
-  double mutualInformation = 0;
-  for (a = 0; a < ri; a++) {
-    for (b = 0; b < rj; b++) {
-      double temp = Pij[a][b] * log( Pij[a][b] / (Pi[a]*Pj[b]) );
-      // may have error: call of overloaded ‘isnan(double&)’ is ambiguous
-      // qualify "isnan" explicitly, by calling either "::isnan" or "std::isnan"
-      if (!::isnan(temp)) {    // There may be runtime error of divided by zero.
-        mutualInformation += temp;
-      }
+    // Calculate mutual information.
+    // I(Xi,Xj) = ∑_{xi,xj} P(xi,xj)*log{P(xi,xj)/[P(xi)*P(xj)]}
+    double mutualInformation = 0;
+    for (a = 0; a < ri; a++) {
+        for (b = 0; b < rj; b++) {
+            if (Pij[a][b] == 0 | Pi[a] == 0 | Pj[b] == 0) {
+                continue;
+            }
+            double temp = Pij[a][b] * log( Pij[a][b] / (Pi[a]*Pj[b]) );
+            mutualInformation += temp;
+        }
     }
-  }
 
   delete[] Pi;
   delete[] Pj;
@@ -131,147 +131,142 @@ void ChowLiuTree::StructLearnCompData(Dataset *dts, int group_size, int num_thre
  * @brief: construct a Bayesian network which is a tree, based on the data set
  */
 void ChowLiuTree::StructLearnChowLiuTreeCompData(Dataset *dts, bool print_struct) {
-  cout << "==================================================" << '\n'
-       << "Constructing mutual information table......" << endl;
+    cout << "==================================================" << '\n'
+         << "Constructing mutual information table......" << endl;
 
-  // mutualInfoTab[n][n]
-  int n = network->num_nodes;
-  double** mutualInfoTab = new double* [n];
-  for (int i=0; i<n; ++i) {
-    mutualInfoTab[i] = new double[n](); // The parentheses at end will initialize the array to be all zeros.
-  }
-
-  // Initialize the mutual information table.
-  #pragma omp parallel for
-  for (int i = 0; i < n; ++i) {
-    for (int j = 0; j < i; ++j) {
-      if (i == j) {
-        mutualInfoTab[i][j] = -1;
-      }
-      else {
-
-        /** To calculate the mutual information, we need to find the nodes which correspond to the indexes i and j.
-         * */
-        Node* Xi = network->FindNodePtrByIndex(i);
-        Node* Xj = network->FindNodePtrByIndex(j);
-
-        // Mutual information table is symmetric.
-        mutualInfoTab[i][j] = ComputeMutualInformation(Xi, Xj, dts);
-        mutualInfoTab[j][i] = ComputeMutualInformation(Xi, Xj, dts);
-      }
+    // mutualInfoTab[n][n]
+    int n = network->num_nodes;
+    double** mutualInfoTab = new double* [n];
+    for (int i=0; i<n; ++i) {
+        mutualInfoTab[i] = new double[n](); // The parentheses at end will initialize the array to be all zeros.
     }
-  }
 
-  cout << "==================================================" << '\n'
-       << "Constructing maximum spanning tree using mutual information table and Prim's algorithm......" << endl;
+    // Initialize the mutual information table.
+//  #pragma omp parallel for
+    for (int i = 0; i < n; ++i) {
+        mutualInfoTab[i][i] = -1;
+        for (int j = 0; j < i; ++j) {
+            /** To calculate the mutual information, we need to find the nodes which correspond to the indexes i and j.
+             * */
+            Node* Xi = network->FindNodePtrByIndex(i);
+            Node* Xj = network->FindNodePtrByIndex(j);
 
-  /** Use Prim's algorithm (easy to find on Google) to generate a spanning tree.
-   * Two nodes with the maximum mutual information are connected.
-   */
-  // graphAdjacencyMatrix[n][n]
-  int** graphAdjacencyMatrix = new int* [n];
-  for (int i = 0; i < n; ++i) {
-    graphAdjacencyMatrix[i] = new int[n]();
-  }
-
-  set<int> markSet;
-  double maxMutualInfo;
-  int maxI, maxJ;
-  set<int>::iterator it;
-
-  markSet.insert(0);  // The node of index 0 is the root node, which is the class variable.
-  while (markSet.size() < n) { // for each round of selecting one node and one arc
-    maxMutualInfo = -1;
-    maxI = maxJ = -1;
-    for (it = markSet.begin(); it != markSet.end(); it++) { // for each node having been selected
-      int i = *it;
-      for (int j = 0; j < n; ++j) { // for each node
-        // if j has not been selected, and the mutual information between i and j is larger than the current maximum
-        // it can be ensure that this case cannot form a circle
-        if (markSet.find(j) == markSet.end() && mutualInfoTab[i][j] > maxMutualInfo) {
-          maxMutualInfo = mutualInfoTab[i][j]; // mark the current maximum
-          maxI = i; // mark the current i
-          maxJ = j; // mark the current j
+            // Mutual information table is symmetric.
+            mutualInfoTab[i][j] = ComputeMutualInformation(Xi, Xj, dts);
+            mutualInfoTab[j][i] = mutualInfoTab[i][j];
         }
-      }
     }
-    markSet.insert(maxJ); // insert the node j into markSet
-
-    // update the adjacency matrix; i and j form an undirected arc
-    graphAdjacencyMatrix[maxI][maxJ] = graphAdjacencyMatrix[maxJ][maxI] = 1;
-  }
-
-  // obtain a topological order for constructing parent-child relationships, and generating an elimination order.
-  int* topologicalSortedPermutation = BreadthFirstTraversalWithAdjacencyMatrix(graphAdjacencyMatrix, n, root_node_index);
-
-
-  //TODO: see the comments for "default_elim_ord" in the "ChowLiuTree.h" file;
-  // may need to remove either "default_elim_ord" or "vec_default_elim_ord".
-  // elimination ordering is the reverse order of the topological ordering
-  // (remove the first element of the topological ordering)
-  network->vec_default_elim_ord.reserve(n-1);
-  for (int i = 1; i < n; ++i) {
-      network->vec_default_elim_ord.push_back(topologicalSortedPermutation[n-i]);
-  }
-  network->topo_ord = vector<int> (topologicalSortedPermutation, topologicalSortedPermutation + n);
-
-
-  cout << "==================================================" << '\n'
-       << "Setting children and parents......" << endl;
-  // Add arrows in tree to form an directed edge in the network; set parents and children
-  #pragma omp parallel for
-  for (int i = 0; i < n; ++i) {
-    for (int j = 0; j < i; ++j) {// graphAdjacencyMatrix is symmetric, so loop while j < i instead of j < n
-      if (i == j)
-        continue;
-      if (graphAdjacencyMatrix[i][j] == 1){
-
-        // Determine the topological position of i and j; determine which one should appear first (e.g., i > j or j > i).
-        if (OccurInCorrectOrder(i, j, network->topo_ord)) { // if i occurs before j in the topological ordering
-            network->SetParentChild(i, j); // i->j
-        }
-        else { // if j occurs before i in the topological ordering
-            network->SetParentChild(j, i); // j->i
-        }
-      }
-    }
-  }
-
-  cout << "==================================================" << '\n'
-       << "Generating parents combinations for each node......" << endl;
-
-  network->GenDiscParCombsForAllNodes();
-
-  cout << "==================================================" << '\n'
-       << "Finish structural learning." << endl;
-
-
-  // The following code are just to print the result.
-
-  if (print_struct) {
 
     cout << "==================================================" << '\n'
-         << "Topological sorted permutation generated using width-first-traversal: " << endl;
-    for (int m = 0; m < n; ++m) {
-      cout << topologicalSortedPermutation[m] << ", ";
+         << "Constructing maximum spanning tree using mutual information table and Prim's algorithm......" << endl;
+
+    /** Use Prim's algorithm (easy to find on Google) to generate a spanning tree.
+     * Two nodes with the maximum mutual information are connected.
+     */
+    // graphAdjacencyMatrix[n][n]
+    int** graphAdjacencyMatrix = new int* [n];
+    for (int i = 0; i < n; ++i) {
+        graphAdjacencyMatrix[i] = new int[n]();
     }
-    cout << endl;
+
+    set<int> markSet;
+    double maxMutualInfo;
+    int maxI, maxJ;
+    set<int>::iterator it;
+
+    markSet.insert(0);  // The node of index 0 is the root node, which is the class variable.
+    while (markSet.size() < n) { // for each round of selecting one node and one arc
+        maxMutualInfo = -1;
+        maxI = maxJ = -1;
+        for (it = markSet.begin(); it != markSet.end(); it++) { // for each node having been selected
+            int i = *it;
+            for (int j = 0; j < n; ++j) { // for each node
+                // if j has not been selected, and the mutual information between i and j is larger than the current maximum
+                // it can be ensure that this case cannot form a circle
+                if (markSet.find(j) == markSet.end() && mutualInfoTab[i][j] > maxMutualInfo) {
+                    maxMutualInfo = mutualInfoTab[i][j]; // mark the current maximum
+                    maxI = i; // mark the current i
+                    maxJ = j; // mark the current j
+                }
+            }
+        }
+        markSet.insert(maxJ); // insert the node j into markSet
+
+        // update the adjacency matrix; i and j form an undirected arc
+        graphAdjacencyMatrix[maxI][maxJ] = graphAdjacencyMatrix[maxJ][maxI] = 1;
+    }
+
+    // obtain a topological order for constructing parent-child relationships, and generating an elimination order.
+    // TODO: BreadthFirstTraversalWithAdjacencyMatrix is in gadget.cpp...
+    int* topologicalSortedPermutation = BreadthFirstTraversalWithAdjacencyMatrix(graphAdjacencyMatrix, n, root_node_index);
+
+    //TODO: see the comments for "default_elim_ord" in the "ChowLiuTree.h" file;
+    // may need to remove either "default_elim_ord" or "vec_default_elim_ord".
+    // elimination ordering is the reverse order of the topological ordering
+    // (remove the first element of the topological ordering)
+    network->vec_default_elim_ord.reserve(n-1);
+    for (int i = 1; i < n; ++i) {
+        network->vec_default_elim_ord.push_back(topologicalSortedPermutation[n-i]); // n-i: n-1 -> 1, remove the root
+    }
+    network->topo_ord = vector<int> (topologicalSortedPermutation, topologicalSortedPermutation + n);
+
 
     cout << "==================================================" << '\n'
-         << "Each node's parents: " << endl;
-    network->PrintEachNodeParents();
+         << "Setting children and parents......" << endl;
+    // Add arrows in tree to form an directed edge in the network; set parents and children
+//#pragma omp parallel for
+    for (int i = 0; i < n; ++i) {
+        for (int j = 0; j < i; ++j) {// graphAdjacencyMatrix is symmetric, so loop while j < i instead of j < n
+            if (graphAdjacencyMatrix[i][j] == 1){
 
-  }
+                // Determine the topological position of i and j; determine which one should appear first (e.g., i > j or j > i).
+                if (OccurInCorrectOrder(i, j, network->topo_ord)) { // if i occurs before j in the topological ordering
+                    cout << "i = " << i << ", j = " << j << ", yes, set i->j" << endl;
+                    network->SetParentChild(i, j); // i->j
+                }
+                else { // if j occurs before i in the topological ordering
+                    cout << "i = " << i << ", j = " << j << ", no, set j->i" << endl;
+                    network->SetParentChild(j, i); // j->i
+                }
+            }
+        }
+    }
 
-  for (int i=0; i<n; ++i) {
-    delete[] mutualInfoTab[i];
-  }
-  delete[] mutualInfoTab;
-  for (int i=0; i<n; ++i) {
-    delete[] graphAdjacencyMatrix[i];
-  }
-  delete[] graphAdjacencyMatrix;
-  delete[] topologicalSortedPermutation;
+    cout << "==================================================" << '\n'
+         << "Generating parents combinations for each node......" << endl;
+
+    network->GenDiscParCombsForAllNodes();
+
+    cout << "==================================================" << '\n'
+         << "Finish structural learning." << endl;
+
+
+    // The following code are just to print the result.
+
+    if (print_struct) {
+
+        cout << "==================================================" << '\n'
+             << "Topological sorted permutation generated using width-first-traversal: " << endl;
+        for (int m = 0; m < n; ++m) {
+            cout << topologicalSortedPermutation[m] << ", ";
+        }
+        cout << endl;
+
+        cout << "==================================================" << '\n'
+             << "Each node's parents: " << endl;
+        network->PrintEachNodeParents();
+
+    }
+
+    for (int i=0; i<n; ++i) {
+        delete[] mutualInfoTab[i];
+    }
+    delete[] mutualInfoTab;
+    for (int i=0; i<n; ++i) {
+        delete[] graphAdjacencyMatrix[i];
+    }
+    delete[] graphAdjacencyMatrix;
+    delete[] topologicalSortedPermutation;
 }
 
 ///**

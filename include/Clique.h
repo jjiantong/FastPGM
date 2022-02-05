@@ -46,7 +46,8 @@ class Clique {
    * Proposed in [Local Propagation in Conditional Gaussian Bayesian Networks (Cowell, 2005)]
    * Note that, separators between continuous cliques only retain post_bag but not lp_potential.
    */
-  int elimination_variable_index; //a clique is associated to a main variable (cf. Cowell, 2005); the main variable can be eliminated using its neighbours?
+  int elimination_variable_index; //a clique is associated to a main variable (cf. Cowell, 2005);
+                                  // the main variable can be eliminated using its neighbours?
   //the following three variables are only used in regression problems.
   bool activeflag;
   vector<CGRegression> lp_potential;

@@ -219,7 +219,7 @@ vector<int> Ott::M(set<Node*> &set_nodes, Dataset *dts, map<Node*, map<set<Node*
 void Ott::StructLearnCompData(Dataset *dts, int group_size, int num_threads, bool print_struct, bool verbose) {
 
     cout << "==================================================" << '\n'
-         << "Begin structural learning with complete data using K2 algorithm...." << endl;
+         << "Begin structural learning with complete data using Ott algorithm...." << endl;
 
     struct timeval start, end;
     double diff;

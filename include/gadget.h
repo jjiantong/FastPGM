@@ -72,7 +72,7 @@ set<set<T>> GenAllCombinationsFromSets(set<set<T>> *set_of_sets) {//checked 11/A
   set<set<T>> result, temp_result;
 
   // Base Case
-  if (set_of_sets->size()==1) {
+  if (set_of_sets->size() == 1) {
     for (T p : to_be_inserted){ // for each possible value of the parent
       set<T> c;
       c.insert(p);

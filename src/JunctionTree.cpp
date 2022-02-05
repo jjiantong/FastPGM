@@ -4,16 +4,15 @@
 
 #include "JunctionTree.h"
 
-JunctionTree::JunctionTree(Network *net): JunctionTree(net, "min-nei", true) {}
+JunctionTree::JunctionTree(Network *net)
+  : JunctionTree(net, "min-nei") {}
 
-JunctionTree::JunctionTree(Network *net, bool elim_redundant_cliques)
-  : JunctionTree(net, "min-nei", elim_redundant_cliques) {}
+JunctionTree::JunctionTree(Network *net, string elim_ord_strategy)
+  : JunctionTree(net, elim_ord_strategy, vector<int>()) {}
 
-JunctionTree::JunctionTree(Network *net, string elim_ord_strategy, bool elim_redundant_cliques)
-  : JunctionTree(net, elim_ord_strategy, elim_redundant_cliques, vector<int>()) {}
+JunctionTree::JunctionTree(Network *net, string elim_ord_strategy, vector<int> custom_elim_ord) {
 
-JunctionTree::JunctionTree(Network *net, string elim_ord_strategy, bool elim_redundant_cliques, vector<int> custom_elim_ord) {
-
+    cout << "begin construction function of JunctionTree..." << endl;
   struct timeval start, end;
   double diff;
   gettimeofday(&start,NULL);
@@ -21,9 +20,25 @@ JunctionTree::JunctionTree(Network *net, string elim_ord_strategy, bool elim_red
   network = net;
 
   int **direc_adjac_matrix = network->ConvertDAGNetworkToAdjacencyMatrix();
+  cout << "finish ConvertDAGNetworkToAdjacencyMatrix" << endl;
+    for (int i = 0; i < network->num_nodes; ++i) {
+        for (int j = 0; j < network->num_nodes; ++j) {
+            cout << direc_adjac_matrix[i][j] << " ";
+        }
+        cout << endl;
+    }
+
   Moralize(direc_adjac_matrix, network->num_nodes);
   int **moral_graph_adjac_matrix = direc_adjac_matrix;
+  cout << "finish Moralize" << endl;
+    for (int i = 0; i < network->num_nodes; ++i) {
+        for (int j = 0; j < network->num_nodes; ++j) {
+            cout << moral_graph_adjac_matrix[i][j] << " ";
+        }
+        cout << endl;
+    }
 
+  cout << "elimination order = " << elim_ord_strategy << endl;
   // There are different ways of determining elimination ordering.
   if (elim_ord_strategy == "min-nei") {
     elimination_ordering = MinNeighbourElimOrd(moral_graph_adjac_matrix, network->num_nodes);
@@ -44,26 +59,49 @@ JunctionTree::JunctionTree(Network *net, string elim_ord_strategy, bool elim_red
                     "{ min-nei, rev-topo, custom }.");
     exit(1);
   }
+  cout << "finish order, order: ";
+    for (int i = 0; i < network->num_nodes; ++i) {
+        cout << elimination_ordering[i] << " ";
+    }
+    cout << endl;
 
   //construct a clique for each node in the network
   Triangulate(network, moral_graph_adjac_matrix, network->num_nodes, elimination_ordering, set_clique_ptr_container);
+  cout << "finish Triangulate, number of cliques = " << set_clique_ptr_container.size() << endl;
 
   //construct map from main variable to a clique
   GenMapElimVarToClique();
+  cout << "finish GenMapElimVarToClique" << endl;
 
-  if (elim_redundant_cliques) {
-    // Theoretically, this step is not necessary.
-    ElimRedundantCliques();
-  }
-
-//  FormJunctionTree(set_clique_ptr_container);//for discrete nodes
-  FormListShapeJunctionTree(set_clique_ptr_container);//for continuous nodes
+  FormJunctionTree(set_clique_ptr_container);//for discrete nodes
+//  FormListShapeJunctionTree(set_clique_ptr_container);//for continuous nodes
+    cout << "finish FormJunctionTree, number of cliques = " << set_clique_ptr_container.size()
+         << ", number of separators = " << set_separator_ptr_container.size() << endl;
 
   //assign id to each clique
   NumberTheCliquesAndSeparators();
+  cout << "finish NumberTheCliquesAndSeparators" << endl;
+    cout << "cliques: " << endl;
+    for (auto &c : set_clique_ptr_container) {
+        cout << c->clique_id << ": ";
+        for (auto &v : c->related_variables) {
+            cout << v << " ";
+        }
+        cout << endl;
+    }
+    cout << "separators: " << endl;
+    for (auto &s : set_separator_ptr_container) {
+        cout << s->clique_id << ": ";
+        for (auto &v : s->related_variables) {
+            cout << v << " ";
+        }
+        cout << endl;
+    }
 
   AssignPotentials();
+  cout << "finish AssignPotentials" << endl;
   BackUpJunctionTree();
+  cout << "finish BackUpJunctionTree" << endl;
 
   gettimeofday(&end,NULL);
   diff = (end.tv_sec-start.tv_sec) + ((double)(end.tv_usec-start.tv_usec))/1.0E6;
@@ -154,51 +192,98 @@ JunctionTree::JunctionTree(JunctionTree *jt) {
  * 2. directed graph -> undirected graph
  */
 void JunctionTree::Moralize(int **direc_adjac_matrix, int &num_nodes) { //checked
-  //TODO: double-check correctness
-  // TODO: can we just get parents of each node and marry them?
+//  //TODO: double-check correctness
+//  // TODO: can we just get parents of each node and marry them?
+//
+//  // Find the parents that have common child(ren).
+//  // if node x has more than 1 parent, ex., i, j and k,
+//  // then we will find every one of them, and all of the
+//  // (i, j) (i, k) (j, i) (j, k) (k, i) (k, j) will be inserted into "to_marry"
+//  set<pair<int, int>> to_marry;
+////  #pragma omp parallel for collapse(2)
+//  for (int i = 0; i < num_nodes; ++i) {
+//    for (int j = 0; j < num_nodes; ++j) {
+//      if (i == j) {
+//        continue;
+//      }
+//      if (direc_adjac_matrix[i][j] == 1) {
+//        // "i" is a parent of "j"
+//        // The next step is to find other parents, "k", of "j"
+//        for (int k = 0; k < num_nodes; ++k) {
+//          // TODO: what if k = i?
+//          if (direc_adjac_matrix[k][j] == 1) {
+//            to_marry.insert(pair<int, int>(i, k));
+//          }
+//        }
+//      }
+//    }
+//  }
+//
+//  // Making the adjacency matrix undirected.
+////  #pragma omp parallel for collapse(2)
+//  for (int i = 0; i < num_nodes; ++i) {
+//    for (int j = 0; j < num_nodes; ++j) {
+//      if (i==j) {
+//        continue;
+//      }
+//      // TODO: repeated
+//      if (direc_adjac_matrix[i][j] == 1 || direc_adjac_matrix[j][i] == 1) {
+//        direc_adjac_matrix[i][j] = 1;
+//        direc_adjac_matrix[j][i] = 1;
+//      }
+//    }
+//  }
+//
+//  // Marrying parents.
+//  for (const auto &p : to_marry) {
+//    direc_adjac_matrix[p.first][p.second] = 1;
+//  }
 
-  // Find the parents that have common child(ren).
-  // if node x has more than 1 parent, ex., i, j and k,
-  // then we will find every one of them, and all of the
-  // (i, j) (i, k) (j, i) (j, k) (k, i) (k, j) will be inserted into "to_marry"
-  set<pair<int, int>> to_marry;
-  #pragma omp parallel for collapse(2)
-  for (int i = 0; i < num_nodes; ++i) {
-    for (int j = 0; j < num_nodes; ++j) {
-      if (i == j) {
-        continue;
-      }
-      if (direc_adjac_matrix[i][j] == 1) {
-        // "i" is a parent of "j"
-        // The next step is to find other parents, "k", of "j"
-        for (int k = 0; k < num_nodes; ++k) {
-          // TODO: what if k = i?
-          if (direc_adjac_matrix[k][j] == 1) {
-            to_marry.insert(pair<int, int>(i, k));
-          }
+    // TODO: new (right) version
+    set<pair<int, int>> to_marry;
+
+    for (int i = 0; i < num_nodes; ++i) {
+        vector<int> parents;
+        // get parents of each node i
+        for (int j = 0; j < num_nodes; ++j) {
+            if (i == j) {
+                continue;
+            }
+            if (direc_adjac_matrix[j][i] == 1) {
+                // j is a parent of i
+                parents.push_back(j);
+            }
         }
-      }
-    }
-  }
 
-  // Making the adjacency matrix undirected.
-  #pragma omp parallel for collapse(2)
-  for (int i = 0; i < num_nodes; ++i) {
-    for (int j = 0; j < num_nodes; ++j) {
-      if (i==j) {
-        continue;
-      }
-      if (direc_adjac_matrix[i][j] == 1 || direc_adjac_matrix[j][i] == 1) {
-        direc_adjac_matrix[i][j] = 1;
-        direc_adjac_matrix[j][i] = 1;
-      }
+        if (parents.size() < 2) {
+            // if num of parents is 0 or 1, no need to marry
+            continue;
+        }
+        ChoiceGenerator *cg = new ChoiceGenerator(parents.size(), 2);
+        vector<int> choice = cg->Next();
+        while (!choice.empty()) {
+            to_marry.insert(pair<int, int>(parents.at(choice.at(0)), parents.at(choice.at(1))));
+            choice = cg->Next();
+        }
+        delete cg;
+        cg = nullptr;
     }
-  }
 
-  // Marrying parents.
-  for (const auto &p : to_marry) {
-    direc_adjac_matrix[p.first][p.second] = 1;
-  }
+    // Making the adjacency matrix undirected.
+    for (int i = 0; i < num_nodes; ++i) {
+        for (int j = 0; j < i; ++j) {
+            if (direc_adjac_matrix[i][j] == 1 || direc_adjac_matrix[j][i] == 1) {
+                direc_adjac_matrix[i][j] = 1;
+                direc_adjac_matrix[j][i] = 1;
+            }
+        }
+    }
+
+    // Marrying parents.
+    for (const auto &p : to_marry) {
+        direc_adjac_matrix[p.first][p.second] = 1;
+        direc_adjac_matrix[p.second][p.first] = 1;
+    }
 }
 
 /**
@@ -257,90 +342,122 @@ void JunctionTree::Triangulate(Network *net,
                                int &num_nodes,
                                vector<int> elim_ord,
                                set<Clique*> &cliques) { //checked
-  //TODO: double check correctness
   if (elim_ord.size() == 0) {
     return;
   }
 
-  set<int> set_neighbours;
-  set<Node*> set_node_ptrs_to_form_a_clique;
-  int first_node_in_elim_ord = elim_ord.front();
+    vector<int> vec_neighbors;
+    set<Node*> set_node_ptrs_to_form_a_clique;
+    int first_node_in_elim_ord = elim_ord.front();
 
-  // insert the first node in the elimination order into "set_node_ptrs_to_form_a_clique"
-  set_node_ptrs_to_form_a_clique.insert(net->FindNodePtrByIndex(first_node_in_elim_ord));
-  // insert all its neighbors into "set_neighbours"
-  for (int j = 0; j < num_nodes; ++j) {
-    if (adjac_matrix[first_node_in_elim_ord][j] == 1) {
-      set_neighbours.insert(j);
+    // insert the first node in the elimination order into "set_node_ptrs_to_form_a_clique"
+    set_node_ptrs_to_form_a_clique.insert(net->FindNodePtrByIndex(first_node_in_elim_ord));
+    // insert all its neighbors into "vec_neighbors"
+    for (int j = 0; j < num_nodes; ++j) {
+        if (adjac_matrix[first_node_in_elim_ord][j] == 1) {
+            vec_neighbors.push_back(j);
+        }
     }
-  }
 
-  // Form a clique that contains
-  for (auto &neighbor : set_neighbours) {
-    for (auto &neighbor2 : set_neighbours) {
-      if (neighbor != neighbor2) {
-        // Connect its neighbours to each other.
-        adjac_matrix[neighbor][neighbor2] = 1;
-        adjac_matrix[neighbor2][neighbor] = 1;
-      }
+    // Form a clique that contains
+    for (int neighbor = 0; neighbor < vec_neighbors.size(); ++neighbor) {
+        for (int neighbor2 = neighbor + 1; neighbor2 < vec_neighbors.size(); ++neighbor2) {
+            adjac_matrix[vec_neighbors.at(neighbor)][vec_neighbors.at(neighbor2)] = 1;
+            adjac_matrix[vec_neighbors.at(neighbor2)][vec_neighbors.at(neighbor)] = 1;
+        }
+        set_node_ptrs_to_form_a_clique.insert(net->FindNodePtrByIndex(vec_neighbors.at(neighbor)));
     }
-    set_node_ptrs_to_form_a_clique.insert(net->FindNodePtrByIndex(neighbor));
-  }
 
-  // add the first node in the elimination order and all its neighbors into one clique
-  cliques.insert(new Clique(set_node_ptrs_to_form_a_clique, first_node_in_elim_ord));
+//    /************* with/without this part (check the correctness and efficiency) *************/
+//    // TODO: it seems to cause trouble when testing the trained network
+//    // before adding a clique, we need to check whether the clique is redundant
+//    // if a clique is fully contained by another (existing/previous) clique, then the clique is no need to be inserted.
+//    Clique* clique = new Clique(set_node_ptrs_to_form_a_clique, first_node_in_elim_ord);
+//    bool to_be_inserted = true;
+//    for (auto &ptr_clq : cliques) {
+//        set<int> intersection;
+//        set_intersection(clique->related_variables.begin(), clique->related_variables.end(),
+//                         ptr_clq->related_variables.begin(), ptr_clq->related_variables.end(),
+//                         std::inserter(intersection, intersection.begin()));
+//        if (intersection == clique->related_variables) {
+//            to_be_inserted = false;
+//            break;
+//        }
+//    }
+//
+//    if (to_be_inserted) {
+//        cliques.insert(clique);
+////        cout << "clique " << cliques.size() << ": ";
+////        for (auto &node: set_node_ptrs_to_form_a_clique) {
+////            cout << node->GetNodeIndex() << ", ";
+////        }
+////        cout << endl;
+//    } else {
+//        delete clique;
+//    }
+//
+//    /************* with/without this part (check the correctness and efficiency) *************/
 
-  // Remove the first node in elimination ordering, which has already form a clique.
-  elim_ord.erase(elim_ord.begin());
-  // The node has been removed, so the edges connected to it should be removed too.
-  for (auto &neighbor: set_neighbours) {
-    adjac_matrix[first_node_in_elim_ord][neighbor] = 0;
-    adjac_matrix[neighbor][first_node_in_elim_ord] = 0;
-  }
+    // add the first node in the elimination order and all its neighbors into one clique
+    cliques.insert(new Clique(set_node_ptrs_to_form_a_clique, first_node_in_elim_ord));
+    cout << "clique " << cliques.size() << ": ";
+    for (auto &node: set_node_ptrs_to_form_a_clique) {
+        cout << node->GetNodeIndex() << ", ";
+    }
+    cout << endl;
 
-  Triangulate(net, adjac_matrix, num_nodes, elim_ord, cliques);
+    // Remove the first node in elimination ordering, which has already form a clique.
+    elim_ord.erase(elim_ord.begin());
+    // The node has been removed, so the edges connected to it should be removed too.
+    for (int neighbor = 0; neighbor < vec_neighbors.size(); ++neighbor) {
+        adjac_matrix[first_node_in_elim_ord][vec_neighbors.at(neighbor)] = 0;
+        adjac_matrix[vec_neighbors.at(neighbor)][first_node_in_elim_ord] = 0;
+    }
+
+    Triangulate(net, adjac_matrix, num_nodes, elim_ord, cliques);
 }
 
-/**
- * @brief: remove the redundant cliques; if a clique is fully contained by another clique, then the clique can be removed.
- */
- //TODO: fix bugs, but no use...
-void JunctionTree::ElimRedundantCliques() { //checked
-  fprintf(stderr, "This operation, [%s], will cause lots of trouble and I can not solve them yet!\n"
-                  "So, I just forbid the program to conduct this operation.", __FUNCTION__);
-  return;
-  set<Clique*> to_be_eliminated;
-
-  for (auto &ptr_clq1 : set_clique_ptr_container) {
-    for (auto &ptr_clq2 : set_clique_ptr_container) {
-      if (ptr_clq1==ptr_clq2) {continue;}
-      Clique *ptr_smaller_clique, *ptr_bigger_clique;
-      if (ptr_clq1->related_variables.size() < ptr_clq2->related_variables.size()) {
-        ptr_smaller_clique = ptr_clq1;
-        ptr_bigger_clique = ptr_clq2;
-      } else {
-        ptr_smaller_clique = ptr_clq2;
-        ptr_bigger_clique = ptr_clq1;
-      }
-      set<int> intersection;
-      set_intersection(ptr_smaller_clique->related_variables.begin(),ptr_smaller_clique->related_variables.end(),
-                       ptr_bigger_clique->related_variables.begin(),ptr_bigger_clique->related_variables.end(),
-                       std::inserter(intersection,intersection.begin()));
-      if (intersection==ptr_smaller_clique->related_variables) {
-        to_be_eliminated.insert(ptr_smaller_clique);
-        break;
-      }
-    }
-  }
-
-  for (auto &ptr_clq : to_be_eliminated) {
-    set_clique_ptr_container.erase(ptr_clq);
-  }
-}
+///**
+// * @brief: remove the redundant cliques; if a clique is fully contained by another clique, then the clique can be removed.
+// */
+// //TODO: fix bugs, but no use...
+// // TODO: it should be done while adding a clique... not after adding all cliques...
+//void JunctionTree::ElimRedundantCliques() { //checked
+//  fprintf(stderr, "This operation, [%s], will cause lots of trouble and I can not solve them yet!\n"
+//                  "So, I just forbid the program to conduct this operation.", __FUNCTION__);
+//  return;
+//  set<Clique*> to_be_eliminated;
+//
+//  for (auto &ptr_clq1 : set_clique_ptr_container) {
+//    for (auto &ptr_clq2 : set_clique_ptr_container) {
+//      if (ptr_clq1==ptr_clq2) {continue;}
+//      Clique *ptr_smaller_clique, *ptr_bigger_clique;
+//      if (ptr_clq1->related_variables.size() < ptr_clq2->related_variables.size()) {
+//        ptr_smaller_clique = ptr_clq1;
+//        ptr_bigger_clique = ptr_clq2;
+//      } else {
+//        ptr_smaller_clique = ptr_clq2;
+//        ptr_bigger_clique = ptr_clq1;
+//      }
+//      set<int> intersection;
+//      set_intersection(ptr_smaller_clique->related_variables.begin(),ptr_smaller_clique->related_variables.end(),
+//                       ptr_bigger_clique->related_variables.begin(),ptr_bigger_clique->related_variables.end(),
+//                       std::inserter(intersection,intersection.begin()));
+//      if (intersection==ptr_smaller_clique->related_variables) {
+//        to_be_eliminated.insert(ptr_smaller_clique);
+//        break;
+//      }
+//    }
+//  }
+//
+//  for (auto &ptr_clq : to_be_eliminated) {
+//    set_clique_ptr_container.erase(ptr_clq);
+//  }
+//}
 
 /**
  * @brief: the Junction Tree here looks like a linked list.
- * This is used for continuous variables, based on a tutorial or some unpulished work.
+ * This is used for continuous variables, based on a tutorial or some unpublished work.
  */
 void JunctionTree::FormListShapeJunctionTree(set<Clique*> &cliques) { //checked
   //TODO: double-check correctness (continuous)
@@ -399,13 +516,15 @@ void JunctionTree::FormJunctionTree(set<Clique*> &cliques) {
   // First, generate all possible separators.
   set<pair<Clique*,Clique*>> mark;
   set<Separator*> all_possible_seps;
+  // TODO: can we just traverse i from 0 to cliques.size and j from i+1 to cliques.size?
+  // TODO: then we dont need to use "mark" or frequently find pair from "mark"
   for (auto &clique_ptr : cliques) {
     for (auto &clique_ptr_2 : cliques) {
 
-      if (clique_ptr==clique_ptr_2) {
-        continue; // The same cliques do not need a separator.
-      } else if (mark.find(pair<Clique*,Clique*>(clique_ptr,clique_ptr_2))!=mark.end()) {
-        continue; // The separator of this pair of cliques has been generated.
+      if (clique_ptr == clique_ptr_2) {
+        continue; // The same cliques do not need a separator
+      } else if (mark.find(pair<Clique*,Clique*>(clique_ptr,clique_ptr_2)) != mark.end()) {
+        continue; // The separator of this pair of cliques has been generated
       }
 
       // Mark this pair.
@@ -418,13 +537,17 @@ void JunctionTree::FormJunctionTree(set<Clique*> &cliques) {
                        std::inserter(common_related_variables,common_related_variables.begin()));
 
       // If they have no common variables, then they will not be connected by separator.
-      if (common_related_variables.empty()) {continue;}
+      if (common_related_variables.empty()) {
+          continue;
+      }
 
       set<Node*> common_related_node_ptrs;
       for (auto &v : common_related_variables) {
         common_related_node_ptrs.insert(network->FindNodePtrByIndex(v));
       }
 
+        // TODO: all separators are generated but part of them are used,
+        //  where and how to delete them? -- memory leakage?
       Separator *sep = new Separator(common_related_node_ptrs);
 
       // Let separator know the two cliques that it connects to.
@@ -440,22 +563,24 @@ void JunctionTree::FormJunctionTree(set<Clique*> &cliques) {
   // If we construct a maximum spanning tree by the weights of the separators,
   // then the tree will satisfy running intersection property.
   set<Clique*> tree_so_far;
-  tree_so_far.insert(*cliques.begin()); // randomly insert a clique in tree
+  tree_so_far.insert(*cliques.begin()); // randomly insert a clique in tree, as the start of the Prim algorithm
+  cout << "insert clique ";
+    for (auto &v: (*cliques.begin())->related_variables) {
+        cout << v << " ";
+    }
+    cout << endl;
+
   while (tree_so_far.size()<cliques.size()) {
     Separator* max_weight_sep = nullptr;
-    for (auto &sep_ptr : all_possible_seps) {
+    for (auto &sep_ptr : all_possible_seps) { // traverse all separators
+      // find the two cliques the separator connected
       auto iter = sep_ptr->set_neighbours_ptr.begin();
       Clique *clq1 = *iter, *clq2 = *(++iter);
 
-      // If one of the cliques connected
-      // by this separator is in the tree_so_far.
-      if ((tree_so_far.find(clq1)!=tree_so_far.end()
-          &&
-          tree_so_far.find(clq2)==tree_so_far.end())
+      // if one of the cliques is in the "tree_so_far", and the other is not
+      if ((tree_so_far.find(clq1) != tree_so_far.end() && tree_so_far.find(clq2) == tree_so_far.end())
           ||
-          (tree_so_far.find(clq1)==tree_so_far.end()
-          &&
-          tree_so_far.find(clq2)!=tree_so_far.end())) {
+          (tree_so_far.find(clq1) == tree_so_far.end() && tree_so_far.find(clq2) != tree_so_far.end())) {
         // And if the weight of this separator is the largest.
         if (max_weight_sep==nullptr || max_weight_sep->weight < sep_ptr->weight) {
           max_weight_sep = sep_ptr;
@@ -465,10 +590,27 @@ void JunctionTree::FormJunctionTree(set<Clique*> &cliques) {
 
 //    max_weight_sep->clique_id = set_separator_ptr_container.size();
     set_separator_ptr_container.insert(max_weight_sep);
+      cout << "insert separator ";
+      for (auto &v: max_weight_sep->related_variables) {
+          cout << v << " ";
+      }
+      cout << "weight = " << max_weight_sep->weight << endl;
+
     auto iter = max_weight_sep->set_neighbours_ptr.begin();
     Clique *clq1 = *iter, *clq2 = *(++iter);
     tree_so_far.insert(clq1);
     tree_so_far.insert(clq2);
+
+      cout << "insert clique ";
+      for (auto &v: clq1->related_variables) {
+          cout << v << " ";
+      }
+      cout << endl;
+      cout << "insert clique ";
+      for (auto &v: clq2->related_variables) {
+          cout << v << " ";
+      }
+      cout << endl;
 
   }   // end of: while. Until all cliques are in "tree_so_far"
 
@@ -512,17 +654,17 @@ void JunctionTree::AssignPotentials() { //checked
   // generate all the factors of the network, which are the probabilities of discrete nodes given their parents
   // Extract the CG regressions of continuous nodes.
   vector<Factor> factors; // Can not use std::set, because Factor does not have definition on operator "<".
-  vector<CGRegression> cgrs;
+//  vector<CGRegression> cgrs;
 
   for (auto &id_node_ptr : network->map_idx_node_ptr) { // for each node of the network
     auto node_ptr = id_node_ptr.second;
     if (node_ptr->is_discrete) {
       // add the factor that consists of this node and its parents
-      factors.push_back(Factor(dynamic_cast<DiscreteNode*>(node_ptr), this->network));
+      factors.push_back(Factor(dynamic_cast<DiscreteNode*>(node_ptr), this->network)); // each node has one factor
     }
-    else {  // If the node is continuous.
-      cgrs.push_back(CGRegression(node_ptr, network->GetParentPtrsOfNode(node_ptr->GetNodeIndex())));
-    }
+//    else {  // If the node is continuous.
+//      cgrs.push_back(CGRegression(node_ptr, network->GetParentPtrsOfNode(node_ptr->GetNodeIndex())));
+//    }
   }
 
   // 2, (part of) BP algorithm
@@ -536,7 +678,6 @@ void JunctionTree::AssignPotentials() { //checked
       if (f.related_variables.empty() || clique_ptr->related_variables.empty()) {
         break;
       }
-
       if (!clique_ptr->pure_discrete) {
         continue;
       }
@@ -553,36 +694,45 @@ void JunctionTree::AssignPotentials() { //checked
       if (diff.empty()) {
         // 2.2 construct the initial potential of this clique,
         // which is the product of factors that assigned to it
+          cout << "assign factor ";
+          for (auto &v: f.related_variables) {
+              cout << v << " ";
+          }
+          cout << "to clique ";
+          for (auto &v: clique_ptr->related_variables) {
+              cout << v << " ";
+          }
+          cout << endl;
         clique_ptr->MultiplyWithFactorSumOverExternalVars(f);
         break;  // Ensure that each factor is used only once.
       }
     }
   }
-  for (auto &cgr : cgrs) {
-    for (auto &clique_ptr : set_clique_ptr_container) {
-
-      if (clique_ptr->pure_discrete) { continue; }
-
-      set<int> cgr_related_vars = cgr.set_all_tail_index;
-      cgr_related_vars.insert(cgr.head_var_index);
-      set<int> diff;
-      set_difference(cgr_related_vars.begin(), cgr_related_vars.end(),
-                     clique_ptr->related_variables.begin(), clique_ptr->related_variables.end(),
-                     inserter(diff, diff.begin()));
-      // If diff.empty(), that means that the set of related variables of the clique is a superset of the CG regression's.
-      if (diff.empty()) {
-        if (clique_ptr->elimination_variable_index == cgr.head_var_index) {
-          clique_ptr->lp_potential.push_back(cgr);
-        } else {
-          clique_ptr->post_bag.push_back(cgr);
-        }
-        break;  // Ensure that each CG regression is used only once.
-      }
-      // todo: fix it
-      //   There is a problem when the discrete variables of cgr and clique_ptr is not the same.
-      //   I don't know what will happen.
-    }
-  }
+//  for (auto &cgr : cgrs) {
+//    for (auto &clique_ptr : set_clique_ptr_container) {
+//
+//      if (clique_ptr->pure_discrete) { continue; }
+//
+//      set<int> cgr_related_vars = cgr.set_all_tail_index;
+//      cgr_related_vars.insert(cgr.head_var_index);
+//      set<int> diff;
+//      set_difference(cgr_related_vars.begin(), cgr_related_vars.end(),
+//                     clique_ptr->related_variables.begin(), clique_ptr->related_variables.end(),
+//                     inserter(diff, diff.begin()));
+//      // If diff.empty(), that means that the set of related variables of the clique is a superset of the CG regression's.
+//      if (diff.empty()) {
+//        if (clique_ptr->elimination_variable_index == cgr.head_var_index) {
+//          clique_ptr->lp_potential.push_back(cgr);
+//        } else {
+//          clique_ptr->post_bag.push_back(cgr);
+//        }
+//        break;  // Ensure that each CG regression is used only once.
+//      }
+//      // todo: fix it
+//      //   There is a problem when the discrete variables of cgr and clique_ptr is not the same.
+//      //   I don't know what will happen.
+//    }
+//  }
 }
 
 /**
@@ -646,7 +796,7 @@ void JunctionTree::LoadDiscreteEvidence(const DiscreteConfig &E) {
   if (E.empty()) {
     return;
   }
-
+    // TODO: double-check: only load evidence on one clique? or all cliques containing evidence?
   for (auto &e : E) {  // For each node's observation in E
     if (network->FindNodePtrByIndex(e.first)->is_discrete) {
       Clique *clique_ptr = map_elim_var_to_clique[e.first];
@@ -763,13 +913,17 @@ double JunctionTree::EvaluateJTAccuracy(int class_var, Dataset *dts) {
   double diff;
   gettimeofday(&start,NULL);
 
-  cout << "Progress indicator: ";
-
-  int num_of_correct=0, num_of_wrong=0, m=dts->num_instance, m20= m / 20, progress=0;
+  int num_of_correct = 0,
+      num_of_wrong = 0,
+      m = dts->num_instance,
+      m20 = m / 20,
+      progress = 0;
 
 //  vector<int> truths, predictions;
 //  truths.reserve(m);
 //  predictions.reserve(m);
+
+    cout << "Progress indicator: ";
 
   // If I use OpenMP to parallelize,
   // process may exit with code 137,
@@ -784,7 +938,6 @@ double JunctionTree::EvaluateJTAccuracy(int class_var, Dataset *dts) {
 //    fprintf(stdout, "%s\n", progress_detail.c_str());
 //    fflush(stdout);
 
-
     if (progress % m20 == 0) {
       string progress_percentage = to_string((double)progress/m * 100) + "%...\n";
       fprintf(stdout, "Progress: %s\n", progress_percentage.c_str());
@@ -793,9 +946,10 @@ double JunctionTree::EvaluateJTAccuracy(int class_var, Dataset *dts) {
       fflush(stdout);
     }
 
-
     // For now, only support complete data.
-    int e_num=network->num_nodes-1, *e_index=new int[e_num], *e_value=new int[e_num];
+    int e_num = network->num_nodes - 1,
+        *e_index = new int[e_num],
+        *e_value = new int[e_num];
     for (int j = 0; j < network->num_nodes; ++j) {
       if (j == dts->class_var_index) {continue;}
       e_index[j < dts->class_var_index ? j : j - 1] = j;
@@ -824,9 +978,12 @@ double JunctionTree::EvaluateJTAccuracy(int class_var, Dataset *dts) {
     ResetJunctionTree();
 
     if (label_predict == dts->dataset_all_vars[i][dts->class_var_index]) {
+//        cout << "correct: " << label_predict << endl;
 //      #pragma omp critical
       { ++num_of_correct; }
     } else {
+//        cout << "wrong: predict = " << label_predict
+//             << ", ground truth = " << dts->dataset_all_vars[i][dts->class_var_index] << endl;
 //      #pragma omp critical
       { ++num_of_wrong; }
     }

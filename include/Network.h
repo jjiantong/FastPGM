@@ -106,6 +106,7 @@ class Network {//this class is used by both the customized networks and networks
 
   set<Node*> GetParentPtrsOfNode(int node_index);
   set<Node*> GetChildrenPtrsOfNode(int node_index);
+    set<int> GetChildrenIdxesOfNode(int node_index);
 
   void GenDiscParCombsForAllNodes();
 

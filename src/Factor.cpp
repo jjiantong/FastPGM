@@ -78,17 +78,23 @@ Factor Factor::MultiplyWithFactor(Factor second_factor) {
   newFactor.related_variables.insert(this->related_variables.begin(),this->related_variables.end());
   newFactor.related_variables.insert(second_factor.related_variables.begin(),second_factor.related_variables.end());
 
-  for (auto first: set_disc_config) {
-    for (auto second : second_factor.set_disc_config) {
+  // set_disc_config: set< set< pair<int, int> > >
+  // first / second: set< pair<int, int> >
+  for (auto first: set_disc_config) { // for each config in the first factor
+    for (auto second : second_factor.set_disc_config) { // for each config in the second factor
       // If two combinations have different values on common variables,
       // which means that they conflict, then these two combinations can not form a legal entry.
       if (Conflict(&first, &second)) {
         continue;
       }
+
+      // generate a new big config
       DiscreteConfig new_comb;
       new_comb.insert(first.begin(),first.end());
       new_comb.insert(second.begin(),second.end());
+      // the new big config is as one of the config of the new factor
       newFactor.set_disc_config.insert(new_comb);
+      // compute the potential of the new config
       newFactor.map_potentials[new_comb] = this->map_potentials[first] * second_factor.map_potentials[second];
     }
   }
@@ -105,6 +111,9 @@ Factor Factor::SumOverVar(int index) {
   this->related_variables.erase(index);
   newFactor.related_variables = this->related_variables;//new set of related variables
 
+  // set_disc_config: set< set< pair<int, int> > >
+  // config: set< pair<int, int> >
+  // p: pair<int, int>
   for (auto config : set_disc_config) { // check each of the configurations
     //check if this configuration needs to be sum over
     pair<int, int> pair_to_be_erased;
@@ -117,14 +126,15 @@ Factor Factor::SumOverVar(int index) {
 
     // probability/potential of this config, which will be added in order to marginalize a variable.
     double temp = this->map_potentials[config];
+    // erase the variable from each config
     config.erase(pair_to_be_erased);
 
     // update potential for new factor; similar to marginalise a variable.
-    // this (result) config is existed: add the new probability/potential
+    // if this (result) config is existed: add the new probability/potential
     if (newFactor.set_disc_config.find(config) != newFactor.set_disc_config.end()) {
       newFactor.map_potentials[config] += temp;
     }
-    // cannot find this config: insert and initialize
+    // if cannot find this config: insert and initialize
     else {
       newFactor.set_disc_config.insert(config);
       newFactor.map_potentials[config] = temp;

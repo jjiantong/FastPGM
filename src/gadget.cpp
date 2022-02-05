@@ -128,15 +128,17 @@ bool FirstCompatibleSecond(const DiscreteConfig *first, const DiscreteConfig *se
  * @return:  false (if they have different values on the same variable) true (else)
  */
 bool Conflict(const DiscreteConfig *cfg1, const DiscreteConfig *cfg2) {
-  for (const auto &f : *cfg1) {
-    for (const auto &s : *cfg2) {
-      // if the two configs have the same variable but different values of the variable
-      if (f.first == s.first && f.second !=s .second) {
-        return true;
-      }
+    // cfg1 / cfg2: set< pair<int, int> >
+    // f / s: pair<int, int>
+    for (const auto &f : *cfg1) {
+        for (const auto &s : *cfg2) {
+            // if the two configs have the same variable but different values of the variable
+            if (f.first == s.first && f.second != s .second) {
+                return true;
+            }
+        }
     }
-  }
-  return false;
+    return false;
 }
 
 /**

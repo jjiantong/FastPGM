@@ -152,6 +152,7 @@ void PCStable::StructLearnByPCStable(Dataset *dts, int num_threads, int group_si
         network->PrintEachEdgeWithName();
     }
 
+    cout << "# of CI-tests is " << num_ci_test << ", # of dependence judgements is " << num_dependence_judgement << endl;
     double tmp = omp_get_wtime();
     cout << "# remaining edges = " << network->num_edges
          << ", time = " << tmp - timer->start_time["pc-stable step 1"] << endl;
@@ -166,6 +167,7 @@ void PCStable::StructLearnByPCStable(Dataset *dts, int num_threads, int group_si
             network->PrintEachEdgeWithName();
         }
 
+        cout << "# of CI-tests is " << num_ci_test << ", # of dependence judgements is " << num_dependence_judgement << endl;
         double tmp = omp_get_wtime();
         cout << "# remaining edges = " << network->num_edges
              << ", time = " << tmp - timer->start_time["pc-stable step 1"] << endl;

@@ -138,15 +138,11 @@ void Node::AddChild(Node *c) {
  * @brief: add a generic parent node p
  */
 void Node::AddParent(Node *p) {
-  int p_idx = p->GetNodeIndex();
-  if (set_parent_indexes.find(p_idx) == set_parent_indexes.end()) {
-    // p is not in the parent set.
     if (p->is_discrete) {
-      AddDiscreteParent(p);
+        AddDiscreteParent(p);
     } else {
-      AddContinuousParent(p);
+        AddContinuousParent(p);
     }
-  }
 }
 
 /**
@@ -168,7 +164,7 @@ void Node::AddDiscreteParent(Node *p) {
 
     // Update possible parent configurations
     set<DiscreteConfig> new_par_combs;
-    for (const auto &val : dp->vec_potential_vals) {
+    for (const auto &val : dp->vec_potential_vals) { // for each possible value of p
       DiscVarVal vv(p_idx, val); // get [idx of p, each value of p]
       for (auto old_par_comb : set_discrete_parents_combinations) {
         // set_discrete_parents_combinations: set< set< pair<int, int> > >

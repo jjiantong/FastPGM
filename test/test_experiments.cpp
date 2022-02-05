@@ -15,49 +15,75 @@
 #include "ParameterLearning.h"
 #include "ChowLiuTree.h"
 #include "PCStable.h"
+#include "K2.h"
+#include "Ott.h"
 #include "JunctionTree.h"
 #include "CustomNetwork.h"
 #include "ScoreFunction.h"
 #include "gadget.h"
 
 //string DATA_PATH = "/Users/jjt/work/research_project/BN"; // local
-//string DATA_PATH = "/home/zeyiwen/jiantong/BN"; // NUS
-string DATA_PATH = "/home/ubuntu"; // Oracle
+string DATA_PATH = "/home/zeyiwen/jiantong/BN"; // NUS
+//string DATA_PATH = "/home/ubuntu"; // Oracle
 
-//class ExperimentOnA1a : public ::testing::Test {
+
+//class ExperimentBNSLOnAlarm : public ::testing::Test {
 //protected:
 //
 //    void SetUp() override {
 //        trainer = new Dataset();
-//        tester = new Dataset();
-//        network = new ChowLiuTree(true);
-//
-//        string train_set_file_path = "../../data/dataset/a1a.txt",
-//                test_set_file_path = "../../data/dataset/a1a.test.txt";
-//
-//        trainer->LoadLIBSVMData(train_set_file_path);
-//        tester->LoadLIBSVMData(test_set_file_path);
-//        network->StructLearnCompData(trainer, true);
-//        network->LearnParamsKnowStructCompData(trainer, 2, true);
+//        network = new Network(true);
+//        string train_set_file_path = DATA_PATH + "/dataset/alarm/alarm_s5000.txt";
+//        trainer->LoadCSVData(train_set_file_path, true, true, 0);
 //    }
-//
 //    Dataset *trainer;
-//    Dataset *tester;
 //    Network *network;
 //};
 //
+//TEST_F(ExperimentBNSLOnAlarm, pc_stable) {
+//    StructureLearning *bnsl = new PCStable(network, 0.05);
+//    bnsl->StructLearnCompData(trainer, 1, 1, true, false);
+//    delete trainer;
+
+class ExperimentOnA1a : public ::testing::Test {
+protected:
+
+    void SetUp() override {
+        trainer = new Dataset();
+        tester = new Dataset();
+//        network = new ChowLiuTree(true);
+        network = new Network(true);
+
+        string train_set_file_path = DATA_PATH + "/Bayesian-network/data/dataset/a1a.txt",//"../../data/dataset/a1a.txt",
+                test_set_file_path = DATA_PATH + "/Bayesian-network/data/dataset/a1a.test.txt";//"../../data/dataset/a1a.test.txt";
+
+        trainer->LoadLIBSVMData(train_set_file_path);
+        tester->LoadLIBSVMData(test_set_file_path);
+
+//        network->StructLearnCompData(trainer, true);
+        StructureLearning *bnsl = new ChowLiuTree(network);
+        bnsl->StructLearnCompData(trainer, 1, 1, true, false);
+        ParameterLearning *bnpl = new ParameterLearning(network);
+        bnpl->LearnParamsKnowStructCompData(trainer, 2, true);
+    }
+
+    Dataset *trainer;
+    Dataset *tester;
+    Network *network;
+};
+
 //TEST_F(ExperimentOnA1a, ve) {
 //    Inference *inference = new ExactInference(network);
 //    double accuracy = inference->EvaluateAccuracy(tester, -1, "ve", true);
 //    EXPECT_GT(accuracy, 0.8230);
 //}
-//
+
 //TEST_F(ExperimentOnA1a, ve_partial) {
 //    Inference *inference = new ExactInference(network);
 //    double accuracy = inference->EvaluateAccuracy(tester, -1, "ve", false);
 //    EXPECT_GT(accuracy, 0.8230);
 //}
-//
+
 //TEST_F(ExperimentOnA1a, brute_force) {
 //    Inference *inference = new ExactInference(network);
 //    double accuracy = inference->EvaluateAccuracy(tester, -1, "direct", true);
@@ -77,12 +103,12 @@ string DATA_PATH = "/home/ubuntu"; // Oracle
 //}
 //
 //
-//TEST_F(ExperimentOnA1a, junction_tree) {
-//    auto *jt = new JunctionTree(network, false);
-//    double accuracy = jt->EvaluateJTAccuracy(0, tester);
-//    delete jt;
-//    EXPECT_GT(accuracy,0.8150);
-//}
+TEST_F(ExperimentOnA1a, junction_tree) {
+    auto *jt = new JunctionTree(network);
+    double accuracy = jt->EvaluateJTAccuracy(0, tester);
+    delete jt;
+    EXPECT_GT(accuracy,0.8150);
+}
 
 
 
@@ -517,7 +543,7 @@ string DATA_PATH = "/home/ubuntu"; // Oracle
 //    void SetUp() override {
 //        trainer = new Dataset();
 //        network = new Network(true);
-//        string train_set_file_path = DATA_PATH + "/dataset/munin2/munin2_s15000.txt";
+//        string train_set_file_path = DATA_PATH + "/dataset/munin2/munin2_s5000.txt";
 //        trainer->LoadCSVData(train_set_file_path, true, true, 0);
 //    }
 //    Dataset *trainer;
@@ -613,247 +639,357 @@ string DATA_PATH = "/home/ubuntu"; // Oracle
 //delete network;
 //delete ref_net;
 //}
+//
+//
+//
+//class ExperimentBNSLOnMunin3 : public ::testing::Test {
+//protected:
+//
+//    void SetUp() override {
+//        trainer = new Dataset();
+//        network = new Network(true);
+//        string train_set_file_path = DATA_PATH + "/dataset/munin3/munin3_s5000.txt";
+//        trainer->LoadCSVData(train_set_file_path, true, true, 0);
+//    }
+//    Dataset *trainer;
+//    Network *network;
+//};
+//
+//TEST_F(ExperimentBNSLOnMunin3, pc_stable) {
+//StructureLearning *bnsl = new PCStable(network, 0.05);
+//bnsl->StructLearnCompData(trainer, 1, 1, false, false);
+//delete trainer;
+//
+//CustomNetwork *ref_net = new CustomNetwork();
+//ref_net->LoadBIFFile(DATA_PATH + "/dataset/munin3/munin3.bif");
+//
+//BNSLComparison comp(ref_net, network);
+//int shd = comp.GetSHD();
+//cout << "SHD = " << shd << endl;
+//delete network;
+//delete ref_net;
+//}
+//
+//TEST_F(ExperimentBNSLOnMunin3, pc_stable2) {
+//StructureLearning *bnsl = new PCStable(network, 0.05);
+//bnsl->StructLearnCompData(trainer, 1, 2, false, false);
+//delete trainer;
+//
+//CustomNetwork *ref_net = new CustomNetwork();
+//ref_net->LoadBIFFile(DATA_PATH + "/dataset/munin3/munin3.bif");
+//
+//BNSLComparison comp(ref_net, network);
+//int shd = comp.GetSHD();
+//cout << "SHD = " << shd << endl;
+//delete network;
+//delete ref_net;
+//}
+//
+//TEST_F(ExperimentBNSLOnMunin3, pc_stable4) {
+//StructureLearning *bnsl = new PCStable(network, 0.05);
+//bnsl->StructLearnCompData(trainer, 1, 4, false, false);
+//delete trainer;
+//
+//CustomNetwork *ref_net = new CustomNetwork();
+//ref_net->LoadBIFFile(DATA_PATH + "/dataset/munin3/munin3.bif");
+//
+//BNSLComparison comp(ref_net, network);
+//int shd = comp.GetSHD();
+//cout << "SHD = " << shd << endl;
+//delete network;
+//delete ref_net;
+//}
+//
+//TEST_F(ExperimentBNSLOnMunin3, pc_stable8) {
+//StructureLearning *bnsl = new PCStable(network, 0.05);
+//bnsl->StructLearnCompData(trainer, 1, 8, false, false);
+//delete trainer;
+//
+//CustomNetwork *ref_net = new CustomNetwork();
+//ref_net->LoadBIFFile(DATA_PATH + "/dataset/munin3/munin3.bif");
+//
+//BNSLComparison comp(ref_net, network);
+//int shd = comp.GetSHD();
+//cout << "SHD = " << shd << endl;
+//delete network;
+//delete ref_net;
+//}
+//
+//TEST_F(ExperimentBNSLOnMunin3, pc_stable16) {
+//StructureLearning *bnsl = new PCStable(network, 0.05);
+//bnsl->StructLearnCompData(trainer, 1, 16, false, false);
+//delete trainer;
+//
+//CustomNetwork *ref_net = new CustomNetwork();
+//ref_net->LoadBIFFile(DATA_PATH + "/dataset/munin3/munin3.bif");
+//
+//BNSLComparison comp(ref_net, network);
+//int shd = comp.GetSHD();
+//cout << "SHD = " << shd << endl;
+//delete network;
+//delete ref_net;
+//}
+//
+//TEST_F(ExperimentBNSLOnMunin3, pc_stable32) {
+//StructureLearning *bnsl = new PCStable(network, 0.05);
+//bnsl->StructLearnCompData(trainer, 1, 32, false, false);
+//delete trainer;
+//
+//CustomNetwork *ref_net = new CustomNetwork();
+//ref_net->LoadBIFFile(DATA_PATH + "/dataset/munin3/munin3.bif");
+//
+//BNSLComparison comp(ref_net, network);
+//int shd = comp.GetSHD();
+//cout << "SHD = " << shd << endl;
+//delete network;
+//delete ref_net;
+//}
 
 
 
-class ExperimentBNSLOnMunin3 : public ::testing::Test {
-protected:
-
-    void SetUp() override {
-        trainer = new Dataset();
-        network = new Network(true);
-        string train_set_file_path = DATA_PATH + "/dataset/munin3/munin3_s15000.txt";
-        trainer->LoadCSVData(train_set_file_path, true, true, 0);
-    }
-    Dataset *trainer;
-    Network *network;
-};
-
-TEST_F(ExperimentBNSLOnMunin3, pc_stable) {
-StructureLearning *bnsl = new PCStable(network, 0.05);
-bnsl->StructLearnCompData(trainer, 1, 1, false, false);
-delete trainer;
-
-CustomNetwork *ref_net = new CustomNetwork();
-ref_net->LoadBIFFile(DATA_PATH + "/dataset/munin3/munin3.bif");
-
-BNSLComparison comp(ref_net, network);
-int shd = comp.GetSHD();
-cout << "SHD = " << shd << endl;
-delete network;
-delete ref_net;
-}
-
-TEST_F(ExperimentBNSLOnMunin3, pc_stable2) {
-StructureLearning *bnsl = new PCStable(network, 0.05);
-bnsl->StructLearnCompData(trainer, 1, 2, false, false);
-delete trainer;
-
-CustomNetwork *ref_net = new CustomNetwork();
-ref_net->LoadBIFFile(DATA_PATH + "/dataset/munin3/munin3.bif");
-
-BNSLComparison comp(ref_net, network);
-int shd = comp.GetSHD();
-cout << "SHD = " << shd << endl;
-delete network;
-delete ref_net;
-}
-
-TEST_F(ExperimentBNSLOnMunin3, pc_stable4) {
-StructureLearning *bnsl = new PCStable(network, 0.05);
-bnsl->StructLearnCompData(trainer, 1, 4, false, false);
-delete trainer;
-
-CustomNetwork *ref_net = new CustomNetwork();
-ref_net->LoadBIFFile(DATA_PATH + "/dataset/munin3/munin3.bif");
-
-BNSLComparison comp(ref_net, network);
-int shd = comp.GetSHD();
-cout << "SHD = " << shd << endl;
-delete network;
-delete ref_net;
-}
-
-TEST_F(ExperimentBNSLOnMunin3, pc_stable8) {
-StructureLearning *bnsl = new PCStable(network, 0.05);
-bnsl->StructLearnCompData(trainer, 1, 8, false, false);
-delete trainer;
-
-CustomNetwork *ref_net = new CustomNetwork();
-ref_net->LoadBIFFile(DATA_PATH + "/dataset/munin3/munin3.bif");
-
-BNSLComparison comp(ref_net, network);
-int shd = comp.GetSHD();
-cout << "SHD = " << shd << endl;
-delete network;
-delete ref_net;
-}
-
-TEST_F(ExperimentBNSLOnMunin3, pc_stable16) {
-StructureLearning *bnsl = new PCStable(network, 0.05);
-bnsl->StructLearnCompData(trainer, 1, 16, false, false);
-delete trainer;
-
-CustomNetwork *ref_net = new CustomNetwork();
-ref_net->LoadBIFFile(DATA_PATH + "/dataset/munin3/munin3.bif");
-
-BNSLComparison comp(ref_net, network);
-int shd = comp.GetSHD();
-cout << "SHD = " << shd << endl;
-delete network;
-delete ref_net;
-}
-
-TEST_F(ExperimentBNSLOnMunin3, pc_stable32) {
-StructureLearning *bnsl = new PCStable(network, 0.05);
-bnsl->StructLearnCompData(trainer, 1, 32, false, false);
-delete trainer;
-
-CustomNetwork *ref_net = new CustomNetwork();
-ref_net->LoadBIFFile(DATA_PATH + "/dataset/munin3/munin3.bif");
-
-BNSLComparison comp(ref_net, network);
-int shd = comp.GetSHD();
-cout << "SHD = " << shd << endl;
-delete network;
-delete ref_net;
-}
-
-
-
-class ExperimentBNSLOnMunin4 : public ::testing::Test {
-protected:
-
-    void SetUp() override {
-        trainer = new Dataset();
-        network = new Network(true);
-        string train_set_file_path = DATA_PATH + "/dataset/munin4/munin4_s15000.txt";
-        trainer->LoadCSVData(train_set_file_path, true, true, 0);
-    }
-    Dataset *trainer;
-    Network *network;
-};
-
-TEST_F(ExperimentBNSLOnMunin4, pc_stable) {
-StructureLearning *bnsl = new PCStable(network, 0.05);
-bnsl->StructLearnCompData(trainer, 1, 1, false, false);
-delete trainer;
-
-CustomNetwork *ref_net = new CustomNetwork();
-ref_net->LoadBIFFile(DATA_PATH + "/dataset/munin4/munin4.bif");
-
-BNSLComparison comp(ref_net, network);
-int shd = comp.GetSHD();
-cout << "SHD = " << shd << endl;
-delete network;
-delete ref_net;
-}
-
-TEST_F(ExperimentBNSLOnMunin4, pc_stable2) {
-StructureLearning *bnsl = new PCStable(network, 0.05);
-bnsl->StructLearnCompData(trainer, 1, 2, false, false);
-delete trainer;
-
-CustomNetwork *ref_net = new CustomNetwork();
-ref_net->LoadBIFFile(DATA_PATH + "/dataset/munin4/munin4.bif");
-
-BNSLComparison comp(ref_net, network);
-int shd = comp.GetSHD();
-cout << "SHD = " << shd << endl;
-delete network;
-delete ref_net;
-}
-
-TEST_F(ExperimentBNSLOnMunin4, pc_stable4) {
-StructureLearning *bnsl = new PCStable(network, 0.05);
-bnsl->StructLearnCompData(trainer, 1, 4, false, false);
-delete trainer;
-
-CustomNetwork *ref_net = new CustomNetwork();
-ref_net->LoadBIFFile(DATA_PATH + "/dataset/munin4/munin4.bif");
-
-BNSLComparison comp(ref_net, network);
-int shd = comp.GetSHD();
-cout << "SHD = " << shd << endl;
-delete network;
-delete ref_net;
-}
-
-TEST_F(ExperimentBNSLOnMunin4, pc_stable8) {
-StructureLearning *bnsl = new PCStable(network, 0.05);
-bnsl->StructLearnCompData(trainer, 1, 8, false, false);
-delete trainer;
-
-CustomNetwork *ref_net = new CustomNetwork();
-ref_net->LoadBIFFile(DATA_PATH + "/dataset/munin4/munin4.bif");
-
-BNSLComparison comp(ref_net, network);
-int shd = comp.GetSHD();
-cout << "SHD = " << shd << endl;
-delete network;
-delete ref_net;
-}
-
-TEST_F(ExperimentBNSLOnMunin4, pc_stable16) {
-StructureLearning *bnsl = new PCStable(network, 0.05);
-bnsl->StructLearnCompData(trainer, 1, 16, false, false);
-delete trainer;
-
-CustomNetwork *ref_net = new CustomNetwork();
-ref_net->LoadBIFFile(DATA_PATH + "/dataset/munin4/munin4.bif");
-
-BNSLComparison comp(ref_net, network);
-int shd = comp.GetSHD();
-cout << "SHD = " << shd << endl;
-delete network;
-delete ref_net;
-}
-
-TEST_F(ExperimentBNSLOnMunin4, pc_stable32) {
-StructureLearning *bnsl = new PCStable(network, 0.05);
-bnsl->StructLearnCompData(trainer, 1, 32, false, false);
-delete trainer;
-
-CustomNetwork *ref_net = new CustomNetwork();
-ref_net->LoadBIFFile(DATA_PATH + "/dataset/munin4/munin4.bif");
-
-BNSLComparison comp(ref_net, network);
-int shd = comp.GetSHD();
-cout << "SHD = " << shd << endl;
-delete network;
-delete ref_net;
-}
+//class ExperimentBNSLOnMunin4 : public ::testing::Test {
+//protected:
+//
+//    void SetUp() override {
+//        trainer = new Dataset();
+//        network = new Network(true);
+//        string train_set_file_path = DATA_PATH + "/dataset/munin4/munin4_s5000.txt";
+//        trainer->LoadCSVData(train_set_file_path, true, true, 0);
+//    }
+//    Dataset *trainer;
+//    Network *network;
+//};
+//
+//TEST_F(ExperimentBNSLOnMunin4, pc_stable) {
+//StructureLearning *bnsl = new PCStable(network, 0.05);
+//bnsl->StructLearnCompData(trainer, 1, 1, false, false);
+//delete trainer;
+//
+//CustomNetwork *ref_net = new CustomNetwork();
+//ref_net->LoadBIFFile(DATA_PATH + "/dataset/munin4/munin4.bif");
+//
+//BNSLComparison comp(ref_net, network);
+//int shd = comp.GetSHD();
+//cout << "SHD = " << shd << endl;
+//delete network;
+//delete ref_net;
+//}
+//
+//TEST_F(ExperimentBNSLOnMunin4, pc_stable2) {
+//StructureLearning *bnsl = new PCStable(network, 0.05);
+//bnsl->StructLearnCompData(trainer, 1, 2, false, false);
+//delete trainer;
+//
+//CustomNetwork *ref_net = new CustomNetwork();
+//ref_net->LoadBIFFile(DATA_PATH + "/dataset/munin4/munin4.bif");
+//
+//BNSLComparison comp(ref_net, network);
+//int shd = comp.GetSHD();
+//cout << "SHD = " << shd << endl;
+//delete network;
+//delete ref_net;
+//}
+//
+//TEST_F(ExperimentBNSLOnMunin4, pc_stable4) {
+//StructureLearning *bnsl = new PCStable(network, 0.05);
+//bnsl->StructLearnCompData(trainer, 1, 4, false, false);
+//delete trainer;
+//
+//CustomNetwork *ref_net = new CustomNetwork();
+//ref_net->LoadBIFFile(DATA_PATH + "/dataset/munin4/munin4.bif");
+//
+//BNSLComparison comp(ref_net, network);
+//int shd = comp.GetSHD();
+//cout << "SHD = " << shd << endl;
+//delete network;
+//delete ref_net;
+//}
+//
+//TEST_F(ExperimentBNSLOnMunin4, pc_stable8) {
+//StructureLearning *bnsl = new PCStable(network, 0.05);
+//bnsl->StructLearnCompData(trainer, 1, 8, false, false);
+//delete trainer;
+//
+//CustomNetwork *ref_net = new CustomNetwork();
+//ref_net->LoadBIFFile(DATA_PATH + "/dataset/munin4/munin4.bif");
+//
+//BNSLComparison comp(ref_net, network);
+//int shd = comp.GetSHD();
+//cout << "SHD = " << shd << endl;
+//delete network;
+//delete ref_net;
+//}
+//
+//TEST_F(ExperimentBNSLOnMunin4, pc_stable16) {
+//StructureLearning *bnsl = new PCStable(network, 0.05);
+//bnsl->StructLearnCompData(trainer, 1, 16, false, false);
+//delete trainer;
+//
+//CustomNetwork *ref_net = new CustomNetwork();
+//ref_net->LoadBIFFile(DATA_PATH + "/dataset/munin4/munin4.bif");
+//
+//BNSLComparison comp(ref_net, network);
+//int shd = comp.GetSHD();
+//cout << "SHD = " << shd << endl;
+//delete network;
+//delete ref_net;
+//}
+//
+//TEST_F(ExperimentBNSLOnMunin4, pc_stable32) {
+//StructureLearning *bnsl = new PCStable(network, 0.05);
+//bnsl->StructLearnCompData(trainer, 1, 32, false, false);
+//delete trainer;
+//
+//CustomNetwork *ref_net = new CustomNetwork();
+//ref_net->LoadBIFFile(DATA_PATH + "/dataset/munin4/munin4.bif");
+//
+//BNSLComparison comp(ref_net, network);
+//int shd = comp.GetSHD();
+//cout << "SHD = " << shd << endl;
+//delete network;
+//delete ref_net;
+//}
 
 
 
-class ExperimentBNSLOnLink : public ::testing::Test {
-protected:
 
-    void SetUp() override {
-        trainer = new Dataset();
-        network = new Network(true);
-        string train_set_file_path = DATA_PATH + "/dataset/link/link_s1000.txt";
-        trainer->LoadCSVData(train_set_file_path, true, true, 0);
-    }
+//class ExperimentBNSLOnDiabetes : public ::testing::Test {
+//protected:
+//
+//    void SetUp() override {
+//        trainer = new Dataset();
+//        network = new Network(true);
+//
+//        string train_set_file_path = DATA_PATH + "/dataset/diabetes/diabetes_s5000.txt";
+//
+//        trainer->LoadCSVData(train_set_file_path, true, true, 0);
+//    }
+//
+//    Dataset *trainer;
+//    Network *network;
+//};
+//
+//TEST_F(ExperimentBNSLOnDiabetes, pc_stable16) {
+//    StructureLearning *bnsl = new PCStable(network, 0.05);
+//    bnsl->StructLearnCompData(trainer, 1, 16, false, false);
+//    delete trainer;
+//
+//    CustomNetwork *ref_net = new CustomNetwork();
+//    ref_net->LoadBIFFile(DATA_PATH + "/dataset/diabetes/diabetes.bif");
+//
+//    BNSLComparison comp(ref_net, network);
+//    int shd = comp.GetSHD();
+//    cout << "SHD = " << shd << endl;
+//    delete network;
+//    delete ref_net;
+//}
+//
+//TEST_F(ExperimentBNSLOnDiabetes, pc_stable32) {
+//    StructureLearning *bnsl = new PCStable(network, 0.05);
+//    bnsl->StructLearnCompData(trainer, 1, 32, false, false);
+//    delete trainer;
+//
+//    CustomNetwork *ref_net = new CustomNetwork();
+//    ref_net->LoadBIFFile(DATA_PATH + "/dataset/diabetes/diabetes.bif");
+//
+//    BNSLComparison comp(ref_net, network);
+//    int shd = comp.GetSHD();
+//    cout << "SHD = " << shd << endl;
+//    delete network;
+//    delete ref_net;
+//}
+//
+//TEST_F(ExperimentBNSLOnDiabetes, pc_stable8) {
+//    StructureLearning *bnsl = new PCStable(network, 0.05);
+//    bnsl->StructLearnCompData(trainer, 1, 8, false, false);
+//    delete trainer;
+//
+//    CustomNetwork *ref_net = new CustomNetwork();
+//    ref_net->LoadBIFFile(DATA_PATH + "/dataset/diabetes/diabetes.bif");
+//
+//    BNSLComparison comp(ref_net, network);
+//    int shd = comp.GetSHD();
+//    cout << "SHD = " << shd << endl;
+//    delete network;
+//    delete ref_net;
+//}
+//
+//TEST_F(ExperimentBNSLOnDiabetes, pc_stable4) {
+//    StructureLearning *bnsl = new PCStable(network, 0.05);
+//    bnsl->StructLearnCompData(trainer, 1, 4, false, false);
+//    delete trainer;
+//
+//    CustomNetwork *ref_net = new CustomNetwork();
+//    ref_net->LoadBIFFile(DATA_PATH + "/dataset/diabetes/diabetes.bif");
+//
+//    BNSLComparison comp(ref_net, network);
+//    int shd = comp.GetSHD();
+//    cout << "SHD = " << shd << endl;
+//    delete network;
+//    delete ref_net;
+//}
+//
+//TEST_F(ExperimentBNSLOnDiabetes, pc_stable2) {
+//    StructureLearning *bnsl = new PCStable(network, 0.05);
+//    bnsl->StructLearnCompData(trainer, 1, 2, false, false);
+//    delete trainer;
+//
+//    CustomNetwork *ref_net = new CustomNetwork();
+//    ref_net->LoadBIFFile(DATA_PATH + "/dataset/diabetes/diabetes.bif");
+//
+//    BNSLComparison comp(ref_net, network);
+//    int shd = comp.GetSHD();
+//    cout << "SHD = " << shd << endl;
+//    delete network;
+//    delete ref_net;
+//}
+//
+//TEST_F(ExperimentBNSLOnDiabetes, pc_stable) {
+//StructureLearning *bnsl = new PCStable(network, 0.05);
+//bnsl->StructLearnCompData(trainer, 1, 1, false, false);
+//delete trainer;
+//
+//CustomNetwork *ref_net = new CustomNetwork();
+//ref_net->LoadBIFFile(DATA_PATH + "/dataset/diabetes/diabetes.bif");
+//
+//BNSLComparison comp(ref_net, network);
+//int shd = comp.GetSHD();
+//cout << "SHD = " << shd << endl;
+//delete network;
+//delete ref_net;
+//}
 
-    Dataset *trainer;
-    Network *network;
-};
 
-TEST_F(ExperimentBNSLOnLink, pc_stable8) {
-    StructureLearning *bnsl = new PCStable(network, 0.05);
-    bnsl->StructLearnCompData(trainer, 1, 8, false, false);
-    delete trainer;
 
-    CustomNetwork *ref_net = new CustomNetwork();
-    ref_net->LoadBIFFile(DATA_PATH + "/dataset/link/link.bif");
 
-    BNSLComparison comp(ref_net, network);
-    int shd = comp.GetSHD();
-    cout << "SHD = " << shd << endl;
-    delete network;
-    delete ref_net;
-}
+//class ExperimentBNSLOnLink : public ::testing::Test {
+//protected:
+//
+//    void SetUp() override {
+//        trainer = new Dataset();
+//        network = new Network(true);
+//        string train_set_file_path = DATA_PATH + "/dataset/link/link_s5000.txt";
+//        trainer->LoadCSVData(train_set_file_path, true, true, 0);
+//    }
+//
+//    Dataset *trainer;
+//    Network *network;
+//};
+//
+//TEST_F(ExperimentBNSLOnLink, pc_stable8) {
+//    StructureLearning *bnsl = new PCStable(network, 0.05);
+//    bnsl->StructLearnCompData(trainer, 1, 8, false, false);
+//    delete trainer;
+//
+//    CustomNetwork *ref_net = new CustomNetwork();
+//    ref_net->LoadBIFFile(DATA_PATH + "/dataset/link/link.bif");
+//
+//    BNSLComparison comp(ref_net, network);
+//    int shd = comp.GetSHD();
+//    cout << "SHD = " << shd << endl;
+//    delete network;
+//    delete ref_net;
+//}
 //
 //TEST_F(ExperimentBNSLOnLink, pc_stable4) {
 //    StructureLearning *bnsl = new PCStable(network, 0.05);
@@ -930,113 +1066,6 @@ TEST_F(ExperimentBNSLOnLink, pc_stable8) {
 //    delete ref_net;
 //}
 
-
-class ExperimentBNSLOnDiabetes : public ::testing::Test {
-protected:
-
-    void SetUp() override {
-        trainer = new Dataset();
-        network = new Network(true);
-
-        string train_set_file_path = DATA_PATH + "/dataset/diabetes/diabetes_s5000.txt";
-
-        trainer->LoadCSVData(train_set_file_path, true, true, 0);
-    }
-
-    Dataset *trainer;
-    Network *network;
-};
-
-TEST_F(ExperimentBNSLOnDiabetes, pc_stable16) {
-    StructureLearning *bnsl = new PCStable(network, 0.05);
-    bnsl->StructLearnCompData(trainer, 1, 16, false, false);
-    delete trainer;
-
-    CustomNetwork *ref_net = new CustomNetwork();
-    ref_net->LoadBIFFile(DATA_PATH + "/dataset/diabetes/diabetes.bif");
-
-    BNSLComparison comp(ref_net, network);
-    int shd = comp.GetSHD();
-    cout << "SHD = " << shd << endl;
-    delete network;
-    delete ref_net;
-}
-//
-//TEST_F(ExperimentBNSLOnDiabetes, pc_stable32) {
-//    StructureLearning *bnsl = new PCStable(network, 0.05);
-//    bnsl->StructLearnCompData(trainer, 1, 32, false, false);
-//    delete trainer;
-//
-//    CustomNetwork *ref_net = new CustomNetwork();
-//    ref_net->LoadBIFFile(DATA_PATH + "/dataset/diabetes/diabetes.bif");
-//
-//    BNSLComparison comp(ref_net, network);
-//    int shd = comp.GetSHD();
-//    cout << "SHD = " << shd << endl;
-//    delete network;
-//    delete ref_net;
-//}
-//
-//TEST_F(ExperimentBNSLOnDiabetes, pc_stable8) {
-//    StructureLearning *bnsl = new PCStable(network, 0.05);
-//    bnsl->StructLearnCompData(trainer, 1, 8, false, false);
-//    delete trainer;
-//
-//    CustomNetwork *ref_net = new CustomNetwork();
-//    ref_net->LoadBIFFile(DATA_PATH + "/dataset/diabetes/diabetes.bif");
-//
-//    BNSLComparison comp(ref_net, network);
-//    int shd = comp.GetSHD();
-//    cout << "SHD = " << shd << endl;
-//    delete network;
-//    delete ref_net;
-//}
-//
-//TEST_F(ExperimentBNSLOnDiabetes, pc_stable4) {
-//    StructureLearning *bnsl = new PCStable(network, 0.05);
-//    bnsl->StructLearnCompData(trainer, 1, 4, false, false);
-//    delete trainer;
-//
-//    CustomNetwork *ref_net = new CustomNetwork();
-//    ref_net->LoadBIFFile(DATA_PATH + "/dataset/diabetes/diabetes.bif");
-//
-//    BNSLComparison comp(ref_net, network);
-//    int shd = comp.GetSHD();
-//    cout << "SHD = " << shd << endl;
-//    delete network;
-//    delete ref_net;
-//}
-//
-//TEST_F(ExperimentBNSLOnDiabetes, pc_stable2) {
-//    StructureLearning *bnsl = new PCStable(network, 0.05);
-//    bnsl->StructLearnCompData(trainer, 1, 2, false, false);
-//    delete trainer;
-//
-//    CustomNetwork *ref_net = new CustomNetwork();
-//    ref_net->LoadBIFFile(DATA_PATH + "/dataset/diabetes/diabetes.bif");
-//
-//    BNSLComparison comp(ref_net, network);
-//    int shd = comp.GetSHD();
-//    cout << "SHD = " << shd << endl;
-//    delete network;
-//    delete ref_net;
-//}
-//
-//TEST_F(ExperimentBNSLOnDiabetes, pc_stable) {
-//    StructureLearning *bnsl = new PCStable(network, 0.05);
-//    bnsl->StructLearnCompData(trainer, 1, 1, false, false);
-//    delete trainer;
-//
-//    CustomNetwork *ref_net = new CustomNetwork();
-//    ref_net->LoadBIFFile(DATA_PATH + "/dataset/diabetes/diabetes.bif");
-//
-//    BNSLComparison comp(ref_net, network);
-//    int shd = comp.GetSHD();
-//    cout << "SHD = " << shd << endl;
-//    delete network;
-//    delete ref_net;
-//}
-//
 
 
 

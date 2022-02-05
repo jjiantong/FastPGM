@@ -30,13 +30,17 @@ Clique::Clique(set<Node*> set_node_ptr, int elim_var_index) {
   // In the paper, all continuous cliques' activeflags are initially set to true.
   activeflag = !pure_discrete;
 
-  //initialize related variables
+  // set_of_sets: set< set< pair<int, int> > >:
+  //    one set is all possible values of one node(variable),
+  //    set of sets is all possible values of all nodes.
+  // c: set< pair<int, int> >
   set<DiscreteConfig> set_of_sets;
-  for (auto &n : set_node_ptr) {
-    related_variables.insert(n->GetNodeIndex());
+  for (auto &n : set_node_ptr) { // for each node
+    //initialize related variables
+    related_variables.insert(n->GetNodeIndex()); // insert into related_variables
     if (n->is_discrete) {
       auto dn = dynamic_cast<DiscreteNode*>(n);
-      DiscreteConfig c;
+      DiscreteConfig c; // multiple groups: [node id, all possible values of this node]
       for (int i = 0; i < dn->GetDomainSize(); ++i) {
         c.insert(pair<int, int>(n->GetNodeIndex(), dn->vec_potential_vals.at(i)));
       }
@@ -99,16 +103,16 @@ Factor Clique::Collect() {
     // the current neighbor "ptr_separator" is a downstream clique
     ptr_separator->ptr_upstream_clique = this;  // Let the callee know the caller.
 
-    /** This is for continuous nodes TODO: double-check
-     * If the next clique connected by this separator is a continuous clique,
-     * then the program should not collect from it. All information needed from
-     * the continuous clique has been pushed to the boundary when entering the evidence.
-     */
-    bool reach_boundary = false;
-    for (const auto &next_clq_ptr : ptr_separator->set_neighbours_ptr) {
-        reach_boundary = (next_clq_ptr->ptr_upstream_clique!=ptr_separator && !next_clq_ptr->pure_discrete);
-    }
-    if (reach_boundary) { continue; }
+//    /** This is for continuous nodes TODO: double-check
+//     * If the next clique connected by this separator is a continuous clique,
+//     * then the program should not collect from it. All information needed from
+//     * the continuous clique has been pushed to the boundary when entering the evidence.
+//     */
+//    bool reach_boundary = false;
+//    for (const auto &next_clq_ptr : ptr_separator->set_neighbours_ptr) {
+//        reach_boundary = (next_clq_ptr->ptr_upstream_clique!=ptr_separator && !next_clq_ptr->pure_discrete);
+//    }
+//    if (reach_boundary) { continue; }
 
     // collect the msg f from downstream
     Factor f = ptr_separator->Collect();
@@ -199,13 +203,22 @@ Factor Clique::SumOutExternalVars(Factor f) {
  * @brief: multiply a clique with a factor
  */
 void Clique::MultiplyWithFactorSumOverExternalVars(Factor f) {
-  // sum over the irrelevant variables of the clique
+    // TODO: check the usage of "MultiplyWithFactorSumOverExternalVars",
+    //  for the usage in assigning factors, no need to "SumOutExternalVars",
+    //  because the scope of clique can accommodate the scope of its factors
+    // sum over the irrelevant variables of the clique
   f = SumOutExternalVars(f);
 
   Factor factor_of_this_clique(related_variables, set_disc_configs, map_potentials); // the factor of the clique
+  // TODO: see the comments below: "related_variables" and "set_disc_configs" are not required to be changed,
+  //  there are some differences between the standard multiplication of factors and the multiplication here
+  //  1. "related_variables" is no need to be changed
+  //  2. maybe not all the variables in the "related_variables" are in the factors, not like the standard factor
   factor_of_this_clique = factor_of_this_clique.MultiplyWithFactor(f); // multiply two factors
-//TODO: may need to perform sum over for "factor_of_this_clique"
   // TODO: double-check: "related_variables" is not changed, "set_disc_configs" is also not changed?
+  // checked: "related_variables" is all the variables in the clique,
+  //          "set_disc_configs" is all the configs of the variables in the clique
+  //          therefore, they are not required to be changed, the only thing changed is the potentials
   map_potentials = factor_of_this_clique.map_potentials;
 }
 
