@@ -127,10 +127,9 @@ Factor Clique::Collect() {
 }
 
 /**
- * Distribute the information it knows to the downstream cliques. // TODO: to all neighbors include downstream and upstream cliques?
+ * Distribute the information it knows to the downstream cliques.
  * The reload version without parameter. Called on the selected root.
  */
- // TODO: double-check
 void Clique::Distribute() {
   Factor f = ConstructMessage();
   for (auto &sep : set_neighbours_ptr) {

@@ -48,7 +48,7 @@ void Dataset::LoadLIBSVMData(string data_file_path, set<int> cont_vars) {
     string sample;
     int max_index_occurred = -1;
     vector<Value> dataset_y_vector;
-    vector<vector<VarVal>> dataset_X_vector;
+    vector<vector<VarVal>> dataset_X_vector; // VarVal: pair<int, Value>
 
     // 1, read the data file and store with the representation of std::vector.
     getline(in_file, sample);
@@ -56,6 +56,7 @@ void Dataset::LoadLIBSVMData(string data_file_path, set<int> cont_vars) {
         // There is a whitespace at the end of each line of
         // libSVM dataset format, which will cause a bug if we do not trim it.
         sample = TrimRight(sample);
+
         vector<string> parsed_sample = Split(sample, " ");
         int it = 0;   // id of the label is 0
 
@@ -66,7 +67,7 @@ void Dataset::LoadLIBSVMData(string data_file_path, set<int> cont_vars) {
             int value = stoi(parsed_sample[it]); // the value of label
             v.SetInt(value);
             // insert the value of label of one sample into "map_disc_vars_possible_values"
-            map_disc_vars_possible_values[class_var_index].insert(value);
+            map_disc_vars_possible_values[class_var_index].insert(value); // map<int,set<int>>
         } else {
             //the label is continuous (i.e., regression task)
             float value = stof(parsed_sample[it]); // the value of label
@@ -81,6 +82,7 @@ void Dataset::LoadLIBSVMData(string data_file_path, set<int> cont_vars) {
 
             // split the feature index and the feature value using ":"
             vector<string> parsed_feature_val = Split(feature_val, ":");
+
             int index = stoi(parsed_feature_val[0]);
             max_index_occurred = index > max_index_occurred ? index : max_index_occurred;
 
@@ -105,6 +107,7 @@ void Dataset::LoadLIBSVMData(string data_file_path, set<int> cont_vars) {
 
     // vector_dataset_all_vars: vector<vector<VarVal>>; label + feature
     vector_dataset_all_vars = dataset_X_vector;
+
     //insert label to the beginning of each instance
     for (int i = 0; i < vector_dataset_all_vars.size(); ++i) {
         vector_dataset_all_vars[i].insert(
@@ -129,6 +132,7 @@ void Dataset::LoadLIBSVMData(string data_file_path, set<int> cont_vars) {
             if (cont_vars.find(i) == cont_vars.end()) { // for each discrete feature
                 // Because features of LIBSVM format do not record the value of 0, we need to add it in.
                 map_disc_vars_possible_values[i].insert(0);
+                map_disc_vars_possible_values[i].insert(1); // todo!!
             }
         }
         num_of_possible_values_of_disc_vars.push_back(map_disc_vars_possible_values[i].size());
@@ -439,9 +443,8 @@ void Dataset::Vector2IntArray() {//storing the data set using int only
     dataset_all_vars = new int* [num_instance];
 //  dataset_all_vars = new uint8_t* [num_instance];
 //#pragma omp parallel for
-    for (int s=0; s<num_instance; ++s) {
-        dataset_all_vars[s] = new int [num_vars];
-//        dataset_all_vars[s] = new uint8_t [num_vars];
+    for (int s = 0; s < num_instance; ++s) {
+        dataset_all_vars[s] = new int [num_vars]();
         vector<VarVal> vec_instance = vector_dataset_all_vars[s];
         for (const VarVal &vv : vec_instance) {  // For each non-zero-value feature of this sample.
             //change the related value if it is non-zero value in the vector representation.

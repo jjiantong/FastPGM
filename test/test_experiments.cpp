@@ -60,6 +60,22 @@ protected:
         trainer->LoadLIBSVMData(train_set_file_path);
         tester->LoadLIBSVMData(test_set_file_path);
 
+        cout << "output trainer: num instance = " << trainer->num_instance << endl;
+        for (int i = 0; i < 20; ++i) {
+            for (int j = 0; j < 120; ++j) {
+                cout << trainer->dataset_all_vars[i][j] << " ";
+            }
+            cout << endl;
+        }
+
+        cout << "output tester: num instance = " << tester->num_instance << endl;
+        for (int i = 0; i < 20; ++i) {
+            for (int j = 0; j < 120; ++j) {
+                cout << tester->dataset_all_vars[i][j] << " ";
+            }
+            cout << endl;
+        }
+
 //        network->StructLearnCompData(trainer, true);
         StructureLearning *bnsl = new ChowLiuTree(network);
         bnsl->StructLearnCompData(trainer, 1, 1, true, false);
@@ -72,23 +88,23 @@ protected:
     Network *network;
 };
 
-//TEST_F(ExperimentOnA1a, ve) {
-//    Inference *inference = new ExactInference(network);
-//    double accuracy = inference->EvaluateAccuracy(tester, -1, "ve", true);
-//    EXPECT_GT(accuracy, 0.8230);
-//}
+TEST_F(ExperimentOnA1a, ve) {
+    Inference *inference = new ExactInference(network);
+    double accuracy = inference->EvaluateAccuracy(tester, -1, "ve", true);
+    EXPECT_GT(accuracy, 0.8230);
+}
 
-//TEST_F(ExperimentOnA1a, ve_partial) {
-//    Inference *inference = new ExactInference(network);
-//    double accuracy = inference->EvaluateAccuracy(tester, -1, "ve", false);
-//    EXPECT_GT(accuracy, 0.8230);
-//}
+TEST_F(ExperimentOnA1a, ve_partial) {
+    Inference *inference = new ExactInference(network);
+    double accuracy = inference->EvaluateAccuracy(tester, -1, "ve", false);
+    EXPECT_GT(accuracy, 0.8230);
+}
 
-//TEST_F(ExperimentOnA1a, brute_force) {
-//    Inference *inference = new ExactInference(network);
-//    double accuracy = inference->EvaluateAccuracy(tester, -1, "direct", true);
-//    EXPECT_GT(accuracy, 0.8230);
-//}
+TEST_F(ExperimentOnA1a, brute_force) {
+    Inference *inference = new ExactInference(network);
+    double accuracy = inference->EvaluateAccuracy(tester, -1, "direct", true);
+    EXPECT_GT(accuracy, 0.8230);
+}
 //
 //TEST_F(ExperimentOnA1a, likelihood_weighing) {
 //    Inference *inference = new ApproximateInference(network);
