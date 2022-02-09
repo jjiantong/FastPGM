@@ -20,25 +20,25 @@ JunctionTree::JunctionTree(Network *net, string elim_ord_strategy, vector<int> c
   network = net;
 
   int **direc_adjac_matrix = network->ConvertDAGNetworkToAdjacencyMatrix();
-  cout << "finish ConvertDAGNetworkToAdjacencyMatrix" << endl;
-    for (int i = 0; i < network->num_nodes; ++i) {
-        for (int j = 0; j < network->num_nodes; ++j) {
-            cout << direc_adjac_matrix[i][j] << " ";
-        }
-        cout << endl;
-    }
+//  cout << "finish ConvertDAGNetworkToAdjacencyMatrix" << endl;
+//    for (int i = 0; i < network->num_nodes; ++i) {
+//        for (int j = 0; j < network->num_nodes; ++j) {
+//            cout << direc_adjac_matrix[i][j] << " ";
+//        }
+//        cout << endl;
+//    }
 
   Moralize(direc_adjac_matrix, network->num_nodes);
   int **moral_graph_adjac_matrix = direc_adjac_matrix;
-  cout << "finish Moralize" << endl;
-    for (int i = 0; i < network->num_nodes; ++i) {
-        for (int j = 0; j < network->num_nodes; ++j) {
-            cout << moral_graph_adjac_matrix[i][j] << " ";
-        }
-        cout << endl;
-    }
+//  cout << "finish Moralize" << endl;
+//    for (int i = 0; i < network->num_nodes; ++i) {
+//        for (int j = 0; j < network->num_nodes; ++j) {
+//            cout << moral_graph_adjac_matrix[i][j] << " ";
+//        }
+//        cout << endl;
+//    }
 
-  cout << "elimination order = " << elim_ord_strategy << endl;
+//  cout << "elimination order = " << elim_ord_strategy << endl;
   // There are different ways of determining elimination ordering.
   if (elim_ord_strategy == "min-nei") {
     elimination_ordering = MinNeighbourElimOrd(moral_graph_adjac_matrix, network->num_nodes);
@@ -59,19 +59,19 @@ JunctionTree::JunctionTree(Network *net, string elim_ord_strategy, vector<int> c
                     "{ min-nei, rev-topo, custom }.");
     exit(1);
   }
-  cout << "finish order, order: ";
-    for (int i = 0; i < network->num_nodes; ++i) {
-        cout << elimination_ordering[i] << " ";
-    }
-    cout << endl;
+//    cout << "finish order, order: ";
+//    for (int i = 0; i < network->num_nodes; ++i) {
+//        cout << elimination_ordering[i] << " ";
+//    }
+//    cout << endl;
 
   //construct a clique for each node in the network
   Triangulate(network, moral_graph_adjac_matrix, network->num_nodes, elimination_ordering, set_clique_ptr_container);
-  cout << "finish Triangulate, number of cliques = " << set_clique_ptr_container.size() << endl;
+//  cout << "finish Triangulate, number of cliques = " << set_clique_ptr_container.size() << endl;
 
   //construct map from main variable to a clique
-  GenMapElimVarToClique();
-  cout << "finish GenMapElimVarToClique" << endl;
+//  GenMapElimVarToClique();
+//  cout << "finish GenMapElimVarToClique" << endl;
 
   FormJunctionTree(set_clique_ptr_container);//for discrete nodes
 //  FormListShapeJunctionTree(set_clique_ptr_container);//for continuous nodes
@@ -80,48 +80,48 @@ JunctionTree::JunctionTree(Network *net, string elim_ord_strategy, vector<int> c
 
   //assign id to each clique
   NumberTheCliquesAndSeparators();
-  cout << "finish NumberTheCliquesAndSeparators" << endl;
+//  cout << "finish NumberTheCliquesAndSeparators" << endl;
 
   AssignPotentials();
-  cout << "finish AssignPotentials" << endl;
+//  cout << "finish AssignPotentials" << endl;
 
-    cout << "cliques: " << endl;
-    for (auto &c : set_clique_ptr_container) {
-        cout << c->clique_id << ": ";
-        for (auto &v : c->related_variables) {
-            cout << v << " ";
-        }
-        cout << endl;
-        // set<DiscreteConfig> set_disc_configs; DiscreteConfig: set< pair<int, int> >
-        // map<DiscreteConfig, double> map_potentials
-        for (auto &config: c->set_disc_configs) {
-            cout << "config: ";
-            for (auto &varval: config) {
-                cout << varval.first << "=" << varval.second << " ";
-            }
-            cout << ": " << c->map_potentials[config] << endl;
-        }
-    }
-    cout << "separators: " << endl;
-    for (auto &s : set_separator_ptr_container) {
-        cout << s->clique_id << ": ";
-        for (auto &v : s->related_variables) {
-            cout << v << " ";
-        }
-        cout << endl;
-        // set<DiscreteConfig> set_disc_configs; DiscreteConfig: set< pair<int, int> >
-        // map<DiscreteConfig, double> map_potentials
-        for (auto &config: s->set_disc_configs) {
-            cout << "config: ";
-            for (auto &varval: config) {
-                cout << varval.first << "=" << varval.second << " ";
-            }
-            cout << ": " << s->map_potentials[config] << endl;
-        }
-    }
+//    cout << "cliques: " << endl;
+//    for (auto &c : set_clique_ptr_container) {
+//        cout << c->clique_id << ": ";
+//        for (auto &v : c->related_variables) {
+//            cout << v << " ";
+//        }
+//        cout << endl;
+//        // set<DiscreteConfig> set_disc_configs; DiscreteConfig: set< pair<int, int> >
+//        // map<DiscreteConfig, double> map_potentials
+//        for (auto &config: c->set_disc_configs) {
+//            cout << "config: ";
+//            for (auto &varval: config) {
+//                cout << varval.first << "=" << varval.second << " ";
+//            }
+//            cout << ": " << c->map_potentials[config] << endl;
+//        }
+//    }
+//    cout << "separators: " << endl;
+//    for (auto &s : set_separator_ptr_container) {
+//        cout << s->clique_id << ": ";
+//        for (auto &v : s->related_variables) {
+//            cout << v << " ";
+//        }
+//        cout << endl;
+//        // set<DiscreteConfig> set_disc_configs; DiscreteConfig: set< pair<int, int> >
+//        // map<DiscreteConfig, double> map_potentials
+//        for (auto &config: s->set_disc_configs) {
+//            cout << "config: ";
+//            for (auto &varval: config) {
+//                cout << varval.first << "=" << varval.second << " ";
+//            }
+//            cout << ": " << s->map_potentials[config] << endl;
+//        }
+//    }
 
   BackUpJunctionTree();
-  cout << "finish BackUpJunctionTree" << endl;
+//  cout << "finish BackUpJunctionTree" << endl;
 
   gettimeofday(&end,NULL);
   diff = (end.tv_sec-start.tv_sec) + ((double)(end.tv_usec-start.tv_usec))/1.0E6;
@@ -212,7 +212,6 @@ JunctionTree::JunctionTree(JunctionTree *jt) {
  * 2. directed graph -> undirected graph
  */
 void JunctionTree::Moralize(int **direc_adjac_matrix, int &num_nodes) { //checked
-//  //TODO: double-check correctness
 //  // TODO: can we just get parents of each node and marry them?
 //
 //  // Find the parents that have common child(ren).
@@ -306,14 +305,14 @@ void JunctionTree::Moralize(int **direc_adjac_matrix, int &num_nodes) { //checke
     }
 }
 
-/**
- * @brief: construct a map for ease of look up the clique
- */
-void JunctionTree::GenMapElimVarToClique() { //checked
-  for (const auto &c : set_clique_ptr_container) {
-    map_elim_var_to_clique[c->elimination_variable_index] = c;
-  }
-}
+///**
+// * @brief: construct a map for ease of look up the clique
+// */
+//void JunctionTree::GenMapElimVarToClique() { //checked
+//  for (const auto &c : set_clique_ptr_container) {
+//    map_elim_var_to_clique[c->elimination_variable_index] = c;
+//  }
+//}
 
 /**
  * @brief: Generate the elimination order by the number of neighbours.
@@ -388,43 +387,31 @@ void JunctionTree::Triangulate(Network *net,
         set_node_ptrs_to_form_a_clique.insert(net->FindNodePtrByIndex(vec_neighbors.at(neighbor)));
     }
 
-//    /************* with/without this part (check the correctness and efficiency) *************/
-//    // TODO: it seems to cause trouble when testing the trained network
-//    // before adding a clique, we need to check whether the clique is redundant
-//    // if a clique is fully contained by another (existing/previous) clique, then the clique is no need to be inserted.
-//    Clique* clique = new Clique(set_node_ptrs_to_form_a_clique, first_node_in_elim_ord);
-//    bool to_be_inserted = true;
-//    for (auto &ptr_clq : cliques) {
-//        set<int> intersection;
-//        set_intersection(clique->related_variables.begin(), clique->related_variables.end(),
-//                         ptr_clq->related_variables.begin(), ptr_clq->related_variables.end(),
-//                         std::inserter(intersection, intersection.begin()));
-//        if (intersection == clique->related_variables) {
-//            to_be_inserted = false;
-//            break;
-//        }
-//    }
-//
-//    if (to_be_inserted) {
-//        cliques.insert(clique);
-////        cout << "clique " << cliques.size() << ": ";
-////        for (auto &node: set_node_ptrs_to_form_a_clique) {
-////            cout << node->GetNodeIndex() << ", ";
-////        }
-////        cout << endl;
-//    } else {
-//        delete clique;
-//    }
-//
-//    /************* with/without this part (check the correctness and efficiency) *************/
-
-    // add the first node in the elimination order and all its neighbors into one clique
-    cliques.insert(new Clique(set_node_ptrs_to_form_a_clique, first_node_in_elim_ord));
-    cout << "clique " << cliques.size() << ": ";
-    for (auto &node: set_node_ptrs_to_form_a_clique) {
-        cout << node->GetNodeIndex() << ", ";
+    // before adding a clique, we need to check whether the clique is redundant
+    // if a clique is fully contained by another (existing/previous) clique, then the clique is no need to be inserted.
+    Clique* clique = new Clique(set_node_ptrs_to_form_a_clique, first_node_in_elim_ord);
+    bool to_be_inserted = true;
+    for (auto &ptr_clq : cliques) {
+        set<int> intersection;
+        set_intersection(clique->related_variables.begin(), clique->related_variables.end(),
+                         ptr_clq->related_variables.begin(), ptr_clq->related_variables.end(),
+                         std::inserter(intersection, intersection.begin()));
+        if (intersection == clique->related_variables) {
+            to_be_inserted = false;
+            break;
+        }
     }
-    cout << endl;
+
+    if (to_be_inserted) {
+        cliques.insert(clique);
+//        cout << "clique " << cliques.size() << ": ";
+//        for (auto &node: set_node_ptrs_to_form_a_clique) {
+//            cout << node->GetNodeIndex() << ", ";
+//        }
+//        cout << endl;
+    } else {
+        delete clique;
+    }
 
     // Remove the first node in elimination ordering, which has already form a clique.
     elim_ord.erase(elim_ord.begin());
@@ -438,94 +425,56 @@ void JunctionTree::Triangulate(Network *net,
 }
 
 ///**
-// * @brief: remove the redundant cliques; if a clique is fully contained by another clique, then the clique can be removed.
+// * @brief: the Junction Tree here looks like a linked list.
+// * This is used for continuous variables, based on a tutorial or some unpublished work.
 // */
-// //TODO: fix bugs, but no use...
-// // TODO: it should be done while adding a clique... not after adding all cliques...
-//void JunctionTree::ElimRedundantCliques() { //checked
-//  fprintf(stderr, "This operation, [%s], will cause lots of trouble and I can not solve them yet!\n"
-//                  "So, I just forbid the program to conduct this operation.", __FUNCTION__);
-//  return;
-//  set<Clique*> to_be_eliminated;
+//void JunctionTree::FormListShapeJunctionTree(set<Clique*> &cliques) { //checked
+//  //TODO: double-check correctness (continuous)
+//  // This method is described in
+//  // [Local Propagation in Conditional Gaussian Bayesian Networks (Cowell, 2005)]
+//  // section 3.2.
+//  // The last sentence.
 //
-//  for (auto &ptr_clq1 : set_clique_ptr_container) {
-//    for (auto &ptr_clq2 : set_clique_ptr_container) {
-//      if (ptr_clq1==ptr_clq2) {continue;}
-//      Clique *ptr_smaller_clique, *ptr_bigger_clique;
-//      if (ptr_clq1->related_variables.size() < ptr_clq2->related_variables.size()) {
-//        ptr_smaller_clique = ptr_clq1;
-//        ptr_bigger_clique = ptr_clq2;
-//      } else {
-//        ptr_smaller_clique = ptr_clq2;
-//        ptr_bigger_clique = ptr_clq1;
-//      }
-//      set<int> intersection;
-//      set_intersection(ptr_smaller_clique->related_variables.begin(),ptr_smaller_clique->related_variables.end(),
-//                       ptr_bigger_clique->related_variables.begin(),ptr_bigger_clique->related_variables.end(),
-//                       std::inserter(intersection,intersection.begin()));
-//      if (intersection==ptr_smaller_clique->related_variables) {
-//        to_be_eliminated.insert(ptr_smaller_clique);
+//  // todo: test correctness
+//  for (int i=0; i<elimination_ordering.size()-1; ++i) {
+//    Clique *this_clq = map_elim_var_to_clique[elimination_ordering.at(i)];
+//    Clique *next_clq = nullptr;
+//    for (int j=i+1; j<elimination_ordering.size(); ++j) {
+//      if (this_clq->related_variables.find(elimination_ordering.at(j))!=this_clq->related_variables.end()) {
+//        next_clq = map_elim_var_to_clique[elimination_ordering.at(j)];
 //        break;
 //      }
 //    }
+//    set<int> common_related_variables;
+//    set_intersection(this_clq->related_variables.begin(),this_clq->related_variables.end(),
+//                     next_clq->related_variables.begin(),next_clq->related_variables.end(),
+//                     std::inserter(common_related_variables,common_related_variables.begin()));
+//
+//    // If they have no common variables, then they will not be connected by separator.
+//    if (common_related_variables.empty()) {continue;}
+//
+//    set<Node*> common_related_node_ptrs;
+//    for (auto &v : common_related_variables) {
+//      common_related_node_ptrs.insert(network->FindNodePtrByIndex(v));
+//    }
+//
+//    Separator *sep = new Separator(common_related_node_ptrs);
+//
+//    // Let separator know the two cliques that it connects to.
+//    sep->set_neighbours_ptr.insert(this_clq);
+//    sep->set_neighbours_ptr.insert(next_clq);
+//
+//    set_separator_ptr_container.insert(sep);
 //  }
 //
-//  for (auto &ptr_clq : to_be_eliminated) {
-//    set_clique_ptr_container.erase(ptr_clq);
+//  // Now let the cliques to know the separators that they connect to.
+//  for (auto &sep_ptr : set_separator_ptr_container) {
+//    auto iter = sep_ptr->set_neighbours_ptr.begin();
+//    Clique *clq1 = *iter, *clq2 = *(++iter);
+//    clq1->set_neighbours_ptr.insert(sep_ptr);
+//    clq2->set_neighbours_ptr.insert(sep_ptr);
 //  }
 //}
-
-/**
- * @brief: the Junction Tree here looks like a linked list.
- * This is used for continuous variables, based on a tutorial or some unpublished work.
- */
-void JunctionTree::FormListShapeJunctionTree(set<Clique*> &cliques) { //checked
-  //TODO: double-check correctness (continuous)
-  // This method is described in
-  // [Local Propagation in Conditional Gaussian Bayesian Networks (Cowell, 2005)]
-  // section 3.2.
-  // The last sentence.
-
-  // todo: test correctness
-  for (int i=0; i<elimination_ordering.size()-1; ++i) {
-    Clique *this_clq = map_elim_var_to_clique[elimination_ordering.at(i)];
-    Clique *next_clq = nullptr;
-    for (int j=i+1; j<elimination_ordering.size(); ++j) {
-      if (this_clq->related_variables.find(elimination_ordering.at(j))!=this_clq->related_variables.end()) {
-        next_clq = map_elim_var_to_clique[elimination_ordering.at(j)];
-        break;
-      }
-    }
-    set<int> common_related_variables;
-    set_intersection(this_clq->related_variables.begin(),this_clq->related_variables.end(),
-                     next_clq->related_variables.begin(),next_clq->related_variables.end(),
-                     std::inserter(common_related_variables,common_related_variables.begin()));
-
-    // If they have no common variables, then they will not be connected by separator.
-    if (common_related_variables.empty()) {continue;}
-
-    set<Node*> common_related_node_ptrs;
-    for (auto &v : common_related_variables) {
-      common_related_node_ptrs.insert(network->FindNodePtrByIndex(v));
-    }
-
-    Separator *sep = new Separator(common_related_node_ptrs);
-
-    // Let separator know the two cliques that it connects to.
-    sep->set_neighbours_ptr.insert(this_clq);
-    sep->set_neighbours_ptr.insert(next_clq);
-
-    set_separator_ptr_container.insert(sep);
-  }
-
-  // Now let the cliques to know the separators that they connect to.
-  for (auto &sep_ptr : set_separator_ptr_container) {
-    auto iter = sep_ptr->set_neighbours_ptr.begin();
-    Clique *clq1 = *iter, *clq2 = *(++iter);
-    clq1->set_neighbours_ptr.insert(sep_ptr);
-    clq2->set_neighbours_ptr.insert(sep_ptr);
-  }
-}
 
 /**
  * @brief: construct a tree where each node is a clique and each edge is a separator.
@@ -584,11 +533,11 @@ void JunctionTree::FormJunctionTree(set<Clique*> &cliques) {
   // then the tree will satisfy running intersection property.
   set<Clique*> tree_so_far;
   tree_so_far.insert(*cliques.begin()); // randomly insert a clique in tree, as the start of the Prim algorithm
-  cout << "insert clique ";
-    for (auto &v: (*cliques.begin())->related_variables) {
-        cout << v << " ";
-    }
-    cout << endl;
+//    cout << "insert clique ";
+//    for (auto &v: (*cliques.begin())->related_variables) {
+//        cout << v << " ";
+//    }
+//    cout << endl;
 
   while (tree_so_far.size()<cliques.size()) {
     Separator* max_weight_sep = nullptr;
@@ -610,27 +559,27 @@ void JunctionTree::FormJunctionTree(set<Clique*> &cliques) {
 
 //    max_weight_sep->clique_id = set_separator_ptr_container.size();
     set_separator_ptr_container.insert(max_weight_sep);
-      cout << "insert separator ";
-      for (auto &v: max_weight_sep->related_variables) {
-          cout << v << " ";
-      }
-      cout << "weight = " << max_weight_sep->weight << endl;
+//      cout << "insert separator ";
+//      for (auto &v: max_weight_sep->related_variables) {
+//          cout << v << " ";
+//      }
+//      cout << "weight = " << max_weight_sep->weight << endl;
 
     auto iter = max_weight_sep->set_neighbours_ptr.begin();
     Clique *clq1 = *iter, *clq2 = *(++iter);
     tree_so_far.insert(clq1);
     tree_so_far.insert(clq2);
 
-      cout << "insert clique ";
-      for (auto &v: clq1->related_variables) {
-          cout << v << " ";
-      }
-      cout << endl;
-      cout << "insert clique ";
-      for (auto &v: clq2->related_variables) {
-          cout << v << " ";
-      }
-      cout << endl;
+//      cout << "insert clique ";
+//      for (auto &v: clq1->related_variables) {
+//          cout << v << " ";
+//      }
+//      cout << endl;
+//      cout << "insert clique ";
+//      for (auto &v: clq2->related_variables) {
+//          cout << v << " ";
+//      }
+//      cout << endl;
 
   }   // end of: while. Until all cliques are in "tree_so_far"
 
@@ -714,15 +663,15 @@ void JunctionTree::AssignPotentials() { //checked
       if (diff.empty()) {
         // 2.2 construct the initial potential of this clique,
         // which is the product of factors that assigned to it
-          cout << "assign factor ";
-          for (auto &v: f.related_variables) {
-              cout << v << " ";
-          }
-          cout << "to clique ";
-          for (auto &v: clique_ptr->related_variables) {
-              cout << v << " ";
-          }
-          cout << endl;
+//          cout << "assign factor ";
+//          for (auto &v: f.related_variables) {
+//              cout << v << " ";
+//          }
+//          cout << "to clique ";
+//          for (auto &v: clique_ptr->related_variables) {
+//              cout << v << " ";
+//          }
+//          cout << endl;
         clique_ptr->MultiplyWithFactorSumOverExternalVars(f);
         break;  // Ensure that each factor is used only once.
       }
@@ -796,8 +745,8 @@ void JunctionTree::LoadDiscreteEvidence(const DiscreteConfig &E) {
       return;
   }
   for (auto &e : E) {  // For each node's observation in E
-      // DiscreteConfig: set< pair<int, int> >
-      cout << "evidence " << e.first << "=" << e.second << endl;
+//      // DiscreteConfig: set< pair<int, int> >
+//      cout << "evidence " << e.first << "=" << e.second << endl;
 
     for (auto &clique_ptr : set_clique_ptr_container) {  // For each clique
 
@@ -941,20 +890,20 @@ Factor JunctionTree::BeliefPropagationCalcuDiscreteVarMarginal(int query_index) 
   Factor f(selected_clique->related_variables, selected_clique->set_disc_configs, selected_clique->map_potentials);
 
 
-    cout << "factor: related vars = ";
-    for (auto &var: f.related_variables) {
-        cout << var << " ";
-    }
-    cout << endl;
-    // set<DiscreteConfig> set_disc_config; DiscreteConfig: set< pair<int, int> >
-    // map<DiscreteConfig, double> map_potentials
-    for (auto &config: f.set_disc_config) {
-        cout << "config: ";
-        for (auto &varval: config) {
-            cout << varval.first << "=" << varval.second << " ";
-        }
-        cout << ": " << f.map_potentials[config] << endl;
-    }
+//    cout << "factor: related vars = ";
+//    for (auto &var: f.related_variables) {
+//        cout << var << " ";
+//    }
+//    cout << endl;
+//    // set<DiscreteConfig> set_disc_config; DiscreteConfig: set< pair<int, int> >
+//    // map<DiscreteConfig, double> map_potentials
+//    for (auto &config: f.set_disc_config) {
+//        cout << "config: ";
+//        for (auto &varval: config) {
+//            cout << varval.first << "=" << varval.second << " ";
+//        }
+//        cout << ": " << f.map_potentials[config] << endl;
+//    }
 
 
   for (auto &index : other_vars) {
@@ -962,20 +911,20 @@ Factor JunctionTree::BeliefPropagationCalcuDiscreteVarMarginal(int query_index) 
   }
 
 
-    cout << "after sum over: factor: related vars = ";
-    for (auto &var: f.related_variables) {
-        cout << var << " ";
-    }
-    cout << endl;
-    // set<DiscreteConfig> set_disc_config; DiscreteConfig: set< pair<int, int> >
-    // map<DiscreteConfig, double> map_potentials
-    for (auto &config: f.set_disc_config) {
-        cout << "config: ";
-        for (auto &varval: config) {
-            cout << varval.first << "=" << varval.second << " ";
-        }
-        cout << ": " << f.map_potentials[config] << endl;
-    }
+//    cout << "after sum over: factor: related vars = ";
+//    for (auto &var: f.related_variables) {
+//        cout << var << " ";
+//    }
+//    cout << endl;
+//    // set<DiscreteConfig> set_disc_config; DiscreteConfig: set< pair<int, int> >
+//    // map<DiscreteConfig, double> map_potentials
+//    for (auto &config: f.set_disc_config) {
+//        cout << "config: ";
+//        for (auto &varval: config) {
+//            cout << varval.first << "=" << varval.second << " ";
+//        }
+//        cout << ": " << f.map_potentials[config] << endl;
+//    }
 
 
   f.Normalize(); // todo: no need
@@ -1012,6 +961,9 @@ double JunctionTree::EvaluateJTAccuracy(int class_var, Dataset *dts) {
   double diff;
   gettimeofday(&start,NULL);
 
+    struct timeval start1, end1, start2, end2, start3, end3;
+    double diff1, diff2, diff3;
+
   int num_of_correct = 0,
       num_of_wrong = 0,
       m = dts->num_instance,
@@ -1029,7 +981,7 @@ double JunctionTree::EvaluateJTAccuracy(int class_var, Dataset *dts) {
   // which means the memory consumption is too large.
   // I don't know how to solve yet.
 //  #pragma omp parallel for
-  for (int i = 1; i < 2; ++i) {  // For each sample in test set TODO
+  for (int i = 1; i < m; ++i) {  // For each sample in test set
 
 //    #pragma omp critical
     { ++progress; }
@@ -1050,13 +1002,6 @@ double JunctionTree::EvaluateJTAccuracy(int class_var, Dataset *dts) {
         *e_index = new int[e_num],
         *e_value = new int[e_num];
 
-
-      cout << "data set: " << endl;
-      for (int j = 0; j < network->num_nodes; ++j) {
-          cout << dts->dataset_all_vars[i][j] << " ";
-      }
-      cout << endl;
-
     for (int j = 0; j < network->num_nodes; ++j) {
       if (j == dts->class_var_index) {
           continue;
@@ -1065,79 +1010,76 @@ double JunctionTree::EvaluateJTAccuracy(int class_var, Dataset *dts) {
       e_value[j < dts->class_var_index ? j : j - 1] = dts->dataset_all_vars[i][j];
     }
 
-      cout << "index array and value array: " << endl;
-      for (int j = 0; j < e_num; ++j) {
-          cout << e_index[j] << ", " << e_value[j] << endl;
-      }
-
     DiscreteConfig E = ArrayToDiscreteConfig(e_index, e_value, e_num);
-
-      cout << "discrete config: " << endl;
-      for (auto &c: E) {
-          cout << c.first << ", " << c.second << endl;
-      }
 
     delete[] e_index;
     delete[] e_value;
 
 
-      cout << "testing sample " << i << endl << "before load evidences: " << endl << "cliques: " << endl;
-      for (auto &c : set_clique_ptr_container) {
-          cout << c->clique_id << ": ";
-          for (auto &v : c->related_variables) {
-              cout << v << " ";
-          }
-          cout << endl;
-          // set<DiscreteConfig> set_disc_configs; DiscreteConfig: set< pair<int, int> >
-          // map<DiscreteConfig, double> map_potentials
-          for (auto &config: c->set_disc_configs) {
-              cout << "config: ";
-              for (auto &varval: config) {
-                  cout << varval.first << "=" << varval.second << " ";
-              }
-              cout << ": " << c->map_potentials[config] << endl;
-          }
-      }
+//      cout << "testing sample " << i << endl << "before load evidences: " << endl << "cliques: " << endl;
+//      for (auto &c : set_clique_ptr_container) {
+//          cout << c->clique_id << ": ";
+//          for (auto &v : c->related_variables) {
+//              cout << v << " ";
+//          }
+//          cout << endl;
+//          // set<DiscreteConfig> set_disc_configs; DiscreteConfig: set< pair<int, int> >
+//          // map<DiscreteConfig, double> map_potentials
+//          for (auto &config: c->set_disc_configs) {
+//              cout << "config: ";
+//              for (auto &varval: config) {
+//                  cout << varval.first << "=" << varval.second << " ";
+//              }
+//              cout << ": " << c->map_potentials[config] << endl;
+//          }
+//      }
 
 
-
+      gettimeofday(&start1,NULL);
     //update a clique using the evidence
     LoadDiscreteEvidence(E);
+      gettimeofday(&end1,NULL);
+      diff1 += (end1.tv_sec-start1.tv_sec) + ((double)(end1.tv_usec-start1.tv_usec))/1.0E6;
 
 
-      cout << "after load evidences: " << endl << "cliques: " << endl;
-      for (auto &c : set_clique_ptr_container) {
-          cout << c->clique_id << ": ";
-          for (auto &v : c->related_variables) {
-              cout << v << " ";
-          }
-          cout << endl;
-          // set<DiscreteConfig> set_disc_configs; DiscreteConfig: set< pair<int, int> >
-          // map<DiscreteConfig, double> map_potentials
-          for (auto &config: c->set_disc_configs) {
-              cout << "config: ";
-              for (auto &varval: config) {
-                  cout << varval.first << "=" << varval.second << " ";
-              }
-              cout << ": " << c->map_potentials[config] << endl;
-          }
-      }
+//      cout << "after load evidences: " << endl << "cliques: " << endl;
+//      for (auto &c : set_clique_ptr_container) {
+//          cout << c->clique_id << ": ";
+//          for (auto &v : c->related_variables) {
+//              cout << v << " ";
+//          }
+//          cout << endl;
+//          // set<DiscreteConfig> set_disc_configs; DiscreteConfig: set< pair<int, int> >
+//          // map<DiscreteConfig, double> map_potentials
+//          for (auto &config: c->set_disc_configs) {
+//              cout << "config: ";
+//              for (auto &varval: config) {
+//                  cout << varval.first << "=" << varval.second << " ";
+//              }
+//              cout << ": " << c->map_potentials[config] << endl;
+//          }
+//      }
 
 
-
+      gettimeofday(&start2,NULL);
     //update the whole Junction Tree
     MessagePassingUpdateJT();
+      gettimeofday(&end2,NULL);
+      diff2 += (end2.tv_sec-start2.tv_sec) + ((double)(end2.tv_usec-start2.tv_usec))/1.0E6;
 
+      gettimeofday(&start3,NULL);
     int label_predict = InferenceUsingBeliefPropagation(class_var);
     ResetJunctionTree();
+      gettimeofday(&end3,NULL);
+      diff3 += (end3.tv_sec-start3.tv_sec) + ((double)(end3.tv_usec-start3.tv_usec))/1.0E6;
 
     if (label_predict == dts->dataset_all_vars[i][dts->class_var_index]) {
-        cout << "correct: " << label_predict << endl;
+//        cout << "correct: " << label_predict << endl;
 //      #pragma omp critical
       { ++num_of_correct; }
     } else {
-        cout << "wrong: predict = " << label_predict
-             << ", ground truth = " << dts->dataset_all_vars[i][dts->class_var_index] << endl;
+//        cout << "wrong: predict = " << label_predict
+//             << ", ground truth = " << dts->dataset_all_vars[i][dts->class_var_index] << endl;
 //      #pragma omp critical
       { ++num_of_wrong; }
     }
@@ -1149,6 +1091,9 @@ double JunctionTree::EvaluateJTAccuracy(int class_var, Dataset *dts) {
   setlocale(LC_NUMERIC, "");
   cout << "==================================================" << '\n'
        << "The time spent to test the accuracy is " << diff << " seconds" << endl;
+    cout << "load evidence: " << diff1
+         << " seconds, message passing: " << diff2
+         << "seconds, predict and reset: " << diff3 << "seconds" << endl;
 
   double accuracy = num_of_correct / (double)(num_of_correct+num_of_wrong);
   cout << '\n' << "Accuracy: " << accuracy << endl;

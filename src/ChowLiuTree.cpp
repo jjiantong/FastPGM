@@ -221,11 +221,11 @@ void ChowLiuTree::StructLearnChowLiuTreeCompData(Dataset *dts, bool print_struct
 
                 // Determine the topological position of i and j; determine which one should appear first (e.g., i > j or j > i).
                 if (OccurInCorrectOrder(i, j, network->topo_ord)) { // if i occurs before j in the topological ordering
-                    cout << "i = " << i << ", j = " << j << ", yes, set i->j" << endl;
+//                    cout << "i = " << i << ", j = " << j << ", yes, set i->j" << endl;
                     network->SetParentChild(i, j); // i->j
                 }
                 else { // if j occurs before i in the topological ordering
-                    cout << "i = " << i << ", j = " << j << ", no, set j->i" << endl;
+//                    cout << "i = " << i << ", j = " << j << ", no, set j->i" << endl;
                     network->SetParentChild(j, i); // j->i
                 }
             }

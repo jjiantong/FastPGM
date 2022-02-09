@@ -22,7 +22,7 @@ class JunctionTree {
   set<Separator*> set_separator_ptr_container;//all the separators in the Junction tree
 
   vector<int> elimination_ordering;
-  map<int, Clique*> map_elim_var_to_clique; //key: main variable of a clique; value: the clique
+//  map<int, Clique*> map_elim_var_to_clique; //key: main variable of a clique; value: the clique
 
 
   JunctionTree() = default;
@@ -54,8 +54,7 @@ class JunctionTree {
                    int &num_nodes,
                    vector<int> elim_ord,
                    set<Clique*> &cliques);
-//  void ElimRedundantCliques();
-  void FormListShapeJunctionTree(set<Clique*> &cliques);
+//  void FormListShapeJunctionTree(set<Clique*> &cliques);
   void FormJunctionTree(set<Clique*> &cliques);
   void NumberTheCliquesAndSeparators();
   void AssignPotentials();
@@ -63,7 +62,7 @@ class JunctionTree {
   virtual void MessagePassingUpdateJT();
   static vector<int> MinNeighbourElimOrd(int **adjac_matrix, int &num_nodes);
   static void Moralize(int **direc_adjac_matrix, int &num_nodes);
-  void GenMapElimVarToClique();
+//  void GenMapElimVarToClique();
 
 };
 
