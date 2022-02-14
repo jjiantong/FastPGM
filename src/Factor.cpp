@@ -174,7 +174,7 @@ void Factor::FactorReduction(DiscreteConfig evidence) { //set< pair<int, int> >
         // which means that they conflict, then this config will be removed
         if (comb.find(e) == comb.end()) {
           // TODO: double-check: set to 0 or remove?
-//          newFactor.map_potentials[comb] = 0; //TODO
+//          map_potentials[comb] = 0; //TODO
           set_disc_config.erase(comb); //TODO
           map_potentials.erase(comb); //TODO
         }

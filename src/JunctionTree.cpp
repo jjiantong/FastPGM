@@ -389,14 +389,14 @@ void JunctionTree::Triangulate(Network *net,
 
     // before adding a clique, we need to check whether the clique is redundant
     // if a clique is fully contained by another (existing/previous) clique, then the clique is no need to be inserted.
-    Clique* clique = new Clique(set_node_ptrs_to_form_a_clique, first_node_in_elim_ord);
+    Clique* clique = new Clique(set_node_ptrs_to_form_a_clique);
     bool to_be_inserted = true;
     for (auto &ptr_clq : cliques) {
         set<int> intersection;
-        set_intersection(clique->related_variables.begin(), clique->related_variables.end(),
-                         ptr_clq->related_variables.begin(), ptr_clq->related_variables.end(),
+        set_intersection(clique->clique_variables.begin(), clique->clique_variables.end(),
+                         ptr_clq->clique_variables.begin(), ptr_clq->clique_variables.end(),
                          std::inserter(intersection, intersection.begin()));
-        if (intersection == clique->related_variables) {
+        if (intersection == clique->clique_variables) {
             to_be_inserted = false;
             break;
         }
@@ -500,18 +500,18 @@ void JunctionTree::FormJunctionTree(set<Clique*> &cliques) {
       mark.insert(pair<Clique*,Clique*>(clique_ptr,clique_ptr_2));
       mark.insert(pair<Clique*,Clique*>(clique_ptr_2,clique_ptr));
 
-      set<int> common_related_variables;
-      set_intersection(clique_ptr->related_variables.begin(),clique_ptr->related_variables.end(),
-                       clique_ptr_2->related_variables.begin(),clique_ptr_2->related_variables.end(),
-                       std::inserter(common_related_variables,common_related_variables.begin()));
+      set<int> common_variables;
+      set_intersection(clique_ptr->clique_variables.begin(),clique_ptr->clique_variables.end(),
+                       clique_ptr_2->clique_variables.begin(),clique_ptr_2->clique_variables.end(),
+                       std::inserter(common_variables,common_variables.begin()));
 
       // If they have no common variables, then they will not be connected by separator.
-      if (common_related_variables.empty()) {
+      if (common_variables.empty()) {
           continue;
       }
 
       set<Node*> common_related_node_ptrs;
-      for (auto &v : common_related_variables) {
+      for (auto &v : common_variables) {
         common_related_node_ptrs.insert(network->FindNodePtrByIndex(v));
       }
 
@@ -524,7 +524,6 @@ void JunctionTree::FormJunctionTree(set<Clique*> &cliques) {
       sep->set_neighbours_ptr.insert(clique_ptr_2);
 
       all_possible_seps.insert(sep);
-
     }
   }
 
@@ -534,7 +533,7 @@ void JunctionTree::FormJunctionTree(set<Clique*> &cliques) {
   set<Clique*> tree_so_far;
   tree_so_far.insert(*cliques.begin()); // randomly insert a clique in tree, as the start of the Prim algorithm
 //    cout << "insert clique ";
-//    for (auto &v: (*cliques.begin())->related_variables) {
+//    for (auto &v: (*cliques.begin())->clique_variables) {
 //        cout << v << " ";
 //    }
 //    cout << endl;
@@ -560,7 +559,7 @@ void JunctionTree::FormJunctionTree(set<Clique*> &cliques) {
 //    max_weight_sep->clique_id = set_separator_ptr_container.size();
     set_separator_ptr_container.insert(max_weight_sep);
 //      cout << "insert separator ";
-//      for (auto &v: max_weight_sep->related_variables) {
+//      for (auto &v: max_weight_sep->clique_variables) {
 //          cout << v << " ";
 //      }
 //      cout << "weight = " << max_weight_sep->weight << endl;
@@ -571,12 +570,12 @@ void JunctionTree::FormJunctionTree(set<Clique*> &cliques) {
     tree_so_far.insert(clq2);
 
 //      cout << "insert clique ";
-//      for (auto &v: clq1->related_variables) {
+//      for (auto &v: clq1->clique_variables) {
 //          cout << v << " ";
 //      }
 //      cout << endl;
 //      cout << "insert clique ";
-//      for (auto &v: clq2->related_variables) {
+//      for (auto &v: clq2->clique_variables) {
 //          cout << v << " ";
 //      }
 //      cout << endl;
@@ -644,7 +643,7 @@ void JunctionTree::AssignPotentials() { //checked
   for (auto &f : factors) { // for each factor of the network
     for (auto &clique_ptr : set_clique_ptr_container) { // for each clique of the graph
 
-      if (f.related_variables.empty() || clique_ptr->related_variables.empty()) {
+      if (f.related_variables.empty() || clique_ptr->clique_variables.empty()) {
         break;
       }
       if (!clique_ptr->pure_discrete) {
@@ -654,7 +653,7 @@ void JunctionTree::AssignPotentials() { //checked
       // get the variables that in the factor but not in the clique
       set<int> diff;
       set_difference(f.related_variables.begin(), f.related_variables.end(),
-                     clique_ptr->related_variables.begin(), clique_ptr->related_variables.end(),
+                     clique_ptr->clique_variables.begin(), clique_ptr->clique_variables.end(),
                      inserter(diff, diff.begin()));
       // If "diff" is empty, i.e., all the variables in the factor are in the clique,
       // which means that the clique can accommodate the scope of the factor - satisfy the family preservation property of cluster graph
@@ -668,7 +667,7 @@ void JunctionTree::AssignPotentials() { //checked
 //              cout << v << " ";
 //          }
 //          cout << "to clique ";
-//          for (auto &v: clique_ptr->related_variables) {
+//          for (auto &v: clique_ptr->clique_variables) {
 //              cout << v << " ";
 //          }
 //          cout << endl;
@@ -741,56 +740,148 @@ void JunctionTree::LoadEvidenceAndMessagePassingUpdateJT(const DiscreteConfig &E
  * @brief: when inferring, an evidence is given. The evidence needs to be loaded and propagate in the network.
  */
 void JunctionTree::LoadDiscreteEvidence(const DiscreteConfig &E) {
-  if (E.empty()) {
-      return;
-  }
-  for (auto &e : E) {  // For each node's observation in E
-//      // DiscreteConfig: set< pair<int, int> >
-//      cout << "evidence " << e.first << "=" << e.second << endl;
-
-    for (auto &clique_ptr : set_clique_ptr_container) {  // For each clique
-
-//        cout << "  check clique ";
-//        for (auto &var: clique_ptr->related_variables) {
-//            cout << var << " ";
-//        }
-//        cout << ": ";
-
-      // If this clique is related to this node
-      if (clique_ptr->related_variables.find(e.first) != clique_ptr->related_variables.end()) {
-
-//          cout << "yes" << endl;
-
-        for (auto &comb : clique_ptr->set_disc_configs) {  // Update each row of map_potentials
-
-//            cout << "    check config "; // set<DiscreteConfig> set_disc_configs
-//            for (auto &c: comb) {
-//                cout << c.first << "=" << c.second << " ";
+    // TODO: cannot just erase "comb" inside the inner most loop,
+    //  because it will cause problem in factor division...
+    for (auto &e: E) { // for each observation of variable
+//        cout << "check evidence " << e.first << "=" << e.second << endl;
+        for (auto &clique_ptr : set_clique_ptr_container) { // for each clique
+//            cout << "  check clique ";
+//            for (auto &v: clique_ptr->clique_variables) {
+//                cout << v << " ";
 //            }
-//            cout << ": ";
+//            cout << endl;
+            // if this factor is related to the observation
+            if (clique_ptr->related_variables.find(e.first) != clique_ptr->related_variables.end()) {
+//                cout << "    this clique is related to the observation, erase from related variables" << endl;
+//                cout << "    old: " << endl;
+//                for (auto &comb: clique_ptr->set_disc_configs) {
+//                    cout << "      ";
+//                    for (auto &p: comb) {
+//                        cout << p.first << "=" << p.second << " ";
+//                    }
+//                    cout << ": " << clique_ptr->map_potentials[comb] << endl;
+//                }
+                clique_ptr->related_variables.erase(e.first);
 
-          if (comb.find(e) == comb.end()) {
+                set<DiscreteConfig> set_reduced_disc_configs;
+                map<DiscreteConfig, double> map_reduced_potentials;
+                // for each discrete config of this factor
+                for (auto it = clique_ptr->set_disc_configs.begin(); it != clique_ptr->set_disc_configs.end(); it++) {
+//                    cout << "    check config ";
+//                    for (auto &p: (*it)) {
+//                        cout << p.first << "=" << p.second << " ";
+//                    }
+//                    cout << endl;
+                    // if this config and the evidence have different values on common variables,
+                    // which means that they conflict, then this config will be removed
+                    // so otherwise, it will be kept
+                    if ((*it).find(e) != (*it).end()) {
+//                        cout << "      not conflict" << endl;
+                        auto tmp_potential = clique_ptr->map_potentials[(*it)]; // save the potential of this config
+//                        cout << "        save " << tmp_potential << " to tmp" << endl;
 
-//              cout << "conflict, set 0" << endl;
+                        DiscreteConfig reduced_config; // we need to reduce the config, remove the unrelated variables
+                        for (auto &p: (*it)) { // for all pairs in the config (we select all related variables from them)
+                            if (p.first != e.first) {
+//                                cout << "        insert " << p.first << "=" << p.second << " into reduced config" << endl;
+                                // this variable is not unrelated, so this pair should be kept
+                                reduced_config.insert(p);
+                            }
+                        }
+//                        cout << "        reduced config: ";
+//                        for (auto &p: reduced_config) {
+//                            cout << p.first << "=" << p.second << " ";
+//                        }
+//                        cout << endl;
 
-            clique_ptr->map_potentials[comb] = 0;
-          } else {
+                        // add new
+                        set_reduced_disc_configs.insert(reduced_config);
+                        map_reduced_potentials[reduced_config] = tmp_potential;
+//                        cout << "        finish insert this config and its potential" << endl;
+                    }
+                }
 
-//              cout << "no conflict, no change" << endl;
+//                cout << "  finish check this clique and update config and potential" << endl;
+                clique_ptr->set_disc_configs = set_reduced_disc_configs;
+                clique_ptr->map_potentials = map_reduced_potentials;
 
-          }
+//                cout << "    new: " << endl;
+//                for (auto &comb: clique_ptr->set_disc_configs) {
+//                    cout << "      ";
+//                    for (auto &p: comb) {
+//                        cout << p.first << "=" << p.second << " ";
+//                    }
+//                    cout << ": " << clique_ptr->map_potentials[comb] << endl;
+//                }
+            }
         }
+
+        for (auto &sep_ptr : set_separator_ptr_container) { // for each sep
+            // if this factor is related to the observation
+            if (sep_ptr->related_variables.find(e.first) != sep_ptr->related_variables.end()) {
+                sep_ptr->related_variables.erase(e.first);
+
+                set<DiscreteConfig> set_reduced_disc_configs;
+                map<DiscreteConfig, double> map_reduced_potentials;
+                // for each discrete config of this factor
+                for (auto it = sep_ptr->set_disc_configs.begin(); it != sep_ptr->set_disc_configs.end(); it++) {
+                    // if this config and the evidence have different values on common variables,
+                    // which means that they conflict, then this config will be removed
+                    // so otherwise, it will be kept
+                    if ((*it).find(e) != (*it).end()) {
+                        auto tmp_potential = sep_ptr->map_potentials[(*it)]; // save the potential of this config
+
+                        DiscreteConfig reduced_config; // we need to reduce the config, remove the unrelated variables
+                        for (auto &p: (*it)) { // for all pairs in the config (we select all related variables from them)
+                            if (p.first != e.first) {
+                                // this variable is not unrelated, so this pair should be kept
+                                reduced_config.insert(p);
+                            }
+                        }
+
+                        // add new
+                        set_reduced_disc_configs.insert(reduced_config);
+                        map_reduced_potentials[reduced_config] = tmp_potential;
+                    }
+                }
+
+                sep_ptr->set_disc_configs = set_reduced_disc_configs;
+                sep_ptr->map_potentials = map_reduced_potentials;
+            }
+        }
+    }
+
+
+
+//  for (auto &e : E) {  // For each node's observation in E
+//    for (auto &clique_ptr : set_clique_ptr_container) { // for each clique
+//      // If this clique is related to this node
+//      if (clique_ptr->related_variables.find(e.first) != clique_ptr->related_variables.end()) {
+//        for (auto &comb : clique_ptr->set_disc_configs) {
+//          if (comb.find(e) == comb.end()) {
+//            clique_ptr->map_potentials[comb] = 0;
+//          }
+//        }
 //        // I do not know if the "break" is optional.
 //        // Entering the evidence to one clique that contains it,
 //        // or to all cliques that contain it.
 //        // Are the results after message passing process both correct???
 //        // todo: figure it out
-//        break;
-      } else {
-//          cout << "no" << endl;
-      }
-    }
-  }
+////        break;
+//      }
+//    }
+//      // we can also load evidence on separators
+//      for (auto &sep_ptr : set_separator_ptr_container) { // for each sep
+//          // If this sep is related to this node
+//          if (sep_ptr->related_variables.find(e.first) != sep_ptr->related_variables.end()) {
+//              for (auto &comb : sep_ptr->set_disc_configs) {
+//                  if (comb.find(e) == comb.end()) {
+//                      sep_ptr->map_potentials[comb] = 0;
+//                  }
+//              }
+//          }
+//      }
+//  }
 }
 
 ///**
@@ -827,7 +918,13 @@ void JunctionTree::MessagePassingUpdateJT() {
   // Arbitrarily select a clique as the root.
   auto iter = set_clique_ptr_container.begin();
   Clique *arb_root = *iter;
+
+//  cout << "collect!!" << endl;
+
   arb_root->Collect();
+
+//  cout << "distribute!!" << endl;
+
   arb_root->Distribute();
 }
 
@@ -981,7 +1078,7 @@ double JunctionTree::EvaluateJTAccuracy(int class_var, Dataset *dts) {
   // which means the memory consumption is too large.
   // I don't know how to solve yet.
 //  #pragma omp parallel for
-  for (int i = 1; i < m; ++i) {  // For each sample in test set
+  for (int i = 0; i < m; ++i) {  // For each sample in test set
 
 //    #pragma omp critical
     { ++progress; }
@@ -1019,7 +1116,7 @@ double JunctionTree::EvaluateJTAccuracy(int class_var, Dataset *dts) {
 //      cout << "testing sample " << i << endl << "before load evidences: " << endl << "cliques: " << endl;
 //      for (auto &c : set_clique_ptr_container) {
 //          cout << c->clique_id << ": ";
-//          for (auto &v : c->related_variables) {
+//          for (auto &v : c->clique_variables) {
 //              cout << v << " ";
 //          }
 //          cout << endl;
@@ -1045,7 +1142,7 @@ double JunctionTree::EvaluateJTAccuracy(int class_var, Dataset *dts) {
 //      cout << "after load evidences: " << endl << "cliques: " << endl;
 //      for (auto &c : set_clique_ptr_container) {
 //          cout << c->clique_id << ": ";
-//          for (auto &v : c->related_variables) {
+//          for (auto &v : c->clique_variables) {
 //              cout << v << " ";
 //          }
 //          cout << endl;

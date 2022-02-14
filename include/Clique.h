@@ -25,6 +25,7 @@ class Clique {
   int clique_size;//the number of nodes in this clique
   bool pure_discrete;
 
+  set <int> clique_variables;
   // the following three members are the same with the class "Factor"
   set<int> related_variables; //the variables involved in this clique
   set<DiscreteConfig> set_disc_configs; //all the configurations of the related variables
@@ -46,8 +47,8 @@ class Clique {
    * Proposed in [Local Propagation in Conditional Gaussian Bayesian Networks (Cowell, 2005)]
    * Note that, separators between continuous cliques only retain post_bag but not lp_potential.
    */
-  int elimination_variable_index; //a clique is associated to a main variable (cf. Cowell, 2005);
-                                  // the main variable can be eliminated using its neighbours?
+//  int elimination_variable_index; //a clique is associated to a main variable (cf. Cowell, 2005);
+//                                  // the main variable can be eliminated using its neighbours?
   //the following three variables are only used in regression problems.
   bool activeflag;
   vector<CGRegression> lp_potential;
@@ -55,7 +56,8 @@ class Clique {
 
 
   Clique();
-  Clique(set<Node*> set_node_ptrs, int elim_var_index);
+//  Clique(set<Node*> set_node_ptrs, int elim_var_index);
+    Clique(set<Node*> set_node_ptrs);
   virtual ~Clique() = default;
 
   Clique* CopyWithoutPtr();
@@ -66,7 +68,7 @@ class Clique {
   virtual void UpdateUseMessage(Factor);
   virtual Factor ConstructMessage();
   void PrintPotentials() const;
-  void PrintRelatedVars() const;
+//  void PrintRelatedVars() const;
 
  protected:
   Clique(const Clique&) = default;

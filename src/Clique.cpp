@@ -7,16 +7,17 @@
 Clique::Clique() {
   is_separator = false;
   clique_id = -1;
-  elimination_variable_index = -1;
+//  elimination_variable_index = -1;
   clique_size = -1;
   pure_discrete = true;
   ptr_upstream_clique = nullptr;
   activeflag = false;
 }
 
-Clique::Clique(set<Node*> set_node_ptr, int elim_var_index) {
+Clique::Clique(set<Node*> set_node_ptr) {
+//Clique::Clique(set<Node*> set_node_ptr, int elim_var_index) {
   is_separator = false;
-  elimination_variable_index = elim_var_index;
+//  elimination_variable_index = elim_var_index;
   clique_size = set_node_ptr.size();
 
   pure_discrete = true;
@@ -47,6 +48,7 @@ Clique::Clique(set<Node*> set_node_ptr, int elim_var_index) {
       set_of_sets.insert(c);
     }
   }
+  clique_variables = related_variables;
 
   set_disc_configs = GenAllCombinationsFromSets(&set_of_sets);
 
@@ -119,6 +121,7 @@ Factor Clique::Collect() {
     // update the msg by multiplying the current factor with f
     // the current factor is the initial potential, or
     // the product of the initial potential and factors received from other downstream neighbors
+
     UpdateUseMessage(f);  // Update itself.
   }
 
@@ -131,6 +134,7 @@ Factor Clique::Collect() {
  * The reload version without parameter. Called on the selected root.
  */
 void Clique::Distribute() {
+
   Factor f = ConstructMessage();
   for (auto &sep : set_neighbours_ptr) {
     sep->Distribute(f);
@@ -181,19 +185,55 @@ void Clique::Distribute(Factor f) {
  * @brief: sum over external variables which are the results of factor multiplication.
  */
 Factor Clique::SumOutExternalVars(Factor f) {
-  Factor factor_of_this_clique(this->related_variables,
-                                   this->set_disc_configs,
-                                   this->map_potentials);
+//  Factor factor_of_this_clique(this->related_variables,
+//                                   this->set_disc_configs,
+//                                   this->map_potentials);
 
   // get the variables that in "f" but not in "factor_of_this_clique"
   set<int> set_external_vars;
   set_difference(f.related_variables.begin(), f.related_variables.end(),
-                 factor_of_this_clique.related_variables.begin(), factor_of_this_clique.related_variables.end(),
+                 this->clique_variables.begin(), this->clique_variables.end(),
                  inserter(set_external_vars, set_external_vars.begin()));
+
+//    cout << "  sum out ";
+//    for (auto &v: f.related_variables) {
+//        cout << v << " ";
+//    }
+//    cout << ": " << endl;
 
   // Sum over the variables that are not in the scope of this clique/separator, so as to eliminate them.
   for (auto &ex_vars : set_external_vars) {
+
+//      cout << "    sum out " << ex_vars << ": " << endl;
+//      cout << "      before: ";
+//      for (auto &v: f.related_variables) {
+//          cout << v << " ";
+//      }
+//      cout << ": " << endl;
+//      for (auto &c: f.set_disc_config) {
+//          cout << "        ";
+//          for (auto &p: c) { //pair<int, int>
+//              cout << p.first << "=" << p.second << " ";
+//          }
+//          cout << ": " << f.map_potentials[c] << endl;
+//      }
+//      cout << endl;
+
     f = f.SumOverVar(ex_vars);
+
+//      cout << "      after: ";
+//      for (auto &v: f.related_variables) {
+//          cout << v << " ";
+//      }
+//      cout << ": " << endl;
+//      for (auto &c: f.set_disc_config) {
+//          cout << "        ";
+//          for (auto &p: c) { //pair<int, int>
+//              cout << p.first << "=" << p.second << " ";
+//          }
+//          cout << ": " << f.map_potentials[c] << endl;
+//      }
+//      cout << endl;
   }
   return f;
 }
@@ -209,6 +249,45 @@ void Clique::MultiplyWithFactorSumOverExternalVars(Factor f) {
   f = SumOutExternalVars(f);
 
   Factor factor_of_this_clique(related_variables, set_disc_configs, map_potentials); // the factor of the clique
+
+//    cout << "  multiply ";
+//    for (auto &v: factor_of_this_clique.related_variables) {
+//        cout << v << " ";
+//    }
+//    cout << "and ";
+//    for (auto &v: f.related_variables) {
+//        cout << v << " ";
+//    }
+//    cout << endl;
+//
+//    cout << "    before: ";
+//    for (auto &v: factor_of_this_clique.related_variables) {
+//        cout << v << " ";
+//    }
+//    cout << ": " << endl;
+//    for (auto &c: factor_of_this_clique.set_disc_config) {
+//        cout << "      ";
+//        for (auto &p: c) { //pair<int, int>
+//            cout << p.first << "=" << p.second << " ";
+//        }
+//        cout << ": " << factor_of_this_clique.map_potentials[c] << endl;
+//    }
+//    cout << endl;
+//
+//    cout << "    before: ";
+//    for (auto &v: f.related_variables) {
+//        cout << v << " ";
+//    }
+//    cout << ": " << endl;
+//    for (auto &c: f.set_disc_config) {
+//        cout << "      ";
+//        for (auto &p: c) { //pair<int, int>
+//            cout << p.first << "=" << p.second << " ";
+//        }
+//        cout << ": " << f.map_potentials[c] << endl;
+//    }
+//    cout << endl;
+
   // TODO: see the comments below: "related_variables" and "set_disc_configs" are not required to be changed,
   //  there are some differences between the standard multiplication of factors and the multiplication here
   //  1. "related_variables" is no need to be changed
@@ -218,11 +297,38 @@ void Clique::MultiplyWithFactorSumOverExternalVars(Factor f) {
   // checked: "related_variables" is all the variables in the clique,
   //          "set_disc_configs" is all the configs of the variables in the clique
   //          therefore, they are not required to be changed, the only thing changed is the potentials
-  map_potentials = factor_of_this_clique.map_potentials;
+    related_variables = factor_of_this_clique.related_variables;
+    set_disc_configs = factor_of_this_clique.set_disc_config;
+    map_potentials = factor_of_this_clique.map_potentials;
+
+//    cout << "    after: ";
+//    for (auto &v: f.related_variables) {
+//        cout << v << " ";
+//    }
+//    cout << ": " << endl;
+//    for (auto &c: factor_of_this_clique.set_disc_config) {
+//        cout << "      ";
+//        for (auto &p: c) { //pair<int, int>
+//            cout << p.first << "=" << p.second << " ";
+//        }
+//        cout << ": " << factor_of_this_clique.map_potentials[c] << endl;
+//    }
+//    cout << endl;
 }
 
 
 void Clique::UpdateUseMessage(Factor f) {
+
+//    cout << "update msg of clique ";
+//    for (auto &v: clique_variables) {
+//        cout << v << " ";
+//    }
+//    cout << " ( use factor ";
+//    for (auto &v: f.related_variables) {
+//        cout << v << " ";
+//    }
+//    cout << "): " << endl;
+
   MultiplyWithFactorSumOverExternalVars(f);
 }
 
@@ -230,6 +336,13 @@ void Clique::UpdateUseMessage(Factor f) {
  * @brief: construct a factor of this clique and return
  */
 Factor Clique::ConstructMessage() {
+
+//    cout << "construct msg of clique ";
+//    for (auto &v: clique_variables) {
+//        cout << v << " ";
+//    }
+//    cout << ": " << endl;
+
   Factor message_factor(related_variables, set_disc_configs, map_potentials);
   return message_factor;
 }
@@ -251,16 +364,16 @@ void Clique::PrintPotentials() const {
   cout << "----------" << endl;
 }
 
-void Clique::PrintRelatedVars() const {
-  string out = "{  ";
-  for (const auto &v : related_variables) {
-    if (v==elimination_variable_index) {
-      out += "[" + to_string(v) + "]";
-    } else {
-      out += to_string(v);
-    }
-    out += "  ";
-  }
-  out += "}";
-  cout << out << endl;
-}
+//void Clique::PrintRelatedVars() const {
+//  string out = "{  ";
+//  for (const auto &v : related_variables) {
+//    if (v==elimination_variable_index) {
+//      out += "[" + to_string(v) + "]";
+//    } else {
+//      out += to_string(v);
+//    }
+//    out += "  ";
+//  }
+//  out += "}";
+//  cout << out << endl;
+//}
