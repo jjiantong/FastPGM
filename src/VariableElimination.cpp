@@ -1,10 +1,10 @@
 //
-// Created by jjt on 2021/6/16.
+// Created by jjt on 2022/2/15.
 //
 
-#include "ExactInference.h"
+#include "VariableElimination.h"
 
-double ExactInference::EvaluateAccuracy(Dataset *dts, int num_samp, string alg, bool is_dense) {
+double VariableElimination::EvaluateAccuracy(Dataset *dts, int num_samp, string alg, bool is_dense) { // TODO: remove alg
 
     cout << "==================================================" << '\n'
          << "Begin testing the trained network." << endl;
@@ -46,15 +46,8 @@ double ExactInference::EvaluateAccuracy(Dataset *dts, int num_samp, string alg, 
     }
 
     // predict the labels of the test instances
-    vector<int> predictions;
-    if (alg.compare("direct") == 0) {
-        predictions = PredictDirectly(evidences, class_var_index);
-    } else if (alg.compare("ve") == 0) {
-        predictions = PredictUseVEInfer(evidences, class_var_index);
-    } else {
-        cout << "ERROR with exact inference algorithm!" << endl;
-        exit(0);
-    }
+    vector<int> predictions = PredictUseVEInfer(evidences, class_var_index);
+
     double accuracy = Accuracy(ground_truths, predictions);
     cout << '\n' << "Accuracy: " << accuracy << endl;
 
@@ -68,105 +61,11 @@ double ExactInference::EvaluateAccuracy(Dataset *dts, int num_samp, string alg, 
 }
 
 /**
- * @brief: predict label given (full) evidence E and target variable id
- * @return label of the target variable
- */
-int ExactInference::PredictDirectly(DiscreteConfig E, int Y_index) {
-    // get map "distribution"; key: possible value of Y_index; value: probability of evidence E and possible value of Y_index
-    map<int, double> distribution = GetMarginalProbabilitiesDirectly(Y_index, E);
-    // find the label which has the max probability
-    int label_index = ArgMax(distribution);
-
-    // convert index of the target value to label
-    DiscreteNode* tempNode = ((DiscreteNode*)network->FindNodePtrByIndex(Y_index));
-    int label_predict = tempNode->vec_potential_vals.at(label_index);
-    return label_predict;
-}
-
-/**
- * @brief: predict the label of different evidences
- * it just repeats the function above multiple times, and print the progress at the meantime
- */
-vector<int> ExactInference::PredictDirectly(vector<DiscreteConfig> evidences, int target_node_idx) {
-    int size = evidences.size();
-
-    cout << "Progress indicator: ";
-    int every_1_of_20 = size / 20;
-    int progress = 0;
-
-    vector<int> results(size, 0);
-#pragma omp parallel for
-    for (int i = 0; i < size; ++i) {
-#pragma omp critical
-        { ++progress; }
-
-        if (progress % every_1_of_20 == 0) {
-            string progress_percentage = to_string((double)progress/size * 100) + "%...\n";
-            fprintf(stdout, "%s\n", progress_percentage.c_str());
-            fflush(stdout);
-        }
-
-        int pred = PredictDirectly(evidences.at(i), target_node_idx);
-        results.at(i) = pred;
-    }
-    return results;
-}
-
-/**
- * @brief: for inference given a target variable id and an (full) evidence/observation.
- * @param evidence: full evidence/observation (i.e. a dense instance)
- * @return map: key is the possible value of the target node;
- *              value is the probability of the target node with a specific value
- * product of factors seems to compute the joint distribution, but we renormalize it in the end, so it actually the marginal distribution
- */
-map<int, double> ExactInference::GetMarginalProbabilitiesDirectly(int target_var_index, DiscreteConfig evidence) {
-    if (!network->pure_discrete) {
-        fprintf(stderr, "Function [%s] only works on pure discrete networks!", __FUNCTION__);
-        exit(1);
-    }
-    /**
-     * Example: X --> Y, and X is the target node; X = {0, 1}, Y={0,1}.
-     */
-
-    map<int, double> result;
-
-    DiscreteNode *target_node = (DiscreteNode*)network->FindNodePtrByIndex(target_var_index);
-    vector<int> vec_complete_instance_values;
-    vec_complete_instance_values.push_back(0);
-    for (auto evi = evidence.begin(); evi != evidence.end(); evi++) {
-        vec_complete_instance_values.push_back(evi->second);
-    }
-
-    // compute the probability of each possible value of the target node
-    for (int i = 0; i < target_node->GetDomainSize(); ++i) { // for each possible value of the target node (e.g. X=0)
-        // add the ith value of the target node into "vec_complete_instance_values"
-        vec_complete_instance_values.at(target_var_index) = target_node->vec_potential_vals.at(i);
-
-        // use chain rule to get the joint distribution (multiply "num_nodes" factors)
-        result[i] = 0;
-        for (int j = 0; j < network->num_nodes; ++j) { // for each node
-            DiscreteNode *node_j = (DiscreteNode*)network->FindNodePtrByIndex(j);
-            DiscreteConfig par_config = node_j->GetDiscParConfigGivenAllVarValue(vec_complete_instance_values);
-            // compute the probability of node j given its parents
-            double temp_prob = node_j->GetProbability(vec_complete_instance_values.at(j), par_config);
-            // note: use log!! so it is not "+=", it is in fact "*="..
-            result[i] += log(temp_prob);
-        }
-    }//end for each possible value of the target node
-
-    for (int i = 0; i < target_node->GetDomainSize(); ++i) {
-        result[i] = exp(result[i]); //the result[i] is computed in log scale
-    }
-    result = Normalize(result);
-    return result;
-}
-
-/**
  * @brief: predict label given (partial or full observation) evidence
  * check "map_potentials", and the predict label is the one with maximum probability
  * @return label of the target variable
  */
-int ExactInference::PredictUseVEInfer(DiscreteConfig evid, int target_node_idx, vector<int> elim_order) {
+int VariableElimination::PredictUseVEInfer(DiscreteConfig evid, int target_node_idx, vector<int> elim_order) {
 
     // get the factor (marginal probability) of the target node given the evidences
     Factor F = GetMarginalProbabilitiesUseVE(target_node_idx, evid, elim_order);
@@ -189,8 +88,8 @@ int ExactInference::PredictUseVEInfer(DiscreteConfig evid, int target_node_idx, 
  * it just repeats the function above multiple times, and print the progress at the meantime
  * @param elim_orders: elimination order which may be different given different evidences due to the simplification of elimination order
  */
-vector<int> ExactInference::PredictUseVEInfer(vector<DiscreteConfig> evidences, int target_node_idx,
-                                         vector<vector<int>> elim_orders) {
+vector<int> VariableElimination::PredictUseVEInfer(vector<DiscreteConfig> evidences, int target_node_idx,
+                                              vector<vector<int>> elim_orders) {
     int size = evidences.size();
 
     cout << "Progress indicator: ";
@@ -203,9 +102,9 @@ vector<int> ExactInference::PredictUseVEInfer(vector<DiscreteConfig> evidences, 
     }
 
     vector<int> results(size, 0);
-#pragma omp parallel for
+//#pragma omp parallel for
     for (int i = 0; i < size; ++i) {
-#pragma omp critical
+//#pragma omp critical
         { ++progress; }
 
         if (progress % every_1_of_20 == 0) {
@@ -225,8 +124,8 @@ vector<int> ExactInference::PredictUseVEInfer(vector<DiscreteConfig> evidences, 
 /**
  * @brief: for inference given a target variable id and some evidences/observations.
  */
-Factor ExactInference::GetMarginalProbabilitiesUseVE(int target_var_index, DiscreteConfig evidence,
-                                                vector<int> elim_order) {
+Factor VariableElimination::GetMarginalProbabilitiesUseVE(int target_var_index, DiscreteConfig evidence,
+                                                     vector<int> elim_order) {
 
     // find the nodes to be removed, include barren nodes and m-separated nodes
     // filter out these nodes and obtain the left nodes
@@ -269,7 +168,7 @@ Factor ExactInference::GetMarginalProbabilitiesUseVE(int target_var_index, Discr
  * m-separated node: this node and X are separated by the set Y in the moral graph
  * The implementation is based on "A simple approach to Bayesian network computations" by Zhang and Poole, 1994.
  */
-vector<int> ExactInference::FilterOutIrrelevantNodes() { // TODO
+vector<int> VariableElimination::FilterOutIrrelevantNodes() { // TODO
     /// find the nodes to be removed TODO
     set<int> to_be_removed;
 
@@ -292,7 +191,7 @@ vector<int> ExactInference::FilterOutIrrelevantNodes() { // TODO
  * @param left_nodes is the left node set by removing barren nodes and m-separated nodes
  * The implementation is based on "A simple approach to Bayesian network computations" by Zhang and Poole, 1994.
  */
-vector<int> ExactInference::DefaultEliminationOrder(DiscreteConfig evidence, vector<int> left_nodes) {
+vector<int> VariableElimination::DefaultEliminationOrder(DiscreteConfig evidence, vector<int> left_nodes) {
 
     // based on the reverse topological order
     vector<int> vec_default_elim_ord = network->GetReverseTopoOrd();
@@ -330,7 +229,7 @@ vector<int> ExactInference::DefaultEliminationOrder(DiscreteConfig evidence, vec
  * @brief: the main variable elimination (VE) process
  * gradually eliminate variables until only one (i.e. the target node) left
  */
-Factor ExactInference::SumProductVarElim(vector<Factor> factor_list, vector<int> elim_order) {
+Factor VariableElimination::SumProductVarElim(vector<Factor> factor_list, vector<int> elim_order) {
     for (int i = 0; i < elim_order.size(); ++i) { // consider each node i according to the elimination order
         vector<Factor> temp_factor_list;
         Node* nodePtr = network->FindNodePtrByIndex(elim_order.at(i));
