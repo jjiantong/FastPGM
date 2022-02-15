@@ -210,7 +210,7 @@ Factor Clique::SumOutExternalVars(Factor f) {
 //          cout << v << " ";
 //      }
 //      cout << ": " << endl;
-//      for (auto &c: f.set_disc_config) {
+//      for (auto &c: f.set_disc_configs) {
 //          cout << "        ";
 //          for (auto &p: c) { //pair<int, int>
 //              cout << p.first << "=" << p.second << " ";
@@ -226,7 +226,7 @@ Factor Clique::SumOutExternalVars(Factor f) {
 //          cout << v << " ";
 //      }
 //      cout << ": " << endl;
-//      for (auto &c: f.set_disc_config) {
+//      for (auto &c: f.set_disc_configs) {
 //          cout << "        ";
 //          for (auto &p: c) { //pair<int, int>
 //              cout << p.first << "=" << p.second << " ";
@@ -265,7 +265,7 @@ void Clique::MultiplyWithFactorSumOverExternalVars(Factor f) {
 //        cout << v << " ";
 //    }
 //    cout << ": " << endl;
-//    for (auto &c: factor_of_this_clique.set_disc_config) {
+//    for (auto &c: factor_of_this_clique.set_disc_configs) {
 //        cout << "      ";
 //        for (auto &p: c) { //pair<int, int>
 //            cout << p.first << "=" << p.second << " ";
@@ -298,7 +298,7 @@ void Clique::MultiplyWithFactorSumOverExternalVars(Factor f) {
   //          "set_disc_configs" is all the configs of the variables in the clique
   //          therefore, they are not required to be changed, the only thing changed is the potentials
     related_variables = factor_of_this_clique.related_variables;
-    set_disc_configs = factor_of_this_clique.set_disc_config;
+    set_disc_configs = factor_of_this_clique.set_disc_configs;
     map_potentials = factor_of_this_clique.map_potentials;
 
 //    cout << "    after: ";
@@ -306,7 +306,7 @@ void Clique::MultiplyWithFactorSumOverExternalVars(Factor f) {
 //        cout << v << " ";
 //    }
 //    cout << ": " << endl;
-//    for (auto &c: factor_of_this_clique.set_disc_config) {
+//    for (auto &c: factor_of_this_clique.set_disc_configs) {
 //        cout << "      ";
 //        for (auto &p: c) { //pair<int, int>
 //            cout << p.first << "=" << p.second << " ";

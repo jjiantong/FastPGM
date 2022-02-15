@@ -1,7 +1,3 @@
-//
-// Created by LinjianLi on 2019/2/16.
-//
-
 #ifndef BAYESIANNETWORK_JUNCTIONTREE_H
 #define BAYESIANNETWORK_JUNCTIONTREE_H
 

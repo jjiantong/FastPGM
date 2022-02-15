@@ -174,7 +174,7 @@ int ExactInference::PredictUseVEInfer(DiscreteConfig evid, int target_node_idx, 
     // find the configuration with the maximum probability TODO: function ArgMax for Factor
     double max_prob = 0;
     DiscreteConfig comb_predict;
-    for (auto &comb : F.set_disc_config) { // for each configuration of the related variables
+    for (auto &comb : F.set_disc_configs) { // for each configuration of the related variables
         if (F.map_potentials[comb] > max_prob) {
             max_prob = F.map_potentials[comb];
             comb_predict = comb;

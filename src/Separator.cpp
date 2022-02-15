@@ -56,7 +56,7 @@ void Separator::UpdateUseMessage(Factor f) {
 //        cout << v << " ";
 //    }
 //    cout << ": " << endl;
-//    for (auto &c: f.set_disc_config) {
+//    for (auto &c: f.set_disc_configs) {
 //        cout << "    ";
 //        for (auto &p: c) { //pair<int, int>
 //            cout << p.first << "=" << p.second << " ";
@@ -69,7 +69,7 @@ void Separator::UpdateUseMessage(Factor f) {
     set_old_disc_configs = set_disc_configs;
   map_old_potentials = map_potentials;
     related_variables = f.related_variables;
-    set_disc_configs = f.set_disc_config;
+    set_disc_configs = f.set_disc_configs;
   map_potentials = f.map_potentials;
 
 
@@ -109,7 +109,7 @@ Factor Separator::ConstructMessage() {
 //        cout << v << " ";
 //    }
 //    cout << ": " << endl;
-//    for (auto &c: f.set_disc_config) {
+//    for (auto &c: f.set_disc_configs) {
 //        cout << "      ";
 //        for (auto &p: c) { //pair<int, int>
 //            cout << p.first << "=" << p.second << " ";
@@ -138,25 +138,13 @@ Factor Separator::ConstructMessage() {
         // TODO: exit
     }
 
-//    // case 1: related variable of both new and old are empty
-//    if (f.related_variables.empty()) {
-//        // do nothing, just return f
-//        return f;
-//    }
+    // case 1: related variable of both new and old are empty
+    if (f.related_variables.empty()) {
+        // do nothing, just return f, a constant
+        return f;
+    }
 
-//    // case 2: related variable have the same size, but potential table don't
-//    if (f.map_potentials.size() != map_old_potentials.size()) {
-//        // we need to first remove unrelated variables from set_disc_config and map_potentials
-//        for (auto &c: f.set_disc_config) { // set< pair<int, int> >
-//            for (auto &p: c) { // pair<int, int>
-//                if (f.related_variables.find(p.first) != f.related_variables.end()) {
-//                    // if can find it in related variables, maintain it
-//                }
-//            }
-//        }
-//    }
-
-    for (auto &comb : f.set_disc_config) {
+    for (auto &comb : f.set_disc_configs) {
         if (map_old_potentials[comb] == 0) {
             f.map_potentials[comb] = 0;
         } else {
@@ -169,7 +157,7 @@ Factor Separator::ConstructMessage() {
 //        cout << v << " ";
 //    }
 //    cout << ": " << endl;
-//    for (auto &c: f.set_disc_config) {
+//    for (auto &c: f.set_disc_configs) {
 //        cout << "      ";
 //        for (auto &p: c) { //pair<int, int>
 //            cout << p.first << "=" << p.second << " ";

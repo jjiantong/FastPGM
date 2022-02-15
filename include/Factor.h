@@ -28,7 +28,7 @@ class Network;  // Forward declaration.
 class Factor {//this is used only for discrete nodes;
  public:
   set<int> related_variables;//the variables involved in this factor
-  set<DiscreteConfig> set_disc_config;//all the configurations of the related variables
+  set<DiscreteConfig> set_disc_configs;//all the configurations of the related variables
   map<DiscreteConfig, double> map_potentials;//the weight/potential of each discrete config
 
   Factor() = default;

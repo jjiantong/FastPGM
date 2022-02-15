@@ -1,7 +1,3 @@
-//
-// Created by LinjianLi on 2019/2/16.
-//
-
 #include "JunctionTree.h"
 
 JunctionTree::JunctionTree(Network *net)
@@ -740,8 +736,8 @@ void JunctionTree::LoadEvidenceAndMessagePassingUpdateJT(const DiscreteConfig &E
  * @brief: when inferring, an evidence is given. The evidence needs to be loaded and propagate in the network.
  */
 void JunctionTree::LoadDiscreteEvidence(const DiscreteConfig &E) {
-    // TODO: cannot just erase "comb" inside the inner most loop,
-    //  because it will cause problem in factor division...
+    // cannot just erase "comb" inside the inner most loop,
+    // because it will cause problem in factor division...
     for (auto &e: E) { // for each observation of variable
 //        cout << "check evidence " << e.first << "=" << e.second << endl;
         for (auto &clique_ptr : set_clique_ptr_container) { // for each clique
@@ -766,22 +762,22 @@ void JunctionTree::LoadDiscreteEvidence(const DiscreteConfig &E) {
                 set<DiscreteConfig> set_reduced_disc_configs;
                 map<DiscreteConfig, double> map_reduced_potentials;
                 // for each discrete config of this factor
-                for (auto it = clique_ptr->set_disc_configs.begin(); it != clique_ptr->set_disc_configs.end(); it++) {
+                for (auto &comb: clique_ptr->set_disc_configs) {
 //                    cout << "    check config ";
-//                    for (auto &p: (*it)) {
+//                    for (auto &p: comb) {
 //                        cout << p.first << "=" << p.second << " ";
 //                    }
 //                    cout << endl;
                     // if this config and the evidence have different values on common variables,
                     // which means that they conflict, then this config will be removed
                     // so otherwise, it will be kept
-                    if ((*it).find(e) != (*it).end()) {
+                    if (comb.find(e) != comb.end()) {
 //                        cout << "      not conflict" << endl;
-                        auto tmp_potential = clique_ptr->map_potentials[(*it)]; // save the potential of this config
+                        auto tmp_potential = clique_ptr->map_potentials[comb]; // save the potential of this config
 //                        cout << "        save " << tmp_potential << " to tmp" << endl;
 
                         DiscreteConfig reduced_config; // we need to reduce the config, remove the unrelated variables
-                        for (auto &p: (*it)) { // for all pairs in the config (we select all related variables from them)
+                        for (auto &p: comb) { // for all pairs in the config (we select all related variables from them)
                             if (p.first != e.first) {
 //                                cout << "        insert " << p.first << "=" << p.second << " into reduced config" << endl;
                                 // this variable is not unrelated, so this pair should be kept
@@ -824,15 +820,15 @@ void JunctionTree::LoadDiscreteEvidence(const DiscreteConfig &E) {
                 set<DiscreteConfig> set_reduced_disc_configs;
                 map<DiscreteConfig, double> map_reduced_potentials;
                 // for each discrete config of this factor
-                for (auto it = sep_ptr->set_disc_configs.begin(); it != sep_ptr->set_disc_configs.end(); it++) {
+                for (auto &comb: sep_ptr->set_disc_configs) {
                     // if this config and the evidence have different values on common variables,
                     // which means that they conflict, then this config will be removed
                     // so otherwise, it will be kept
-                    if ((*it).find(e) != (*it).end()) {
-                        auto tmp_potential = sep_ptr->map_potentials[(*it)]; // save the potential of this config
+                    if (comb.find(e) != comb.end()) {
+                        auto tmp_potential = sep_ptr->map_potentials[comb]; // save the potential of this config
 
                         DiscreteConfig reduced_config; // we need to reduce the config, remove the unrelated variables
-                        for (auto &p: (*it)) { // for all pairs in the config (we select all related variables from them)
+                        for (auto &p: comb) { // for all pairs in the config (we select all related variables from them)
                             if (p.first != e.first) {
                                 // this variable is not unrelated, so this pair should be kept
                                 reduced_config.insert(p);
@@ -891,7 +887,6 @@ void JunctionTree::LoadDiscreteEvidence(const DiscreteConfig &E) {
 //  if (E.empty()) {
 //    return;
 //  }
-//    // TODO: double-check: only load evidence on one clique? or all cliques containing evidence?
 //  for (auto &e : E) {  // For each node's observation in E
 //    if (network->FindNodePtrByIndex(e.first)->is_discrete) {
 //      Clique *clique_ptr = map_elim_var_to_clique[e.first];
@@ -918,13 +913,7 @@ void JunctionTree::MessagePassingUpdateJT() {
   // Arbitrarily select a clique as the root.
   auto iter = set_clique_ptr_container.begin();
   Clique *arb_root = *iter;
-
-//  cout << "collect!!" << endl;
-
   arb_root->Collect();
-
-//  cout << "distribute!!" << endl;
-
   arb_root->Distribute();
 }
 
@@ -953,7 +942,7 @@ Factor JunctionTree::BeliefPropagationCalcuDiscreteVarMarginal(int query_index) 
   // The output is a factor representing the joint marginal of these variables.
   // TODO: here only support one query variable
 
-  int min_potential_size = INT32_MAX;
+  int min_size = INT32_MAX;
   Clique *selected_clique = nullptr;
 
   // The case where the query variables are all appear in one clique.
@@ -968,10 +957,10 @@ Factor JunctionTree::BeliefPropagationCalcuDiscreteVarMarginal(int query_index) 
     if (c->related_variables.find(query_index) == c->related_variables.end()) { // cannot find the query variable
         continue;
     }
-    if (c->map_potentials.size() >= min_potential_size) { // TODO: can we use clique_size?
+    if (c->related_variables.size() >= min_size) {
         continue;
     }
-    min_potential_size = c->map_potentials.size(); // TODO: clique size
+    min_size = c->related_variables.size();
     selected_clique = c;
   }
 
@@ -992,9 +981,9 @@ Factor JunctionTree::BeliefPropagationCalcuDiscreteVarMarginal(int query_index) 
 //        cout << var << " ";
 //    }
 //    cout << endl;
-//    // set<DiscreteConfig> set_disc_config; DiscreteConfig: set< pair<int, int> >
+//    // set<DiscreteConfig> set_disc_configs; DiscreteConfig: set< pair<int, int> >
 //    // map<DiscreteConfig, double> map_potentials
-//    for (auto &config: f.set_disc_config) {
+//    for (auto &config: f.set_disc_configs) {
 //        cout << "config: ";
 //        for (auto &varval: config) {
 //            cout << varval.first << "=" << varval.second << " ";
@@ -1013,9 +1002,9 @@ Factor JunctionTree::BeliefPropagationCalcuDiscreteVarMarginal(int query_index) 
 //        cout << var << " ";
 //    }
 //    cout << endl;
-//    // set<DiscreteConfig> set_disc_config; DiscreteConfig: set< pair<int, int> >
+//    // set<DiscreteConfig> set_disc_configs; DiscreteConfig: set< pair<int, int> >
 //    // map<DiscreteConfig, double> map_potentials
-//    for (auto &config: f.set_disc_config) {
+//    for (auto &config: f.set_disc_configs) {
 //        cout << "config: ";
 //        for (auto &varval: config) {
 //            cout << varval.first << "=" << varval.second << " ";
@@ -1024,7 +1013,7 @@ Factor JunctionTree::BeliefPropagationCalcuDiscreteVarMarginal(int query_index) 
 //    }
 
 
-  f.Normalize(); // todo: no need
+//  f.Normalize(); // todo: no need to do normalization
   return f;
 
 }
@@ -1036,7 +1025,7 @@ int JunctionTree::InferenceUsingBeliefPropagation(int &query_index) {
   Factor f = BeliefPropagationCalcuDiscreteVarMarginal(query_index);
   double max_prob = 0;
   DiscreteConfig comb_predict; // set< pair<int, int> >
-  for (auto &comb : f.set_disc_config) {
+  for (auto &comb : f.set_disc_configs) {
     if (f.map_potentials[comb] > max_prob) {
       max_prob = f.map_potentials[comb];
       comb_predict = comb;

@@ -77,7 +77,7 @@ protected:
 //    double accuracy = inference->EvaluateAccuracy(tester, -1, "ve", true);
 //    EXPECT_GT(accuracy, 0.8230);
 //}
-
+//
 //TEST_F(ExperimentOnA1a, ve_partial) {
 //    Inference *inference = new ExactInference(network);
 //    double accuracy = inference->EvaluateAccuracy(tester, -1, "ve", false);
