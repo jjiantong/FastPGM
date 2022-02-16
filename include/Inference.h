@@ -12,6 +12,7 @@
 #include "ContinuousNode.h"
 #include "Factor.h"
 #include "gadget.h"
+#include "Timer.h"
 #include <iostream>
 #include <sys/time.h>
 #include <locale.h>

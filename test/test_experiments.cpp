@@ -73,19 +73,19 @@ protected:
     Network *network;
 };
 
-//TEST_F(ExperimentOnA1a, brute_force) {
-//    Inference *inference = new BruteForce(network);
-//    double accuracy = inference->EvaluateAccuracy(tester, -1, "direct", true);
-//    delete inference;
-//    EXPECT_GT(accuracy, 0.8230);
-//}
-//
-//TEST_F(ExperimentOnA1a, ve) {
-//    Inference *inference = new VariableElimination(network);
-//    double accuracy = inference->EvaluateAccuracy(tester, -1, "ve", true);
-//    delete inference;
-//    EXPECT_GT(accuracy, 0.8230);
-//}
+TEST_F(ExperimentOnA1a, brute_force) {
+    Inference *inference = new BruteForce(network);
+    double accuracy = inference->EvaluateAccuracy(tester, -1, "direct", true);
+    delete inference;
+    EXPECT_GT(accuracy, 0.8230);
+}
+
+TEST_F(ExperimentOnA1a, ve) {
+    Inference *inference = new VariableElimination(network);
+    double accuracy = inference->EvaluateAccuracy(tester, -1, "ve", true);
+    delete inference;
+    EXPECT_GT(accuracy, 0.8230);
+}
 //
 //TEST_F(ExperimentOnA1a, ve_partial) {
 //    Inference *inference = new VariableElimination(network);

@@ -9,9 +9,9 @@ double VariableElimination::EvaluateAccuracy(Dataset *dts, int num_samp, string 
     cout << "==================================================" << '\n'
          << "Begin testing the trained network." << endl;
 
-    struct timeval start, end;
-    double diff;
-    gettimeofday(&start,NULL);
+    Timer *timer = new Timer();
+    // record time
+    timer->Start("ve");
 
     int m = dts->num_instance;
 
@@ -54,11 +54,12 @@ double VariableElimination::EvaluateAccuracy(Dataset *dts, int num_samp, string 
     double accuracy = Accuracy(ground_truths, predictions);
     cout << '\n' << "Accuracy: " << accuracy << endl;
 
-    gettimeofday(&end,NULL);
-    diff = (end.tv_sec-start.tv_sec) + ((double)(end.tv_usec-start.tv_usec))/1.0E6;
+    timer->Stop("ve");
     setlocale(LC_NUMERIC, "");
-    cout << "==================================================" << '\n'
-         << "The time spent to test the accuracy is " << diff << " seconds" << endl;
+    cout << "==================================================";
+    timer->Print("ve");
+    delete timer;
+    timer = nullptr;
 
     return accuracy;
 }
