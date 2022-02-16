@@ -35,22 +35,22 @@ map<int, double> Normalize(map<int, double> &x) { // TODO: move to maybe Inferen
   return x;
 }
 
-/**
- * @brief: build a (partial/full) configuration given the variables and their observation.
- * @param nodes_indexes: id of the variable
- * @param observations: value of the variable
- * @param num_of_observations: the length of the two arrays
- */
-DiscreteConfig ArrayToDiscreteConfig(int *nodes_indexes, int *observations, int num_of_observations) {
-  DiscreteConfig result;
-  pair<int, int> p;
-  for (int i = 0; i < num_of_observations; ++i) {
-    p.first = nodes_indexes[i];
-    p.second = observations[i];
-    result.insert(p);
-  }
-  return result;
-}
+///**
+// * @brief: build a (partial/full) configuration given the variables and their observation.
+// * @param nodes_indexes: id of the variable
+// * @param observations: value of the variable
+// * @param num_of_observations: the length of the two arrays
+// */
+//DiscreteConfig ArrayToDiscreteConfig(int *nodes_indexes, int *observations, int num_of_observations) {
+//  DiscreteConfig result;
+//  pair<int, int> p;
+//  for (int i = 0; i < num_of_observations; ++i) {
+//    p.first = nodes_indexes[i];
+//    p.second = observations[i];
+//    result.insert(p);
+//  }
+//  return result;
+//}
 
 /**
  * @brief: convert a configuration (e.g., a config can be derived from an instance) into a map for fast query

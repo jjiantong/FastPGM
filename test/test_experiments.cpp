@@ -73,23 +73,40 @@ protected:
     Network *network;
 };
 
-TEST_F(ExperimentOnA1a, ve) {
-    Inference *inference = new VariableElimination(network);
-    double accuracy = inference->EvaluateAccuracy(tester, -1, "ve", true);
+//TEST_F(ExperimentOnA1a, brute_force) {
+//    Inference *inference = new BruteForce(network);
+//    double accuracy = inference->EvaluateAccuracy(tester, -1, "direct", true);
+//    delete inference;
+//    EXPECT_GT(accuracy, 0.8230);
+//}
+//
+//TEST_F(ExperimentOnA1a, ve) {
+//    Inference *inference = new VariableElimination(network);
+//    double accuracy = inference->EvaluateAccuracy(tester, -1, "ve", true);
+//    delete inference;
+//    EXPECT_GT(accuracy, 0.8230);
+//}
+//
+//TEST_F(ExperimentOnA1a, ve_partial) {
+//    Inference *inference = new VariableElimination(network);
+//    double accuracy = inference->EvaluateAccuracy(tester, -1, "ve", false);
+//    delete inference;
+//    EXPECT_GT(accuracy, 0.8230);
+//}
+
+TEST_F(ExperimentOnA1a, junction_tree) {
+    Inference *inference = new JunctionTree(network);
+    double accuracy = inference->EvaluateAccuracy(tester, -1, "jt", true);
+    delete inference;
     EXPECT_GT(accuracy, 0.8230);
 }
 
-TEST_F(ExperimentOnA1a, ve_partial) {
-    Inference *inference = new VariableElimination(network);
-    double accuracy = inference->EvaluateAccuracy(tester, -1, "ve", false);
-    EXPECT_GT(accuracy, 0.8230);
-}
-
-TEST_F(ExperimentOnA1a, brute_force) {
-    Inference *inference = new BruteForce(network);
-    double accuracy = inference->EvaluateAccuracy(tester, -1, "direct", true);
-    EXPECT_GT(accuracy, 0.8230);
-}
+//TEST_F(ExperimentOnA1a, junction_tree_partial) {
+//    Inference *inference = new JunctionTree(network);
+//    double accuracy = inference->EvaluateAccuracy(tester, -1, "jt", false);
+//    delete inference;
+//    EXPECT_GT(accuracy, 0.8230);
+//}
 //
 //TEST_F(ExperimentOnA1a, likelihood_weighing) {
 //    Inference *inference = new ApproximateInference(network);
@@ -103,13 +120,6 @@ TEST_F(ExperimentOnA1a, brute_force) {
 //    EXPECT_GT(accuracy, 0.650);
 //}
 //
-//
-//TEST_F(ExperimentOnA1a, junction_tree) {
-//    auto *jt = new JunctionTree(network);
-//    double accuracy = jt->EvaluateJTAccuracy(0, tester);
-//    delete jt;
-//    EXPECT_GT(accuracy,0.8150);
-//}
 
 
 

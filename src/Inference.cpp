@@ -24,21 +24,25 @@ double Inference::Accuracy(vector<int> ground_truth, vector<int> predictions) {
 /**
  * @brief: convert sparse to dense by filling zero
  */
-DiscreteConfig Inference::Sparse2Dense(DiscreteConfig evidence) {
+DiscreteConfig Inference::Sparse2Dense(DiscreteConfig evidence, int num_nodes, int class_var_index) {
     set<int> existing_index;
-    for (auto it = evidence.begin(); it != evidence.end(); it++) {
-        existing_index.insert(it->first);
+    for (auto &e: evidence) {
+        existing_index.insert(e.first);
     }
-    for (int i = 1; i < network->num_nodes; i++) { // for all nodes except for the target node
+
+    DiscreteConfig dense_instance = evidence;
+    for (int i = 0; i < num_nodes; i++) {
+        if (i == class_var_index) { // skip the class variable
+            continue;
+        }
         // if node index i is not in existing evidence, filling 0
         if (existing_index.find(i) == existing_index.end()) {
             pair<int, int> p;
             p.first = i;
             p.second = 0;
-            evidence.insert(p);
+            dense_instance.insert(p);
         }
     }
 
-    DiscreteConfig dense_instance = evidence;
     return dense_instance;
 }

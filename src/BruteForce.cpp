@@ -29,7 +29,10 @@ double BruteForce::EvaluateAccuracy(Dataset *dts, int num_samp, string alg, bool
         // construct a test data set by removing the class variable
         DiscreteConfig e;
         pair<int, int> p;
-        for (int j = 1; j < vec_instance.size(); ++j) { // skip the class variable (which is at the beginning of the vector)
+        for (int j = 0; j < vec_instance.size(); ++j) {
+            if (j == class_var_index) { // skip the class variable
+                continue;
+            }
             p.first = vec_instance.at(j).first;
             p.second = vec_instance.at(j).second.GetInt();
             e.insert(p);
@@ -40,11 +43,11 @@ double BruteForce::EvaluateAccuracy(Dataset *dts, int num_samp, string alg, bool
             exit(0);
         }
 
-        e = Sparse2Dense(e);
+        e = Sparse2Dense(e, network->num_nodes, class_var_index);
         evidences.push_back(e);
 
         // construct the ground truth
-        int g = vec_instance.at(0).second.GetInt();
+        int g = vec_instance.at(class_var_index).second.GetInt();
 //    int g = dts->dataset_all_vars[i][class_var_index];
         ground_truths.push_back(g);
     }
@@ -92,9 +95,9 @@ vector<int> BruteForce::PredictDirectly(vector<DiscreteConfig> evidences, int ta
     int progress = 0;
 
     vector<int> results(size, 0);
-#pragma omp parallel for
+//#pragma omp parallel for
     for (int i = 0; i < size; ++i) {
-#pragma omp critical
+//#pragma omp critical
         { ++progress; }
 
         if (progress % every_1_of_20 == 0) {

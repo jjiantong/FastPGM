@@ -22,12 +22,11 @@ public:
     Network *network;//the learned network which can be used for inference
 
     virtual double EvaluateAccuracy(Dataset *dts, int num_samp, string alg, bool is_dense)= 0;
-//    virtual double EvaluateAccuracy(Dataset *dts, int num_samp, bool is_dense)= 0;
 
     virtual ~Inference() {};
 
     double Accuracy(vector<int> ground_truth, vector<int> predictions);
-    DiscreteConfig Sparse2Dense(DiscreteConfig evidence);
+    DiscreteConfig Sparse2Dense(DiscreteConfig evidence, int num_nodes, int class_var_index);
 
 };
 

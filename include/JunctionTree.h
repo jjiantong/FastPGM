@@ -6,11 +6,12 @@
 #include "Clique.h"
 #include "Separator.h"
 #include "Network.h"
+#include "Inference.h"
 
 /**
  * @brief: this class is for exact inference. The other two methods include brute force and variable elimination.
  */
-class JunctionTree {
+class JunctionTree: public Inference {
   //==================================================
  public:
   Network *network;//the learned network which can be used for inference
@@ -25,7 +26,7 @@ class JunctionTree {
   JunctionTree(Network *net);
   JunctionTree(Network *net, string elim_ord_strategy);
   JunctionTree(Network *net, string elim_ord_strategy, vector<int> custom_elim_ord);
-  explicit JunctionTree(JunctionTree*);
+  JunctionTree(JunctionTree*);
   virtual ~JunctionTree() = default;
 
   void ResetJunctionTree();
@@ -38,7 +39,8 @@ class JunctionTree {
   Factor BeliefPropagationCalcuDiscreteVarMarginal(int query_index);
   int InferenceUsingBeliefPropagation(int &query_index);
 
-  double EvaluateJTAccuracy(int class_var, Dataset *dts);
+    virtual double EvaluateAccuracy(Dataset *dts, int num_samp, string alg, bool is_dense);
+    int PredictUseJTInfer(DiscreteConfig E, int Y_index);
 
   //==================================================
  protected:

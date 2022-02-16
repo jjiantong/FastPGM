@@ -1035,10 +1035,117 @@ int JunctionTree::InferenceUsingBeliefPropagation(int &query_index) {
   return label_predict;
 }
 
+
+//double JunctionTree::EvaluateAccuracy(Dataset *dts, int num_samp, string alg, bool is_dense) {
+//
+//    cout << "==================================================" << '\n'
+//         << "Begin testing the trained network." << endl;
+//
+//    struct timeval start, end;
+//    double diff;
+//    gettimeofday(&start,NULL);
+//
+//    int m = dts->num_instance;
+//
+//    int class_var_index = dts->class_var_index;
+//
+//    // construct the test data set with labels
+//    vector<int> ground_truths;
+//    vector<DiscreteConfig> evidences;
+//    evidences.reserve(m);
+//    ground_truths.reserve(m);
+//
+//    for (int i = 0; i < m; ++i) { // for each instance in the data set
+//        vector<VarVal> vec_instance = dts->vector_dataset_all_vars.at(i);
+//
+//        // construct a test data set by removing the class variable
+//        DiscreteConfig e;
+//        pair<int, int> p;
+//        for (int j = 0; j < vec_instance.size(); ++j) {
+//            if (j == class_var_index) { // skip the class variable
+//                continue;
+//            }
+//            p.first = vec_instance.at(j).first;
+//            p.second = vec_instance.at(j).second.GetInt();
+//            e.insert(p);
+//        }
+//
+//        if (is_dense) {
+//            e = Sparse2Dense(e);
+//        }
+//
+//        evidences.push_back(e);
+//
+//        // construct the ground truth
+//        int g = vec_instance.at(class_var_index).second.GetInt();
+////    int g = dts->dataset_all_vars[i][class_var_index];
+//        ground_truths.push_back(g);
+//    }
+//
+//    // predict the labels of the test instances
+//    vector<int> predictions = PredictUseJTInfer(evidences, class_var_index);
+//
+//    double accuracy = Accuracy(ground_truths, predictions);
+//    cout << '\n' << "Accuracy: " << accuracy << endl;
+//
+//    gettimeofday(&end,NULL);
+//    diff = (end.tv_sec-start.tv_sec) + ((double)(end.tv_usec-start.tv_usec))/1.0E6;
+//    setlocale(LC_NUMERIC, "");
+//    cout << "==================================================" << '\n'
+//         << "The time spent to test the accuracy is " << diff << " seconds" << endl;
+//
+//    return accuracy;
+//}
+//
+///**
+// * @brief: predict label given (full) evidence E and target variable id
+// * @return label of the target variable
+// */
+//int JunctionTree::PredictUseJTInfer(DiscreteConfig E, int Y_index) {
+//    //update a clique using the evidence
+//    LoadDiscreteEvidence(E);
+//
+//    //update the whole Junction Tree
+//    MessagePassingUpdateJT();
+//
+//    int label_predict = InferenceUsingBeliefPropagation(Y_index);
+//
+//    return label_predict;
+//}
+//
+///**
+// * @brief: predict the label of different evidences
+// * it just repeats the function above multiple times, and print the progress at the meantime
+// */
+//vector<int> JunctionTree::PredictUseJTInfer(vector<DiscreteConfig> evidences, int target_node_idx) {
+//    int size = evidences.size();
+//
+//    cout << "Progress indicator: ";
+//    int every_1_of_20 = size / 20;
+//    int progress = 0;
+//
+//    vector<int> results(size, 0);
+////#pragma omp parallel for
+//    for (int i = 0; i < size; ++i) {
+////#pragma omp critical
+//        { ++progress; }
+//
+//        if (progress % every_1_of_20 == 0) {
+//            string progress_percentage = to_string((double)progress/size * 100) + "%...\n";
+//            fprintf(stdout, "%s\n", progress_percentage.c_str());
+//            fflush(stdout);
+//        }
+//
+//        int pred = PredictUseJTInfer(evidences.at(i), target_node_idx);
+//        results.at(i) = pred;
+//    }
+//    return results;
+//}
+
 /**
  * @brief: test the Junction Tree given a data set
  */
-double JunctionTree::EvaluateJTAccuracy(int class_var, Dataset *dts) {
+double JunctionTree::EvaluateAccuracy(Dataset *dts, int num_samp, string alg, bool is_dense) {
 
   cout << "==================================================" << '\n'
        << "Begin testing the trained network." << endl;
@@ -1056,9 +1163,7 @@ double JunctionTree::EvaluateJTAccuracy(int class_var, Dataset *dts) {
       m20 = m / 20,
       progress = 0;
 
-//  vector<int> truths, predictions;
-//  truths.reserve(m);
-//  predictions.reserve(m);
+    int class_var_index = dts->class_var_index;
 
     cout << "Progress indicator: ";
 
@@ -1083,24 +1188,22 @@ double JunctionTree::EvaluateJTAccuracy(int class_var, Dataset *dts) {
       fflush(stdout);
     }
 
-    // For now, only support complete data.
-    int e_num = network->num_nodes - 1,
-        *e_index = new int[e_num],
-        *e_value = new int[e_num];
-
-    for (int j = 0; j < network->num_nodes; ++j) {
-      if (j == dts->class_var_index) {
-          continue;
+      vector<VarVal> vec_instance = dts->vector_dataset_all_vars.at(i);
+      // construct an evidence by removing the class variable
+      DiscreteConfig E;
+      pair<int, int> p;
+      for (int j = 0; j < vec_instance.size(); ++j) {
+          if (j == class_var_index) { // skip the class variable
+              continue;
+          }
+          p.first = vec_instance.at(j).first;
+          p.second = vec_instance.at(j).second.GetInt();
+          E.insert(p);
       }
-      e_index[j < dts->class_var_index ? j : j - 1] = j;
-      e_value[j < dts->class_var_index ? j : j - 1] = dts->dataset_all_vars[i][j];
-    }
 
-    DiscreteConfig E = ArrayToDiscreteConfig(e_index, e_value, e_num);
-
-    delete[] e_index;
-    delete[] e_value;
-
+      if (is_dense) {
+          E = Sparse2Dense(E, network->num_nodes, class_var_index);
+      }
 
 //      cout << "testing sample " << i << endl << "before load evidences: " << endl << "cliques: " << endl;
 //      for (auto &c : set_clique_ptr_container) {
@@ -1121,51 +1224,52 @@ double JunctionTree::EvaluateJTAccuracy(int class_var, Dataset *dts) {
 //      }
 
 
-      gettimeofday(&start1,NULL);
-    //update a clique using the evidence
-    LoadDiscreteEvidence(E);
-      gettimeofday(&end1,NULL);
-      diff1 += (end1.tv_sec-start1.tv_sec) + ((double)(end1.tv_usec-start1.tv_usec))/1.0E6;
+//      gettimeofday(&start1,NULL);
+//    //update a clique using the evidence
+//    LoadDiscreteEvidence(E);
+//      gettimeofday(&end1,NULL);
+//      diff1 += (end1.tv_sec-start1.tv_sec) + ((double)(end1.tv_usec-start1.tv_usec))/1.0E6;
+//
+//
+////      cout << "after load evidences: " << endl << "cliques: " << endl;
+////      for (auto &c : set_clique_ptr_container) {
+////          cout << c->clique_id << ": ";
+////          for (auto &v : c->clique_variables) {
+////              cout << v << " ";
+////          }
+////          cout << endl;
+////          // set<DiscreteConfig> set_disc_configs; DiscreteConfig: set< pair<int, int> >
+////          // map<DiscreteConfig, double> map_potentials
+////          for (auto &config: c->set_disc_configs) {
+////              cout << "config: ";
+////              for (auto &varval: config) {
+////                  cout << varval.first << "=" << varval.second << " ";
+////              }
+////              cout << ": " << c->map_potentials[config] << endl;
+////          }
+////      }
+//
+//
+//      gettimeofday(&start2,NULL);
+//    //update the whole Junction Tree
+//    MessagePassingUpdateJT();
+//      gettimeofday(&end2,NULL);
+//      diff2 += (end2.tv_sec-start2.tv_sec) + ((double)(end2.tv_usec-start2.tv_usec))/1.0E6;
+//
+//      gettimeofday(&start3,NULL);
+//    int label_predict = InferenceUsingBeliefPropagation(class_var_index);
+//    ResetJunctionTree();
+//      gettimeofday(&end3,NULL);
+//      diff3 += (end3.tv_sec-start3.tv_sec) + ((double)(end3.tv_usec-start3.tv_usec))/1.0E6;
 
-
-//      cout << "after load evidences: " << endl << "cliques: " << endl;
-//      for (auto &c : set_clique_ptr_container) {
-//          cout << c->clique_id << ": ";
-//          for (auto &v : c->clique_variables) {
-//              cout << v << " ";
-//          }
-//          cout << endl;
-//          // set<DiscreteConfig> set_disc_configs; DiscreteConfig: set< pair<int, int> >
-//          // map<DiscreteConfig, double> map_potentials
-//          for (auto &config: c->set_disc_configs) {
-//              cout << "config: ";
-//              for (auto &varval: config) {
-//                  cout << varval.first << "=" << varval.second << " ";
-//              }
-//              cout << ": " << c->map_potentials[config] << endl;
-//          }
-//      }
-
-
-      gettimeofday(&start2,NULL);
-    //update the whole Junction Tree
-    MessagePassingUpdateJT();
-      gettimeofday(&end2,NULL);
-      diff2 += (end2.tv_sec-start2.tv_sec) + ((double)(end2.tv_usec-start2.tv_usec))/1.0E6;
-
-      gettimeofday(&start3,NULL);
-    int label_predict = InferenceUsingBeliefPropagation(class_var);
-    ResetJunctionTree();
-      gettimeofday(&end3,NULL);
-      diff3 += (end3.tv_sec-start3.tv_sec) + ((double)(end3.tv_usec-start3.tv_usec))/1.0E6;
-
-    if (label_predict == dts->dataset_all_vars[i][dts->class_var_index]) {
+      int label_predict = PredictUseJTInfer(E, class_var_index);
+    if (label_predict == dts->dataset_all_vars[i][class_var_index]) {
 //        cout << "correct: " << label_predict << endl;
 //      #pragma omp critical
       { ++num_of_correct; }
     } else {
 //        cout << "wrong: predict = " << label_predict
-//             << ", ground truth = " << dts->dataset_all_vars[i][dts->class_var_index] << endl;
+//             << ", ground truth = " << dts->dataset_all_vars[i][class_var_index] << endl;
 //      #pragma omp critical
       { ++num_of_wrong; }
     }
@@ -1184,4 +1288,21 @@ double JunctionTree::EvaluateJTAccuracy(int class_var, Dataset *dts) {
   double accuracy = num_of_correct / (double)(num_of_correct+num_of_wrong);
   cout << '\n' << "Accuracy: " << accuracy << endl;
   return accuracy;
+}
+
+/**
+ * @brief: predict label given evidence E and target variable id Y_index
+ * @return label of the target variable
+ */
+int JunctionTree::PredictUseJTInfer(DiscreteConfig E, int Y_index) {
+    //update a clique using the evidence
+    LoadDiscreteEvidence(E);
+
+    //update the whole Junction Tree
+    MessagePassingUpdateJT();
+
+    int label_predict = InferenceUsingBeliefPropagation(Y_index);
+    ResetJunctionTree();
+
+    return label_predict;
 }
