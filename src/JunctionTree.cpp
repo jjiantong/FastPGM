@@ -98,7 +98,7 @@ JunctionTree::JunctionTree(Network *net, string elim_ord_strategy, vector<int> c
 //            for (auto &varval: config) {
 //                cout << varval.first << "=" << varval.second << " ";
 //            }
-//            cout << ": " << c->map_potentials[config] << endl;
+//            cout << ": " << c->table.map_potentials[config] << endl;
 //        }
 //    }
 //    cout << "separators: " << endl;
@@ -115,7 +115,7 @@ JunctionTree::JunctionTree(Network *net, string elim_ord_strategy, vector<int> c
 //            for (auto &varval: config) {
 //                cout << varval.first << "=" << varval.second << " ";
 //            }
-//            cout << ": " << s->map_potentials[config] << endl;
+//            cout << ": " << s->table.map_potentials[config] << endl;
 //        }
 //    }
 
@@ -755,7 +755,7 @@ void JunctionTree::LoadDiscreteEvidence(DiscreteConfig E) {
                     // which means that they conflict, then this config will be removed
                     // so otherwise, it will be kept
                     if (comb.find(e) != comb.end()) {
-                        auto tmp_potential = clique_ptr->map_potentials[comb]; // save the potential of this config
+                        auto tmp_potential = clique_ptr->table.map_potentials[comb]; // save the potential of this config
 
                         DiscreteConfig reduced_config; // we need to reduce the config, remove the unrelated variables
                         for (auto &p: comb) { // for all pairs in the config (we select all related variables from them)
@@ -771,7 +771,7 @@ void JunctionTree::LoadDiscreteEvidence(DiscreteConfig E) {
                     }
                 }
                 clique_ptr->set_disc_configs = set_reduced_disc_configs;
-                clique_ptr->map_potentials = map_reduced_potentials;
+                clique_ptr->table.map_potentials = map_reduced_potentials;
             }
         }
     }
@@ -790,7 +790,7 @@ void JunctionTree::LoadDiscreteEvidence(DiscreteConfig E) {
                     // which means that they conflict, then this config will be removed
                     // so otherwise, it will be kept
                     if (comb.find(e) != comb.end()) {
-                        auto tmp_potential = sep_ptr->map_potentials[comb]; // save the potential of this config
+                        auto tmp_potential = sep_ptr->table.map_potentials[comb]; // save the potential of this config
 
                         DiscreteConfig reduced_config; // we need to reduce the config, remove the unrelated variables
                         for (auto &p: comb) { // for all pairs in the config (we select all related variables from them)
@@ -807,7 +807,7 @@ void JunctionTree::LoadDiscreteEvidence(DiscreteConfig E) {
                 }
 
                 sep_ptr->set_disc_configs = set_reduced_disc_configs;
-                sep_ptr->map_potentials = map_reduced_potentials;
+                sep_ptr->table.map_potentials = map_reduced_potentials;
             }
         }
     }
@@ -820,7 +820,7 @@ void JunctionTree::LoadDiscreteEvidence(DiscreteConfig E) {
 //      if (clique_ptr->related_variables.find(e.first) != clique_ptr->related_variables.end()) {
 //        for (auto &comb : clique_ptr->set_disc_configs) {
 //          if (comb.find(e) == comb.end()) {
-//            clique_ptr->map_potentials[comb] = 0;
+//            clique_ptr->table.map_potentials[comb] = 0;
 //          }
 //        }
 //        // todo: figure it out
@@ -833,7 +833,7 @@ void JunctionTree::LoadDiscreteEvidence(DiscreteConfig E) {
 //          if (sep_ptr->related_variables.find(e.first) != sep_ptr->related_variables.end()) {
 //              for (auto &comb : sep_ptr->set_disc_configs) {
 //                  if (comb.find(e) == comb.end()) {
-//                      sep_ptr->map_potentials[comb] = 0;
+//                      sep_ptr->table.map_potentials[comb] = 0;
 //                  }
 //              }
 //          }
@@ -853,7 +853,7 @@ void JunctionTree::LoadDiscreteEvidence(DiscreteConfig E) {
 //      Clique *clique_ptr = map_elim_var_to_clique[e.first];
 //      for (auto &comb : clique_ptr->set_disc_configs) {  // Update each row of map_potentials
 //        if (comb.find(e) == comb.end()) {
-//          clique_ptr->map_potentials[comb] = 0;//conflict with the evidence; set the potential to 0.
+//          clique_ptr->table.map_potentials[comb] = 0;//conflict with the evidence; set the potential to 0.
 //        }
 //      }
 //    }
@@ -934,7 +934,7 @@ Factor JunctionTree::BeliefPropagationCalcuDiscreteVarMarginal(int query_index) 
   set<int> other_vars = selected_clique->related_variables;
   other_vars.erase(query_index);
 
-  Factor f(selected_clique->related_variables, selected_clique->set_disc_configs, selected_clique->map_potentials);
+  Factor f(selected_clique->related_variables, selected_clique->set_disc_configs, selected_clique->table.map_potentials);
 
 
 //    cout << "factor: related vars = ";
@@ -1055,7 +1055,7 @@ double JunctionTree::EvaluateAccuracy(Dataset *dts, int num_samp, string alg, bo
 //              for (auto &varval: config) {
 //                  cout << varval.first << "=" << varval.second << " ";
 //              }
-//              cout << ": " << c->map_potentials[config] << endl;
+//              cout << ": " << c->table.map_potentials[config] << endl;
 //          }
 //      }
     }

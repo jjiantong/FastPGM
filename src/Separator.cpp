@@ -53,7 +53,7 @@ void Separator::UpdateUseMessage(Factor f, Timer *timer) {
 //        for (auto &p: c) { //pair<int, int>
 //            cout << p.first << "=" << p.second << " ";
 //        }
-//        cout << ": " << map_potentials[c] << endl;
+//        cout << ": " << table.map_potentials[c] << endl;
 //    }
 //    cout << endl;
 //
@@ -74,10 +74,10 @@ void Separator::UpdateUseMessage(Factor f, Timer *timer) {
 //    timer->Start("copy 3");
     old_table->related_variables = related_variables;
     old_table->set_disc_configs = set_disc_configs;
-    old_table->map_potentials = map_potentials;
+    old_table->map_potentials = table.map_potentials;
     related_variables = f.related_variables;
     set_disc_configs = f.set_disc_configs;
-  map_potentials = f.map_potentials;
+    table.map_potentials = f.map_potentials;
 //    timer->Stop("copy 3");
 //    timer->Stop("update sep");
 }
@@ -95,7 +95,7 @@ Factor Separator::ConstructMessage(Timer *timer) {
 
 //    timer->Start("construct sep");
 //    timer->Start("construct factor");
-    Factor f(related_variables, set_disc_configs, map_potentials);
+    Factor f(related_variables, set_disc_configs, table.map_potentials);
 //    timer->Stop("construct factor");
 
 //    if (f.map_potentials.size() != old_table->map_potentials.size()) {

@@ -33,7 +33,8 @@ class Clique {
   set<DiscreteConfig> set_disc_configs; //all the configurations of the related variables
   map<DiscreteConfig, double> map_potentials; //the potential of each discrete config
 
-  Factor *table;
+//  Factor *table;
+    Factor table;
 
   set<Clique*> set_neighbours_ptr; // neighbor cliques
 

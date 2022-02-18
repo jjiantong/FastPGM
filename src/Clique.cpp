@@ -13,7 +13,7 @@ Clique::Clique() {
   ptr_upstream_clique = nullptr;
   activeflag = false;
 
-    table = new Factor();
+//    table = new Factor();
 }
 
 Clique::Clique(set<Node*> set_node_ptr) {
@@ -40,7 +40,7 @@ Clique::Clique(set<Node*> set_node_ptr) {
   set<DiscreteConfig> set_of_sets;
   for (auto &n : set_node_ptr) { // for each node
     //initialize related variables
-    related_variables.insert(n->GetNodeIndex()); // insert into related_variables
+      clique_variables.insert(n->GetNodeIndex()); // insert into related_variables
     if (n->is_discrete) {
       auto dn = dynamic_cast<DiscreteNode*>(n);
       DiscreteConfig c; // multiple groups: [node id, all possible values of this node]
@@ -51,9 +51,9 @@ Clique::Clique(set<Node*> set_node_ptr) {
     }
   }
 
-  table = new Factor();
+//  table = new Factor();
 
-  clique_variables = related_variables;
+  related_variables = clique_variables;
 
   set_disc_configs = GenAllCombinationsFromSets(&set_of_sets);
 
@@ -63,7 +63,7 @@ Clique::Clique(set<Node*> set_node_ptr) {
 }
 
 Clique::~Clique() {
-    delete table;
+//    delete table;
 }
 
 /**
@@ -72,7 +72,7 @@ Clique::~Clique() {
 void Clique::PreInitializePotentials() {
   if (pure_discrete) {
     for (auto &c : set_disc_configs) {
-      map_potentials[c] = 1;  // Initialize clique potential to be 1.
+      table.map_potentials[c] = 1;  // Initialize clique potential to be 1.
     }
   } else {
     // Initialize lp_potential and post_bag to be empty. That is, do NOTHING.
@@ -262,7 +262,7 @@ void Clique::MultiplyWithFactorSumOverExternalVars(Factor f, Timer *timer) {
   f = SumOutExternalVars(f, timer);
 
 //    timer->Start("construct factor");
-  Factor factor_of_this_clique(related_variables, set_disc_configs, map_potentials); // the factor of the clique
+  Factor factor_of_this_clique(related_variables, set_disc_configs, table.map_potentials); // the factor of the clique
 //    timer->Stop("construct factor");
 
 //    cout << "  multiply ";
@@ -317,7 +317,7 @@ void Clique::MultiplyWithFactorSumOverExternalVars(Factor f, Timer *timer) {
 //    timer->Start("copy 3");
     related_variables = factor_of_this_clique.related_variables;
     set_disc_configs = factor_of_this_clique.set_disc_configs;
-    map_potentials = factor_of_this_clique.map_potentials;
+    table.map_potentials = factor_of_this_clique.map_potentials;
 //    timer->Stop("copy 3");
 
 //    cout << "    after: ";
@@ -366,7 +366,7 @@ Factor Clique::ConstructMessage(Timer *timer) {
 
 //    timer->Start("construct clique");
 //    timer->Start("construct factor");
-  Factor message_factor(related_variables, set_disc_configs, map_potentials);
+  Factor message_factor(related_variables, set_disc_configs, table.map_potentials);
 //    timer->Stop("construct factor");
 //    timer->Stop("construct clique");
   return message_factor;
@@ -375,7 +375,7 @@ Factor Clique::ConstructMessage(Timer *timer) {
 
 void Clique::PrintPotentials() const {
   if (pure_discrete) {
-    for (const auto &potentials_key_value : map_potentials) {
+    for (const auto &potentials_key_value : table.map_potentials) {
       for (const auto &vars_index_value : potentials_key_value.first) {
         cout << '(' << vars_index_value.first << ',' << vars_index_value.second << ") ";
       }
