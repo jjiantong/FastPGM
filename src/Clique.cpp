@@ -88,7 +88,7 @@ Clique* Clique::CopyWithoutPtr() {
  * (initial potential of a cluster/node is constructed via the product of factors that assigned to it)
  * @return a msg, which is a factor
  */
-Factor Clique::Collect() {
+Factor Clique::Collect(Timer *timer) {
 
   for (auto &ptr_separator : set_neighbours_ptr) {
 
@@ -117,27 +117,27 @@ Factor Clique::Collect() {
 //    if (reach_boundary) { continue; }
 
     // collect the msg f from downstream
-    Factor f = ptr_separator->Collect();
+    Factor f = ptr_separator->Collect(timer);
     // update the msg by multiplying the current factor with f
     // the current factor is the initial potential, or
     // the product of the initial potential and factors received from other downstream neighbors
 
-    UpdateUseMessage(f);  // Update itself.
+    UpdateUseMessage(f, timer);  // Update itself.
   }
 
   // Prepare message for the upstream.
-  return ConstructMessage();
+  return ConstructMessage(timer);
 }
 
 /**
  * Distribute the information it knows to the downstream cliques.
  * The reload version without parameter. Called on the selected root.
  */
-void Clique::Distribute() {
+void Clique::Distribute(Timer *timer) {
 
-  Factor f = ConstructMessage();
+  Factor f = ConstructMessage(timer);
   for (auto &sep : set_neighbours_ptr) {
-    sep->Distribute(f);
+    sep->Distribute(f, timer);
   }
 }
 
@@ -149,20 +149,20 @@ void Clique::Distribute() {
  * @return a msg, which is a factor
  * The reload version with parameter. Called by recursion.
  */
-void Clique::Distribute(Factor f) {
+void Clique::Distribute(Factor f, Timer *timer) {
   // If the next clique connected by this separator is a continuous clique,
   // then the program should not distribute information to it.// TODO: double-check
-  bool reach_boundary = false;
-  for (const auto &next_clq_ptr : set_neighbours_ptr) {
-    reach_boundary = !next_clq_ptr->pure_discrete;
-  }
-  if (reach_boundary) { return; }
+//  bool reach_boundary = false;
+//  for (const auto &next_clq_ptr : set_neighbours_ptr) {
+//    reach_boundary = !next_clq_ptr->pure_discrete;
+//  }
+//  if (reach_boundary) { return; }
 
   // update the msg by multiplying the current factor with f
-  UpdateUseMessage(f);  // Update itself.
+  UpdateUseMessage(f, timer);  // Update itself.
 
   // Prepare message for the downstream.
-  Factor distribute_factor = ConstructMessage();
+  Factor distribute_factor = ConstructMessage(timer);
 
   for (auto &ptr_separator : set_neighbours_ptr) {
 
@@ -176,7 +176,7 @@ void Clique::Distribute(Factor f) {
     // the current neighbor "ptr_separator" is a downstream clique
     ptr_separator->ptr_upstream_clique = this;  // Let the callee know the caller.
     // distribute the msg to downstream
-    ptr_separator->Distribute(distribute_factor); // Distribute to downstream.
+    ptr_separator->Distribute(distribute_factor, timer); // Distribute to downstream.
 
   }
 }
@@ -184,16 +184,18 @@ void Clique::Distribute(Factor f) {
 /**
  * @brief: sum over external variables which are the results of factor multiplication.
  */
-Factor Clique::SumOutExternalVars(Factor f) {
+Factor Clique::SumOutExternalVars(Factor f, Timer *timer) {
 //  Factor factor_of_this_clique(this->related_variables,
 //                                   this->set_disc_configs,
 //                                   this->map_potentials);
 
+//    timer->Start("set_difference");
   // get the variables that in "f" but not in "factor_of_this_clique"
   set<int> set_external_vars;
   set_difference(f.related_variables.begin(), f.related_variables.end(),
                  this->clique_variables.begin(), this->clique_variables.end(),
                  inserter(set_external_vars, set_external_vars.begin()));
+//    timer->Stop("set_difference");
 
 //    cout << "  sum out ";
 //    for (auto &v: f.related_variables) {
@@ -219,7 +221,9 @@ Factor Clique::SumOutExternalVars(Factor f) {
 //      }
 //      cout << endl;
 
+//      timer->Start("factor marginalization");
     f = f.SumOverVar(ex_vars);
+//      timer->Stop("factor marginalization");
 
 //      cout << "      after: ";
 //      for (auto &v: f.related_variables) {
@@ -241,14 +245,16 @@ Factor Clique::SumOutExternalVars(Factor f) {
 /**
  * @brief: multiply a clique with a factor
  */
-void Clique::MultiplyWithFactorSumOverExternalVars(Factor f) {
+void Clique::MultiplyWithFactorSumOverExternalVars(Factor f, Timer *timer) {
     // TODO: check the usage of "MultiplyWithFactorSumOverExternalVars",
     //  for the usage in assigning factors, no need to "SumOutExternalVars",
     //  because the scope of clique can accommodate the scope of its factors
     // sum over the irrelevant variables of the clique
-  f = SumOutExternalVars(f);
+  f = SumOutExternalVars(f, timer);
 
+//    timer->Start("construct factor");
   Factor factor_of_this_clique(related_variables, set_disc_configs, map_potentials); // the factor of the clique
+//    timer->Stop("construct factor");
 
 //    cout << "  multiply ";
 //    for (auto &v: factor_of_this_clique.related_variables) {
@@ -292,14 +298,18 @@ void Clique::MultiplyWithFactorSumOverExternalVars(Factor f) {
   //  there are some differences between the standard multiplication of factors and the multiplication here
   //  1. "related_variables" is no need to be changed
   //  2. maybe not all the variables in the "related_variables" are in the factors, not like the standard factor
+//    timer->Start("factor multiplication");
   factor_of_this_clique = factor_of_this_clique.MultiplyWithFactor(f); // multiply two factors
+//    timer->Stop("factor multiplication");
   // TODO: double-check: "related_variables" is not changed, "set_disc_configs" is also not changed?
   // checked: "related_variables" is all the variables in the clique,
   //          "set_disc_configs" is all the configs of the variables in the clique
   //          therefore, they are not required to be changed, the only thing changed is the potentials
+//    timer->Start("copy 3");
     related_variables = factor_of_this_clique.related_variables;
     set_disc_configs = factor_of_this_clique.set_disc_configs;
     map_potentials = factor_of_this_clique.map_potentials;
+//    timer->Stop("copy 3");
 
 //    cout << "    after: ";
 //    for (auto &v: f.related_variables) {
@@ -317,7 +327,7 @@ void Clique::MultiplyWithFactorSumOverExternalVars(Factor f) {
 }
 
 
-void Clique::UpdateUseMessage(Factor f) {
+void Clique::UpdateUseMessage(Factor f, Timer *timer) {
 
 //    cout << "update msg of clique ";
 //    for (auto &v: clique_variables) {
@@ -329,13 +339,15 @@ void Clique::UpdateUseMessage(Factor f) {
 //    }
 //    cout << "): " << endl;
 
-  MultiplyWithFactorSumOverExternalVars(f);
+//    timer->Start("update clique");
+  MultiplyWithFactorSumOverExternalVars(f, timer);
+//    timer->Stop("update clique");
 }
 
 /**
  * @brief: construct a factor of this clique and return
  */
-Factor Clique::ConstructMessage() {
+Factor Clique::ConstructMessage(Timer *timer) {
 
 //    cout << "construct msg of clique ";
 //    for (auto &v: clique_variables) {
@@ -343,7 +355,11 @@ Factor Clique::ConstructMessage() {
 //    }
 //    cout << ": " << endl;
 
+//    timer->Start("construct clique");
+//    timer->Start("construct factor");
   Factor message_factor(related_variables, set_disc_configs, map_potentials);
+//    timer->Stop("construct factor");
+//    timer->Stop("construct clique");
   return message_factor;
 }
 

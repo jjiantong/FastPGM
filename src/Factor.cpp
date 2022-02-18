@@ -68,12 +68,12 @@ Factor::Factor(set<int> &rv,
 Factor Factor::MultiplyWithFactor(Factor second_factor) {
   Factor newFactor;
 
-  if (this->related_variables.empty()) {
-    return second_factor;
-  }
-  if (second_factor.related_variables.empty()) {
-    return *this;
-  }
+    if (this->related_variables.empty()) {
+        return second_factor;
+    }
+    if (second_factor.related_variables.empty()) {
+        return *this;
+    }
 
   newFactor.related_variables.insert(this->related_variables.begin(),this->related_variables.end());
   newFactor.related_variables.insert(second_factor.related_variables.begin(),second_factor.related_variables.end());

@@ -78,8 +78,11 @@ JunctionTree::JunctionTree(Network *net, string elim_ord_strategy, vector<int> c
   NumberTheCliquesAndSeparators();
 //  cout << "finish NumberTheCliquesAndSeparators" << endl;
 
-  AssignPotentials();
+    Timer *timer = new Timer();
+  AssignPotentials(timer);
 //  cout << "finish AssignPotentials" << endl;
+    delete timer;
+    timer = nullptr;
 
 //    cout << "cliques: " << endl;
 //    for (auto &c : set_clique_ptr_container) {
@@ -605,7 +608,7 @@ void JunctionTree::NumberTheCliquesAndSeparators() {//checked
  * @brief: each clique has a potential;
  * the potentials of continuous and discrete cliques are computed differently
  */
-void JunctionTree::AssignPotentials() { //checked
+void JunctionTree::AssignPotentials(Timer *timer) { //checked
   // todo: test the correctness of the continuous part (discrete part works correctly)
 
   // For purely discrete cliques, the potentials have been initialized to 1 on creation,
@@ -667,7 +670,7 @@ void JunctionTree::AssignPotentials() { //checked
 //              cout << v << " ";
 //          }
 //          cout << endl;
-        clique_ptr->MultiplyWithFactorSumOverExternalVars(f);
+        clique_ptr->MultiplyWithFactorSumOverExternalVars(f, timer);
         break;  // Ensure that each factor is used only once.
       }
     }
@@ -727,91 +730,53 @@ void JunctionTree::ResetJunctionTree() {
   }
 }
 
-void JunctionTree::LoadEvidenceAndMessagePassingUpdateJT(const DiscreteConfig &E) {
-  LoadDiscreteEvidence(E);
-  MessagePassingUpdateJT();
-}
+//void JunctionTree::LoadEvidenceAndMessagePassingUpdateJT(const DiscreteConfig &E) {
+//  LoadDiscreteEvidence(E);
+//  MessagePassingUpdateJT();
+//}
 
 /**
  * @brief: when inferring, an evidence is given. The evidence needs to be loaded and propagate in the network.
  */
-void JunctionTree::LoadDiscreteEvidence(const DiscreteConfig &E) {
+void JunctionTree::LoadDiscreteEvidence(DiscreteConfig E) {
     // cannot just erase "comb" inside the inner most loop,
     // because it will cause problem in factor division...
     for (auto &e: E) { // for each observation of variable
-//        cout << "check evidence " << e.first << "=" << e.second << endl;
         for (auto &clique_ptr : set_clique_ptr_container) { // for each clique
-//            cout << "  check clique ";
-//            for (auto &v: clique_ptr->clique_variables) {
-//                cout << v << " ";
-//            }
-//            cout << endl;
             // if this factor is related to the observation
             if (clique_ptr->related_variables.find(e.first) != clique_ptr->related_variables.end()) {
-//                cout << "    this clique is related to the observation, erase from related variables" << endl;
-//                cout << "    old: " << endl;
-//                for (auto &comb: clique_ptr->set_disc_configs) {
-//                    cout << "      ";
-//                    for (auto &p: comb) {
-//                        cout << p.first << "=" << p.second << " ";
-//                    }
-//                    cout << ": " << clique_ptr->map_potentials[comb] << endl;
-//                }
                 clique_ptr->related_variables.erase(e.first);
 
-                set<DiscreteConfig> set_reduced_disc_configs;
+                set <DiscreteConfig> set_reduced_disc_configs;
                 map<DiscreteConfig, double> map_reduced_potentials;
                 // for each discrete config of this factor
                 for (auto &comb: clique_ptr->set_disc_configs) {
-//                    cout << "    check config ";
-//                    for (auto &p: comb) {
-//                        cout << p.first << "=" << p.second << " ";
-//                    }
-//                    cout << endl;
                     // if this config and the evidence have different values on common variables,
                     // which means that they conflict, then this config will be removed
                     // so otherwise, it will be kept
                     if (comb.find(e) != comb.end()) {
-//                        cout << "      not conflict" << endl;
                         auto tmp_potential = clique_ptr->map_potentials[comb]; // save the potential of this config
-//                        cout << "        save " << tmp_potential << " to tmp" << endl;
 
                         DiscreteConfig reduced_config; // we need to reduce the config, remove the unrelated variables
                         for (auto &p: comb) { // for all pairs in the config (we select all related variables from them)
                             if (p.first != e.first) {
-//                                cout << "        insert " << p.first << "=" << p.second << " into reduced config" << endl;
                                 // this variable is not unrelated, so this pair should be kept
                                 reduced_config.insert(p);
                             }
                         }
-//                        cout << "        reduced config: ";
-//                        for (auto &p: reduced_config) {
-//                            cout << p.first << "=" << p.second << " ";
-//                        }
-//                        cout << endl;
 
                         // add new
                         set_reduced_disc_configs.insert(reduced_config);
                         map_reduced_potentials[reduced_config] = tmp_potential;
-//                        cout << "        finish insert this config and its potential" << endl;
                     }
                 }
-
-//                cout << "  finish check this clique and update config and potential" << endl;
                 clique_ptr->set_disc_configs = set_reduced_disc_configs;
                 clique_ptr->map_potentials = map_reduced_potentials;
-
-//                cout << "    new: " << endl;
-//                for (auto &comb: clique_ptr->set_disc_configs) {
-//                    cout << "      ";
-//                    for (auto &p: comb) {
-//                        cout << p.first << "=" << p.second << " ";
-//                    }
-//                    cout << ": " << clique_ptr->map_potentials[comb] << endl;
-//                }
             }
         }
+    }
 
+    for (auto &e: E) { // for each observation of variable
         for (auto &sep_ptr : set_separator_ptr_container) { // for each sep
             // if this factor is related to the observation
             if (sep_ptr->related_variables.find(e.first) != sep_ptr->related_variables.end()) {
@@ -858,12 +823,8 @@ void JunctionTree::LoadDiscreteEvidence(const DiscreteConfig &E) {
 //            clique_ptr->map_potentials[comb] = 0;
 //          }
 //        }
-//        // I do not know if the "break" is optional.
-//        // Entering the evidence to one clique that contains it,
-//        // or to all cliques that contain it.
-//        // Are the results after message passing process both correct???
 //        // todo: figure it out
-////        break;
+//        break;
 //      }
 //    }
 //      // we can also load evidence on separators
@@ -909,12 +870,12 @@ void JunctionTree::LoadDiscreteEvidence(const DiscreteConfig &E) {
  * The order between COLLECT and DISTRIBUTE does not matter, but they must not interleave.
  * After message passing, any clique (junction tree node) contains the right distribution of the related variables.
  */
-void JunctionTree::MessagePassingUpdateJT() {
+void JunctionTree::MessagePassingUpdateJT(Timer *timer) {
   // Arbitrarily select a clique as the root.
   auto iter = set_clique_ptr_container.begin();
   Clique *arb_root = *iter;
-  arb_root->Collect();
-  arb_root->Distribute();
+  arb_root->Collect(timer);
+  arb_root->Distribute(timer);
 }
 
 void JunctionTree::PrintAllCliquesPotentials() const {
@@ -1013,7 +974,7 @@ Factor JunctionTree::BeliefPropagationCalcuDiscreteVarMarginal(int query_index) 
 //    }
 
 
-//  f.Normalize(); // todo: no need to do normalization
+  f.Normalize(); // todo: no need to do normalization
   return f;
 
 }
@@ -1047,53 +1008,38 @@ double JunctionTree::EvaluateAccuracy(Dataset *dts, int num_samp, string alg, bo
     // record time
     timer->Start("jt");
 
-  int num_of_correct = 0,
-      num_of_wrong = 0,
-      m = dts->num_instance,
-      m20 = m / 20,
-      progress = 0;
+    int m = dts->num_instance;
 
     int class_var_index = dts->class_var_index;
 
-    cout << "Progress indicator: ";
+    vector<DiscreteConfig> evidences;
+    evidences.reserve(m);
+    vector<int> ground_truths;
+    ground_truths.reserve(m);
 
-  // If I use OpenMP to parallelize,
-  // process may exit with code 137,
-  // which means the memory consumption is too large.
-  // I don't know how to solve yet.
-//  #pragma omp parallel for
-  for (int i = 0; i < m; ++i) {  // For each sample in test set
+    for (int i = 0; i < m; ++i) {  // For each sample in test set
+        vector<VarVal> vec_instance = dts->vector_dataset_all_vars.at(i);
 
-//    #pragma omp critical
-    { ++progress; }
-//    string progress_detail = to_string(progress) + '/' + to_string(m);
-//    fprintf(stdout, "%s\n", progress_detail.c_str());
-//    fflush(stdout);
+        // construct an evidence by removing the class variable
+        DiscreteConfig e;
+        pair<int, int> p;
+        for (int j = 0; j < vec_instance.size(); ++j) {
+            if (j == class_var_index) { // skip the class variable
+                continue;
+            }
+            p.first = vec_instance.at(j).first;
+            p.second = vec_instance.at(j).second.GetInt();
+            e.insert(p);
+        }
 
-    if (progress % m20 == 0) {
-      string progress_percentage = to_string((double)progress/m * 100) + "%...\n";
-      fprintf(stdout, "Progress: %s\n", progress_percentage.c_str());
-      double acc_so_far = num_of_correct / (double)(num_of_correct+num_of_wrong);
-      fprintf(stdout, "Accuracy so far: %f\n", acc_so_far);
-      fflush(stdout);
-    }
+        if (is_dense) {
+            e = Sparse2Dense(e, network->num_nodes, class_var_index);
+        }
+        evidences.push_back(e);
 
-      vector<VarVal> vec_instance = dts->vector_dataset_all_vars.at(i);
-      // construct an evidence by removing the class variable
-      DiscreteConfig E;
-      pair<int, int> p;
-      for (int j = 0; j < vec_instance.size(); ++j) {
-          if (j == class_var_index) { // skip the class variable
-              continue;
-          }
-          p.first = vec_instance.at(j).first;
-          p.second = vec_instance.at(j).second.GetInt();
-          E.insert(p);
-      }
-
-      if (is_dense) {
-          E = Sparse2Dense(E, network->num_nodes, class_var_index);
-      }
+        // construct the ground truth
+        int g = vec_instance.at(class_var_index).second.GetInt();
+        ground_truths.push_back(g);
 
 //      cout << "testing sample " << i << endl << "before load evidences: " << endl << "cliques: " << endl;
 //      for (auto &c : set_clique_ptr_container) {
@@ -1112,70 +1058,34 @@ double JunctionTree::EvaluateAccuracy(Dataset *dts, int num_samp, string alg, bo
 //              cout << ": " << c->map_potentials[config] << endl;
 //          }
 //      }
-
-
-//      gettimeofday(&start1,NULL);
-//    //update a clique using the evidence
-//    LoadDiscreteEvidence(E);
-//      gettimeofday(&end1,NULL);
-//      diff1 += (end1.tv_sec-start1.tv_sec) + ((double)(end1.tv_usec-start1.tv_usec))/1.0E6;
-//
-//
-////      cout << "after load evidences: " << endl << "cliques: " << endl;
-////      for (auto &c : set_clique_ptr_container) {
-////          cout << c->clique_id << ": ";
-////          for (auto &v : c->clique_variables) {
-////              cout << v << " ";
-////          }
-////          cout << endl;
-////          // set<DiscreteConfig> set_disc_configs; DiscreteConfig: set< pair<int, int> >
-////          // map<DiscreteConfig, double> map_potentials
-////          for (auto &config: c->set_disc_configs) {
-////              cout << "config: ";
-////              for (auto &varval: config) {
-////                  cout << varval.first << "=" << varval.second << " ";
-////              }
-////              cout << ": " << c->map_potentials[config] << endl;
-////          }
-////      }
-//
-//
-//      gettimeofday(&start2,NULL);
-//    //update the whole Junction Tree
-//    MessagePassingUpdateJT();
-//      gettimeofday(&end2,NULL);
-//      diff2 += (end2.tv_sec-start2.tv_sec) + ((double)(end2.tv_usec-start2.tv_usec))/1.0E6;
-//
-//      gettimeofday(&start3,NULL);
-//    int label_predict = InferenceUsingBeliefPropagation(class_var_index);
-//    ResetJunctionTree();
-//      gettimeofday(&end3,NULL);
-//      diff3 += (end3.tv_sec-start3.tv_sec) + ((double)(end3.tv_usec-start3.tv_usec))/1.0E6;
-
-      int label_predict = PredictUseJTInfer(E, class_var_index, timer);
-    if (label_predict == dts->dataset_all_vars[i][class_var_index]) {
-//        cout << "correct: " << label_predict << endl;
-//      #pragma omp critical
-      { ++num_of_correct; }
-    } else {
-//        cout << "wrong: predict = " << label_predict
-//             << ", ground truth = " << dts->dataset_all_vars[i][class_var_index] << endl;
-//      #pragma omp critical
-      { ++num_of_wrong; }
     }
 
-  }
+    // predict the labels of the test instances
+    vector<int> predictions = PredictUseJTInfer(evidences, class_var_index, timer);
+
+    double accuracy = Accuracy(ground_truths, predictions);
 
     timer->Stop("jt");
     setlocale(LC_NUMERIC, "");
 
-    double accuracy = num_of_correct / (double)(num_of_correct+num_of_wrong);
+//    double accuracy = num_of_correct / (double)(num_of_correct+num_of_wrong);
     cout << '\n' << "Accuracy: " << accuracy << endl;
     cout << "==================================================";
     timer->Print("jt");
     timer->Print("load evidence"); cout << " (" << timer->time["load evidence"] / timer->time["jt"] * 100 << "%)";
     timer->Print("msg passing"); cout << " (" << timer->time["msg passing"] / timer->time["jt"] * 100 << "%)";
-    timer->Print("predict"); cout << " (" << timer->time["predict"] / timer->time["jt"] * 100 << "%)"<< endl;
+    timer->Print("predict"); cout << " (" << timer->time["predict"] / timer->time["jt"] * 100 << "%)";
+    timer->Print("reset"); cout << " (" << timer->time["reset"] / timer->time["jt"] * 100 << "%)" << endl;
+//    timer->Print("factor marginalization"); cout << " (" << timer->time["factor marginalization"] / timer->time["msg passing"] * 100 << "%)";
+//    timer->Print("factor multiplication"); cout << " (" << timer->time["factor multiplication"] / timer->time["msg passing"] * 100 << "%)";
+//    timer->Print("factor division"); cout << " (" << timer->time["factor division"] / timer->time["msg passing"] * 100 << "%)" << endl;
+//    timer->Print("set_difference"); cout << " (" << timer->time["set_difference"] / timer->time["msg passing"] * 100 << "%)";
+//    timer->Print("construct factor"); cout << " (" << timer->time["construct factor"] / timer->time["msg passing"] * 100 << "%)";
+//    timer->Print("copy 3"); cout << " (" << timer->time["copy 3"] / timer->time["msg passing"] * 100 << "%)" << endl;
+//    timer->Print("construct clique"); cout << " (" << timer->time["construct clique"] / timer->time["msg passing"] * 100 << "%)";
+//    timer->Print("update clique"); cout << " (" << timer->time["update clique"] / timer->time["msg passing"] * 100 << "%)";
+//    timer->Print("construct sep"); cout << " (" << timer->time["construct sep"] / timer->time["msg passing"] * 100 << "%)";
+//    timer->Print("update sep"); cout << " (" << timer->time["update sep"] / timer->time["msg passing"] * 100 << "%)" << endl;
     delete timer;
     timer = nullptr;
 
@@ -1194,13 +1104,47 @@ int JunctionTree::PredictUseJTInfer(DiscreteConfig E, int Y_index, Timer *timer)
 
     timer->Start("msg passing");
     //update the whole Junction Tree
-    MessagePassingUpdateJT();
+    MessagePassingUpdateJT(timer);
     timer->Stop("msg passing");
 
     timer->Start("predict");
     int label_predict = InferenceUsingBeliefPropagation(Y_index);
     timer->Stop("predict");
 
+    timer->Start("reset");
     ResetJunctionTree();
+    timer->Stop("reset");
     return label_predict;
+}
+
+/**
+ * @brief: predict the labels given different evidences
+ * it just repeats the function above multiple times, and print the progress at the meantime
+ * @param elim_orders: elimination order which may be different given different evidences due to the simplification of elimination order
+ */
+vector<int> JunctionTree::PredictUseJTInfer(vector<DiscreteConfig> evidences, int target_node_idx, Timer *timer) {
+    int size = evidences.size();
+
+    cout << "Progress indicator: ";
+    int every_1_of_20 = size / 20; // used to print, print 20 times in total
+    int progress = 0;
+
+    vector<int> results(size, 0);
+//#pragma omp parallel for
+    for (int i = 0; i < size; ++i) {
+//#pragma omp critical
+        ++progress;
+
+        if (progress % every_1_of_20 == 0) {
+            string progress_percentage = to_string((double)progress/size * 100) + "%...\n";
+            fprintf(stdout, "%s\n", progress_percentage.c_str());
+//            double acc_so_far = num_of_correct / (double)(num_of_correct+num_of_wrong);
+//            fprintf(stdout, "Accuracy so far: %f\n", acc_so_far);
+            fflush(stdout);
+        }
+
+        int label_predict = PredictUseJTInfer(evidences.at(i), target_node_idx, timer);
+        results.at(i) = label_predict;
+    }
+    return results;
 }

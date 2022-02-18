@@ -49,7 +49,7 @@ double VariableElimination::EvaluateAccuracy(Dataset *dts, int num_samp, string 
     }
 
     // predict the labels of the test instances
-    vector<int> predictions = PredictUseVEInfer(evidences, class_var_index);
+    vector<int> predictions = PredictUseVEInfer(evidences, class_var_index, timer);
 
     double accuracy = Accuracy(ground_truths, predictions);
     cout << '\n' << "Accuracy: " << accuracy << endl;
@@ -58,6 +58,9 @@ double VariableElimination::EvaluateAccuracy(Dataset *dts, int num_samp, string 
     setlocale(LC_NUMERIC, "");
     cout << "==================================================";
     timer->Print("ve");
+    timer->Print("filter out"); cout << " (" << timer->time["filter out"] / timer->time["ve"] * 100 << "%)";
+    timer->Print("load evidence"); cout << " (" << timer->time["load evidence"] / timer->time["ve"] * 100 << "%)";
+    timer->Print("ve process"); cout << " (" << timer->time["ve process"] / timer->time["ve"] * 100 << "%)" << endl;
     delete timer;
     timer = nullptr;
 
@@ -69,10 +72,10 @@ double VariableElimination::EvaluateAccuracy(Dataset *dts, int num_samp, string 
  * check "map_potentials", and the predict label is the one with maximum probability
  * @return label of the target variable
  */
-int VariableElimination::PredictUseVEInfer(DiscreteConfig evid, int target_node_idx, vector<int> elim_order) {
+int VariableElimination::PredictUseVEInfer(DiscreteConfig evid, int target_node_idx, Timer *timer, vector<int> elim_order) {
 
     // get the factor (marginal probability) of the target node given the evidences
-    Factor F = GetMarginalProbabilitiesUseVE(target_node_idx, evid, elim_order);
+    Factor F = GetMarginalProbabilitiesUseVE(target_node_idx, evid, timer, elim_order);
 
     // find the configuration with the maximum probability TODO: function ArgMax for Factor
     double max_prob = 0;
@@ -93,7 +96,7 @@ int VariableElimination::PredictUseVEInfer(DiscreteConfig evid, int target_node_
  * @param elim_orders: elimination order which may be different given different evidences due to the simplification of elimination order
  */
 vector<int> VariableElimination::PredictUseVEInfer(vector<DiscreteConfig> evidences, int target_node_idx,
-                                              vector<vector<int>> elim_orders) {
+                                                   Timer *timer, vector<vector<int>> elim_orders) {
     int size = evidences.size();
 
     cout << "Progress indicator: ";
@@ -119,7 +122,7 @@ vector<int> VariableElimination::PredictUseVEInfer(vector<DiscreteConfig> eviden
 
         DiscreteConfig evidence = evidences.at(i);
         vector<int> elim_ord = elim_orders.at(i);
-        int pred = PredictUseVEInfer(evidence, target_node_idx, elim_ord);
+        int pred = PredictUseVEInfer(evidence, target_node_idx, timer, elim_ord);
         results.at(i) = pred;
     }
     return results;
@@ -129,11 +132,13 @@ vector<int> VariableElimination::PredictUseVEInfer(vector<DiscreteConfig> eviden
  * @brief: for inference given a target variable id and some evidences/observations.
  */
 Factor VariableElimination::GetMarginalProbabilitiesUseVE(int target_var_index, DiscreteConfig evidence,
-                                                     vector<int> elim_order) {
+                                                          Timer *timer, vector<int> elim_order) {
 
+    timer->Start("filter out");
     // find the nodes to be removed, include barren nodes and m-separated nodes
     // filter out these nodes and obtain the left nodes
     vector<int> left_nodes = FilterOutIrrelevantNodes();
+    timer->Stop("filter out");
 
     Node *n = nullptr;
     // "factorsList" corresponds to all the nodes which are between the target node and the observation/evidence
@@ -145,8 +150,10 @@ Factor VariableElimination::GetMarginalProbabilitiesUseVE(int target_var_index, 
     for (int i = 0; i < left_nodes.size(); ++i) {
         all_related_vars.insert(left_nodes.at(i));
     }
+    timer->Start("load evidence");
     // load evidence function below returns a factorsList with fewer configurations.
     network->LoadEvidenceIntoFactors(&factor_list, evidence, all_related_vars);
+    timer->Stop("load evidence");
 
     if (elim_order.empty()) {
         // call "ChowLiuTree::SimplifyDefaultElimOrd"; "elim_order" is the reverse topological order removing barren nodes and m-separated nodes
@@ -154,8 +161,10 @@ Factor VariableElimination::GetMarginalProbabilitiesUseVE(int target_var_index, 
         elim_order = DefaultEliminationOrder(evidence, left_nodes);
     }
 
+    timer->Start("ve process");
     // compute the probability table of the target node
     Factor target_node_factor = SumProductVarElim(factor_list, elim_order);
+    timer->Stop("ve process");
 
     // renormalization
     target_node_factor.Normalize();

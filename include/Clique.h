@@ -13,6 +13,8 @@
 #include "Node.h"
 #include "Factor.h"
 #include "CGRegression.h"
+#include "Timer.h"
+#include "omp.h"
 
 typedef set< pair<int, int> > DiscreteConfig;
 
@@ -61,19 +63,19 @@ class Clique {
   virtual ~Clique() = default;
 
   Clique* CopyWithoutPtr();
-  void MultiplyWithFactorSumOverExternalVars(Factor);
-  Factor Collect();
-  void Distribute();
+  void MultiplyWithFactorSumOverExternalVars(Factor f, Timer *timer);
+  Factor Collect(Timer *timer);
+  void Distribute(Timer *timer);
 
-  virtual void UpdateUseMessage(Factor);
-  virtual Factor ConstructMessage();
+  virtual void UpdateUseMessage(Factor f, Timer *timer);
+  virtual Factor ConstructMessage(Timer *timer);
   void PrintPotentials() const;
 //  void PrintRelatedVars() const;
 
  protected:
   Clique(const Clique&) = default;
-  Factor SumOutExternalVars(Factor);
-  void Distribute(Factor);
+  Factor SumOutExternalVars(Factor f, Timer *timer);
+  void Distribute(Factor f, Timer *timer);
   void PreInitializePotentials();
 
 

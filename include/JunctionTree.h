@@ -30,8 +30,8 @@ class JunctionTree: public Inference {
   virtual ~JunctionTree() = default;
 
   void ResetJunctionTree();
-  virtual void LoadDiscreteEvidence(const DiscreteConfig &E);
-  void LoadEvidenceAndMessagePassingUpdateJT(const DiscreteConfig &E);
+  virtual void LoadDiscreteEvidence(DiscreteConfig E);
+//  void LoadEvidenceAndMessagePassingUpdateJT(const DiscreteConfig &E);
 
   void PrintAllCliquesPotentials() const;
   void PrintAllSeparatorsPotentials() const;
@@ -41,6 +41,7 @@ class JunctionTree: public Inference {
 
     virtual double EvaluateAccuracy(Dataset *dts, int num_samp, string alg, bool is_dense);
     int PredictUseJTInfer(DiscreteConfig E, int Y_index, Timer *timer);
+    vector<int> PredictUseJTInfer(vector<DiscreteConfig> evidences, int target_node_idx, Timer *timer);
 
   //==================================================
  protected:
@@ -55,9 +56,9 @@ class JunctionTree: public Inference {
 //  void FormListShapeJunctionTree(set<Clique*> &cliques);
   void FormJunctionTree(set<Clique*> &cliques);
   void NumberTheCliquesAndSeparators();
-  void AssignPotentials();
+  void AssignPotentials(Timer *timer);
   void BackUpJunctionTree();
-  virtual void MessagePassingUpdateJT();
+  virtual void MessagePassingUpdateJT(Timer *timer);
   static vector<int> MinNeighbourElimOrd(int **adjac_matrix, int &num_nodes);
   static void Moralize(int **direc_adjac_matrix, int &num_nodes);
 //  void GenMapElimVarToClique();

@@ -26,8 +26,8 @@ class Separator : public Clique {
 
   Separator* CopyWithoutPtr();
 
-  void UpdateUseMessage(Factor) override;
-  Factor ConstructMessage() override;
+  void UpdateUseMessage(Factor f, Timer *timer) override;
+  Factor ConstructMessage(Timer *timer) override;
 
 
 };

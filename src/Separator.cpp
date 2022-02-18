@@ -23,7 +23,7 @@ Separator* Separator::CopyWithoutPtr() {
 }
 
 
-void Separator::UpdateUseMessage(Factor f) {
+void Separator::UpdateUseMessage(Factor f, Timer *timer) {
 
 //    cout << "update msg of sep ";
 //    for (auto &v: clique_variables) {
@@ -35,7 +35,8 @@ void Separator::UpdateUseMessage(Factor f) {
 //    }
 //    cout << "): " << endl;
 
-  f = SumOutExternalVars(f);
+//    timer->Start("update sep");
+  f = SumOutExternalVars(f, timer);
 
 //    cout << "  save old: ";
 //    for (auto &v: related_variables) {
@@ -65,22 +66,21 @@ void Separator::UpdateUseMessage(Factor f) {
 //    }
 //    cout << endl;
 
+//    timer->Start("copy 3");
     old_related_variables = related_variables;
     set_old_disc_configs = set_disc_configs;
   map_old_potentials = map_potentials;
     related_variables = f.related_variables;
     set_disc_configs = f.set_disc_configs;
   map_potentials = f.map_potentials;
-
-
-
-
+//    timer->Stop("copy 3");
+//    timer->Stop("update sep");
 }
 
 /**
  * @brief: this is a standard process for constructing the message of the separator cliques.
  */
-Factor Separator::ConstructMessage() {
+Factor Separator::ConstructMessage(Timer *timer) {
 
 //    cout << "construct msg of sep ";
 //    for (auto &v: clique_variables) {
@@ -88,7 +88,10 @@ Factor Separator::ConstructMessage() {
 //    }
 //    cout << ": " << endl;
 
+//    timer->Start("construct sep");
+//    timer->Start("construct factor");
     Factor f(related_variables, set_disc_configs, map_potentials);
+//    timer->Stop("construct factor");
 
 //    if (f.map_potentials.size() != map_old_potentials.size()) {
 //        cout << "error!! old = " << map_old_potentials.size() << ", new = " << f.map_potentials.size() << endl;
@@ -132,7 +135,7 @@ Factor Separator::ConstructMessage() {
 //    }
 //    cout << endl;
 
-
+//    timer->Start("factor division");
     if (f.related_variables.size() != old_related_variables.size()) {
         cout << "error!!!!!!" << endl;
         // TODO: exit
@@ -144,6 +147,29 @@ Factor Separator::ConstructMessage() {
         return f;
     }
 
+//    double *t1 = new double[f.set_disc_configs.size()]();
+//    double *t2 = new double[f.set_disc_configs.size()]();
+//    double *t3 = new double[f.set_disc_configs.size()]();
+//    int i = 0;
+//    for (auto &comb : f.set_disc_configs) {
+//        t1[i] = f.map_potentials[comb];
+//        t2[i] = map_old_potentials[comb];
+//    }
+//
+////#pragma omp parallel for
+//    for (int j = 0; j < f.set_disc_configs.size(); ++j) {
+//        t3[j] = t1[j] / t2[j];
+//    }
+//
+//    i = 0;
+//    for (auto &comb : f.set_disc_configs) {
+//        f.map_potentials[comb] = t3[i];
+//    }
+//
+//    delete t1;
+//    delete t2;
+//    delete t3;
+
     for (auto &comb : f.set_disc_configs) {
         if (map_old_potentials[comb] == 0) {
             f.map_potentials[comb] = 0;
@@ -151,6 +177,7 @@ Factor Separator::ConstructMessage() {
             f.map_potentials[comb] /= map_old_potentials[comb];
         }
     }
+//    timer->Stop("factor division");
 
 //    cout << "    after: ";
 //    for (auto &v: f.related_variables) {
@@ -165,7 +192,7 @@ Factor Separator::ConstructMessage() {
 //        cout << ": " << f.map_potentials[c] << endl;
 //    }
 //    cout << endl;
-
+//    timer->Stop("construct sep");
 
     return f;
 }

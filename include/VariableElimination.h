@@ -13,10 +13,10 @@ public:
 
     virtual double EvaluateAccuracy(Dataset *dts, int num_samp, string alg, bool is_dense);
 
-    int PredictUseVEInfer(DiscreteConfig evid, int target_node_idx, vector<int> elim_order=vector<int>{});
-    vector<int> PredictUseVEInfer(vector<DiscreteConfig> evidences, int target_node_idx,
+    int PredictUseVEInfer(DiscreteConfig evid, int target_node_idx, Timer *timer, vector<int> elim_order=vector<int>{});
+    vector<int> PredictUseVEInfer(vector<DiscreteConfig> evidences, int target_node_idx, Timer *timer,
                                   vector<vector<int>> elim_orders=vector<vector<int>>{});
-    Factor GetMarginalProbabilitiesUseVE(int target_var_index, DiscreteConfig evidence, vector<int> elim_order);
+    Factor GetMarginalProbabilitiesUseVE(int target_var_index, DiscreteConfig evidence, Timer *timer, vector<int> elim_order);
     vector<int> FilterOutIrrelevantNodes();
     vector<int> DefaultEliminationOrder(DiscreteConfig evidence, vector<int> left_nodes);
     Factor SumProductVarElim(vector<Factor> factors_list, vector<int> elim_order);
