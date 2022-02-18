@@ -12,6 +12,8 @@ Clique::Clique() {
   pure_discrete = true;
   ptr_upstream_clique = nullptr;
   activeflag = false;
+
+    table = new Factor();
 }
 
 Clique::Clique(set<Node*> set_node_ptr) {
@@ -48,6 +50,9 @@ Clique::Clique(set<Node*> set_node_ptr) {
       set_of_sets.insert(c);
     }
   }
+
+  table = new Factor();
+
   clique_variables = related_variables;
 
   set_disc_configs = GenAllCombinationsFromSets(&set_of_sets);
@@ -55,6 +60,10 @@ Clique::Clique(set<Node*> set_node_ptr) {
   PreInitializePotentials();
 
   ptr_upstream_clique = nullptr;
+}
+
+Clique::~Clique() {
+    delete table;
 }
 
 /**

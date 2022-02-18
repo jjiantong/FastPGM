@@ -7,13 +7,18 @@
 Separator::Separator() {
   is_separator = true;
   weight = -1;
+    old_table = new Factor();
 }
 
 Separator::Separator(set<Node*> set_node_ptr): Clique(set_node_ptr) {
   is_separator = true;
   weight = clique_size;
+  old_table = new Factor();
 }
 
+Separator::~Separator(){
+    delete old_table;
+}
 
 Separator* Separator::CopyWithoutPtr() {
   auto s = new Separator(*this);
@@ -67,9 +72,9 @@ void Separator::UpdateUseMessage(Factor f, Timer *timer) {
 //    cout << endl;
 
 //    timer->Start("copy 3");
-    old_related_variables = related_variables;
-    set_old_disc_configs = set_disc_configs;
-  map_old_potentials = map_potentials;
+    old_table->related_variables = related_variables;
+    old_table->set_disc_configs = set_disc_configs;
+    old_table->map_potentials = map_potentials;
     related_variables = f.related_variables;
     set_disc_configs = f.set_disc_configs;
   map_potentials = f.map_potentials;
@@ -93,8 +98,8 @@ Factor Separator::ConstructMessage(Timer *timer) {
     Factor f(related_variables, set_disc_configs, map_potentials);
 //    timer->Stop("construct factor");
 
-//    if (f.map_potentials.size() != map_old_potentials.size()) {
-//        cout << "error!! old = " << map_old_potentials.size() << ", new = " << f.map_potentials.size() << endl;
+//    if (f.map_potentials.size() != old_table->map_potentials.size()) {
+//        cout << "error!! old = " << old_table->map_potentials.size() << ", new = " << f.map_potentials.size() << endl;
 //    }
 
 //    cout << "  division ";
@@ -102,7 +107,7 @@ Factor Separator::ConstructMessage(Timer *timer) {
 //        cout << v << " ";
 //    }
 //    cout << "and ";
-//    for (auto &v: old_related_variables) {
+//    for (auto &v: old_table->related_variables) {
 //        cout << v << " ";
 //    }
 //    cout << endl;
@@ -122,21 +127,21 @@ Factor Separator::ConstructMessage(Timer *timer) {
 //    cout << endl;
 //
 //    cout << "    before: ";
-//    for (auto &v: old_related_variables) {
+//    for (auto &v: old_table->related_variables) {
 //        cout << v << " ";
 //    }
 //    cout << ": " << endl;
-//    for (auto &c: set_old_disc_configs) {
+//    for (auto &c: old_table->set_disc_configs) {
 //        cout << "      ";
 //        for (auto &p: c) { //pair<int, int>
 //            cout << p.first << "=" << p.second << " ";
 //        }
-//        cout << ": " << map_old_potentials[c] << endl;
+//        cout << ": " << old_table->map_potentials[c] << endl;
 //    }
 //    cout << endl;
 
 //    timer->Start("factor division");
-    if (f.related_variables.size() != old_related_variables.size()) {
+    if (f.related_variables.size() != old_table->related_variables.size()) {
         cout << "error!!!!!!" << endl;
         // TODO: exit
     }
@@ -153,7 +158,7 @@ Factor Separator::ConstructMessage(Timer *timer) {
 //    int i = 0;
 //    for (auto &comb : f.set_disc_configs) {
 //        t1[i] = f.map_potentials[comb];
-//        t2[i] = map_old_potentials[comb];
+//        t2[i] = old_table->map_potentials[comb];
 //    }
 //
 ////#pragma omp parallel for
@@ -171,10 +176,10 @@ Factor Separator::ConstructMessage(Timer *timer) {
 //    delete t3;
 
     for (auto &comb : f.set_disc_configs) {
-        if (map_old_potentials[comb] == 0) {
+        if (old_table->map_potentials[comb] == 0) {
             f.map_potentials[comb] = 0;
         } else {
-            f.map_potentials[comb] /= map_old_potentials[comb];
+            f.map_potentials[comb] /= old_table->map_potentials[comb];
         }
     }
 //    timer->Stop("factor division");

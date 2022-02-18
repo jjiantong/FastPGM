@@ -33,6 +33,8 @@ class Clique {
   set<DiscreteConfig> set_disc_configs; //all the configurations of the related variables
   map<DiscreteConfig, double> map_potentials; //the potential of each discrete config
 
+  Factor *table;
+
   set<Clique*> set_neighbours_ptr; // neighbor cliques
 
   /**
@@ -60,7 +62,7 @@ class Clique {
   Clique();
 //  Clique(set<Node*> set_node_ptrs, int elim_var_index);
     Clique(set<Node*> set_node_ptrs);
-  virtual ~Clique() = default;
+  ~Clique();
 
   Clique* CopyWithoutPtr();
   void MultiplyWithFactorSumOverExternalVars(Factor f, Timer *timer);
