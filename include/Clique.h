@@ -29,10 +29,9 @@ class Clique {
 
   set <int> clique_variables;
   // the following three members are the same with the class "Factor"
-  set<int> related_variables; //the variables involved in this clique
-  set<DiscreteConfig> set_disc_configs; //all the configurations of the related variables
-  map<DiscreteConfig, double> map_potentials; //the potential of each discrete config
-
+//  set<int> related_variables; //the variables involved in this clique
+//  set<DiscreteConfig> set_disc_configs; //all the configurations of the related variables
+//  map<DiscreteConfig, double> map_potentials; //the potential of each discrete config
 //  Factor *table;
     Factor table;
 
@@ -63,7 +62,7 @@ class Clique {
   Clique();
 //  Clique(set<Node*> set_node_ptrs, int elim_var_index);
     Clique(set<Node*> set_node_ptrs);
-  ~Clique();
+//  ~Clique();
 
   Clique* CopyWithoutPtr();
   void MultiplyWithFactorSumOverExternalVars(Factor f, Timer *timer);

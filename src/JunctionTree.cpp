@@ -87,13 +87,13 @@ JunctionTree::JunctionTree(Network *net, string elim_ord_strategy, vector<int> c
 //    cout << "cliques: " << endl;
 //    for (auto &c : set_clique_ptr_container) {
 //        cout << c->clique_id << ": ";
-//        for (auto &v : c->related_variables) {
+//        for (auto &v : c->table.related_variables) {
 //            cout << v << " ";
 //        }
 //        cout << endl;
 //        // set<DiscreteConfig> set_disc_configs; DiscreteConfig: set< pair<int, int> >
 //        // map<DiscreteConfig, double> map_potentials
-//        for (auto &config: c->set_disc_configs) {
+//        for (auto &config: c->table.set_disc_configs) {
 //            cout << "config: ";
 //            for (auto &varval: config) {
 //                cout << varval.first << "=" << varval.second << " ";
@@ -104,13 +104,13 @@ JunctionTree::JunctionTree(Network *net, string elim_ord_strategy, vector<int> c
 //    cout << "separators: " << endl;
 //    for (auto &s : set_separator_ptr_container) {
 //        cout << s->clique_id << ": ";
-//        for (auto &v : s->related_variables) {
+//        for (auto &v : s->table.related_variables) {
 //            cout << v << " ";
 //        }
 //        cout << endl;
 //        // set<DiscreteConfig> set_disc_configs; DiscreteConfig: set< pair<int, int> >
 //        // map<DiscreteConfig, double> map_potentials
-//        for (auto &config: s->set_disc_configs) {
+//        for (auto &config: s->table.set_disc_configs) {
 //            cout << "config: ";
 //            for (auto &varval: config) {
 //                cout << varval.first << "=" << varval.second << " ";
@@ -439,14 +439,14 @@ void JunctionTree::Triangulate(Network *net,
 //    Clique *this_clq = map_elim_var_to_clique[elimination_ordering.at(i)];
 //    Clique *next_clq = nullptr;
 //    for (int j=i+1; j<elimination_ordering.size(); ++j) {
-//      if (this_clq->related_variables.find(elimination_ordering.at(j))!=this_clq->related_variables.end()) {
+//      if (this_clq->table.related_variables.find(elimination_ordering.at(j))!=this_clq->table.related_variables.end()) {
 //        next_clq = map_elim_var_to_clique[elimination_ordering.at(j)];
 //        break;
 //      }
 //    }
 //    set<int> common_related_variables;
-//    set_intersection(this_clq->related_variables.begin(),this_clq->related_variables.end(),
-//                     next_clq->related_variables.begin(),next_clq->related_variables.end(),
+//    set_intersection(this_clq->table.related_variables.begin(),this_clq->table.related_variables.end(),
+//                     next_clq->table.related_variables.begin(),next_clq->table.related_variables.end(),
 //                     std::inserter(common_related_variables,common_related_variables.begin()));
 //
 //    // If they have no common variables, then they will not be connected by separator.
@@ -684,7 +684,7 @@ void JunctionTree::AssignPotentials(Timer *timer) { //checked
 //      cgr_related_vars.insert(cgr.head_var_index);
 //      set<int> diff;
 //      set_difference(cgr_related_vars.begin(), cgr_related_vars.end(),
-//                     clique_ptr->related_variables.begin(), clique_ptr->related_variables.end(),
+//                     clique_ptr->table.related_variables.begin(), clique_ptr->table.related_variables.end(),
 //                     inserter(diff, diff.begin()));
 //      // If diff.empty(), that means that the set of related variables of the clique is a superset of the CG regression's.
 //      if (diff.empty()) {
@@ -744,13 +744,13 @@ void JunctionTree::LoadDiscreteEvidence(DiscreteConfig E) {
     for (auto &e: E) { // for each observation of variable
         for (auto &clique_ptr : set_clique_ptr_container) { // for each clique
             // if this factor is related to the observation
-            if (clique_ptr->related_variables.find(e.first) != clique_ptr->related_variables.end()) {
-                clique_ptr->related_variables.erase(e.first);
+            if (clique_ptr->table.related_variables.find(e.first) != clique_ptr->table.related_variables.end()) {
+                clique_ptr->table.related_variables.erase(e.first);
 
                 set <DiscreteConfig> set_reduced_disc_configs;
                 map<DiscreteConfig, double> map_reduced_potentials;
                 // for each discrete config of this factor
-                for (auto &comb: clique_ptr->set_disc_configs) {
+                for (auto &comb: clique_ptr->table.set_disc_configs) {
                     // if this config and the evidence have different values on common variables,
                     // which means that they conflict, then this config will be removed
                     // so otherwise, it will be kept
@@ -770,7 +770,7 @@ void JunctionTree::LoadDiscreteEvidence(DiscreteConfig E) {
                         map_reduced_potentials[reduced_config] = tmp_potential;
                     }
                 }
-                clique_ptr->set_disc_configs = set_reduced_disc_configs;
+                clique_ptr->table.set_disc_configs = set_reduced_disc_configs;
                 clique_ptr->table.map_potentials = map_reduced_potentials;
             }
         }
@@ -779,13 +779,13 @@ void JunctionTree::LoadDiscreteEvidence(DiscreteConfig E) {
     for (auto &e: E) { // for each observation of variable
         for (auto &sep_ptr : set_separator_ptr_container) { // for each sep
             // if this factor is related to the observation
-            if (sep_ptr->related_variables.find(e.first) != sep_ptr->related_variables.end()) {
-                sep_ptr->related_variables.erase(e.first);
+            if (sep_ptr->table.related_variables.find(e.first) != sep_ptr->table.related_variables.end()) {
+                sep_ptr->table.related_variables.erase(e.first);
 
                 set<DiscreteConfig> set_reduced_disc_configs;
                 map<DiscreteConfig, double> map_reduced_potentials;
                 // for each discrete config of this factor
-                for (auto &comb: sep_ptr->set_disc_configs) {
+                for (auto &comb: sep_ptr->table.set_disc_configs) {
                     // if this config and the evidence have different values on common variables,
                     // which means that they conflict, then this config will be removed
                     // so otherwise, it will be kept
@@ -806,7 +806,7 @@ void JunctionTree::LoadDiscreteEvidence(DiscreteConfig E) {
                     }
                 }
 
-                sep_ptr->set_disc_configs = set_reduced_disc_configs;
+                sep_ptr->table.set_disc_configs = set_reduced_disc_configs;
                 sep_ptr->table.map_potentials = map_reduced_potentials;
             }
         }
@@ -817,8 +817,8 @@ void JunctionTree::LoadDiscreteEvidence(DiscreteConfig E) {
 //  for (auto &e : E) {  // For each node's observation in E
 //    for (auto &clique_ptr : set_clique_ptr_container) { // for each clique
 //      // If this clique is related to this node
-//      if (clique_ptr->related_variables.find(e.first) != clique_ptr->related_variables.end()) {
-//        for (auto &comb : clique_ptr->set_disc_configs) {
+//      if (clique_ptr->table.related_variables.find(e.first) != clique_ptr->table.related_variables.end()) {
+//        for (auto &comb : clique_ptr->table.set_disc_configs) {
 //          if (comb.find(e) == comb.end()) {
 //            clique_ptr->table.map_potentials[comb] = 0;
 //          }
@@ -830,8 +830,8 @@ void JunctionTree::LoadDiscreteEvidence(DiscreteConfig E) {
 //      // we can also load evidence on separators
 //      for (auto &sep_ptr : set_separator_ptr_container) { // for each sep
 //          // If this sep is related to this node
-//          if (sep_ptr->related_variables.find(e.first) != sep_ptr->related_variables.end()) {
-//              for (auto &comb : sep_ptr->set_disc_configs) {
+//          if (sep_ptr->table.related_variables.find(e.first) != sep_ptr->table.related_variables.end()) {
+//              for (auto &comb : sep_ptr->table.set_disc_configs) {
 //                  if (comb.find(e) == comb.end()) {
 //                      sep_ptr->table.map_potentials[comb] = 0;
 //                  }
@@ -851,7 +851,7 @@ void JunctionTree::LoadDiscreteEvidence(DiscreteConfig E) {
 //  for (auto &e : E) {  // For each node's observation in E
 //    if (network->FindNodePtrByIndex(e.first)->is_discrete) {
 //      Clique *clique_ptr = map_elim_var_to_clique[e.first];
-//      for (auto &comb : clique_ptr->set_disc_configs) {  // Update each row of map_potentials
+//      for (auto &comb : clique_ptr->table.set_disc_configs) {  // Update each row of map_potentials
 //        if (comb.find(e) == comb.end()) {
 //          clique_ptr->table.map_potentials[comb] = 0;//conflict with the evidence; set the potential to 0.
 //        }
@@ -915,13 +915,13 @@ Factor JunctionTree::BeliefPropagationCalcuDiscreteVarMarginal(int query_index) 
     if (!c->pure_discrete) {
         continue;
     }
-    if (c->related_variables.find(query_index) == c->related_variables.end()) { // cannot find the query variable
+    if (c->table.related_variables.find(query_index) == c->table.related_variables.end()) { // cannot find the query variable
         continue;
     }
-    if (c->related_variables.size() >= min_size) {
+    if (c->table.related_variables.size() >= min_size) {
         continue;
     }
-    min_size = c->related_variables.size();
+    min_size = c->table.related_variables.size();
     selected_clique = c;
   }
 
@@ -931,10 +931,10 @@ Factor JunctionTree::BeliefPropagationCalcuDiscreteVarMarginal(int query_index) 
     exit(1);
   }
 
-  set<int> other_vars = selected_clique->related_variables;
+  set<int> other_vars = selected_clique->table.related_variables;
   other_vars.erase(query_index);
 
-  Factor f(selected_clique->related_variables, selected_clique->set_disc_configs, selected_clique->table.map_potentials);
+  Factor f(selected_clique->table.related_variables, selected_clique->table.set_disc_configs, selected_clique->table.map_potentials);
 
 
 //    cout << "factor: related vars = ";
@@ -1050,7 +1050,7 @@ double JunctionTree::EvaluateAccuracy(Dataset *dts, int num_samp, string alg, bo
 //          cout << endl;
 //          // set<DiscreteConfig> set_disc_configs; DiscreteConfig: set< pair<int, int> >
 //          // map<DiscreteConfig, double> map_potentials
-//          for (auto &config: c->set_disc_configs) {
+//          for (auto &config: c->table.set_disc_configs) {
 //              cout << "config: ";
 //              for (auto &varval: config) {
 //                  cout << varval.first << "=" << varval.second << " ";

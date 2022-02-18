@@ -44,11 +44,11 @@ void Separator::UpdateUseMessage(Factor f, Timer *timer) {
   f = SumOutExternalVars(f, timer);
 
 //    cout << "  save old: ";
-//    for (auto &v: related_variables) {
+//    for (auto &v: table.related_variables) {
 //        cout << v << " ";
 //    }
 //    cout << ": " << endl;
-//    for (auto &c: set_disc_configs) {
+//    for (auto &c: table.set_disc_configs) {
 //        cout << "    ";
 //        for (auto &p: c) { //pair<int, int>
 //            cout << p.first << "=" << p.second << " ";
@@ -72,11 +72,11 @@ void Separator::UpdateUseMessage(Factor f, Timer *timer) {
 //    cout << endl;
 
 //    timer->Start("copy 3");
-    old_table->related_variables = related_variables;
-    old_table->set_disc_configs = set_disc_configs;
+    old_table->related_variables = table.related_variables;
+    old_table->set_disc_configs = table.set_disc_configs;
     old_table->map_potentials = table.map_potentials;
-    related_variables = f.related_variables;
-    set_disc_configs = f.set_disc_configs;
+    table.related_variables = f.related_variables;
+    table.set_disc_configs = f.set_disc_configs;
     table.map_potentials = f.map_potentials;
 //    timer->Stop("copy 3");
 //    timer->Stop("update sep");
@@ -95,7 +95,7 @@ Factor Separator::ConstructMessage(Timer *timer) {
 
 //    timer->Start("construct sep");
 //    timer->Start("construct factor");
-    Factor f(related_variables, set_disc_configs, table.map_potentials);
+    Factor f(table.related_variables, table.set_disc_configs, table.map_potentials);
 //    timer->Stop("construct factor");
 
 //    if (f.map_potentials.size() != old_table->map_potentials.size()) {

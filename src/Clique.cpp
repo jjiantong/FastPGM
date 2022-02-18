@@ -52,26 +52,23 @@ Clique::Clique(set<Node*> set_node_ptr) {
   }
 
 //  table = new Factor();
-
-  related_variables = clique_variables;
-
-  set_disc_configs = GenAllCombinationsFromSets(&set_of_sets);
-
+    table.related_variables = clique_variables;
+    table.set_disc_configs = GenAllCombinationsFromSets(&set_of_sets);
   PreInitializePotentials();
 
   ptr_upstream_clique = nullptr;
 }
 
-Clique::~Clique() {
+//Clique::~Clique() {
 //    delete table;
-}
+//}
 
 /**
  * @brief: potential is similar to weight, and can be used to compute probability.
  */
 void Clique::PreInitializePotentials() {
   if (pure_discrete) {
-    for (auto &c : set_disc_configs) {
+    for (auto &c : table.set_disc_configs) {
       table.map_potentials[c] = 1;  // Initialize clique potential to be 1.
     }
   } else {
@@ -262,7 +259,7 @@ void Clique::MultiplyWithFactorSumOverExternalVars(Factor f, Timer *timer) {
   f = SumOutExternalVars(f, timer);
 
 //    timer->Start("construct factor");
-  Factor factor_of_this_clique(related_variables, set_disc_configs, table.map_potentials); // the factor of the clique
+  Factor factor_of_this_clique(table.related_variables, table.set_disc_configs, table.map_potentials); // the factor of the clique
 //    timer->Stop("construct factor");
 
 //    cout << "  multiply ";
@@ -315,8 +312,8 @@ void Clique::MultiplyWithFactorSumOverExternalVars(Factor f, Timer *timer) {
   //          "set_disc_configs" is all the configs of the variables in the clique
   //          therefore, they are not required to be changed, the only thing changed is the potentials
 //    timer->Start("copy 3");
-    related_variables = factor_of_this_clique.related_variables;
-    set_disc_configs = factor_of_this_clique.set_disc_configs;
+    table.related_variables = factor_of_this_clique.related_variables;
+    table.set_disc_configs = factor_of_this_clique.set_disc_configs;
     table.map_potentials = factor_of_this_clique.map_potentials;
 //    timer->Stop("copy 3");
 
@@ -366,7 +363,7 @@ Factor Clique::ConstructMessage(Timer *timer) {
 
 //    timer->Start("construct clique");
 //    timer->Start("construct factor");
-  Factor message_factor(related_variables, set_disc_configs, table.map_potentials);
+  Factor message_factor(table.related_variables, table.set_disc_configs, table.map_potentials);
 //    timer->Stop("construct factor");
 //    timer->Stop("construct clique");
   return message_factor;
@@ -391,7 +388,7 @@ void Clique::PrintPotentials() const {
 
 //void Clique::PrintRelatedVars() const {
 //  string out = "{  ";
-//  for (const auto &v : related_variables) {
+//  for (const auto &v : table.related_variables) {
 //    if (v==elimination_variable_index) {
 //      out += "[" + to_string(v) + "]";
 //    } else {
