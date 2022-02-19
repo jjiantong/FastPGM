@@ -21,11 +21,12 @@ class Separator : public Clique {
 //    set<DiscreteConfig> set_old_disc_configs;
 //  map<DiscreteConfig, double> map_old_potentials;//this member is used when constructing message in separator
 
-  Factor *old_table;
+//  Factor *old_table;
+    Factor old_table;
 
   Separator();
   explicit Separator(set<Node*>);
-  ~Separator();
+//  ~Separator();
 
   Separator* CopyWithoutPtr();
 

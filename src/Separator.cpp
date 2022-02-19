@@ -7,18 +7,18 @@
 Separator::Separator() {
   is_separator = true;
   weight = -1;
-    old_table = new Factor();
+//    old_table = new Factor();
 }
 
 Separator::Separator(set<Node*> set_node_ptr): Clique(set_node_ptr) {
   is_separator = true;
   weight = clique_size;
-  old_table = new Factor();
+//  old_table = new Factor();
 }
 
-Separator::~Separator(){
-    delete old_table;
-}
+//Separator::~Separator(){
+//    delete old_table;
+//}
 
 Separator* Separator::CopyWithoutPtr() {
   auto s = new Separator(*this);
@@ -41,44 +41,8 @@ void Separator::UpdateUseMessage(Factor f, Timer *timer) {
 //    cout << "): " << endl;
 
 //    timer->Start("update sep");
-  f = SumOutExternalVars(f, timer);
-
-//    cout << "  save old: ";
-//    for (auto &v: table.related_variables) {
-//        cout << v << " ";
-//    }
-//    cout << ": " << endl;
-//    for (auto &c: table.set_disc_configs) {
-//        cout << "    ";
-//        for (auto &p: c) { //pair<int, int>
-//            cout << p.first << "=" << p.second << " ";
-//        }
-//        cout << ": " << table.map_potentials[c] << endl;
-//    }
-//    cout << endl;
-//
-//    cout << "  save new: ";
-//    for (auto &v: f.related_variables) {
-//        cout << v << " ";
-//    }
-//    cout << ": " << endl;
-//    for (auto &c: f.set_disc_configs) {
-//        cout << "    ";
-//        for (auto &p: c) { //pair<int, int>
-//            cout << p.first << "=" << p.second << " ";
-//        }
-//        cout << ": " << f.map_potentials[c] << endl;
-//    }
-//    cout << endl;
-
-//    timer->Start("copy 3");
-    old_table->related_variables = table.related_variables;
-    old_table->set_disc_configs = table.set_disc_configs;
-    old_table->map_potentials = table.map_potentials;
-    table.related_variables = f.related_variables;
-    table.set_disc_configs = f.set_disc_configs;
-    table.map_potentials = f.map_potentials;
-//    timer->Stop("copy 3");
+    old_table = table;
+    table = SumOutExternalVars(f, timer);
 //    timer->Stop("update sep");
 }
 
@@ -98,8 +62,8 @@ Factor Separator::ConstructMessage(Timer *timer) {
     Factor f(table.related_variables, table.set_disc_configs, table.map_potentials);
 //    timer->Stop("construct factor");
 
-//    if (f.map_potentials.size() != old_table->map_potentials.size()) {
-//        cout << "error!! old = " << old_table->map_potentials.size() << ", new = " << f.map_potentials.size() << endl;
+//    if (f.map_potentials.size() != old_table.map_potentials.size()) {
+//        cout << "error!! old = " << old_table.map_potentials.size() << ", new = " << f.map_potentials.size() << endl;
 //    }
 
 //    cout << "  division ";
@@ -107,7 +71,7 @@ Factor Separator::ConstructMessage(Timer *timer) {
 //        cout << v << " ";
 //    }
 //    cout << "and ";
-//    for (auto &v: old_table->related_variables) {
+//    for (auto &v: old_table.related_variables) {
 //        cout << v << " ";
 //    }
 //    cout << endl;
@@ -131,17 +95,17 @@ Factor Separator::ConstructMessage(Timer *timer) {
 //        cout << v << " ";
 //    }
 //    cout << ": " << endl;
-//    for (auto &c: old_table->set_disc_configs) {
+//    for (auto &c: old_table.set_disc_configs) {
 //        cout << "      ";
 //        for (auto &p: c) { //pair<int, int>
 //            cout << p.first << "=" << p.second << " ";
 //        }
-//        cout << ": " << old_table->map_potentials[c] << endl;
+//        cout << ": " << old_table.map_potentials[c] << endl;
 //    }
 //    cout << endl;
 
 //    timer->Start("factor division");
-    if (f.related_variables.size() != old_table->related_variables.size()) {
+    if (f.related_variables.size() != old_table.related_variables.size()) {
         cout << "error!!!!!!" << endl;
         // TODO: exit
     }
@@ -158,7 +122,7 @@ Factor Separator::ConstructMessage(Timer *timer) {
 //    int i = 0;
 //    for (auto &comb : f.set_disc_configs) {
 //        t1[i] = f.map_potentials[comb];
-//        t2[i] = old_table->map_potentials[comb];
+//        t2[i] = old_table.map_potentials[comb];
 //    }
 //
 ////#pragma omp parallel for
@@ -176,10 +140,10 @@ Factor Separator::ConstructMessage(Timer *timer) {
 //    delete t3;
 
     for (auto &comb : f.set_disc_configs) {
-        if (old_table->map_potentials[comb] == 0) {
+        if (old_table.map_potentials[comb] == 0) {
             f.map_potentials[comb] = 0;
         } else {
-            f.map_potentials[comb] /= old_table->map_potentials[comb];
+            f.map_potentials[comb] /= old_table.map_potentials[comb];
         }
     }
 //    timer->Stop("factor division");

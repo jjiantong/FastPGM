@@ -252,18 +252,11 @@ Factor Clique::SumOutExternalVars(Factor f, Timer *timer) {
  * @brief: multiply a clique with a factor
  */
 void Clique::MultiplyWithFactorSumOverExternalVars(Factor f, Timer *timer) {
-    // TODO: check the usage of "MultiplyWithFactorSumOverExternalVars",
-    //  for the usage in assigning factors, no need to "SumOutExternalVars",
-    //  because the scope of clique can accommodate the scope of its factors
     // sum over the irrelevant variables of the clique
   f = SumOutExternalVars(f, timer);
 
-//    timer->Start("construct factor");
-  Factor factor_of_this_clique(table.related_variables, table.set_disc_configs, table.map_potentials); // the factor of the clique
-//    timer->Stop("construct factor");
-
 //    cout << "  multiply ";
-//    for (auto &v: factor_of_this_clique.related_variables) {
+//    for (auto &v: table.related_variables) {
 //        cout << v << " ";
 //    }
 //    cout << "and ";
@@ -273,16 +266,16 @@ void Clique::MultiplyWithFactorSumOverExternalVars(Factor f, Timer *timer) {
 //    cout << endl;
 //
 //    cout << "    before: ";
-//    for (auto &v: factor_of_this_clique.related_variables) {
+//    for (auto &v: table.related_variables) {
 //        cout << v << " ";
 //    }
 //    cout << ": " << endl;
-//    for (auto &c: factor_of_this_clique.set_disc_configs) {
+//    for (auto &c: table.set_disc_configs) {
 //        cout << "      ";
 //        for (auto &p: c) { //pair<int, int>
 //            cout << p.first << "=" << p.second << " ";
 //        }
-//        cout << ": " << factor_of_this_clique.map_potentials[c] << endl;
+//        cout << ": " << table.map_potentials[c] << endl;
 //    }
 //    cout << endl;
 //
@@ -300,22 +293,16 @@ void Clique::MultiplyWithFactorSumOverExternalVars(Factor f, Timer *timer) {
 //    }
 //    cout << endl;
 
-  // TODO: see the comments below: "related_variables" and "set_disc_configs" are not required to be changed,
-  //  there are some differences between the standard multiplication of factors and the multiplication here
-  //  1. "related_variables" is no need to be changed
-  //  2. maybe not all the variables in the "related_variables" are in the factors, not like the standard factor
+  // in the original implementation, "related_variables" is always all the variables in the clique,
+  // "set_disc_configs" is always all the configurations of the variables in the clique,
+  // so they are not required to be changed, the only thing changed is the "map_potentials".
+  // for the current implementation, all "related_variables", "set_disc_configs" and "map_potentials" are reduced if possible,
+  // so they all need to be changed here.
+  // at the same time, the original implementation copy a new factor of the clique, use the copy to compute,
+  // and then copy back the "map_potentials", which is not efficient...
 //    timer->Start("factor multiplication");
-  factor_of_this_clique = factor_of_this_clique.MultiplyWithFactor(f); // multiply two factors
+    table = table.MultiplyWithFactor(f); // multiply two factors
 //    timer->Stop("factor multiplication");
-  // TODO: double-check: "related_variables" is not changed, "set_disc_configs" is also not changed?
-  // checked: "related_variables" is all the variables in the clique,
-  //          "set_disc_configs" is all the configs of the variables in the clique
-  //          therefore, they are not required to be changed, the only thing changed is the potentials
-//    timer->Start("copy 3");
-    table.related_variables = factor_of_this_clique.related_variables;
-    table.set_disc_configs = factor_of_this_clique.set_disc_configs;
-    table.map_potentials = factor_of_this_clique.map_potentials;
-//    timer->Stop("copy 3");
 
 //    cout << "    after: ";
 //    for (auto &v: f.related_variables) {
@@ -361,12 +348,7 @@ Factor Clique::ConstructMessage(Timer *timer) {
 //    }
 //    cout << ": " << endl;
 
-//    timer->Start("construct clique");
-//    timer->Start("construct factor");
-  Factor message_factor(table.related_variables, table.set_disc_configs, table.map_potentials);
-//    timer->Stop("construct factor");
-//    timer->Stop("construct clique");
-  return message_factor;
+    return table;
 }
 
 
