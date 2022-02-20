@@ -29,17 +29,6 @@ Separator* Separator::CopyWithoutPtr() {
 
 
 void Separator::UpdateUseMessage(Factor f, Timer *timer) {
-
-//    cout << "update msg of sep ";
-//    for (auto &v: clique_variables) {
-//        cout << v << " ";
-//    }
-//    cout << " ( use factor ";
-//    for (auto &v: f.related_variables) {
-//        cout << v << " ";
-//    }
-//    cout << "): " << endl;
-
 //    timer->Start("update sep");
     old_table = table;
     table = SumOutExternalVars(f, timer);
@@ -50,70 +39,16 @@ void Separator::UpdateUseMessage(Factor f, Timer *timer) {
  * @brief: this is a standard process for constructing the message of the separator cliques.
  */
 Factor Separator::ConstructMessage(Timer *timer) {
-
-//    cout << "construct msg of sep ";
-//    for (auto &v: clique_variables) {
-//        cout << v << " ";
-//    }
-//    cout << ": " << endl;
-
-//    timer->Start("construct sep");
-//    timer->Start("construct factor");
-    Factor f(table.related_variables, table.set_disc_configs, table.map_potentials);
-//    timer->Stop("construct factor");
-
-//    if (f.map_potentials.size() != old_table.map_potentials.size()) {
-//        cout << "error!! old = " << old_table.map_potentials.size() << ", new = " << f.map_potentials.size() << endl;
-//    }
-
-//    cout << "  division ";
-//    for (auto &v: f.related_variables) {
-//        cout << v << " ";
-//    }
-//    cout << "and ";
-//    for (auto &v: old_table.related_variables) {
-//        cout << v << " ";
-//    }
-//    cout << endl;
-//
-//    cout << "    before: ";
-//    for (auto &v: f.related_variables) {
-//        cout << v << " ";
-//    }
-//    cout << ": " << endl;
-//    for (auto &c: f.set_disc_configs) {
-//        cout << "      ";
-//        for (auto &p: c) { //pair<int, int>
-//            cout << p.first << "=" << p.second << " ";
-//        }
-//        cout << ": " << f.map_potentials[c] << endl;
-//    }
-//    cout << endl;
-//
-//    cout << "    before: ";
-//    for (auto &v: old_table->related_variables) {
-//        cout << v << " ";
-//    }
-//    cout << ": " << endl;
-//    for (auto &c: old_table.set_disc_configs) {
-//        cout << "      ";
-//        for (auto &p: c) { //pair<int, int>
-//            cout << p.first << "=" << p.second << " ";
-//        }
-//        cout << ": " << old_table.map_potentials[c] << endl;
-//    }
-//    cout << endl;
-
 //    timer->Start("factor division");
-    if (f.related_variables.size() != old_table.related_variables.size()) {
-        cout << "error!!!!!!" << endl;
-        // TODO: exit
-    }
+//    if (table.related_variables.size() != old_table.related_variables.size()) {
+//        cout << "error!!!!!!" << endl;
+//        // TODO: exit
+//    }
 
-    // case 1: related variable of both new and old are empty
-    if (f.related_variables.empty()) {
+    // if related variable of both new and old are empty
+    if (table.related_variables.empty()) {
         // do nothing, just return f, a constant
-        return f;
+        return table;
     }
 
 //    double *t1 = new double[f.set_disc_configs.size()]();
@@ -139,29 +74,15 @@ Factor Separator::ConstructMessage(Timer *timer) {
 //    delete t2;
 //    delete t3;
 
-    for (auto &comb : f.set_disc_configs) {
+    for (auto &comb : table.set_disc_configs) {
         if (old_table.map_potentials[comb] == 0) {
-            f.map_potentials[comb] = 0;
+            table.map_potentials[comb] = 0;
         } else {
-            f.map_potentials[comb] /= old_table.map_potentials[comb];
+            table.map_potentials[comb] /= old_table.map_potentials[comb];
         }
     }
 //    timer->Stop("factor division");
-
-//    cout << "    after: ";
-//    for (auto &v: f.related_variables) {
-//        cout << v << " ";
-//    }
-//    cout << ": " << endl;
-//    for (auto &c: f.set_disc_configs) {
-//        cout << "      ";
-//        for (auto &p: c) { //pair<int, int>
-//            cout << p.first << "=" << p.second << " ";
-//        }
-//        cout << ": " << f.map_potentials[c] << endl;
-//    }
-//    cout << endl;
 //    timer->Stop("construct sep");
 
-    return f;
+    return table;
 }

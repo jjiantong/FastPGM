@@ -191,61 +191,22 @@ void Clique::Distribute(Factor f, Timer *timer) {
  * @brief: sum over external variables which are the results of factor multiplication.
  */
 Factor Clique::SumOutExternalVars(Factor f, Timer *timer) {
-//  Factor factor_of_this_clique(this->related_variables,
-//                                   this->set_disc_configs,
-//                                   this->map_potentials);
-
 //    timer->Start("set_difference");
-  // get the variables that in "f" but not in "factor_of_this_clique"
-  set<int> set_external_vars;
-  set_difference(f.related_variables.begin(), f.related_variables.end(),
-                 this->clique_variables.begin(), this->clique_variables.end(),
-                 inserter(set_external_vars, set_external_vars.begin()));
+    // get the variables that in "f" but not in "factor_of_this_clique"
+    set<int> set_external_vars;
+    set_difference(f.related_variables.begin(), f.related_variables.end(),
+                   this->clique_variables.begin(), this->clique_variables.end(),
+                   inserter(set_external_vars, set_external_vars.begin()));
 //    timer->Stop("set_difference");
 
-//    cout << "  sum out ";
-//    for (auto &v: f.related_variables) {
-//        cout << v << " ";
-//    }
-//    cout << ": " << endl;
-
   // Sum over the variables that are not in the scope of this clique/separator, so as to eliminate them.
-  for (auto &ex_vars : set_external_vars) {
+    for (auto &ex_vars : set_external_vars) {
 
-//      cout << "    sum out " << ex_vars << ": " << endl;
-//      cout << "      before: ";
-//      for (auto &v: f.related_variables) {
-//          cout << v << " ";
-//      }
-//      cout << ": " << endl;
-//      for (auto &c: f.set_disc_configs) {
-//          cout << "        ";
-//          for (auto &p: c) { //pair<int, int>
-//              cout << p.first << "=" << p.second << " ";
-//          }
-//          cout << ": " << f.map_potentials[c] << endl;
-//      }
-//      cout << endl;
-
-//      timer->Start("factor marginalization");
-    f = f.SumOverVar(ex_vars);
-//      timer->Stop("factor marginalization");
-
-//      cout << "      after: ";
-//      for (auto &v: f.related_variables) {
-//          cout << v << " ";
-//      }
-//      cout << ": " << endl;
-//      for (auto &c: f.set_disc_configs) {
-//          cout << "        ";
-//          for (auto &p: c) { //pair<int, int>
-//              cout << p.first << "=" << p.second << " ";
-//          }
-//          cout << ": " << f.map_potentials[c] << endl;
-//      }
-//      cout << endl;
-  }
-  return f;
+//        timer->Start("factor marginalization");
+        f = f.SumOverVar(ex_vars);
+//        timer->Stop("factor marginalization");
+    }
+    return f;
 }
 
 /**
@@ -253,87 +214,23 @@ Factor Clique::SumOutExternalVars(Factor f, Timer *timer) {
  */
 void Clique::MultiplyWithFactorSumOverExternalVars(Factor f, Timer *timer) {
     // sum over the irrelevant variables of the clique
-  f = SumOutExternalVars(f, timer);
+    f = SumOutExternalVars(f, timer);
 
-//    cout << "  multiply ";
-//    for (auto &v: table.related_variables) {
-//        cout << v << " ";
-//    }
-//    cout << "and ";
-//    for (auto &v: f.related_variables) {
-//        cout << v << " ";
-//    }
-//    cout << endl;
-//
-//    cout << "    before: ";
-//    for (auto &v: table.related_variables) {
-//        cout << v << " ";
-//    }
-//    cout << ": " << endl;
-//    for (auto &c: table.set_disc_configs) {
-//        cout << "      ";
-//        for (auto &p: c) { //pair<int, int>
-//            cout << p.first << "=" << p.second << " ";
-//        }
-//        cout << ": " << table.map_potentials[c] << endl;
-//    }
-//    cout << endl;
-//
-//    cout << "    before: ";
-//    for (auto &v: f.related_variables) {
-//        cout << v << " ";
-//    }
-//    cout << ": " << endl;
-//    for (auto &c: f.set_disc_config) {
-//        cout << "      ";
-//        for (auto &p: c) { //pair<int, int>
-//            cout << p.first << "=" << p.second << " ";
-//        }
-//        cout << ": " << f.map_potentials[c] << endl;
-//    }
-//    cout << endl;
-
-  // in the original implementation, "related_variables" is always all the variables in the clique,
-  // "set_disc_configs" is always all the configurations of the variables in the clique,
-  // so they are not required to be changed, the only thing changed is the "map_potentials".
-  // for the current implementation, all "related_variables", "set_disc_configs" and "map_potentials" are reduced if possible,
-  // so they all need to be changed here.
-  // at the same time, the original implementation copy a new factor of the clique, use the copy to compute,
-  // and then copy back the "map_potentials", which is not efficient...
-//    timer->Start("factor multiplication");
-    table = table.MultiplyWithFactor(f); // multiply two factors
-//    timer->Stop("factor multiplication");
-
-//    cout << "    after: ";
-//    for (auto &v: f.related_variables) {
-//        cout << v << " ";
-//    }
-//    cout << ": " << endl;
-//    for (auto &c: factor_of_this_clique.set_disc_configs) {
-//        cout << "      ";
-//        for (auto &p: c) { //pair<int, int>
-//            cout << p.first << "=" << p.second << " ";
-//        }
-//        cout << ": " << factor_of_this_clique.map_potentials[c] << endl;
-//    }
-//    cout << endl;
+    // in the original implementation, "related_variables" is always all the variables in the clique,
+    // "set_disc_configs" is always all the configurations of the variables in the clique,
+    // so they are not required to be changed, the only thing changed is the "map_potentials".
+    // for the current implementation, all "related_variables", "set_disc_configs" and "map_potentials" are reduced if possible,
+    // so they all need to be changed here.
+    // at the same time, the original implementation copy a new factor of the clique, use the copy to compute,
+    // and then copy back the "map_potentials", which is not efficient...
+//      timer->Start("factor multiplication");
+      table = table.MultiplyWithFactor(f); // multiply two factors
+//      timer->Stop("factor multiplication");
 }
 
-
 void Clique::UpdateUseMessage(Factor f, Timer *timer) {
-
-//    cout << "update msg of clique ";
-//    for (auto &v: clique_variables) {
-//        cout << v << " ";
-//    }
-//    cout << " ( use factor ";
-//    for (auto &v: f.related_variables) {
-//        cout << v << " ";
-//    }
-//    cout << "): " << endl;
-
 //    timer->Start("update clique");
-  MultiplyWithFactorSumOverExternalVars(f, timer);
+    MultiplyWithFactorSumOverExternalVars(f, timer);
 //    timer->Stop("update clique");
 }
 
@@ -341,16 +238,8 @@ void Clique::UpdateUseMessage(Factor f, Timer *timer) {
  * @brief: construct a factor of this clique and return
  */
 Factor Clique::ConstructMessage(Timer *timer) {
-
-//    cout << "construct msg of clique ";
-//    for (auto &v: clique_variables) {
-//        cout << v << " ";
-//    }
-//    cout << ": " << endl;
-
     return table;
 }
-
 
 void Clique::PrintPotentials() const {
   if (pure_discrete) {
