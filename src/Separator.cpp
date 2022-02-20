@@ -28,17 +28,19 @@ Separator* Separator::CopyWithoutPtr() {
 }
 
 
-void Separator::UpdateUseMessage(Factor f, Timer *timer) {
+void Separator::UpdateUseMessage(Factor &f, Timer *timer) {
 //    timer->Start("update sep");
     old_table = table;
-    table = SumOutExternalVars(f, timer);
+    SumOutExternalVars(f, timer);
+    table = f;
 //    timer->Stop("update sep");
 }
 
 /**
  * @brief: this is a standard process for constructing the message of the separator cliques.
  */
-Factor Separator::ConstructMessage(Timer *timer) {
+void Separator::ConstructMessage(Timer *timer) {
+//    timer->Start("construct sep");
 //    timer->Start("factor division");
 //    if (table.related_variables.size() != old_table.related_variables.size()) {
 //        cout << "error!!!!!!" << endl;
@@ -47,8 +49,8 @@ Factor Separator::ConstructMessage(Timer *timer) {
 
     // if related variable of both new and old are empty
     if (table.related_variables.empty()) {
-        // do nothing, just return f, a constant
-        return table;
+        // do nothing, just return, because "table" is a constant
+        return;
     }
 
 //    double *t1 = new double[f.set_disc_configs.size()]();
@@ -83,6 +85,4 @@ Factor Separator::ConstructMessage(Timer *timer) {
     }
 //    timer->Stop("factor division");
 //    timer->Stop("construct sep");
-
-    return table;
 }

@@ -54,9 +54,9 @@ Clique::Clique(set<Node*> set_node_ptr) {
 //  table = new Factor();
     table.related_variables = clique_variables;
     table.set_disc_configs = GenAllCombinationsFromSets(&set_of_sets);
-  PreInitializePotentials();
+    PreInitializePotentials();
 
-  ptr_upstream_clique = nullptr;
+    ptr_upstream_clique = nullptr;
 }
 
 //Clique::~Clique() {
@@ -132,7 +132,8 @@ Factor Clique::Collect(Timer *timer) {
   }
 
   // Prepare message for the upstream.
-  return ConstructMessage(timer);
+  ConstructMessage(timer);
+  return table;
 }
 
 /**
@@ -140,11 +141,10 @@ Factor Clique::Collect(Timer *timer) {
  * The reload version without parameter. Called on the selected root.
  */
 void Clique::Distribute(Timer *timer) {
-
-  Factor f = ConstructMessage(timer);
-  for (auto &sep : set_neighbours_ptr) {
-    sep->Distribute(f, timer);
-  }
+    ConstructMessage(timer);
+    for (auto &sep : set_neighbours_ptr) {
+        sep->Distribute(table, timer);
+    }
 }
 
 /**
@@ -155,7 +155,7 @@ void Clique::Distribute(Timer *timer) {
  * @return a msg, which is a factor
  * The reload version with parameter. Called by recursion.
  */
-void Clique::Distribute(Factor f, Timer *timer) {
+void Clique::Distribute(Factor &f, Timer *timer) {
   // If the next clique connected by this separator is a continuous clique,
   // then the program should not distribute information to it.// TODO: double-check
 //  bool reach_boundary = false;
@@ -168,7 +168,7 @@ void Clique::Distribute(Factor f, Timer *timer) {
   UpdateUseMessage(f, timer);  // Update itself.
 
   // Prepare message for the downstream.
-  Factor distribute_factor = ConstructMessage(timer);
+  ConstructMessage(timer);
 
   for (auto &ptr_separator : set_neighbours_ptr) {
 
@@ -182,15 +182,14 @@ void Clique::Distribute(Factor f, Timer *timer) {
     // the current neighbor "ptr_separator" is a downstream clique
     ptr_separator->ptr_upstream_clique = this;  // Let the callee know the caller.
     // distribute the msg to downstream
-    ptr_separator->Distribute(distribute_factor, timer); // Distribute to downstream.
-
+    ptr_separator->Distribute(table, timer); // Distribute to downstream.
   }
 }
 
 /**
  * @brief: sum over external variables which are the results of factor multiplication.
  */
-Factor Clique::SumOutExternalVars(Factor f, Timer *timer) {
+void Clique::SumOutExternalVars(Factor &f, Timer *timer) {
 //    timer->Start("set_difference");
     // get the variables that in "f" but not in "factor_of_this_clique"
     set<int> set_external_vars;
@@ -199,22 +198,20 @@ Factor Clique::SumOutExternalVars(Factor f, Timer *timer) {
                    inserter(set_external_vars, set_external_vars.begin()));
 //    timer->Stop("set_difference");
 
-  // Sum over the variables that are not in the scope of this clique/separator, so as to eliminate them.
+//    timer->Start("factor marginalization");
+    // Sum over the variables that are not in the scope of this clique/separator, so as to eliminate them.
     for (auto &ex_vars : set_external_vars) {
-
-//        timer->Start("factor marginalization");
         f = f.SumOverVar(ex_vars);
-//        timer->Stop("factor marginalization");
     }
-    return f;
+//    timer->Stop("factor marginalization");
 }
 
 /**
  * @brief: multiply a clique with a factor
  */
-void Clique::MultiplyWithFactorSumOverExternalVars(Factor f, Timer *timer) {
+void Clique::MultiplyWithFactorSumOverExternalVars(Factor &f, Timer *timer) {
     // sum over the irrelevant variables of the clique
-    f = SumOutExternalVars(f, timer);
+    SumOutExternalVars(f, timer);
 
     // in the original implementation, "related_variables" is always all the variables in the clique,
     // "set_disc_configs" is always all the configurations of the variables in the clique,
@@ -223,12 +220,12 @@ void Clique::MultiplyWithFactorSumOverExternalVars(Factor f, Timer *timer) {
     // so they all need to be changed here.
     // at the same time, the original implementation copy a new factor of the clique, use the copy to compute,
     // and then copy back the "map_potentials", which is not efficient...
-//      timer->Start("factor multiplication");
-      table = table.MultiplyWithFactor(f); // multiply two factors
-//      timer->Stop("factor multiplication");
+//    timer->Start("factor multiplication");
+    table = table.MultiplyWithFactor(f); // multiply two factors
+//    timer->Stop("factor multiplication");
 }
 
-void Clique::UpdateUseMessage(Factor f, Timer *timer) {
+void Clique::UpdateUseMessage(Factor &f, Timer *timer) {
 //    timer->Start("update clique");
     MultiplyWithFactorSumOverExternalVars(f, timer);
 //    timer->Stop("update clique");
@@ -237,8 +234,9 @@ void Clique::UpdateUseMessage(Factor f, Timer *timer) {
 /**
  * @brief: construct a factor of this clique and return
  */
-Factor Clique::ConstructMessage(Timer *timer) {
-    return table;
+void Clique::ConstructMessage(Timer *timer) {
+    // do nothing
+    return;
 }
 
 void Clique::PrintPotentials() const {

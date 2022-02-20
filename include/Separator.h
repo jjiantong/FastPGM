@@ -30,10 +30,8 @@ class Separator : public Clique {
 
   Separator* CopyWithoutPtr();
 
-  void UpdateUseMessage(Factor f, Timer *timer) override;
-  Factor ConstructMessage(Timer *timer) override;
-
-
+  void UpdateUseMessage(Factor &f, Timer *timer) override;
+  void ConstructMessage(Timer *timer) override;
 };
 
 

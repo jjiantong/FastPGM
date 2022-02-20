@@ -30,7 +30,7 @@ class JunctionTree: public Inference {
   virtual ~JunctionTree() = default;
 
   void ResetJunctionTree();
-  virtual void LoadDiscreteEvidence(DiscreteConfig E);
+  virtual void LoadDiscreteEvidence(const DiscreteConfig &E);
 //  void LoadEvidenceAndMessagePassingUpdateJT(const DiscreteConfig &E);
 
   void PrintAllCliquesPotentials() const;
@@ -40,8 +40,8 @@ class JunctionTree: public Inference {
   int InferenceUsingBeliefPropagation(int &query_index);
 
     virtual double EvaluateAccuracy(Dataset *dts, int num_samp, string alg, bool is_dense);
-    int PredictUseJTInfer(DiscreteConfig E, int Y_index, Timer *timer);
-    vector<int> PredictUseJTInfer(vector<DiscreteConfig> evidences, int target_node_idx, Timer *timer);
+    int PredictUseJTInfer(const DiscreteConfig &E, int Y_index, Timer *timer);
+    vector<int> PredictUseJTInfer(const vector<DiscreteConfig> &evidences, int target_node_idx, Timer *timer);
 
   //==================================================
  protected:
