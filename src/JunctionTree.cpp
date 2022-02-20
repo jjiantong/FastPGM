@@ -738,6 +738,7 @@ void JunctionTree::ResetJunctionTree() {
  * @brief: when inferring, an evidence is given. The evidence needs to be loaded and propagate in the network.
  */
 void JunctionTree::LoadDiscreteEvidence(const DiscreteConfig &E) {
+    /*********************** load evidence on all cliques and seps **************************/
     // cannot just erase "comb" inside the inner most loop,
     // because it will cause problem in factor division...
     for (auto &e: E) { // for each observation of variable
@@ -807,34 +808,23 @@ void JunctionTree::LoadDiscreteEvidence(const DiscreteConfig &E) {
             }
         }
     }
+    /*********************** load evidence on all cliques and seps **************************/
 
-
-
-//  for (auto &e : E) {  // For each node's observation in E
-//    for (auto &clique_ptr : set_clique_ptr_container) { // for each clique
-//      // If this clique is related to this node
-//      if (clique_ptr->table.related_variables.find(e.first) != clique_ptr->table.related_variables.end()) {
-//        for (auto &comb : clique_ptr->table.set_disc_configs) {
-//          if (comb.find(e) == comb.end()) {
-//            clique_ptr->table.map_potentials[comb] = 0;
-//          }
+//    /*********************** load evidence on only one clique **************************/
+//    for (auto &e : E) {  // For each node's observation in E
+//        for (auto &clique_ptr : set_clique_ptr_container) { // for each clique
+//            // If this clique is related to this node
+//            if (clique_ptr->table.related_variables.find(e.first) != clique_ptr->table.related_variables.end()) {
+//                for (auto &comb : clique_ptr->table.set_disc_configs) {
+//                    if (comb.find(e) == comb.end()) {
+//                        clique_ptr->table.map_potentials[comb] = 0;
+//                    }
+//                }
+//                break;
+//            }
 //        }
-//        // todo: figure it out
-//        break;
-//      }
 //    }
-//      // we can also load evidence on separators
-//      for (auto &sep_ptr : set_separator_ptr_container) { // for each sep
-//          // If this sep is related to this node
-//          if (sep_ptr->table.related_variables.find(e.first) != sep_ptr->table.related_variables.end()) {
-//              for (auto &comb : sep_ptr->table.set_disc_configs) {
-//                  if (comb.find(e) == comb.end()) {
-//                      sep_ptr->table.map_potentials[comb] = 0;
-//                  }
-//              }
-//          }
-//      }
-//  }
+//    /*********************** load evidence on only one clique **************************/
 }
 
 ///**
