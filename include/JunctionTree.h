@@ -50,7 +50,6 @@ class JunctionTree: public Inference {
 
   void Triangulate(Network *net,
                    int **adjac_matrix,
-                   int &num_nodes,
                    vector<int> elim_ord,
                    set<Clique*> &cliques);
 //  void FormListShapeJunctionTree(set<Clique*> &cliques);

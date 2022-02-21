@@ -63,7 +63,7 @@ JunctionTree::JunctionTree(Network *net, string elim_ord_strategy, vector<int> c
 //    cout << endl;
 
   //construct a clique for each node in the network
-  Triangulate(network, moral_graph_adjac_matrix, network->num_nodes, elimination_ordering, set_clique_ptr_container);
+  Triangulate(network, moral_graph_adjac_matrix, elimination_ordering, set_clique_ptr_container);
 //  cout << "finish Triangulate, number of cliques = " << set_clique_ptr_container.size() << endl;
 
   //construct map from main variable to a clique
@@ -356,12 +356,13 @@ vector<int> JunctionTree::MinNeighbourElimOrd(int **adjac_matrix, int &num_nodes
  */
 void JunctionTree::Triangulate(Network *net,
                                int **adjac_matrix,
-                               int &num_nodes,
                                vector<int> elim_ord,
                                set<Clique*> &cliques) { //checked
   if (elim_ord.size() == 0) {
     return;
   }
+
+    int num_nodes = net->num_nodes;
 
     vector<int> vec_neighbors;
     set<Node*> set_node_ptrs_to_form_a_clique;
@@ -419,7 +420,7 @@ void JunctionTree::Triangulate(Network *net,
         adjac_matrix[vec_neighbors.at(neighbor)][first_node_in_elim_ord] = 0;
     }
 
-    Triangulate(net, adjac_matrix, num_nodes, elim_ord, cliques);
+    Triangulate(net, adjac_matrix, elim_ord, cliques);
 }
 
 ///**
