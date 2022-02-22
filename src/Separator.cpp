@@ -53,28 +53,31 @@ void Separator::ConstructMessage(Timer *timer) {
         return;
     }
 
-//    double *t1 = new double[f.set_disc_configs.size()]();
-//    double *t2 = new double[f.set_disc_configs.size()]();
-//    double *t3 = new double[f.set_disc_configs.size()]();
+//    double *t1 = new double[table.set_disc_configs.size()]();
+//    double *t2 = new double[table.set_disc_configs.size()]();
 //    int i = 0;
-//    for (auto &comb : f.set_disc_configs) {
-//        t1[i] = f.map_potentials[comb];
+//    for (auto &comb : table.set_disc_configs) {
+//        t1[i] = table.map_potentials[comb];
 //        t2[i] = old_table.map_potentials[comb];
+//        i++;
 //    }
 //
 ////#pragma omp parallel for
-//    for (int j = 0; j < f.set_disc_configs.size(); ++j) {
-//        t3[j] = t1[j] / t2[j];
+//    for (int j = 0; j < table.set_disc_configs.size(); ++j) {
+//        if (t2[j] == 0) {
+//            t1[j] = 0;
+//        } else {
+//            t1[j] /= t2[j];
+//        }
 //    }
 //
 //    i = 0;
-//    for (auto &comb : f.set_disc_configs) {
-//        f.map_potentials[comb] = t3[i];
+//    for (auto &comb : table.set_disc_configs) {
+//        table.map_potentials[comb] = t1[i++];
 //    }
 //
 //    delete t1;
 //    delete t2;
-//    delete t3;
 
     for (auto &comb : table.set_disc_configs) {
         if (old_table.map_potentials[comb] == 0) {
