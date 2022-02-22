@@ -622,17 +622,67 @@ void JunctionTree::AssignPotentials(Timer *timer) { //checked
   // Extract the CG regressions of continuous nodes.
   vector<Factor> factors; // Can not use std::set, because Factor does not have definition on operator "<".
 //  vector<CGRegression> cgrs;
+  vector<PotentialTable> potential_tables;
 
   for (auto &id_node_ptr : network->map_idx_node_ptr) { // for each node of the network
     auto node_ptr = id_node_ptr.second;
     if (node_ptr->is_discrete) {
       // add the factor that consists of this node and its parents
       factors.push_back(Factor(dynamic_cast<DiscreteNode*>(node_ptr), this->network)); // each node has one factor
+        potential_tables.push_back(PotentialTable(dynamic_cast<DiscreteNode*>(node_ptr), this->network));
     }
 //    else {  // If the node is continuous.
 //      cgrs.push_back(CGRegression(node_ptr, network->GetParentPtrsOfNode(node_ptr->GetNodeIndex())));
 //    }
   }
+
+//    cout << "in assign potentials, after constructing all factors: " << endl;
+//    for (int i = 0; i < factors.size(); ++i) {
+//        Factor f = factors.at(i);
+//        cout << "factor " << i << ": ";
+//        for (auto &v : f.related_variables) {
+//            cout << v << " ";
+//        }
+//        cout << endl;
+//        // set<DiscreteConfig> set_disc_configs; DiscreteConfig: set< pair<int, int> >
+//        // map<DiscreteConfig, double> map_potentials
+//        for (auto &config: f.set_disc_configs) {
+//            cout << "config: ";
+//            for (auto &varval: config) {
+//                cout << varval.first << "=" << varval.second << " ";
+//            }
+//            cout << ": " << f.map_potentials[config] << endl;
+//        }
+//    }
+//    cout << "in assign potentials, after constructing all potential tables: " << endl;
+//    for (int i = 0; i < potential_tables.size(); ++i) {
+//        PotentialTable pt = potential_tables.at(i);
+//        // set<int> related_variables
+//        cout << "table " << i << ": ";
+//        for (auto &v : pt.related_variables) {
+//            cout << v << " ";
+//        }
+//        cout << endl;
+//        // int num_variables
+//        // int table_size
+//        cout << "num variables = " << pt.num_variables << ", table size = " << pt.table_size << endl;
+//        // vector<int> var_dims
+//        cout << "var dims: ";
+//        for (int j = 0; j < pt.var_dims.size(); ++j) {
+//            cout << pt.var_dims[j] << " ";
+//        }
+//        // vector<int> cum_levels
+//        cout << "cum_levels: ";
+//        for (int j = 0; j < pt.cum_levels.size(); ++j) {
+//            cout << pt.cum_levels[j] << " ";
+//        }
+//        // vector<double> potentials
+//        cout << "table: " << endl;
+//        for (int j = 0; j < pt.potentials.size(); ++j) {
+//            cout << pt.potentials[j] << endl;
+//        }
+//    }
+
 
   // 2, (part of) BP algorithm
   //    2.1 assign each factors and CG regressions to a clique

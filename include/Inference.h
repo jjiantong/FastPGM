@@ -11,6 +11,7 @@
 #include "DiscreteNode.h"
 #include "ContinuousNode.h"
 #include "Factor.h"
+#include "PotentialTable.h"
 #include "gadget.h"
 #include "Timer.h"
 #include <iostream>

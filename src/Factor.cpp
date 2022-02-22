@@ -10,7 +10,7 @@
  * @brief: construct a factor given a node;
  * the factor consists of the node and all the existing related_variables, i.e., all its parents.
  */
-Factor::Factor(DiscreteNode *disc_node, Network *net) {
+Factor::Factor(DiscreteNode *disc_node, Network *net) { // TODO: net is no use
   int node_index = disc_node->GetNodeIndex();
 
   related_variables.insert(node_index);//related_variables is empty initially, because this is a constructor.
