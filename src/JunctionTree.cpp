@@ -79,6 +79,61 @@ JunctionTree::JunctionTree(Network *net, string elim_ord_strategy, vector<int> c
   NumberTheCliquesAndSeparators();
 //  cout << "finish NumberTheCliquesAndSeparators" << endl;
 
+//    cout << "cliques: " << endl;
+//    for (auto &c : set_clique_ptr_container) {
+//        cout << c->clique_id << ": ";
+//        // set<int> related_variables
+//        for (auto &v : c->p_table.related_variables) {
+//            cout << v << " ";
+//        }
+//        cout << endl;
+//        // int num_variables
+//        // int table_size
+//        cout << "num variables = " << c->p_table.num_variables << ", table size = " << c->p_table.table_size << endl;
+//        // vector<int> var_dims
+//        cout << "var dims: ";
+//        for (int j = 0; j < c->p_table.var_dims.size(); ++j) {
+//            cout << c->p_table.var_dims[j] << " ";
+//        }
+//        // vector<int> cum_levels
+//        cout << "cum_levels: ";
+//        for (int j = 0; j < c->p_table.cum_levels.size(); ++j) {
+//            cout << c->p_table.cum_levels[j] << " ";
+//        }
+//        // vector<double> potentials
+//        cout << "table: " << endl;
+//        for (int j = 0; j < c->p_table.potentials.size(); ++j) {
+//            cout << c->p_table.potentials[j] << endl;
+//        }
+//    }
+//    cout << "separators: " << endl;
+//    for (auto &s : set_separator_ptr_container) {
+//        cout << s->clique_id << ": ";
+//        // set<int> related_variables
+//        for (auto &v : s->p_table.related_variables) {
+//            cout << v << " ";
+//        }
+//        cout << endl;
+//        // int num_variables
+//        // int table_size
+//        cout << "num variables = " << s->p_table.num_variables << ", table size = " << s->p_table.table_size << endl;
+//        // vector<int> var_dims
+//        cout << "var dims: ";
+//        for (int j = 0; j < s->p_table.var_dims.size(); ++j) {
+//            cout << s->p_table.var_dims[j] << " ";
+//        }
+//        // vector<int> cum_levels
+//        cout << "cum_levels: ";
+//        for (int j = 0; j < s->p_table.cum_levels.size(); ++j) {
+//            cout << s->p_table.cum_levels[j] << " ";
+//        }
+//        // vector<double> potentials
+//        cout << "table: " << endl;
+//        for (int j = 0; j < s->p_table.potentials.size(); ++j) {
+//            cout << s->p_table.potentials[j] << endl;
+//        }
+//    }
+
   AssignPotentials(timer);
 //  cout << "finish AssignPotentials" << endl;
 

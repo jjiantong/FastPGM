@@ -12,6 +12,7 @@
 #include "gadget.h"
 #include "Node.h"
 #include "Factor.h"
+#include "PotentialTable.h"
 #include "CGRegression.h"
 #include "Timer.h"
 #include "omp.h"
@@ -34,6 +35,7 @@ class Clique {
 //  map<DiscreteConfig, double> map_potentials; //the potential of each discrete config
 //  Factor *table;
     Factor table;
+    PotentialTable p_table;
 
   set<Clique*> set_neighbours_ptr; // neighbor cliques
 

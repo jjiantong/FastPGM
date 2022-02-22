@@ -56,6 +56,37 @@ Clique::Clique(set<Node*> set_node_ptr) {
     table.set_disc_configs = GenAllCombinationsFromSets(&set_of_sets);
     PreInitializePotentials();
 
+
+    // potential table
+    p_table.num_variables = clique_size;
+    p_table.var_dims.reserve(clique_size);
+    for (auto &n : set_node_ptr) { // for each node
+        //initialize related variables
+//        clique_variables.insert(n->GetNodeIndex()); // insert into related_variables todo: use it
+        if (n->is_discrete) {
+            auto dn = dynamic_cast<DiscreteNode*>(n);
+            p_table.var_dims.push_back(dn->GetDomainSize());
+        }
+    }
+
+    p_table.cum_levels.resize(clique_size);
+    // set the right-most one ...
+    p_table.cum_levels[clique_size - 1] = 1;
+    // ... then compute the left ones
+    for (int i = clique_size - 2; i >= 0; --i) {
+        p_table.cum_levels[i] = p_table.cum_levels[i + 1] * p_table.var_dims[i + 1];
+    }
+    // compute the table size -- number of possible configurations
+    p_table.table_size = p_table.cum_levels[0] * p_table.var_dims[0];
+
+    p_table.potentials.reserve(p_table.table_size);
+    for (int i = 0; i < p_table.table_size; ++i) {
+        p_table.potentials.push_back(1);
+    }
+
+    p_table.related_variables = clique_variables;
+
+
     ptr_upstream_clique = nullptr;
 }
 
