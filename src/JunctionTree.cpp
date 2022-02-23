@@ -135,7 +135,7 @@ JunctionTree::JunctionTree(Network *net, string elim_ord_strategy, vector<int> c
 //    }
 
   AssignPotentials(timer);
-//  cout << "finish AssignPotentials" << endl;
+  cout << "finish AssignPotentials" << endl;
 
 //    cout << "cliques: " << endl;
 //    for (auto &c : set_clique_ptr_container) {
@@ -169,6 +169,61 @@ JunctionTree::JunctionTree(Network *net, string elim_ord_strategy, vector<int> c
 //                cout << varval.first << "=" << varval.second << " ";
 //            }
 //            cout << ": " << s->table.map_potentials[config] << endl;
+//        }
+//    }
+
+//    cout << "cliques: " << endl;
+//    for (auto &c : set_clique_ptr_container) {
+//        cout << c->clique_id << ": ";
+//        // set<int> related_variables
+//        for (auto &v : c->p_table.related_variables) {
+//            cout << v << " ";
+//        }
+//        cout << endl;
+//        // int num_variables
+//        // int table_size
+//        cout << "num variables = " << c->p_table.num_variables << ", table size = " << c->p_table.table_size << endl;
+//        // vector<int> var_dims
+//        cout << "var dims: ";
+//        for (int j = 0; j < c->p_table.var_dims.size(); ++j) {
+//            cout << c->p_table.var_dims[j] << " ";
+//        }
+//        // vector<int> cum_levels
+//        cout << "cum_levels: ";
+//        for (int j = 0; j < c->p_table.cum_levels.size(); ++j) {
+//            cout << c->p_table.cum_levels[j] << " ";
+//        }
+//        // vector<double> potentials
+//        cout << "table: " << endl;
+//        for (int j = 0; j < c->p_table.potentials.size(); ++j) {
+//            cout << c->p_table.potentials[j] << endl;
+//        }
+//    }
+//    cout << "separators: " << endl;
+//    for (auto &s : set_separator_ptr_container) {
+//        cout << s->clique_id << ": ";
+//        // set<int> related_variables
+//        for (auto &v : s->p_table.related_variables) {
+//            cout << v << " ";
+//        }
+//        cout << endl;
+//        // int num_variables
+//        // int table_size
+//        cout << "num variables = " << s->p_table.num_variables << ", table size = " << s->p_table.table_size << endl;
+//        // vector<int> var_dims
+//        cout << "var dims: ";
+//        for (int j = 0; j < s->p_table.var_dims.size(); ++j) {
+//            cout << s->p_table.var_dims[j] << " ";
+//        }
+//        // vector<int> cum_levels
+//        cout << "cum_levels: ";
+//        for (int j = 0; j < s->p_table.cum_levels.size(); ++j) {
+//            cout << s->p_table.cum_levels[j] << " ";
+//        }
+//        // vector<double> potentials
+//        cout << "table: " << endl;
+//        for (int j = 0; j < s->p_table.potentials.size(); ++j) {
+//            cout << s->p_table.potentials[j] << endl;
 //        }
 //    }
 
@@ -683,8 +738,13 @@ void JunctionTree::AssignPotentials(Timer *timer) { //checked
     auto node_ptr = id_node_ptr.second;
     if (node_ptr->is_discrete) {
       // add the factor that consists of this node and its parents
-      factors.push_back(Factor(dynamic_cast<DiscreteNode*>(node_ptr), this->network)); // each node has one factor
+        /************************* use factor ******************************/
+        factors.push_back(Factor(dynamic_cast<DiscreteNode*>(node_ptr), this->network)); // each node has one factor
+        /************************* use factor ******************************/
+
+        /************************* use potential table ******************************/
         potential_tables.push_back(PotentialTable(dynamic_cast<DiscreteNode*>(node_ptr), this->network));
+        /************************* use potential table ******************************/
     }
 //    else {  // If the node is continuous.
 //      cgrs.push_back(CGRegression(node_ptr, network->GetParentPtrsOfNode(node_ptr->GetNodeIndex())));
@@ -743,6 +803,7 @@ void JunctionTree::AssignPotentials(Timer *timer) { //checked
   //    2.1 assign each factors and CG regressions to a clique
   //    each factor and CG regression should be use only once
 
+    /************************* use factor ******************************/
   // For potentials from discrete nodes, they should be assigned to purely discrete cliques.
   for (auto &f : factors) { // for each factor of the network
     for (auto &clique_ptr : set_clique_ptr_container) { // for each clique of the graph
@@ -780,6 +841,47 @@ void JunctionTree::AssignPotentials(Timer *timer) { //checked
       }
     }
   }
+    /************************* use factor ******************************/
+
+    /************************* use potential table ******************************/
+    // For potentials from discrete nodes, they should be assigned to purely discrete cliques.
+    for (auto &pt : potential_tables) { // for each factor of the network
+        for (auto &clique_ptr : set_clique_ptr_container) { // for each clique of the graph
+
+            if (pt.related_variables.empty() || clique_ptr->clique_variables.empty()) {
+                break;
+            }
+            if (!clique_ptr->pure_discrete) {
+                continue;
+            }
+
+            // get the variables that in the factor but not in the clique
+            set<int> diff;
+            set_difference(pt.related_variables.begin(), pt.related_variables.end(),
+                           clique_ptr->clique_variables.begin(), clique_ptr->clique_variables.end(),
+                           inserter(diff, diff.begin()));
+            // If "diff" is empty, i.e., all the variables in the factor are in the clique,
+            // which means that the clique can accommodate the scope of the factor - satisfy the family preservation property of cluster graph
+            // (clique tree is a special case of cluster graph)
+            // so we can assign this factor to this clique
+            if (diff.empty()) {
+                // 2.2 construct the initial potential of this clique,
+                // which is the product of factors that assigned to it
+//          cout << "assign factor ";
+//          for (auto &v: f.related_variables) {
+//              cout << v << " ";
+//          }
+//          cout << "to clique ";
+//          for (auto &v: clique_ptr->clique_variables) {
+//              cout << v << " ";
+//          }
+//          cout << endl;
+                clique_ptr->MultiplyWithFactorSumOverExternalVars(pt, timer);
+                break;  // Ensure that each factor is used only once.
+            }
+        }
+    }
+    /************************* use potential table ******************************/
 //  for (auto &cgr : cgrs) {
 //    for (auto &clique_ptr : set_clique_ptr_container) {
 //

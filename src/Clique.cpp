@@ -51,12 +51,14 @@ Clique::Clique(set<Node*> set_node_ptr) {
     }
   }
 
+    /************************* use factor ******************************/
 //  table = new Factor();
     table.related_variables = clique_variables;
     table.set_disc_configs = GenAllCombinationsFromSets(&set_of_sets);
     PreInitializePotentials();
+    /************************* use factor ******************************/
 
-
+    /************************* use potential table ******************************/
     // potential table
     p_table.num_variables = clique_size;
     p_table.var_dims.reserve(clique_size);
@@ -85,6 +87,7 @@ Clique::Clique(set<Node*> set_node_ptr) {
     }
 
     p_table.related_variables = clique_variables;
+    /************************* use potential table ******************************/
 
 
     ptr_upstream_clique = nullptr;
@@ -237,6 +240,7 @@ void Clique::SumOutExternalVars(Factor &f, Timer *timer) {
 //    timer->Stop("factor marginalization");
 }
 
+/************************* use factor ******************************/
 /**
  * @brief: multiply a clique with a factor
  */
@@ -255,6 +259,28 @@ void Clique::MultiplyWithFactorSumOverExternalVars(Factor &f, Timer *timer) {
     table = table.MultiplyWithFactor(f); // multiply two factors
 //    timer->Stop("factor multiplication");
 }
+/************************* use factor ******************************/
+
+/************************* use potential table ******************************/
+/**
+ * @brief: multiply a clique with a factor
+ */
+void Clique::MultiplyWithFactorSumOverExternalVars(PotentialTable &pt, Timer *timer) {
+    // sum over the irrelevant variables of the clique
+//    SumOutExternalVars(f, timer); // todo: use it then
+
+    // in the original implementation, "related_variables" is always all the variables in the clique,
+    // "set_disc_configs" is always all the configurations of the variables in the clique,
+    // so they are not required to be changed, the only thing changed is the "map_potentials".
+    // for the current implementation, all "related_variables", "set_disc_configs" and "map_potentials" are reduced if possible,
+    // so they all need to be changed here.
+    // at the same time, the original implementation copy a new factor of the clique, use the copy to compute,
+    // and then copy back the "map_potentials", which is not efficient...
+//    timer->Start("factor multiplication");
+    p_table = p_table.TableMultiplication(pt); // multiply two factors
+//    timer->Stop("factor multiplication");
+}
+/************************* use potential table ******************************/
 
 void Clique::UpdateUseMessage(Factor &f, Timer *timer) {
 //    timer->Start("update clique");

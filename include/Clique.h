@@ -68,6 +68,7 @@ class Clique {
 
   Clique* CopyWithoutPtr();
   void MultiplyWithFactorSumOverExternalVars(Factor &f, Timer *timer);
+    void MultiplyWithFactorSumOverExternalVars(PotentialTable &pt, Timer *timer);
   Factor Collect(Timer *timer);
   void Distribute(Timer *timer);
 

@@ -41,7 +41,11 @@ public:
 
     DiscreteConfig GetConfigByTableIndex(int table_index, Network *net);
     vector<int> GetConfigValueByTableIndex(int table_index);
+    int GetTableIndexByConfigValue(vector<int> config_value);
+    int GetVariableIndex(int variable);
 
+    void TableExtension(set<int> variables, vector<int> dims);
+    PotentialTable TableMultiplication(PotentialTable second_table);
 
 //    Factor MultiplyWithFactor(Factor second_factor);
 //    Factor SumOverVar(DiscreteNode *);
