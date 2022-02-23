@@ -66,7 +66,7 @@ class Clique {
     Clique(set<Node*> set_node_ptrs);
 //  ~Clique();
 
-  Clique* CopyWithoutPtr();
+//  Clique* CopyWithoutPtr();
   void MultiplyWithFactorSumOverExternalVars(Factor &f, Timer *timer);
     void MultiplyWithFactorSumOverExternalVars(PotentialTable &pt, Timer *timer);
   Factor Collect(Timer *timer);

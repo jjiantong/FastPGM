@@ -110,15 +110,15 @@ void Clique::PreInitializePotentials() {
   }
 }
 
-/**
- * @brief: copy the clique by ignoring the pointer members
- */
-Clique* Clique::CopyWithoutPtr() {
-  auto c = new Clique(*this);
-  c->set_neighbours_ptr.clear();
-  c->ptr_upstream_clique = nullptr;
-  return c;
-}
+///**
+// * @brief: copy the clique by ignoring the pointer members
+// */
+//Clique* Clique::CopyWithoutPtr() {
+//  auto c = new Clique(*this);
+//  c->set_neighbours_ptr.clear();
+//  c->ptr_upstream_clique = nullptr;
+//  return c;
+//}
 
 /*!
  * @brief: a step of msg passing

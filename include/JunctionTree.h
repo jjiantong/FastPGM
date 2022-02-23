@@ -26,7 +26,7 @@ class JunctionTree: public Inference {
   JunctionTree(Network *net);
   JunctionTree(Network *net, string elim_ord_strategy);
   JunctionTree(Network *net, string elim_ord_strategy, vector<int> custom_elim_ord);
-  JunctionTree(JunctionTree*);
+//  JunctionTree(JunctionTree*);
   virtual ~JunctionTree() = default;
 
   void ResetJunctionTree();

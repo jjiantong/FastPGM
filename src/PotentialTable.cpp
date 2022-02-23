@@ -250,4 +250,69 @@ PotentialTable PotentialTable::TableMultiplication(PotentialTable second_table) 
     return (*this);
 }
 
+/*!
+ * @brief: factor reduction given evidence
+ * @example:    a0 b0 c0    0.3             b0 c0    0.3
+ *              a0 b0 c1    0.7             b0 c1    0.7
+ *              a0 b1 c0    0.4     -->     b1 c0    0.4
+ *              a0 b1 c1    0.6             b1 c1    0.6
+ *              a1 b0 c0    0.1
+ *              a1 b0 c1    0.9         (if we get the evidence that a = 0,
+ *              a1 b1 c0    0.2         the line that conflict with this evidence will be removed,
+ *              a1 b1 c1    0.8         and the variable a is also removed from the table)
+ * in the example, the scope of the reduced factor becomes to be {b, c}
+ * @param e_index: the variable index of the evidence
+ * @param e_value_index: the value (index) of the evidence
+ */
+void PotentialTable::TableReduction(int e_index, int e_value_index) {
+    // in table reduction, we first update potentials, then consider the other factors
+
+    // find the location of the evidence in the old table
+    int e_loc = this->GetVariableIndex(e_index);
+
+    vector<double> new_potentials;
+    // traverse all rows of the original table
+    for (int i = 0; i < this->table_size; ++i) {
+        // 1. get the full config value of old table
+        vector<int> full_config = this->GetConfigValueByTableIndex(i);
+        // 2. get the value of the evidence variable from the new table
+        int value_index = full_config[e_loc];
+        // 3. whether it is consistent with the evidence
+        if (value_index == e_value_index) {
+            new_potentials.push_back(this->potentials[i]);
+        }
+    }
+    this->potentials = new_potentials;
+
+    this->related_variables.erase(e_index);
+    this->num_variables -= 1;
+
+    if (this->num_variables > 0) {
+        vector<int> dims;
+        dims.reserve(this->num_variables);
+        for (int i = 0; i < this->num_variables + 1; ++i) {
+            if (i != e_loc) {
+                dims.push_back(this->var_dims[i]);
+            }
+        }
+        this->var_dims = dims;
+
+        vector<int> levels;
+        levels.resize(this->num_variables);
+        // set the right-most one ...
+        levels[this->num_variables - 1] = 1;
+        // ... then compute the left ones
+        for (int i = this->num_variables - 2; i >= 0; --i) {
+            levels[i] = levels[i + 1] * this->var_dims[i + 1];
+        }
+        this->cum_levels = levels;
+
+        // compute the table size -- number of possible configurations
+        this->table_size = this->cum_levels[0] * this->var_dims[0];
+    } else {
+        this->var_dims = vector<int>();
+        this->cum_levels = vector<int>();
+        this->table_size = 1;
+    }
+}
 

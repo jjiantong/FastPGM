@@ -240,78 +240,78 @@ JunctionTree::JunctionTree(Network *net, string elim_ord_strategy, vector<int> c
 }
 
 
-JunctionTree::JunctionTree(JunctionTree *jt) {
-  this->network = jt->network;
-
-
-  // The following block is to initialize the matrices
-  // that are used to record the connections in order to restore them.
-  // --------------------------------------------------------------------------
-  int **seps_that_cliques_connect_to = new int* [jt->set_clique_ptr_container.size()],
-      **cliques_that_seps_connect_to = new int* [jt->set_separator_ptr_container.size()];
-  for (int i=0; i<jt->set_clique_ptr_container.size(); ++i) {
-    seps_that_cliques_connect_to[i] = new int[jt->set_separator_ptr_container.size()]();
-  }
-  for (int i=0; i<jt->set_separator_ptr_container.size(); ++i) {
-    cliques_that_seps_connect_to[i] = new int[jt->set_clique_ptr_container.size()]();
-  }
-  // --------------------------------------------------------------------------
-
-
-  // The following block copy the cliques and separators without connections.
-  // --------------------------------------------------------------------------
-  map<int, Clique*> map_cliques;
-  map<int, Separator*> map_separators;
-
-  for (const auto &c : jt->set_clique_ptr_container) {
-    map_cliques[c->clique_id] = c->CopyWithoutPtr();
-    this->set_clique_ptr_container.insert(map_cliques[c->clique_id]);
-    for (const auto &s_p : c->set_neighbours_ptr) {
-      seps_that_cliques_connect_to[c->clique_id][s_p->clique_id] = 1; // Record the connections.
-    }
-  }
-  for (const auto &s : jt->set_separator_ptr_container) {
-    map_separators[s->clique_id] = s->CopyWithoutPtr();
-    this->set_separator_ptr_container.insert(map_separators[s->clique_id]);
-    for (const auto &c_p : s->set_neighbours_ptr) {
-      cliques_that_seps_connect_to[s->clique_id][c_p->clique_id] = 1; // Record the connections
-    }
-  }
-  // --------------------------------------------------------------------------
-
-
-  // The following block is to restore the connections.
-  // --------------------------------------------------------------------------
-//  #pragma omp parallel for collapse(2)
-  for (int i=0; i<jt->set_clique_ptr_container.size(); ++i) {
-    for (int j=0; j<jt->set_separator_ptr_container.size(); ++j) {
-      if (seps_that_cliques_connect_to[i][j]==1) {
-        map_cliques[i]->set_neighbours_ptr.insert(map_separators[j]);
-      }
-    }
-  }
-
-  for (int i=0; i<jt->set_separator_ptr_container.size(); ++i) {
-    for (int j=0; j<jt->set_clique_ptr_container.size(); ++j) {
-      if (cliques_that_seps_connect_to[i][j]==1) {
-        map_separators[i]->set_neighbours_ptr.insert(map_cliques[j]);
-      }
-    }
-  }
-  // --------------------------------------------------------------------------
-
-  this->BackUpJunctionTree();
-
-  for (int i=0; i<jt->set_separator_ptr_container.size(); ++i) {
-    delete[] cliques_that_seps_connect_to[i];
-  }
-  delete[] cliques_that_seps_connect_to;
-
-  for (int i=0; i<jt->set_clique_ptr_container.size(); ++i) {
-    delete[] seps_that_cliques_connect_to[i];
-  }
-  delete[] seps_that_cliques_connect_to;
-}
+//JunctionTree::JunctionTree(JunctionTree *jt) {
+//  this->network = jt->network;
+//
+//
+//  // The following block is to initialize the matrices
+//  // that are used to record the connections in order to restore them.
+//  // --------------------------------------------------------------------------
+//  int **seps_that_cliques_connect_to = new int* [jt->set_clique_ptr_container.size()],
+//      **cliques_that_seps_connect_to = new int* [jt->set_separator_ptr_container.size()];
+//  for (int i=0; i<jt->set_clique_ptr_container.size(); ++i) {
+//    seps_that_cliques_connect_to[i] = new int[jt->set_separator_ptr_container.size()]();
+//  }
+//  for (int i=0; i<jt->set_separator_ptr_container.size(); ++i) {
+//    cliques_that_seps_connect_to[i] = new int[jt->set_clique_ptr_container.size()]();
+//  }
+//  // --------------------------------------------------------------------------
+//
+//
+//  // The following block copy the cliques and separators without connections.
+//  // --------------------------------------------------------------------------
+//  map<int, Clique*> map_cliques;
+//  map<int, Separator*> map_separators;
+//
+//  for (const auto &c : jt->set_clique_ptr_container) {
+//    map_cliques[c->clique_id] = c->CopyWithoutPtr();
+//    this->set_clique_ptr_container.insert(map_cliques[c->clique_id]);
+//    for (const auto &s_p : c->set_neighbours_ptr) {
+//      seps_that_cliques_connect_to[c->clique_id][s_p->clique_id] = 1; // Record the connections.
+//    }
+//  }
+//  for (const auto &s : jt->set_separator_ptr_container) {
+//    map_separators[s->clique_id] = s->CopyWithoutPtr();
+//    this->set_separator_ptr_container.insert(map_separators[s->clique_id]);
+//    for (const auto &c_p : s->set_neighbours_ptr) {
+//      cliques_that_seps_connect_to[s->clique_id][c_p->clique_id] = 1; // Record the connections
+//    }
+//  }
+//  // --------------------------------------------------------------------------
+//
+//
+//  // The following block is to restore the connections.
+//  // --------------------------------------------------------------------------
+////  #pragma omp parallel for collapse(2)
+//  for (int i=0; i<jt->set_clique_ptr_container.size(); ++i) {
+//    for (int j=0; j<jt->set_separator_ptr_container.size(); ++j) {
+//      if (seps_that_cliques_connect_to[i][j]==1) {
+//        map_cliques[i]->set_neighbours_ptr.insert(map_separators[j]);
+//      }
+//    }
+//  }
+//
+//  for (int i=0; i<jt->set_separator_ptr_container.size(); ++i) {
+//    for (int j=0; j<jt->set_clique_ptr_container.size(); ++j) {
+//      if (cliques_that_seps_connect_to[i][j]==1) {
+//        map_separators[i]->set_neighbours_ptr.insert(map_cliques[j]);
+//      }
+//    }
+//  }
+//  // --------------------------------------------------------------------------
+//
+//  this->BackUpJunctionTree();
+//
+//  for (int i=0; i<jt->set_separator_ptr_container.size(); ++i) {
+//    delete[] cliques_that_seps_connect_to[i];
+//  }
+//  delete[] cliques_that_seps_connect_to;
+//
+//  for (int i=0; i<jt->set_clique_ptr_container.size(); ++i) {
+//    delete[] seps_that_cliques_connect_to[i];
+//  }
+//  delete[] seps_that_cliques_connect_to;
+//}
 
 
 /**
@@ -1033,6 +1033,53 @@ void JunctionTree::LoadDiscreteEvidence(const DiscreteConfig &E) {
 //        }
 //    }
 //    /*********************** load evidence on only one clique **************************/
+
+    /************************* use potential table ******************************/
+    for (auto &e: E) { // for each observation of variable
+        // we need the index of the the evidence and the value index
+        int index = e.first;
+        int value = e.second;
+        if (index >= network->num_nodes) {
+            continue; // todo: this is because the testing set has more features than the training set
+        }
+
+        int value_index;
+        auto dn = dynamic_cast<DiscreteNode*>(network->FindNodePtrByIndex(index));
+        for (int i = 0; i < dn->GetDomainSize(); ++i) {
+            if (value == dn->vec_potential_vals.at(i)) {
+                value_index = i;
+                break;
+            }
+        }
+
+//        cout << "about e: index = " << index << ", value = " << value << ", value index = " << value_index << endl;
+
+        for (auto &clique_ptr : set_clique_ptr_container) { // for each clique
+//            cout << "clique ";
+//            for (auto &v: clique_ptr->p_table.related_variables) {
+//                cout << v << " ";
+//            }
+//            cout << endl;
+            // if this factor is related to the observation
+            if (clique_ptr->p_table.related_variables.find(index) != clique_ptr->p_table.related_variables.end()) {
+//                cout << "this clique is related to the observation" << endl;
+                clique_ptr->p_table.TableReduction(index, value_index);
+            }
+        }
+        for (auto &sep_ptr : set_separator_ptr_container) { // for each sep
+//            cout << "sep ";
+//            for (auto &v: sep_ptr->p_table.related_variables) {
+//                cout << v << " ";
+//            }
+//            cout << endl;
+            // if this factor is related to the observation
+            if (sep_ptr->p_table.related_variables.find(index) != sep_ptr->p_table.related_variables.end()) {
+//                cout << "this sep is related to the observation" << endl;
+                sep_ptr->p_table.TableReduction(index, value_index);
+            }
+        }
+    }
+    /************************* use potential table ******************************/
 }
 
 ///**
@@ -1259,6 +1306,61 @@ int JunctionTree::PredictUseJTInfer(const DiscreteConfig &E, int Y_index, Timer 
     //update a clique using the evidence
     LoadDiscreteEvidence(E);
     timer->Stop("load evidence");
+
+//    cout << "cliques: " << endl;
+//    for (auto &c : set_clique_ptr_container) {
+//        cout << c->clique_id << ": ";
+//        // set<int> related_variables
+//        for (auto &v : c->p_table.related_variables) {
+//            cout << v << " ";
+//        }
+//        cout << endl;
+//        // int num_variables
+//        // int table_size
+//        cout << "num variables = " << c->p_table.num_variables << ", table size = " << c->p_table.table_size << endl;
+//        // vector<int> var_dims
+//        cout << "var dims: ";
+//        for (int j = 0; j < c->p_table.var_dims.size(); ++j) {
+//            cout << c->p_table.var_dims[j] << " ";
+//        }
+//        // vector<int> cum_levels
+//        cout << "cum_levels: ";
+//        for (int j = 0; j < c->p_table.cum_levels.size(); ++j) {
+//            cout << c->p_table.cum_levels[j] << " ";
+//        }
+//        // vector<double> potentials
+//        cout << "table: " << endl;
+//        for (int j = 0; j < c->p_table.potentials.size(); ++j) {
+//            cout << c->p_table.potentials[j] << endl;
+//        }
+//    }
+//    cout << "separators: " << endl;
+//    for (auto &s : set_separator_ptr_container) {
+//        cout << s->clique_id << ": ";
+//        // set<int> related_variables
+//        for (auto &v : s->p_table.related_variables) {
+//            cout << v << " ";
+//        }
+//        cout << endl;
+//        // int num_variables
+//        // int table_size
+//        cout << "num variables = " << s->p_table.num_variables << ", table size = " << s->p_table.table_size << endl;
+//        // vector<int> var_dims
+//        cout << "var dims: ";
+//        for (int j = 0; j < s->p_table.var_dims.size(); ++j) {
+//            cout << s->p_table.var_dims[j] << " ";
+//        }
+//        // vector<int> cum_levels
+//        cout << "cum_levels: ";
+//        for (int j = 0; j < s->p_table.cum_levels.size(); ++j) {
+//            cout << s->p_table.cum_levels[j] << " ";
+//        }
+//        // vector<double> potentials
+//        cout << "table: " << endl;
+//        for (int j = 0; j < s->p_table.potentials.size(); ++j) {
+//            cout << s->p_table.potentials[j] << endl;
+//        }
+//    }
 
     timer->Start("msg passing");
     //update the whole Junction Tree

@@ -46,6 +46,7 @@ public:
 
     void TableExtension(set<int> variables, vector<int> dims);
     PotentialTable TableMultiplication(PotentialTable second_table);
+    void TableReduction(int e_index, int e_value_index);
 
 //    Factor MultiplyWithFactor(Factor second_factor);
 //    Factor SumOverVar(DiscreteNode *);
