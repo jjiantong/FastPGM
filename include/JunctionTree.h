@@ -37,6 +37,7 @@ class JunctionTree: public Inference {
   void PrintAllSeparatorsPotentials() const;
 
   Factor BeliefPropagationCalcuDiscreteVarMarginal(int query_index);
+    PotentialTable BeliefPropagationCalcuDiscreteVarMarginal2(int query_index);
   int InferenceUsingBeliefPropagation(int &query_index);
 
     virtual double EvaluateAccuracy(Dataset *dts, int num_samp, string alg, bool is_dense);

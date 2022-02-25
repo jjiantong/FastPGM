@@ -70,17 +70,23 @@ class Clique {
   void MultiplyWithFactorSumOverExternalVars(Factor &f, Timer *timer);
     void MultiplyWithFactorSumOverExternalVars(PotentialTable &pt, Timer *timer);
   Factor Collect(Timer *timer);
+    PotentialTable Collect2(Timer *timer);
   void Distribute(Timer *timer);
+    void Distribute2(Timer *timer);
 
   virtual void UpdateUseMessage(Factor &f, Timer *timer);
+    virtual void UpdateUseMessage2(PotentialTable &pt, Timer *timer);
   virtual void ConstructMessage(Timer *timer);
+    virtual void ConstructMessage2(Timer *timer);
   void PrintPotentials() const;
 //  void PrintRelatedVars() const;
 
  protected:
   Clique(const Clique&) = default;
   void SumOutExternalVars(Factor &f, Timer *timer);
+    void SumOutExternalVars(PotentialTable &pt, Timer *timer);
   void Distribute(Factor &f, Timer *timer);
+    void Distribute2(PotentialTable &pt, Timer *timer);
   void PreInitializePotentials();
 };
 

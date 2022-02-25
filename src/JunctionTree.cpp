@@ -1117,6 +1117,9 @@ void JunctionTree::MessagePassingUpdateJT(Timer *timer) {
   Clique *arb_root = *iter;
   arb_root->Collect(timer);
   arb_root->Distribute(timer);
+
+    arb_root->Collect2(timer);
+    arb_root->Distribute2(timer);
 }
 
 void JunctionTree::PrintAllCliquesPotentials() const {
@@ -1185,6 +1188,57 @@ Factor JunctionTree::BeliefPropagationCalcuDiscreteVarMarginal(int query_index) 
   return f;
 
 }
+
+///**
+// * @brief: compute the marginal distribution for a query variable
+// **/
+//PotentialTable JunctionTree::BeliefPropagationCalcuDiscreteVarMarginal2(int query_index) {
+//
+//    // The input is a set of query_indexes of variables.
+//    // The output is a factor representing the joint marginal of these variables.
+//    // TODO: here only support one query variable
+//
+//    int min_size = INT32_MAX;
+//    Clique *selected_clique = nullptr;
+//
+//    // The case where the query variables are all appear in one clique.
+//    // Find the clique that contains this variable,
+//    // whose size of potentials table is the smallest,
+//    // which can reduce the number of sum operation.
+//    // TODO: find from separator
+//    for (auto &c : set_clique_ptr_container) {
+//        if (!c->pure_discrete) {
+//            continue;
+//        }
+//        if (c->p_table.related_variables.find(query_index) == c->p_table.related_variables.end()) { // cannot find the query variable
+//            continue;
+//        }
+//        if (c->p_table.related_variables.size() >= min_size) {
+//            continue;
+//        }
+//        min_size = c->p_table.related_variables.size();
+//        selected_clique = c;
+//    }
+//
+//    if (selected_clique == nullptr) {
+//        fprintf(stderr, "Error in function [%s]\n"
+//                        "Variable [%d] does not appear in any clique!", __FUNCTION__, query_index);
+//        exit(1);
+//    }
+//
+//    set<int> other_vars = selected_clique->table.related_variables;
+//    other_vars.erase(query_index);
+//
+//    Factor f(selected_clique->table.related_variables, selected_clique->table.set_disc_configs, selected_clique->table.map_potentials);
+//
+//    for (auto &index : other_vars) {
+//        f = f.SumOverVar(index);
+//    }
+//
+//    f.Normalize(); // todo: no need to do normalization
+//    return f;
+//
+//}
 
 /**
  * @brief: predict the lable for a given variable.

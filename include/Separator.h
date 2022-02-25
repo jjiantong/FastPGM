@@ -23,6 +23,7 @@ class Separator : public Clique {
 
 //  Factor *old_table;
     Factor old_table;
+    PotentialTable old_ptable;
 
   Separator();
   explicit Separator(set<Node*>);
@@ -31,7 +32,9 @@ class Separator : public Clique {
   Separator* CopyWithoutPtr();
 
   void UpdateUseMessage(Factor &f, Timer *timer) override;
+    void UpdateUseMessage2(PotentialTable &pt, Timer *timer) override;
   void ConstructMessage(Timer *timer) override;
+    void ConstructMessage2(Timer *timer) override;
 };
 
 

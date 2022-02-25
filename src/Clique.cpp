@@ -170,6 +170,45 @@ Factor Clique::Collect(Timer *timer) {
   return table;
 }
 
+/*!
+ * @brief: a step of msg passing
+ * msg passes from downstream to upstream
+ * first collect the msgs from its downstream neighbors;
+ * then update the msg by multiplying its initial potential with all msgs received from its downstream neighbors
+ * (initial potential of a cluster/node is constructed via the product of factors that assigned to it)
+ * @return a msg, which is a factor
+ */
+PotentialTable Clique::Collect2(Timer *timer) {
+
+    for (auto &ptr_separator : set_neighbours_ptr) {
+
+        /** when it reaches a leaf, the only neighbour is the upstream,
+         * which can be viewed as the base case of recursive function.
+         */
+        // all neighbor cliques contain the upstream clique and downstream clique(s)
+        // if the current neighbor "ptr_separator" is the upstream clique, not collect from it
+        // otherwise, collect the msg from "ptr_separator" and update the msg
+        if (ptr_separator == ptr_upstream_clique) {
+            continue;
+        }
+
+        // the current neighbor "ptr_separator" is a downstream clique
+        ptr_separator->ptr_upstream_clique = this;  // Let the callee know the caller.
+
+        // collect the msg f from downstream
+        PotentialTable pt = ptr_separator->Collect2(timer);
+        // update the msg by multiplying the current factor with f
+        // the current factor is the initial potential, or
+        // the product of the initial potential and factors received from other downstream neighbors
+
+        UpdateUseMessage2(pt, timer);  // Update itself.
+    }
+
+    // Prepare message for the upstream.
+    ConstructMessage2(timer);
+    return p_table;
+}
+
 /**
  * Distribute the information it knows to the downstream cliques.
  * The reload version without parameter. Called on the selected root.
@@ -178,6 +217,17 @@ void Clique::Distribute(Timer *timer) {
     ConstructMessage(timer);
     for (auto &sep : set_neighbours_ptr) {
         sep->Distribute(table, timer);
+    }
+}
+
+/**
+ * Distribute the information it knows to the downstream cliques.
+ * The reload version without parameter. Called on the selected root.
+ */
+void Clique::Distribute2(Timer *timer) {
+    ConstructMessage2(timer);
+    for (auto &sep : set_neighbours_ptr) {
+        sep->Distribute2(p_table, timer);
     }
 }
 
@@ -221,6 +271,45 @@ void Clique::Distribute(Factor &f, Timer *timer) {
 }
 
 /**
+ * @brief: a step of msg passing in clique trees
+ * distribute the information it knows to the downstream cliques; the msg passes from upstream to downstream
+ * first update the msg; then distribute the msgs to its downstream neighbors;
+ * @param f is in fact a factor received from its upstream clique
+ * @return a msg, which is a factor
+ * The reload version with parameter. Called by recursion.
+ */
+void Clique::Distribute2(PotentialTable &pt, Timer *timer) {
+    // If the next clique connected by this separator is a continuous clique,
+    // then the program should not distribute information to it.// TODO: double-check
+//  bool reach_boundary = false;
+//  for (const auto &next_clq_ptr : set_neighbours_ptr) {
+//    reach_boundary = !next_clq_ptr->pure_discrete;
+//  }
+//  if (reach_boundary) { return; }
+
+    // update the msg by multiplying the current factor with f
+    UpdateUseMessage2(pt, timer);  // Update itself.
+
+    // Prepare message for the downstream.
+    ConstructMessage2(timer);
+
+    for (auto &ptr_separator : set_neighbours_ptr) {
+
+        // all neighbor cliques contain the upstream clique and downstream clique(s)
+        // if the current neighbor "ptr_separator" is the upstream clique, not distribute to it
+        // otherwise, distribute the msg to "ptr_separator"
+        if (ptr_separator == ptr_upstream_clique) {
+            continue;
+        }
+
+        // the current neighbor "ptr_separator" is a downstream clique
+        ptr_separator->ptr_upstream_clique = this;  // Let the callee know the caller.
+        // distribute the msg to downstream
+        ptr_separator->Distribute2(p_table, timer); // Distribute to downstream.
+    }
+}
+
+/**
  * @brief: sum over external variables which are the results of factor multiplication.
  */
 void Clique::SumOutExternalVars(Factor &f, Timer *timer) {
@@ -240,7 +329,40 @@ void Clique::SumOutExternalVars(Factor &f, Timer *timer) {
 //    timer->Stop("factor marginalization");
 }
 
-/************************* use factor ******************************/
+/**
+ * @brief: sum over external variables which are the results of factor multiplication.
+ */
+void Clique::SumOutExternalVars(PotentialTable &pt, Timer *timer) {
+//    timer->Start("set_difference");
+
+//    cout << "  sum out from ";
+//    for (auto &v: pt.related_variables) {
+//        cout << v << " ";
+//    }
+//    cout << endl;
+
+    // get the variables that in "f" but not in "factor_of_this_clique"
+    set<int> set_external_vars;
+    set_difference(pt.related_variables.begin(), pt.related_variables.end(),
+                   this->clique_variables.begin(), this->clique_variables.end(),
+                   inserter(set_external_vars, set_external_vars.begin()));
+//    timer->Stop("set_difference");
+
+//    cout << "  external vars: ";
+//    for (auto &v: set_external_vars) {
+//        cout << v << " ";
+//    }
+//    cout << endl;
+
+//    timer->Start("factor marginalization");
+    // Sum over the variables that are not in the scope of this clique/separator, so as to eliminate them.
+    for (auto &ex_vars : set_external_vars) {
+//        cout << "  sum out " << ex_vars << endl;
+        pt.TableMarginalization(ex_vars);
+    }
+//    timer->Stop("factor marginalization");
+}
+
 /**
  * @brief: multiply a clique with a factor
  */
@@ -259,15 +381,13 @@ void Clique::MultiplyWithFactorSumOverExternalVars(Factor &f, Timer *timer) {
     table = table.MultiplyWithFactor(f); // multiply two factors
 //    timer->Stop("factor multiplication");
 }
-/************************* use factor ******************************/
 
-/************************* use potential table ******************************/
 /**
  * @brief: multiply a clique with a factor
  */
 void Clique::MultiplyWithFactorSumOverExternalVars(PotentialTable &pt, Timer *timer) {
     // sum over the irrelevant variables of the clique
-//    SumOutExternalVars(f, timer); // todo: use it then
+    SumOutExternalVars(pt, timer);
 
     // in the original implementation, "related_variables" is always all the variables in the clique,
     // "set_disc_configs" is always all the configurations of the variables in the clique,
@@ -280,7 +400,6 @@ void Clique::MultiplyWithFactorSumOverExternalVars(PotentialTable &pt, Timer *ti
     p_table = p_table.TableMultiplication(pt); // multiply two factors
 //    timer->Stop("factor multiplication");
 }
-/************************* use potential table ******************************/
 
 void Clique::UpdateUseMessage(Factor &f, Timer *timer) {
 //    timer->Start("update clique");
@@ -288,10 +407,51 @@ void Clique::UpdateUseMessage(Factor &f, Timer *timer) {
 //    timer->Stop("update clique");
 }
 
+void Clique::UpdateUseMessage2(PotentialTable &pt, Timer *timer) {
+//    timer->Start("update clique");
+//    cout << "construct msg of clique ";
+//    for (auto &v: this->p_table.related_variables) {
+//        cout << v << " ";
+//    }
+//    cout << " use msg ";
+//    for (auto &v: pt.related_variables) {
+//        cout << v << " ";
+//    }
+//    cout << endl;
+//    cout << "tables: " << endl;
+//    for (int i = 0; i < this->p_table.table_size; ++i) {
+//        cout << this->p_table.potentials[i] << " ";
+//    }
+//    cout << endl;
+//    for (int i = 0; i < pt.table_size; ++i) {
+//        cout << pt.potentials[i] << " ";
+//    }
+//    cout << endl;
+    MultiplyWithFactorSumOverExternalVars(pt, timer);
+//    timer->Stop("update clique");
+}
+
 /**
  * @brief: construct a factor of this clique and return
  */
 void Clique::ConstructMessage(Timer *timer) {
+    // do nothing
+    return;
+}
+
+/**
+ * @brief: construct a factor of this clique and return
+ */
+void Clique::ConstructMessage2(Timer *timer) {
+//    cout << "construct msg of clique ";
+//    for (auto &v: this->p_table.related_variables) {
+//        cout << v << " ";
+//    }
+//    cout << endl << "table: ";
+//    for (int i = 0; i < this->p_table.table_size; ++i) {
+//        cout << this->p_table.potentials[i] << " ";
+//    }
+//    cout << endl;
     // do nothing
     return;
 }
