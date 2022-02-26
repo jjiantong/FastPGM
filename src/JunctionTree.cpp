@@ -730,17 +730,21 @@ void JunctionTree::AssignPotentials(Timer *timer) { //checked
   // 1, extract the information of nodes.
   // generate all the factors of the network, which are the probabilities of discrete nodes given their parents
   // Extract the CG regressions of continuous nodes.
-  vector<Factor> factors; // Can not use std::set, because Factor does not have definition on operator "<".
+//    /************************* use factor ******************************/
+//  vector<Factor> factors; // Can not use std::set, because Factor does not have definition on operator "<".
+//    /************************* use factor ******************************/
 //  vector<CGRegression> cgrs;
+    /************************* use potential table ******************************/
   vector<PotentialTable> potential_tables;
+    /************************* use potential table ******************************/
 
   for (auto &id_node_ptr : network->map_idx_node_ptr) { // for each node of the network
     auto node_ptr = id_node_ptr.second;
     if (node_ptr->is_discrete) {
       // add the factor that consists of this node and its parents
-        /************************* use factor ******************************/
-        factors.push_back(Factor(dynamic_cast<DiscreteNode*>(node_ptr), this->network)); // each node has one factor
-        /************************* use factor ******************************/
+//        /************************* use factor ******************************/
+//        factors.push_back(Factor(dynamic_cast<DiscreteNode*>(node_ptr), this->network)); // each node has one factor
+//        /************************* use factor ******************************/
 
         /************************* use potential table ******************************/
         potential_tables.push_back(PotentialTable(dynamic_cast<DiscreteNode*>(node_ptr), this->network));
@@ -803,51 +807,50 @@ void JunctionTree::AssignPotentials(Timer *timer) { //checked
   //    2.1 assign each factors and CG regressions to a clique
   //    each factor and CG regression should be use only once
 
-    /************************* use factor ******************************/
-  // For potentials from discrete nodes, they should be assigned to purely discrete cliques.
-  for (auto &f : factors) { // for each factor of the network
-    for (auto &clique_ptr : set_clique_ptr_container) { // for each clique of the graph
-
-      if (f.related_variables.empty() || clique_ptr->clique_variables.empty()) {
-        break;
-      }
-      if (!clique_ptr->pure_discrete) {
-        continue;
-      }
-
-      // get the variables that in the factor but not in the clique
-      set<int> diff;
-      set_difference(f.related_variables.begin(), f.related_variables.end(),
-                     clique_ptr->clique_variables.begin(), clique_ptr->clique_variables.end(),
-                     inserter(diff, diff.begin()));
-      // If "diff" is empty, i.e., all the variables in the factor are in the clique,
-      // which means that the clique can accommodate the scope of the factor - satisfy the family preservation property of cluster graph
-      // (clique tree is a special case of cluster graph)
-      // so we can assign this factor to this clique
-      if (diff.empty()) {
-        // 2.2 construct the initial potential of this clique,
-        // which is the product of factors that assigned to it
-//          cout << "assign factor ";
-//          for (auto &v: f.related_variables) {
-//              cout << v << " ";
-//          }
-//          cout << "to clique ";
-//          for (auto &v: clique_ptr->clique_variables) {
-//              cout << v << " ";
-//          }
-//          cout << endl;
-        clique_ptr->MultiplyWithFactorSumOverExternalVars(f, timer);
-        break;  // Ensure that each factor is used only once.
-      }
-    }
-  }
-    /************************* use factor ******************************/
+//    /************************* use factor ******************************/
+//  // For potentials from discrete nodes, they should be assigned to purely discrete cliques.
+//  for (auto &f : factors) { // for each factor of the network
+//    for (auto &clique_ptr : set_clique_ptr_container) { // for each clique of the graph
+//
+//      if (f.related_variables.empty() || clique_ptr->clique_variables.empty()) {
+//        break;
+//      }
+//      if (!clique_ptr->pure_discrete) {
+//        continue;
+//      }
+//
+//      // get the variables that in the factor but not in the clique
+//      set<int> diff;
+//      set_difference(f.related_variables.begin(), f.related_variables.end(),
+//                     clique_ptr->clique_variables.begin(), clique_ptr->clique_variables.end(),
+//                     inserter(diff, diff.begin()));
+//      // If "diff" is empty, i.e., all the variables in the factor are in the clique,
+//      // which means that the clique can accommodate the scope of the factor - satisfy the family preservation property of cluster graph
+//      // (clique tree is a special case of cluster graph)
+//      // so we can assign this factor to this clique
+//      if (diff.empty()) {
+//        // 2.2 construct the initial potential of this clique,
+//        // which is the product of factors that assigned to it
+////          cout << "assign factor ";
+////          for (auto &v: f.related_variables) {
+////              cout << v << " ";
+////          }
+////          cout << "to clique ";
+////          for (auto &v: clique_ptr->clique_variables) {
+////              cout << v << " ";
+////          }
+////          cout << endl;
+//        clique_ptr->MultiplyWithFactorSumOverExternalVars(f, timer);
+//        break;  // Ensure that each factor is used only once.
+//      }
+//    }
+//  }
+//    /************************* use factor ******************************/
 
     /************************* use potential table ******************************/
     // For potentials from discrete nodes, they should be assigned to purely discrete cliques.
     for (auto &pt : potential_tables) { // for each factor of the network
         for (auto &clique_ptr : set_clique_ptr_container) { // for each clique of the graph
-
             if (pt.related_variables.empty() || clique_ptr->clique_variables.empty()) {
                 break;
             }
@@ -946,77 +949,77 @@ void JunctionTree::ResetJunctionTree() {
  * @brief: when inferring, an evidence is given. The evidence needs to be loaded and propagate in the network.
  */
 void JunctionTree::LoadDiscreteEvidence(const DiscreteConfig &E) {
-    /*********************** load evidence on all cliques and seps **************************/
-    // cannot just erase "comb" inside the inner most loop,
-    // because it will cause problem in factor division...
-    for (auto &e: E) { // for each observation of variable
-        for (auto &clique_ptr : set_clique_ptr_container) { // for each clique
-            // if this factor is related to the observation
-            if (clique_ptr->table.related_variables.find(e.first) != clique_ptr->table.related_variables.end()) {
-                clique_ptr->table.related_variables.erase(e.first);
-
-                set <DiscreteConfig> set_reduced_disc_configs;
-                map<DiscreteConfig, double> map_reduced_potentials;
-                // for each discrete config of this factor
-                for (auto &comb: clique_ptr->table.set_disc_configs) {
-                    // if this config and the evidence have different values on common variables,
-                    // which means that they conflict, then this config will be removed
-                    // so otherwise, it will be kept
-                    if (comb.find(e) != comb.end()) {
-                        DiscreteConfig reduced_config; // we need to reduce the config, remove the unrelated variables
-                        for (auto &p: comb) { // for all pairs in the config (we select all related variables from them)
-                            if (p.first != e.first) {
-                                // this variable is not unrelated, so this pair should be kept
-                                reduced_config.insert(p);
-                            }
-                        }
-                        // add new
-                        set_reduced_disc_configs.insert(reduced_config);
-                        map_reduced_potentials[reduced_config] = clique_ptr->table.map_potentials[comb];
-                    }
-                }
-                clique_ptr->table.set_disc_configs = set_reduced_disc_configs;
-                clique_ptr->table.map_potentials = map_reduced_potentials;
-            }
-        }
-    }
-
-    for (auto &e: E) { // for each observation of variable
-        for (auto &sep_ptr : set_separator_ptr_container) { // for each sep
-            // if this factor is related to the observation
-            if (sep_ptr->table.related_variables.find(e.first) != sep_ptr->table.related_variables.end()) {
-                sep_ptr->table.related_variables.erase(e.first);
-
-                set<DiscreteConfig> set_reduced_disc_configs;
-                map<DiscreteConfig, double> map_reduced_potentials;
-                // for each discrete config of this factor
-                for (auto &comb: sep_ptr->table.set_disc_configs) {
-                    // if this config and the evidence have different values on common variables,
-                    // which means that they conflict, then this config will be removed
-                    // so otherwise, it will be kept
-                    if (comb.find(e) != comb.end()) {
-                        auto tmp_potential = sep_ptr->table.map_potentials[comb]; // save the potential of this config
-
-                        DiscreteConfig reduced_config; // we need to reduce the config, remove the unrelated variables
-                        for (auto &p: comb) { // for all pairs in the config (we select all related variables from them)
-                            if (p.first != e.first) {
-                                // this variable is not unrelated, so this pair should be kept
-                                reduced_config.insert(p);
-                            }
-                        }
-
-                        // add new
-                        set_reduced_disc_configs.insert(reduced_config);
-                        map_reduced_potentials[reduced_config] = tmp_potential;
-                    }
-                }
-
-                sep_ptr->table.set_disc_configs = set_reduced_disc_configs;
-                sep_ptr->table.map_potentials = map_reduced_potentials;
-            }
-        }
-    }
-    /*********************** load evidence on all cliques and seps **************************/
+//    /*********************** load evidence on all cliques and seps **************************/
+//    // cannot just erase "comb" inside the inner most loop,
+//    // because it will cause problem in factor division...
+//    for (auto &e: E) { // for each observation of variable
+//        for (auto &clique_ptr : set_clique_ptr_container) { // for each clique
+//            // if this factor is related to the observation
+//            if (clique_ptr->table.related_variables.find(e.first) != clique_ptr->table.related_variables.end()) {
+//                clique_ptr->table.related_variables.erase(e.first);
+//
+//                set <DiscreteConfig> set_reduced_disc_configs;
+//                map<DiscreteConfig, double> map_reduced_potentials;
+//                // for each discrete config of this factor
+//                for (auto &comb: clique_ptr->table.set_disc_configs) {
+//                    // if this config and the evidence have different values on common variables,
+//                    // which means that they conflict, then this config will be removed
+//                    // so otherwise, it will be kept
+//                    if (comb.find(e) != comb.end()) {
+//                        DiscreteConfig reduced_config; // we need to reduce the config, remove the unrelated variables
+//                        for (auto &p: comb) { // for all pairs in the config (we select all related variables from them)
+//                            if (p.first != e.first) {
+//                                // this variable is not unrelated, so this pair should be kept
+//                                reduced_config.insert(p);
+//                            }
+//                        }
+//                        // add new
+//                        set_reduced_disc_configs.insert(reduced_config);
+//                        map_reduced_potentials[reduced_config] = clique_ptr->table.map_potentials[comb];
+//                    }
+//                }
+//                clique_ptr->table.set_disc_configs = set_reduced_disc_configs;
+//                clique_ptr->table.map_potentials = map_reduced_potentials;
+//            }
+//        }
+//    }
+//
+//    for (auto &e: E) { // for each observation of variable
+//        for (auto &sep_ptr : set_separator_ptr_container) { // for each sep
+//            // if this factor is related to the observation
+//            if (sep_ptr->table.related_variables.find(e.first) != sep_ptr->table.related_variables.end()) {
+//                sep_ptr->table.related_variables.erase(e.first);
+//
+//                set<DiscreteConfig> set_reduced_disc_configs;
+//                map<DiscreteConfig, double> map_reduced_potentials;
+//                // for each discrete config of this factor
+//                for (auto &comb: sep_ptr->table.set_disc_configs) {
+//                    // if this config and the evidence have different values on common variables,
+//                    // which means that they conflict, then this config will be removed
+//                    // so otherwise, it will be kept
+//                    if (comb.find(e) != comb.end()) {
+//                        auto tmp_potential = sep_ptr->table.map_potentials[comb]; // save the potential of this config
+//
+//                        DiscreteConfig reduced_config; // we need to reduce the config, remove the unrelated variables
+//                        for (auto &p: comb) { // for all pairs in the config (we select all related variables from them)
+//                            if (p.first != e.first) {
+//                                // this variable is not unrelated, so this pair should be kept
+//                                reduced_config.insert(p);
+//                            }
+//                        }
+//
+//                        // add new
+//                        set_reduced_disc_configs.insert(reduced_config);
+//                        map_reduced_potentials[reduced_config] = tmp_potential;
+//                    }
+//                }
+//
+//                sep_ptr->table.set_disc_configs = set_reduced_disc_configs;
+//                sep_ptr->table.map_potentials = map_reduced_potentials;
+//            }
+//        }
+//    }
+//    /*********************** load evidence on all cliques and seps **************************/
 
 //    /*********************** load evidence on only one clique **************************/
 //    for (auto &e : E) {  // For each node's observation in E
@@ -1053,7 +1056,6 @@ void JunctionTree::LoadDiscreteEvidence(const DiscreteConfig &E) {
         }
 
 //        cout << "about e: index = " << index << ", value = " << value << ", value index = " << value_index << endl;
-
         for (auto &clique_ptr : set_clique_ptr_container) { // for each clique
 //            cout << "clique ";
 //            for (auto &v: clique_ptr->p_table.related_variables) {
@@ -1115,11 +1117,15 @@ void JunctionTree::MessagePassingUpdateJT(Timer *timer) {
   // Arbitrarily select a clique as the root.
   auto iter = set_clique_ptr_container.begin();
   Clique *arb_root = *iter;
-  arb_root->Collect(timer);
-  arb_root->Distribute(timer);
+//    /************************* use factor ******************************/
+//  arb_root->Collect(timer);
+//  arb_root->Distribute(timer);
+//    /************************* use factor ******************************/
 
+    /************************* use potential table ******************************/
     arb_root->Collect2(timer);
     arb_root->Distribute2(timer);
+    /************************* use potential table ******************************/
 }
 
 void JunctionTree::PrintAllCliquesPotentials() const {
@@ -1189,71 +1195,90 @@ Factor JunctionTree::BeliefPropagationCalcuDiscreteVarMarginal(int query_index) 
 
 }
 
-///**
-// * @brief: compute the marginal distribution for a query variable
-// **/
-//PotentialTable JunctionTree::BeliefPropagationCalcuDiscreteVarMarginal2(int query_index) {
-//
-//    // The input is a set of query_indexes of variables.
-//    // The output is a factor representing the joint marginal of these variables.
-//    // TODO: here only support one query variable
-//
-//    int min_size = INT32_MAX;
-//    Clique *selected_clique = nullptr;
-//
-//    // The case where the query variables are all appear in one clique.
-//    // Find the clique that contains this variable,
-//    // whose size of potentials table is the smallest,
-//    // which can reduce the number of sum operation.
-//    // TODO: find from separator
-//    for (auto &c : set_clique_ptr_container) {
-//        if (!c->pure_discrete) {
-//            continue;
-//        }
-//        if (c->p_table.related_variables.find(query_index) == c->p_table.related_variables.end()) { // cannot find the query variable
-//            continue;
-//        }
-//        if (c->p_table.related_variables.size() >= min_size) {
-//            continue;
-//        }
-//        min_size = c->p_table.related_variables.size();
-//        selected_clique = c;
-//    }
-//
-//    if (selected_clique == nullptr) {
-//        fprintf(stderr, "Error in function [%s]\n"
-//                        "Variable [%d] does not appear in any clique!", __FUNCTION__, query_index);
-//        exit(1);
-//    }
-//
-//    set<int> other_vars = selected_clique->table.related_variables;
-//    other_vars.erase(query_index);
-//
-//    Factor f(selected_clique->table.related_variables, selected_clique->table.set_disc_configs, selected_clique->table.map_potentials);
-//
-//    for (auto &index : other_vars) {
-//        f = f.SumOverVar(index);
-//    }
-//
+/**
+ * @brief: compute the marginal distribution for a query variable
+ **/
+PotentialTable JunctionTree::BeliefPropagationCalcuDiscreteVarMarginal2(int query_index) {
+
+    // The input is a set of query_indexes of variables.
+    // The output is a factor representing the joint marginal of these variables.
+    // TODO: here only support one query variable
+
+    int min_size = INT32_MAX;
+    Clique *selected_clique = nullptr;
+
+    // The case where the query variables are all appear in one clique.
+    // Find the clique that contains this variable,
+    // whose size of potentials table is the smallest,
+    // which can reduce the number of sum operation.
+    // TODO: find from separator
+    for (auto &c : set_clique_ptr_container) {
+        if (!c->pure_discrete) {
+            continue;
+        }
+        if (c->p_table.related_variables.find(query_index) == c->p_table.related_variables.end()) { // cannot find the query variable
+            continue;
+        }
+        if (c->p_table.related_variables.size() >= min_size) {
+            continue;
+        }
+        min_size = c->p_table.related_variables.size();
+        selected_clique = c;
+    }
+
+    if (selected_clique == nullptr) {
+        fprintf(stderr, "Error in function [%s]\n"
+                        "Variable [%d] does not appear in any clique!", __FUNCTION__, query_index);
+        exit(1);
+    }
+
+    set<int> other_vars = selected_clique->p_table.related_variables;
+    other_vars.erase(query_index);
+
+    PotentialTable pt = selected_clique->p_table;
+
+    for (auto &index : other_vars) {
+        pt.TableMarginalization(index);
+    }
+
 //    f.Normalize(); // todo: no need to do normalization
-//    return f;
-//
-//}
+    return pt;
+
+}
 
 /**
- * @brief: predict the lable for a given variable.
+ * @brief: predict the label for a given variable.
  */
 int JunctionTree::InferenceUsingBeliefPropagation(int &query_index) {
-  Factor f = BeliefPropagationCalcuDiscreteVarMarginal(query_index);
-  double max_prob = 0;
-  DiscreteConfig comb_predict; // set< pair<int, int> >
-  for (auto &comb : f.set_disc_configs) {
-    if (f.map_potentials[comb] > max_prob) {
-      max_prob = f.map_potentials[comb];
-      comb_predict = comb;
+//    /************************* use factor ******************************/
+//  Factor f = BeliefPropagationCalcuDiscreteVarMarginal(query_index);
+//  double max_prob = 0;
+//  DiscreteConfig comb_predict; // set< pair<int, int> >
+//  for (auto &comb : f.set_disc_configs) {
+//    if (f.map_potentials[comb] > max_prob) {
+//      max_prob = f.map_potentials[comb];
+//      comb_predict = comb;
+//    }
+//  }
+//  int label_predict = comb_predict.begin()->second; // TODO: use "query_index"
+//    /************************* use factor ******************************/
+
+    /************************* use potential table ******************************/
+    PotentialTable pt = BeliefPropagationCalcuDiscreteVarMarginal2(query_index);
+    double max_prob = 0;
+    int max_index;
+    for (int i = 0; i < pt.table_size; ++i) { // traverse the potential table
+        if (pt.potentials[i] > max_prob) {
+            max_prob = pt.potentials[i];
+            max_index = i;
+        }
     }
-  }
-  int label_predict = comb_predict.begin()->second; // TODO: use "query_index"
+    // "pt" has only one related variable, which is exactly the query variable,
+    // so the "max_index" exactly means which value of the query variable gets the max probability
+    auto dn = dynamic_cast<DiscreteNode*>(network->FindNodePtrByIndex(query_index));
+    int label_predict = dn->vec_potential_vals.at(max_index);
+    /************************* use potential table ******************************/
+
   return label_predict;
 }
 

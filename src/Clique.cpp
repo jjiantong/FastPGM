@@ -33,30 +33,30 @@ Clique::Clique(set<Node*> set_node_ptr) {
   // In the paper, all continuous cliques' activeflags are initially set to true.
   activeflag = !pure_discrete;
 
-  // set_of_sets: set< set< pair<int, int> > >:
-  //    one set is all possible values of one node(variable),
-  //    set of sets is all possible values of all nodes.
-  // c: set< pair<int, int> >
-  set<DiscreteConfig> set_of_sets;
-  for (auto &n : set_node_ptr) { // for each node
-    //initialize related variables
-      clique_variables.insert(n->GetNodeIndex()); // insert into related_variables
-    if (n->is_discrete) {
-      auto dn = dynamic_cast<DiscreteNode*>(n);
-      DiscreteConfig c; // multiple groups: [node id, all possible values of this node]
-      for (int i = 0; i < dn->GetDomainSize(); ++i) {
-        c.insert(pair<int, int>(n->GetNodeIndex(), dn->vec_potential_vals.at(i)));
-      }
-      set_of_sets.insert(c);
-    }
-  }
-
-    /************************* use factor ******************************/
-//  table = new Factor();
-    table.related_variables = clique_variables;
-    table.set_disc_configs = GenAllCombinationsFromSets(&set_of_sets);
-    PreInitializePotentials();
-    /************************* use factor ******************************/
+//    /************************* use factor ******************************/
+//  // set_of_sets: set< set< pair<int, int> > >:
+//  //    one set is all possible values of one node(variable),
+//  //    set of sets is all possible values of all nodes.
+//  // c: set< pair<int, int> >
+//  set<DiscreteConfig> set_of_sets;
+//  for (auto &n : set_node_ptr) { // for each node
+//    //initialize related variables
+//      clique_variables.insert(n->GetNodeIndex()); // insert into related_variables
+//    if (n->is_discrete) {
+//      auto dn = dynamic_cast<DiscreteNode*>(n);
+//      DiscreteConfig c; // multiple groups: [node id, all possible values of this node]
+//      for (int i = 0; i < dn->GetDomainSize(); ++i) {
+//        c.insert(pair<int, int>(n->GetNodeIndex(), dn->vec_potential_vals.at(i)));
+//      }
+//      set_of_sets.insert(c);
+//    }
+//  }
+//
+////  table = new Factor();
+//    table.related_variables = clique_variables;
+//    table.set_disc_configs = GenAllCombinationsFromSets(&set_of_sets);
+//    PreInitializePotentials();
+//    /************************* use factor ******************************/
 
     /************************* use potential table ******************************/
     // potential table
@@ -64,7 +64,7 @@ Clique::Clique(set<Node*> set_node_ptr) {
     p_table.var_dims.reserve(clique_size);
     for (auto &n : set_node_ptr) { // for each node
         //initialize related variables
-//        clique_variables.insert(n->GetNodeIndex()); // insert into related_variables todo: use it
+        clique_variables.insert(n->GetNodeIndex());
         if (n->is_discrete) {
             auto dn = dynamic_cast<DiscreteNode*>(n);
             p_table.var_dims.push_back(dn->GetDomainSize());
@@ -88,7 +88,6 @@ Clique::Clique(set<Node*> set_node_ptr) {
 
     p_table.related_variables = clique_variables;
     /************************* use potential table ******************************/
-
 
     ptr_upstream_clique = nullptr;
 }
@@ -443,15 +442,6 @@ void Clique::ConstructMessage(Timer *timer) {
  * @brief: construct a factor of this clique and return
  */
 void Clique::ConstructMessage2(Timer *timer) {
-//    cout << "construct msg of clique ";
-//    for (auto &v: this->p_table.related_variables) {
-//        cout << v << " ";
-//    }
-//    cout << endl << "table: ";
-//    for (int i = 0; i < this->p_table.table_size; ++i) {
-//        cout << this->p_table.potentials[i] << " ";
-//    }
-//    cout << endl;
     // do nothing
     return;
 }
