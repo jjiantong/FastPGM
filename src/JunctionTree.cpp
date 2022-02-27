@@ -940,11 +940,6 @@ void JunctionTree::ResetJunctionTree() {
   }
 }
 
-//void JunctionTree::LoadEvidenceAndMessagePassingUpdateJT(const DiscreteConfig &E) {
-//  LoadDiscreteEvidence(E);
-//  MessagePassingUpdateJT();
-//}
-
 /**
  * @brief: when inferring, an evidence is given. The evidence needs to be loaded and propagate in the network.
  */
@@ -1128,21 +1123,21 @@ void JunctionTree::MessagePassingUpdateJT(Timer *timer) {
     /************************* use potential table ******************************/
 }
 
-void JunctionTree::PrintAllCliquesPotentials() const {
-  cout << "Cliques" << '\n';
-  for (auto &c : set_clique_ptr_container) {
-    c->PrintPotentials();
-  }
-  cout << "==================================================" << endl;
-}
+//void JunctionTree::PrintAllCliquesPotentials() const {
+//  cout << "Cliques" << '\n';
+//  for (auto &c : set_clique_ptr_container) {
+//    c->PrintPotentials();
+//  }
+//  cout << "==================================================" << endl;
+//}
 
-void JunctionTree::PrintAllSeparatorsPotentials() const {
-  cout << "Separators" << '\n';
-  for (auto &s : set_separator_ptr_container) {
-    s->PrintPotentials();
-  }
-  cout << "==================================================" << endl;
-}
+//void JunctionTree::PrintAllSeparatorsPotentials() const {
+//  cout << "Separators" << '\n';
+//  for (auto &s : set_separator_ptr_container) {
+//    s->PrintPotentials();
+//  }
+//  cout << "==================================================" << endl;
+//}
 
 /**
  * @brief: compute the marginal distribution for a query variable

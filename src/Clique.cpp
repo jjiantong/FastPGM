@@ -12,8 +12,6 @@ Clique::Clique() {
   pure_discrete = true;
   ptr_upstream_clique = nullptr;
   activeflag = false;
-
-//    table = new Factor();
 }
 
 Clique::Clique(set<Node*> set_node_ptr) {
@@ -52,7 +50,6 @@ Clique::Clique(set<Node*> set_node_ptr) {
 //    }
 //  }
 //
-////  table = new Factor();
 //    table.related_variables = clique_variables;
 //    table.set_disc_configs = GenAllCombinationsFromSets(&set_of_sets);
 //    PreInitializePotentials();
@@ -91,10 +88,6 @@ Clique::Clique(set<Node*> set_node_ptr) {
 
     ptr_upstream_clique = nullptr;
 }
-
-//Clique::~Clique() {
-//    delete table;
-//}
 
 /**
  * @brief: potential is similar to weight, and can be used to compute probability.
@@ -178,9 +171,7 @@ Factor Clique::Collect(Timer *timer) {
  * @return a msg, which is a factor
  */
 PotentialTable Clique::Collect2(Timer *timer) {
-
     for (auto &ptr_separator : set_neighbours_ptr) {
-
         /** when it reaches a leaf, the only neighbour is the upstream,
          * which can be viewed as the base case of recursive function.
          */
@@ -396,7 +387,7 @@ void Clique::MultiplyWithFactorSumOverExternalVars(PotentialTable &pt, Timer *ti
     // at the same time, the original implementation copy a new factor of the clique, use the copy to compute,
     // and then copy back the "map_potentials", which is not efficient...
 //    timer->Start("factor multiplication");
-    p_table = p_table.TableMultiplication(pt); // multiply two factors
+    p_table.TableMultiplication(pt); // multiply two factors
 //    timer->Stop("factor multiplication");
 }
 
@@ -446,21 +437,21 @@ void Clique::ConstructMessage2(Timer *timer) {
     return;
 }
 
-void Clique::PrintPotentials() const {
-  if (pure_discrete) {
-    for (const auto &potentials_key_value : table.map_potentials) {
-      for (const auto &vars_index_value : potentials_key_value.first) {
-        cout << '(' << vars_index_value.first << ',' << vars_index_value.second << ") ";
-      }
-      cout << "\t: " << potentials_key_value.second << endl;
-    }
-  } else {
-    fprintf(stderr, "%s not implemented for continuous clique yet!", __FUNCTION__);
-    exit(1);
-    // todo: implement
-  }
-  cout << "----------" << endl;
-}
+//void Clique::PrintPotentials() const {
+//  if (pure_discrete) {
+//    for (const auto &potentials_key_value : table.map_potentials) {
+//      for (const auto &vars_index_value : potentials_key_value.first) {
+//        cout << '(' << vars_index_value.first << ',' << vars_index_value.second << ") ";
+//      }
+//      cout << "\t: " << potentials_key_value.second << endl;
+//    }
+//  } else {
+//    fprintf(stderr, "%s not implemented for continuous clique yet!", __FUNCTION__);
+//    exit(1);
+//    // todo: implement
+//  }
+//  cout << "----------" << endl;
+//}
 
 //void Clique::PrintRelatedVars() const {
 //  string out = "{  ";

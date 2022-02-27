@@ -14,8 +14,7 @@ PotentialTable::PotentialTable(DiscreteNode *disc_node, Network *net) {
 
     related_variables.insert(node_index); // related_variables is empty initially, because this is a constructor
 
-    // If this disc_node has no parents.
-    if (!disc_node->HasParents()) {
+    if (!disc_node->HasParents()) { // if this disc_node has no parents.
         num_variables = 1;
         var_dims.reserve(num_variables);
         var_dims.push_back(node_dim);
@@ -29,8 +28,7 @@ PotentialTable::PotentialTable(DiscreteNode *disc_node, Network *net) {
             // potentials[i]
             potentials.push_back(disc_node->GetProbability(disc_node->vec_potential_vals.at(i), empty_par_config));
         }
-    }
-    else {// If this disc_node has parents
+    } else { // if this disc_node has parents
         related_variables.insert(disc_node->set_parent_indexes.begin(), disc_node->set_parent_indexes.end());
         num_variables = related_variables.size();
 
@@ -115,7 +113,7 @@ vector<int> PotentialTable::GetConfigValueByTableIndex(int table_index) {
 /*!
  * @brief: get table index given each value (index) of the configuration
  */
-int PotentialTable::GetTableIndexByConfigValue(vector<int> config_value) {
+int PotentialTable::GetTableIndexByConfigValue(const vector<int> &config_value) {
     int table_index = 0;
     for (int i = 0; i < num_variables; ++i) {
         table_index += config_value[i] * cum_levels[i];
@@ -181,12 +179,7 @@ void PotentialTable::TableExtension(set<int> variables, vector<int> dims) {
         new_table.potentials.push_back(this->potentials[table_index]);
     }
 
-    this->related_variables = new_table.related_variables;
-    this->potentials = new_table.potentials;
-    this->var_dims = new_table.var_dims;
-    this->cum_levels = new_table.cum_levels;
-    this->num_variables = new_table.num_variables;
-    this->table_size = new_table.table_size;
+    (*this) = new_table;
 }
 
 /**
@@ -194,13 +187,17 @@ void PotentialTable::TableExtension(set<int> variables, vector<int> dims) {
  * if two factors have shared variables, the conflict ones (i.e. one variable has more than one value) in the results need to be removed.
  * if "related_variables" of one of the factors is empty, then directly return the other factor without multiplication
  * because the case means that this factor is a constant; since we re-normalize at the end, the constant will not affect the result
+ * @input: this table and "second_table"
+ * @output: this table
  */
-PotentialTable PotentialTable::TableMultiplication(PotentialTable second_table) {
+void PotentialTable::TableMultiplication(PotentialTable second_table) {
     if (this->related_variables.empty()) {
-        return second_table;
+        (*this) = second_table; // directly return "second_table"
+//        return second_table;
     }
     if (second_table.related_variables.empty()) {
-        return *this;
+        return; // directly return this table
+//        return (*this);
     }
 
     set<int> all_related_variables;
@@ -244,8 +241,7 @@ PotentialTable PotentialTable::TableMultiplication(PotentialTable second_table) 
     for (int i = 0; i < this->table_size; ++i) {
         this->potentials[i] *= second_table.potentials[i];
     }
-
-    return (*this);
+//    return (*this);
 }
 
 /*!
@@ -324,15 +320,9 @@ void PotentialTable::TableMarginalization(int index) {
     new_table.related_variables = this->related_variables;
     new_table.related_variables.erase(index);
     new_table.num_variables = this->num_variables - 1;
-//    cout << "related variables: ";
-//    for (auto &v: new_table.related_variables) {
-//        cout << v << " ";
-//    }
-//    cout << endl << "num variables = " << new_table.num_variables << endl;
 
     // find the location of the variable in the old table
     int v_loc = this->GetVariableIndex(index); // eg. 2 ---- 0 1 2 3 4 -> 0 1 3 4
-//    cout << "location of the variable: " << v_loc << endl;
     // generate an array showing the locations of the left variables in the old table
     int *loc_in_old = new int[new_table.num_variables];
     for (int i = 0; i < new_table.num_variables; ++i) {
@@ -341,11 +331,6 @@ void PotentialTable::TableMarginalization(int index) {
             loc_in_old[i]++;
         }
     }
-//    cout << "location of others: ";
-//    for (int i = 0; i < new_table.num_variables; ++i) {
-//        cout << loc_in_old[i] << " ";
-//    }
-//    cout << endl;
 
     if (new_table.num_variables > 0) {
         new_table.var_dims.reserve(new_table.num_variables);
@@ -354,11 +339,6 @@ void PotentialTable::TableMarginalization(int index) {
                 new_table.var_dims.push_back(this->var_dims[i]);
             }
         }
-//        cout << "dims: ";
-//        for (int i = 0; i < new_table.var_dims.size(); ++i) {
-//            cout << new_table.var_dims[i] << " ";
-//        }
-//        cout << endl;
 
         new_table.cum_levels.resize(new_table.num_variables);
         // set the right-most one ...
@@ -367,15 +347,9 @@ void PotentialTable::TableMarginalization(int index) {
         for (int i = new_table.num_variables - 2; i >= 0; --i) {
             new_table.cum_levels[i] = new_table.cum_levels[i + 1] * new_table.var_dims[i + 1];
         }
-//        cout << "levels: ";
-//        for (int i = 0; i < new_table.cum_levels.size(); ++i) {
-//            cout << new_table.cum_levels[i] << " ";
-//        }
-//        cout << endl;
 
         // compute the table size -- number of possible configurations
         new_table.table_size = new_table.cum_levels[0] * new_table.var_dims[0];
-//        cout << "table size = " << new_table.table_size << endl;
     } else {
         new_table.var_dims = vector<int>();
         new_table.cum_levels = vector<int>();
@@ -387,48 +361,25 @@ void PotentialTable::TableMarginalization(int index) {
     for (int i = 0; i < new_table.table_size; ++i) {
         new_table.potentials.push_back(0);
     }
-//    cout << "potentials after initialization: ";
-//    for (int i = 0; i < new_table.table_size; ++i) {
-//        cout << new_table.potentials[i] << " ";
-//    }
-//    cout << endl;
 
     // traverse all rows of the original table
     for (int i = 0; i < this->table_size; ++i) {
-//        cout << "i = " << i << endl;
         // 1. get the full config value of old table
         vector<int> full_config = this->GetConfigValueByTableIndex(i);
-//        cout << "full config: ";
-//        for (int j = 0; j < full_config.size(); ++j) {
-//            cout << full_config[j] << " ";
-//        }
-//        cout << endl;
         // 2. get the partial config value from the old table
         vector<int> partial_config;
         partial_config.reserve(new_table.num_variables);
         for (int j = 0; j < new_table.num_variables; ++j) {
             partial_config.push_back(full_config[loc_in_old[j]]);
         }
-//        cout << "partial config: ";
-//        for (int j = 0; j < new_table.num_variables; ++j) {
-//            cout << partial_config[j] << " ";
-//        }
-//        cout << endl;
         // obtain the potential index
         int table_index = new_table.GetTableIndexByConfigValue(partial_config);
-//        cout << "get the index = " << table_index << endl;
         // potential[table_index]
         new_table.potentials[table_index] += this->potentials[i];
-//        cout << "update potential[index] to " << new_table.potentials[table_index] << endl;
     }
     delete[] loc_in_old;
 
-    this->related_variables = new_table.related_variables;
-    this->potentials = new_table.potentials;
-    this->var_dims = new_table.var_dims;
-    this->cum_levels = new_table.cum_levels;
-    this->num_variables = new_table.num_variables;
-    this->table_size = new_table.table_size;
+    (*this) = new_table;
 }
 
 void PotentialTable::Normalize() {

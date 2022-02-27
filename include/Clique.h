@@ -33,7 +33,6 @@ class Clique {
 //  set<int> related_variables; //the variables involved in this clique
 //  set<DiscreteConfig> set_disc_configs; //all the configurations of the related variables
 //  map<DiscreteConfig, double> map_potentials; //the potential of each discrete config
-//  Factor *table;
     Factor table;
     PotentialTable p_table;
 
@@ -60,35 +59,36 @@ class Clique {
   vector<CGRegression> lp_potential;
   vector<CGRegression> post_bag;
 
-
   Clique();
 //  Clique(set<Node*> set_node_ptrs, int elim_var_index);
     Clique(set<Node*> set_node_ptrs);
-//  ~Clique();
 
 //  Clique* CopyWithoutPtr();
   void MultiplyWithFactorSumOverExternalVars(Factor &f, Timer *timer);
-    void MultiplyWithFactorSumOverExternalVars(PotentialTable &pt, Timer *timer);
   Factor Collect(Timer *timer);
-    PotentialTable Collect2(Timer *timer);
   void Distribute(Timer *timer);
-    void Distribute2(Timer *timer);
 
   virtual void UpdateUseMessage(Factor &f, Timer *timer);
-    virtual void UpdateUseMessage2(PotentialTable &pt, Timer *timer);
   virtual void ConstructMessage(Timer *timer);
+
+    void MultiplyWithFactorSumOverExternalVars(PotentialTable &pt, Timer *timer);
+    PotentialTable Collect2(Timer *timer);
+    void Distribute2(Timer *timer);
+
+    virtual void UpdateUseMessage2(PotentialTable &pt, Timer *timer);
     virtual void ConstructMessage2(Timer *timer);
-  void PrintPotentials() const;
+
+//  void PrintPotentials() const;
 //  void PrintRelatedVars() const;
 
  protected:
   Clique(const Clique&) = default;
   void SumOutExternalVars(Factor &f, Timer *timer);
-    void SumOutExternalVars(PotentialTable &pt, Timer *timer);
   void Distribute(Factor &f, Timer *timer);
-    void Distribute2(PotentialTable &pt, Timer *timer);
   void PreInitializePotentials();
-};
 
+    void SumOutExternalVars(PotentialTable &pt, Timer *timer);
+    void Distribute2(PotentialTable &pt, Timer *timer);
+};
 
 #endif //BAYESIANNETWORK_CLIQUE_H

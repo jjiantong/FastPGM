@@ -41,22 +41,14 @@ public:
 
     DiscreteConfig GetConfigByTableIndex(int table_index, Network *net);
     vector<int> GetConfigValueByTableIndex(int table_index);
-    int GetTableIndexByConfigValue(vector<int> config_value);
+    int GetTableIndexByConfigValue(const vector<int> &config_value);
     int GetVariableIndex(int variable);
 
     void TableExtension(set<int> variables, vector<int> dims);
-    PotentialTable TableMultiplication(PotentialTable second_table);
+    void TableMultiplication(PotentialTable second_table);
     void TableReduction(int e_index, int e_value_index);
     void TableMarginalization(int index);
     void Normalize();
-
-//    Factor MultiplyWithFactor(Factor second_factor);
-//    Factor SumOverVar(DiscreteNode *);
-//    Factor SumOverVar(int);
-//    void FactorReduction(DiscreteConfig evidence);
-//    void Normalize();
-//
-//    void PrintPotentials() const;
 };
 
 #endif //BAYESIANNETWORK_POTENTIALTABLE_H

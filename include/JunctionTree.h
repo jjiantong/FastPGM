@@ -21,7 +21,6 @@ class JunctionTree: public Inference {
   vector<int> elimination_ordering;
 //  map<int, Clique*> map_elim_var_to_clique; //key: main variable of a clique; value: the clique
 
-
   JunctionTree() = default;
   JunctionTree(Network *net);
   JunctionTree(Network *net, string elim_ord_strategy);
@@ -31,14 +30,13 @@ class JunctionTree: public Inference {
 
   void ResetJunctionTree();
   virtual void LoadDiscreteEvidence(const DiscreteConfig &E);
-//  void LoadEvidenceAndMessagePassingUpdateJT(const DiscreteConfig &E);
 
-  void PrintAllCliquesPotentials() const;
-  void PrintAllSeparatorsPotentials() const;
+//  void PrintAllCliquesPotentials() const;
+//  void PrintAllSeparatorsPotentials() const;
 
-  Factor BeliefPropagationCalcuDiscreteVarMarginal(int query_index);
+    Factor BeliefPropagationCalcuDiscreteVarMarginal(int query_index);
     PotentialTable BeliefPropagationCalcuDiscreteVarMarginal2(int query_index);
-  int InferenceUsingBeliefPropagation(int &query_index);
+    int InferenceUsingBeliefPropagation(int &query_index);
 
     virtual double EvaluateAccuracy(Dataset *dts, int num_samp, string alg, bool is_dense);
     int PredictUseJTInfer(const DiscreteConfig &E, int Y_index, Timer *timer);
@@ -49,10 +47,7 @@ class JunctionTree: public Inference {
   map<Clique*,Clique> map_cliques_backup;
   map<Separator*,Separator> map_separators_backup;
 
-  void Triangulate(Network *net,
-                   int **adjac_matrix,
-                   vector<int> elim_ord,
-                   set<Clique*> &cliques);
+  void Triangulate(Network *net, int **adjac_matrix, vector<int> elim_ord, set<Clique*> &cliques);
 //  void FormListShapeJunctionTree(set<Clique*> &cliques);
   void FormJunctionTree(set<Clique*> &cliques);
   void NumberTheCliquesAndSeparators();
@@ -62,8 +57,6 @@ class JunctionTree: public Inference {
   static vector<int> MinNeighbourElimOrd(int **adjac_matrix, int &num_nodes);
   static void Moralize(int **direc_adjac_matrix, int &num_nodes);
 //  void GenMapElimVarToClique();
-
 };
-
 
 #endif //BAYESIANNETWORK_JUNCTIONTREE_H
