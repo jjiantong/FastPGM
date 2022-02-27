@@ -48,6 +48,7 @@ public:
     PotentialTable TableMultiplication(PotentialTable second_table);
     void TableReduction(int e_index, int e_value_index);
     void TableMarginalization(int index);
+    void Normalize();
 
 //    Factor MultiplyWithFactor(Factor second_factor);
 //    Factor SumOverVar(DiscreteNode *);

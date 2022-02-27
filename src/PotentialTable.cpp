@@ -430,3 +430,17 @@ void PotentialTable::TableMarginalization(int index) {
     this->num_variables = new_table.num_variables;
     this->table_size = new_table.table_size;
 }
+
+void PotentialTable::Normalize() {
+    double denominator = 0;
+
+    // compute the denominator for each of the configurations
+    for (int i = 0; i < table_size; ++i) {
+        denominator += potentials[i];
+    }
+
+    // normalize for each of the configurations
+    for (int i = 0; i < table_size; ++i) {
+        potentials[i] /= denominator;
+    }
+}

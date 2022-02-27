@@ -1241,7 +1241,7 @@ PotentialTable JunctionTree::BeliefPropagationCalcuDiscreteVarMarginal2(int quer
         pt.TableMarginalization(index);
     }
 
-//    f.Normalize(); // todo: no need to do normalization
+    pt.Normalize(); // todo: no need to do normalization
     return pt;
 
 }
