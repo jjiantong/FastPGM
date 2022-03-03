@@ -135,7 +135,7 @@ JunctionTree::JunctionTree(Network *net, string elim_ord_strategy, vector<int> c
 //    }
 
   AssignPotentials(timer);
-  cout << "finish AssignPotentials" << endl;
+//  cout << "finish AssignPotentials" << endl;
 
 //    cout << "cliques: " << endl;
 //    for (auto &c : set_clique_ptr_container) {
@@ -1050,7 +1050,6 @@ void JunctionTree::LoadDiscreteEvidence(const DiscreteConfig &E) {
             }
         }
 
-//        cout << "about e: index = " << index << ", value = " << value << ", value index = " << value_index << endl;
         for (auto &clique_ptr : set_clique_ptr_container) { // for each clique
 //            cout << "clique ";
 //            for (auto &v: clique_ptr->p_table.related_variables) {

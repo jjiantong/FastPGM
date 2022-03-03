@@ -120,7 +120,7 @@ void Clique::PreInitializePotentials() {
  * (initial potential of a cluster/node is constructed via the product of factors that assigned to it)
  * @return a msg, which is a factor
  */
-Factor Clique::Collect(Timer *timer) {
+void Clique::Collect(Timer *timer) {
 
   for (auto &ptr_separator : set_neighbours_ptr) {
 
@@ -149,7 +149,8 @@ Factor Clique::Collect(Timer *timer) {
 //    if (reach_boundary) { continue; }
 
     // collect the msg f from downstream
-    Factor f = ptr_separator->Collect(timer);
+      ptr_separator->Collect(timer);
+      Factor f = ptr_separator->table;
     // update the msg by multiplying the current factor with f
     // the current factor is the initial potential, or
     // the product of the initial potential and factors received from other downstream neighbors
@@ -159,7 +160,6 @@ Factor Clique::Collect(Timer *timer) {
 
   // Prepare message for the upstream.
   ConstructMessage(timer);
-  return table;
 }
 
 /*!
@@ -170,7 +170,7 @@ Factor Clique::Collect(Timer *timer) {
  * (initial potential of a cluster/node is constructed via the product of factors that assigned to it)
  * @return a msg, which is a factor
  */
-PotentialTable Clique::Collect2(Timer *timer) {
+void Clique::Collect2(Timer *timer) {
     for (auto &ptr_separator : set_neighbours_ptr) {
         /** when it reaches a leaf, the only neighbour is the upstream,
          * which can be viewed as the base case of recursive function.
@@ -186,7 +186,8 @@ PotentialTable Clique::Collect2(Timer *timer) {
         ptr_separator->ptr_upstream_clique = this;  // Let the callee know the caller.
 
         // collect the msg f from downstream
-        PotentialTable pt = ptr_separator->Collect2(timer);
+        ptr_separator->Collect2(timer);
+        PotentialTable pt = ptr_separator->p_table;
         // update the msg by multiplying the current factor with f
         // the current factor is the initial potential, or
         // the product of the initial potential and factors received from other downstream neighbors
@@ -196,7 +197,6 @@ PotentialTable Clique::Collect2(Timer *timer) {
 
     // Prepare message for the upstream.
     ConstructMessage2(timer);
-    return p_table;
 }
 
 /**

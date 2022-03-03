@@ -47,8 +47,8 @@ public:
     void Normalize();
 
 private:
-    DiscreteConfig GetConfigByTableIndex(const int &table_index, Network *net);
-    vector<int> GetConfigValueByTableIndex(const int &table_index);
+    void GetConfigByTableIndex(const int &table_index, Network *net, DiscreteConfig &config);
+    void GetConfigValueByTableIndex(const int &table_index, vector<int> &config_value);
     int GetTableIndexByConfigValue(const vector<int> &config_value);
     int GetVariableIndex(const int &variable);
 };

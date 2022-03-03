@@ -54,7 +54,8 @@ PotentialTable::PotentialTable(DiscreteNode *disc_node, Network *net) {
         potentials.reserve(table_size);
         for (int i = 0; i < table_size; ++i) {
             // find the discrete config by the table index, the config contains this node and its parents
-            DiscreteConfig parent_config = GetConfigByTableIndex(i, net);
+            DiscreteConfig parent_config;
+            GetConfigByTableIndex(i, net, parent_config);
             int node_value;
             // we need the config for its parents -- remove the node
             for (auto it = parent_config.begin(); it != parent_config.end();) {
@@ -76,9 +77,9 @@ PotentialTable::PotentialTable(DiscreteNode *disc_node, Network *net) {
  * note: DiscreteConfig: set< pair<int, int> >,
  *       the second int of pair is the value itself, not the index of the value!!
  */
-DiscreteConfig PotentialTable::GetConfigByTableIndex(const int &table_index, Network *net) {
-    vector<int> config_value = GetConfigValueByTableIndex(table_index);
-    DiscreteConfig config;
+inline void PotentialTable::GetConfigByTableIndex(const int &table_index, Network *net, DiscreteConfig &config) {
+    vector<int> config_value;
+    GetConfigValueByTableIndex(table_index, config_value);
     int i = 0;
     for (auto &v: related_variables) {
         DiscreteNode *node = dynamic_cast<DiscreteNode*>(net->FindNodePtrByIndex(v));
@@ -87,7 +88,6 @@ DiscreteConfig PotentialTable::GetConfigByTableIndex(const int &table_index, Net
         tmp_pair.second = node->vec_potential_vals.at(config_value[i++]);
         config.insert(tmp_pair);
     }
-    return config;
 }
 
 /*!
@@ -97,8 +97,7 @@ DiscreteConfig PotentialTable::GetConfigByTableIndex(const int &table_index, Net
  *          b -- cum_levels[i]
  *          c -- save in config_value
  */
-vector<int> PotentialTable::GetConfigValueByTableIndex(const int &table_index) {
-    vector<int> config_value;
+inline void PotentialTable::GetConfigValueByTableIndex(const int &table_index, vector<int> &config_value) {
     config_value.resize(num_variables);
     int a = table_index;
     for (int i = 0; i < num_variables; ++i) {
@@ -107,14 +106,15 @@ vector<int> PotentialTable::GetConfigValueByTableIndex(const int &table_index) {
         config_value[i] = c;
         a = d;
     }
-    return config_value;
 }
 
 /*!
  * @brief: get table index given each value (index) of the configuration
  */
-int PotentialTable::GetTableIndexByConfigValue(const vector<int> &config_value) {
+inline int PotentialTable::GetTableIndexByConfigValue(const vector<int> &config_value) {
     int table_index = 0;
+//    omp_set_num_threads(2);
+//#pragma omp parallel for schedule(static, 1) reduction(+:table_index) // thread2: 43->76, static: 92
     for (int i = 0; i < num_variables; ++i) {
         table_index += config_value[i] * cum_levels[i];
     }
@@ -126,7 +126,7 @@ int PotentialTable::GetTableIndexByConfigValue(const vector<int> &config_value) 
  * @param variable: one variable in the "related_variables"
  * @return the location of the variable in the "related_variables"
  */
-int PotentialTable::GetVariableIndex(const int &variable) {
+inline int PotentialTable::GetVariableIndex(const int &variable) {
     int index = 0;
     for (auto &v: related_variables) {
         if (v == variable) {
@@ -136,7 +136,6 @@ int PotentialTable::GetVariableIndex(const int &variable) {
     }
     return index;
 }
-
 
 void PotentialTable::TableExtension(const set<int> &variables, const vector<int> &dims) {
     PotentialTable new_table;
@@ -163,10 +162,13 @@ void PotentialTable::TableExtension(const set<int> &variables, const vector<int>
     }
 
     new_table.potentials.resize(new_table.table_size);
+//    omp_set_num_threads(4);
+//#pragma omp parallel for schedule(static, 1) // thread2: 43->48, static: 49; thread4: 56
     for (int i = 0; i < new_table.table_size; ++i) {
         // obtain the config value according to loc_in_new
         // 1. get the full config value of new table
-        vector<int> full_config = new_table.GetConfigValueByTableIndex(i);
+        vector<int> full_config;
+        new_table.GetConfigValueByTableIndex(i, full_config);
         // 2. get the partial config value from the new table
         vector<int> partial_config;
         partial_config.reserve(this->num_variables);
@@ -237,12 +239,12 @@ void PotentialTable::TableMultiplication(PotentialTable &second_table) {
         second_table.TableExtension(all_related_variables, dims);
     }
 
-//#pragma omp parallel for num_threads(4)
+//    omp_set_num_threads(2);
+//#pragma omp parallel for schedule(static, 1) // thread2: 43->49, static: 50; thread4: 52
     // do the multiplication
     for (int i = 0; i < this->table_size; ++i) {
         this->potentials[i] *= second_table.potentials[i];
     }
-//    return (*this);
 }
 
 void PotentialTable::TableDivision(const PotentialTable &second_table) {
@@ -252,6 +254,8 @@ void PotentialTable::TableDivision(const PotentialTable &second_table) {
         return;
     }
 
+//    omp_set_num_threads(4);
+//#pragma omp parallel for //schedule(static, 1) // thread2: 43->50, static: 50; thread4: 55
     for (int i = 0; i < this->table_size; ++i) {
         if (second_table.potentials[i] == 0) {
             this->potentials[i] = 0;
@@ -285,7 +289,8 @@ void PotentialTable::TableReduction(int e_index, int e_value_index) {
     // traverse all rows of the original table
     for (int i = 0; i < this->table_size; ++i) {
         // 1. get the full config value of old table
-        vector<int> full_config = this->GetConfigValueByTableIndex(i);
+        vector<int> full_config;
+        this->GetConfigValueByTableIndex(i, full_config);
         // 2. get the value of the evidence variable from the new table
         int value_index = full_config[e_loc];
         // 3. whether it is consistent with the evidence
@@ -380,10 +385,13 @@ void PotentialTable::TableMarginalization(int index) {
 //        new_table.potentials.push_back(0);
 //    }
 
+//    omp_set_num_threads(4);
+//#pragma omp parallel for //schedule(static, 1) // thread2:43->56; thread4: 56
     // traverse all rows of the original table
     for (int i = 0; i < this->table_size; ++i) {
         // 1. get the full config value of old table
-        vector<int> full_config = this->GetConfigValueByTableIndex(i);
+        vector<int> full_config;
+        this->GetConfigValueByTableIndex(i, full_config);
         // 2. get the partial config value from the old table
         vector<int> partial_config;
         partial_config.reserve(new_table.num_variables);
@@ -392,6 +400,7 @@ void PotentialTable::TableMarginalization(int index) {
         }
         // obtain the potential index
         int table_index = new_table.GetTableIndexByConfigValue(partial_config);
+//#pragma omp critical
         // potential[table_index]
         new_table.potentials[table_index] += this->potentials[i];
     }
