@@ -323,34 +323,20 @@ void Clique::SumOutExternalVars(Factor &f, Timer *timer) {
  * @brief: sum over external variables which are the results of factor multiplication.
  */
 void Clique::SumOutExternalVars(PotentialTable &pt, Timer *timer) {
-//    timer->Start("set_difference");
-
-//    cout << "  sum out from ";
-//    for (auto &v: pt.related_variables) {
-//        cout << v << " ";
-//    }
-//    cout << endl;
-
+    timer->Start("set_difference");
     // get the variables that in "f" but not in "factor_of_this_clique"
     set<int> set_external_vars;
     set_difference(pt.related_variables.begin(), pt.related_variables.end(),
                    this->clique_variables.begin(), this->clique_variables.end(),
                    inserter(set_external_vars, set_external_vars.begin()));
-//    timer->Stop("set_difference");
+    timer->Stop("set_difference");
 
-//    cout << "  external vars: ";
-//    for (auto &v: set_external_vars) {
-//        cout << v << " ";
-//    }
-//    cout << endl;
-
-//    timer->Start("factor marginalization");
+    timer->Start("factor marginalization");
     // Sum over the variables that are not in the scope of this clique/separator, so as to eliminate them.
     for (auto &ex_vars : set_external_vars) {
-//        cout << "  sum out " << ex_vars << endl;
         pt.TableMarginalization(ex_vars);
     }
-//    timer->Stop("factor marginalization");
+    timer->Stop("factor marginalization");
 }
 
 /**
@@ -386,9 +372,9 @@ void Clique::MultiplyWithFactorSumOverExternalVars(PotentialTable &pt, Timer *ti
     // so they all need to be changed here.
     // at the same time, the original implementation copy a new factor of the clique, use the copy to compute,
     // and then copy back the "map_potentials", which is not efficient...
-//    timer->Start("factor multiplication");
+    timer->Start("factor multiplication");
     p_table.TableMultiplication(pt); // multiply two factors
-//    timer->Stop("factor multiplication");
+    timer->Stop("factor multiplication");
 }
 
 void Clique::UpdateUseMessage(Factor &f, Timer *timer) {

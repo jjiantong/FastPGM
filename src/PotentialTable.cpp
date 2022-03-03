@@ -76,7 +76,7 @@ PotentialTable::PotentialTable(DiscreteNode *disc_node, Network *net) {
  * note: DiscreteConfig: set< pair<int, int> >,
  *       the second int of pair is the value itself, not the index of the value!!
  */
-DiscreteConfig PotentialTable::GetConfigByTableIndex(int table_index, Network *net) {
+DiscreteConfig PotentialTable::GetConfigByTableIndex(const int &table_index, Network *net) {
     vector<int> config_value = GetConfigValueByTableIndex(table_index);
     DiscreteConfig config;
     int i = 0;
@@ -97,7 +97,7 @@ DiscreteConfig PotentialTable::GetConfigByTableIndex(int table_index, Network *n
  *          b -- cum_levels[i]
  *          c -- save in config_value
  */
-vector<int> PotentialTable::GetConfigValueByTableIndex(int table_index) {
+vector<int> PotentialTable::GetConfigValueByTableIndex(const int &table_index) {
     vector<int> config_value;
     config_value.resize(num_variables);
     int a = table_index;
@@ -126,7 +126,7 @@ int PotentialTable::GetTableIndexByConfigValue(const vector<int> &config_value) 
  * @param variable: one variable in the "related_variables"
  * @return the location of the variable in the "related_variables"
  */
-int PotentialTable::GetVariableIndex(int variable) {
+int PotentialTable::GetVariableIndex(const int &variable) {
     int index = 0;
     for (auto &v: related_variables) {
         if (v == variable) {
@@ -138,7 +138,7 @@ int PotentialTable::GetVariableIndex(int variable) {
 }
 
 
-void PotentialTable::TableExtension(set<int> variables, vector<int> dims) {
+void PotentialTable::TableExtension(const set<int> &variables, const vector<int> &dims) {
     PotentialTable new_table;
 
     new_table.related_variables = variables;
@@ -162,7 +162,7 @@ void PotentialTable::TableExtension(set<int> variables, vector<int> dims) {
         loc_in_new[i++] = new_table.GetVariableIndex(v);
     }
 
-    new_table.potentials.reserve(new_table.table_size);
+    new_table.potentials.resize(new_table.table_size);
     for (int i = 0; i < new_table.table_size; ++i) {
         // obtain the config value according to loc_in_new
         // 1. get the full config value of new table
@@ -176,7 +176,7 @@ void PotentialTable::TableExtension(set<int> variables, vector<int> dims) {
         // obtain the potential index
         int table_index = this->GetTableIndexByConfigValue(partial_config);
         // potentials[i]
-        new_table.potentials.push_back(this->potentials[table_index]);
+        new_table.potentials[i] = this->potentials[table_index];
     }
 
     (*this) = new_table;
@@ -190,7 +190,7 @@ void PotentialTable::TableExtension(set<int> variables, vector<int> dims) {
  * @input: this table and "second_table"
  * @output: this table
  */
-void PotentialTable::TableMultiplication(PotentialTable second_table) {
+void PotentialTable::TableMultiplication(PotentialTable &second_table) {
     if (this->related_variables.empty()) {
         (*this) = second_table; // directly return "second_table"
 //        return second_table;
@@ -237,11 +237,28 @@ void PotentialTable::TableMultiplication(PotentialTable second_table) {
         second_table.TableExtension(all_related_variables, dims);
     }
 
+//#pragma omp parallel for num_threads(4)
     // do the multiplication
     for (int i = 0; i < this->table_size; ++i) {
         this->potentials[i] *= second_table.potentials[i];
     }
 //    return (*this);
+}
+
+void PotentialTable::TableDivision(const PotentialTable &second_table) {
+    // if related variable of both are empty
+    if (this->related_variables.empty()) {
+        // do nothing, just return, because "table" is a constant
+        return;
+    }
+
+    for (int i = 0; i < this->table_size; ++i) {
+        if (second_table.potentials[i] == 0) {
+            this->potentials[i] = 0;
+        } else {
+            this->potentials[i] /= second_table.potentials[i];
+        }
+    }
 }
 
 /*!
@@ -357,10 +374,11 @@ void PotentialTable::TableMarginalization(int index) {
     }
 
     // initialize potentials
-    new_table.potentials.reserve(new_table.table_size);
-    for (int i = 0; i < new_table.table_size; ++i) {
-        new_table.potentials.push_back(0);
-    }
+    new_table.potentials.resize(new_table.table_size);
+//    new_table.potentials.reserve(new_table.table_size);
+//    for (int i = 0; i < new_table.table_size; ++i) {
+//        new_table.potentials.push_back(0);
+//    }
 
     // traverse all rows of the original table
     for (int i = 0; i < this->table_size; ++i) {

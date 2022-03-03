@@ -39,16 +39,18 @@ public:
     PotentialTable() = default;
     PotentialTable(DiscreteNode *disc_node, Network *net);
 
-    DiscreteConfig GetConfigByTableIndex(int table_index, Network *net);
-    vector<int> GetConfigValueByTableIndex(int table_index);
-    int GetTableIndexByConfigValue(const vector<int> &config_value);
-    int GetVariableIndex(int variable);
-
-    void TableExtension(set<int> variables, vector<int> dims);
-    void TableMultiplication(PotentialTable second_table);
+    void TableExtension(const set<int> &variables, const vector<int> &dims);
+    void TableMultiplication(PotentialTable &second_table);
+    void TableDivision(const PotentialTable &second_table);
     void TableReduction(int e_index, int e_value_index);
     void TableMarginalization(int index);
     void Normalize();
+
+private:
+    DiscreteConfig GetConfigByTableIndex(const int &table_index, Network *net);
+    vector<int> GetConfigValueByTableIndex(const int &table_index);
+    int GetTableIndexByConfigValue(const vector<int> &config_value);
+    int GetVariableIndex(const int &variable);
 };
 
 #endif //BAYESIANNETWORK_POTENTIALTABLE_H

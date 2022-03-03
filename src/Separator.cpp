@@ -7,18 +7,12 @@
 Separator::Separator() {
   is_separator = true;
   weight = -1;
-//    old_table = new Factor();
 }
 
 Separator::Separator(set<Node*> set_node_ptr): Clique(set_node_ptr) {
   is_separator = true;
   weight = clique_size;
-//  old_table = new Factor();
 }
-
-//Separator::~Separator(){
-//    delete old_table;
-//}
 
 Separator* Separator::CopyWithoutPtr() {
   auto s = new Separator(*this);
@@ -93,7 +87,7 @@ void Separator::ConstructMessage(Timer *timer) {
 
 void Separator::ConstructMessage2(Timer *timer) {
 //    timer->Start("construct sep");
-//    timer->Start("factor division");
+    timer->Start("factor division");
 //    if (table.related_variables.size() != old_table.related_variables.size()) {
 //        cout << "error!!!!!!" << endl;
 //        // TODO: exit
@@ -113,19 +107,21 @@ void Separator::ConstructMessage2(Timer *timer) {
 //    }
 //    cout << endl;
 
-    // if related variable of both new and old are empty
-    if (p_table.related_variables.empty()) {
-        // do nothing, just return, because "p_table" is a constant
-        return;
-    }
+    p_table.TableDivision(old_ptable);
 
-    for (int i = 0; i < p_table.table_size; ++i) {
-        if (old_ptable.potentials[i] == 0) {
-            p_table.potentials[i] = 0;
-        } else {
-            p_table.potentials[i] /= old_ptable.potentials[i];
-        }
-    }
-//    timer->Stop("factor division");
+//    // if related variable of both new and old are empty
+//    if (p_table.related_variables.empty()) {
+//        // do nothing, just return, because "p_table" is a constant
+//        return;
+//    }
+//
+//    for (int i = 0; i < p_table.table_size; ++i) {
+//        if (old_ptable.potentials[i] == 0) {
+//            p_table.potentials[i] = 0;
+//        } else {
+//            p_table.potentials[i] /= old_ptable.potentials[i];
+//        }
+//    }
+    timer->Stop("factor division");
 //    timer->Stop("construct sep");
 }
