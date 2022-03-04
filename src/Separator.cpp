@@ -5,6 +5,7 @@
 #include "Separator.h"
 
 Separator::Separator() {
+    is_in_jt = false;
   is_separator = true;
   weight = -1;
 }

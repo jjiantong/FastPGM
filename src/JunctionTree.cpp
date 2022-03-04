@@ -79,14 +79,14 @@ JunctionTree::JunctionTree(Network *net, string elim_ord_strategy, vector<int> c
   NumberTheCliquesAndSeparators();
 //  cout << "finish NumberTheCliquesAndSeparators" << endl;
 
-//    cout << "cliques: " << endl;
-//    for (auto &c : set_clique_ptr_container) {
-//        cout << c->clique_id << ": ";
-//        // set<int> related_variables
-//        for (auto &v : c->p_table.related_variables) {
-//            cout << v << " ";
-//        }
-//        cout << endl;
+    cout << "cliques: " << endl;
+    for (auto &c : set_clique_ptr_container) {
+        cout << c->clique_id << ": ";
+        // set<int> related_variables
+        for (auto &v : c->p_table.related_variables) {
+            cout << v << " ";
+        }
+        cout << endl;
 //        // int num_variables
 //        // int table_size
 //        cout << "num variables = " << c->p_table.num_variables << ", table size = " << c->p_table.table_size << endl;
@@ -105,15 +105,15 @@ JunctionTree::JunctionTree(Network *net, string elim_ord_strategy, vector<int> c
 //        for (int j = 0; j < c->p_table.potentials.size(); ++j) {
 //            cout << c->p_table.potentials[j] << endl;
 //        }
-//    }
-//    cout << "separators: " << endl;
-//    for (auto &s : set_separator_ptr_container) {
-//        cout << s->clique_id << ": ";
-//        // set<int> related_variables
-//        for (auto &v : s->p_table.related_variables) {
-//            cout << v << " ";
-//        }
-//        cout << endl;
+    }
+    cout << "separators: " << endl;
+    for (auto &s : set_separator_ptr_container) {
+        cout << s->clique_id << ": ";
+        // set<int> related_variables
+        for (auto &v : s->p_table.related_variables) {
+            cout << v << " ";
+        }
+        cout << endl;
 //        // int num_variables
 //        // int table_size
 //        cout << "num variables = " << s->p_table.num_variables << ", table size = " << s->p_table.table_size << endl;
@@ -132,7 +132,7 @@ JunctionTree::JunctionTree(Network *net, string elim_ord_strategy, vector<int> c
 //        for (int j = 0; j < s->p_table.potentials.size(); ++j) {
 //            cout << s->p_table.potentials[j] << endl;
 //        }
-//    }
+    }
 
   AssignPotentials(timer);
 //  cout << "finish AssignPotentials" << endl;
@@ -590,7 +590,6 @@ void JunctionTree::Triangulate(Network *net,
  * use Prim algorithm; the weights of edges is represented by the weights of the separators
  */
 void JunctionTree::FormJunctionTree(set<Clique*> &cliques) {
-//TODO: double-check correctness
   // First, generate all possible separators.
   set<pair<Clique*,Clique*>> mark;
   set<Separator*> all_possible_seps;
@@ -624,10 +623,7 @@ void JunctionTree::FormJunctionTree(set<Clique*> &cliques) {
         common_related_node_ptrs.insert(network->FindNodePtrByIndex(v));
       }
 
-        // TODO: all separators are generated but part of them are used,
-        //  where and how to delete them? -- memory leakage?
       Separator *sep = new Separator(common_related_node_ptrs);
-
       // Let separator know the two cliques that it connects to.
       sep->set_neighbours_ptr.insert(clique_ptr);
       sep->set_neighbours_ptr.insert(clique_ptr_2);
@@ -641,11 +637,6 @@ void JunctionTree::FormJunctionTree(set<Clique*> &cliques) {
   // then the tree will satisfy running intersection property.
   set<Clique*> tree_so_far;
   tree_so_far.insert(*cliques.begin()); // randomly insert a clique in tree, as the start of the Prim algorithm
-//    cout << "insert clique ";
-//    for (auto &v: (*cliques.begin())->clique_variables) {
-//        cout << v << " ";
-//    }
-//    cout << endl;
 
   while (tree_so_far.size()<cliques.size()) {
     Separator* max_weight_sep = nullptr;
@@ -660,6 +651,7 @@ void JunctionTree::FormJunctionTree(set<Clique*> &cliques) {
           (tree_so_far.find(clq1) == tree_so_far.end() && tree_so_far.find(clq2) != tree_so_far.end())) {
         // And if the weight of this separator is the largest.
         if (max_weight_sep==nullptr || max_weight_sep->weight < sep_ptr->weight) {
+            sep_ptr->is_in_jt = true;
           max_weight_sep = sep_ptr;
         }
       }
@@ -667,11 +659,6 @@ void JunctionTree::FormJunctionTree(set<Clique*> &cliques) {
 
 //    max_weight_sep->clique_id = set_separator_ptr_container.size();
     set_separator_ptr_container.insert(max_weight_sep);
-//      cout << "insert separator ";
-//      for (auto &v: max_weight_sep->clique_variables) {
-//          cout << v << " ";
-//      }
-//      cout << "weight = " << max_weight_sep->weight << endl;
 
     auto iter = max_weight_sep->set_neighbours_ptr.begin();
     Clique *clq1 = *iter, *clq2 = *(++iter);
@@ -698,6 +685,16 @@ void JunctionTree::FormJunctionTree(set<Clique*> &cliques) {
     clq1->set_neighbours_ptr.insert(sep_ptr);
     clq2->set_neighbours_ptr.insert(sep_ptr);
   }
+
+    for (auto it = all_possible_seps.begin(); it != all_possible_seps.end(); ) { // traverse all separators
+        if (!(*it)->is_in_jt) { // if this sep is not used
+            auto tmp = *it;
+            all_possible_seps.erase(it++);
+            delete tmp;
+        } else {
+            it++;
+        }
+    }
 }
 
 /**
