@@ -47,9 +47,10 @@ class JunctionTree: public Inference {
   map<Clique*,Clique> map_cliques_backup;
   map<Separator*,Separator> map_separators_backup;
 
-  void Triangulate(Network *net, int **adjac_matrix, vector<int> elim_ord, set<Clique*> &cliques);
+  void Triangulate(Network *net, int **adjac_matrix, vector<int> elim_ord);
 //  void FormListShapeJunctionTree(set<Clique*> &cliques);
-  void FormJunctionTree(set<Clique*> &cliques);
+  void FormJunctionTree();
+  void CliqueMerging(int threshold);
   void NumberTheCliquesAndSeparators();
   void AssignPotentials(Timer *timer);
   void BackUpJunctionTree();

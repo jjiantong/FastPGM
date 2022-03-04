@@ -63,16 +63,20 @@ JunctionTree::JunctionTree(Network *net, string elim_ord_strategy, vector<int> c
 //    cout << endl;
 
   //construct a clique for each node in the network
-  Triangulate(network, moral_graph_adjac_matrix, elimination_ordering, set_clique_ptr_container);
+  Triangulate(network, moral_graph_adjac_matrix, elimination_ordering);
 //  cout << "finish Triangulate, number of cliques = " << set_clique_ptr_container.size() << endl;
 
   //construct map from main variable to a clique
 //  GenMapElimVarToClique();
 //  cout << "finish GenMapElimVarToClique" << endl;
 
-  FormJunctionTree(set_clique_ptr_container);//for discrete nodes
+  FormJunctionTree();//for discrete nodes
 //  FormListShapeJunctionTree(set_clique_ptr_container);//for continuous nodes
     cout << "finish FormJunctionTree, number of cliques = " << set_clique_ptr_container.size()
+         << ", number of separators = " << set_separator_ptr_container.size() << endl;
+
+    CliqueMerging(3);
+    cout << "finish CliqueMerging, number of cliques = " << set_clique_ptr_container.size()
          << ", number of separators = " << set_separator_ptr_container.size() << endl;
 
   //assign id to each clique
@@ -466,8 +470,7 @@ vector<int> JunctionTree::MinNeighbourElimOrd(int **adjac_matrix, int &num_nodes
  */
 void JunctionTree::Triangulate(Network *net,
                                int **adjac_matrix,
-                               vector<int> elim_ord,
-                               set<Clique*> &cliques) { //checked
+                               vector<int> elim_ord) { //checked
   if (elim_ord.size() == 0) {
     return;
   }
@@ -500,7 +503,7 @@ void JunctionTree::Triangulate(Network *net,
     // if a clique is fully contained by another (existing/previous) clique, then the clique is no need to be inserted.
     Clique* clique = new Clique(set_node_ptrs_to_form_a_clique);
     bool to_be_inserted = true;
-    for (auto &ptr_clq : cliques) {
+    for (auto &ptr_clq : set_clique_ptr_container) {
         set<int> intersection;
         set_intersection(clique->clique_variables.begin(), clique->clique_variables.end(),
                          ptr_clq->clique_variables.begin(), ptr_clq->clique_variables.end(),
@@ -512,8 +515,8 @@ void JunctionTree::Triangulate(Network *net,
     }
 
     if (to_be_inserted) {
-        cliques.insert(clique);
-//        cout << "clique " << cliques.size() << ": ";
+        set_clique_ptr_container.insert(clique);
+//        cout << "clique " << set_clique_ptr_container.size() << ": ";
 //        for (auto &node: set_node_ptrs_to_form_a_clique) {
 //            cout << node->GetNodeIndex() << ", ";
 //        }
@@ -530,7 +533,7 @@ void JunctionTree::Triangulate(Network *net,
         adjac_matrix[vec_neighbors.at(neighbor)][first_node_in_elim_ord] = 0;
     }
 
-    Triangulate(net, adjac_matrix, elim_ord, cliques);
+    Triangulate(net, adjac_matrix, elim_ord);
 }
 
 ///**
@@ -589,14 +592,14 @@ void JunctionTree::Triangulate(Network *net,
  * @brief: construct a tree where each node is a clique and each edge is a separator.
  * use Prim algorithm; the weights of edges is represented by the weights of the separators
  */
-void JunctionTree::FormJunctionTree(set<Clique*> &cliques) {
+void JunctionTree::FormJunctionTree() {
   // First, generate all possible separators.
   set<pair<Clique*,Clique*>> mark;
   set<Separator*> all_possible_seps;
   // TODO: can we just traverse i from 0 to cliques.size and j from i+1 to cliques.size?
   // TODO: then we dont need to use "mark" or frequently find pair from "mark"
-  for (auto &clique_ptr : cliques) {
-    for (auto &clique_ptr_2 : cliques) {
+  for (auto &clique_ptr : set_clique_ptr_container) {
+    for (auto &clique_ptr_2 : set_clique_ptr_container) {
 
       if (clique_ptr == clique_ptr_2) {
         continue; // The same cliques do not need a separator
@@ -636,9 +639,9 @@ void JunctionTree::FormJunctionTree(set<Clique*> &cliques) {
   // If we construct a maximum spanning tree by the weights of the separators,
   // then the tree will satisfy running intersection property.
   set<Clique*> tree_so_far;
-  tree_so_far.insert(*cliques.begin()); // randomly insert a clique in tree, as the start of the Prim algorithm
+  tree_so_far.insert(*set_clique_ptr_container.begin()); // randomly insert a clique in tree, as the start of the Prim algorithm
 
-  while (tree_so_far.size()<cliques.size()) {
+  while (tree_so_far.size()<set_clique_ptr_container.size()) {
     Separator* max_weight_sep = nullptr;
     for (auto &sep_ptr : all_possible_seps) { // traverse all separators
       // find the two cliques the separator connected
@@ -694,6 +697,61 @@ void JunctionTree::FormJunctionTree(set<Clique*> &cliques) {
         } else {
             it++;
         }
+    }
+}
+
+void JunctionTree::CliqueMerging(int threshold) {
+    int num_clique_old = 0;
+    int num_clique_new = set_clique_ptr_container.size();
+
+    while (num_clique_old != num_clique_new) { // repeat until no reduction in cliques
+        for (auto it = set_separator_ptr_container.begin(); it != set_separator_ptr_container.end(); ) { // traverse all seps
+            auto iter = (*it)->set_neighbours_ptr.begin();
+            Clique *clq1 = *iter, *clq2 = *(++iter);
+            if (clq1->clique_size < threshold || clq2->clique_size < threshold) {
+                // 1. remove this sep from the neighbors of clq1 and clq2
+                clq1->set_neighbours_ptr.erase(*it);
+                clq2->set_neighbours_ptr.erase(*it);
+                // 2. remove and delete the sep
+                auto tmp = *it;
+                set_separator_ptr_container.erase(it++);
+                delete tmp;
+                // 3. create a new big clique
+                set<int> set_index_to_form_a_clique;
+                set<Node*> set_node_ptrs_to_form_a_clique;
+                set_index_to_form_a_clique.insert(clq1->clique_variables.begin(), clq1->clique_variables.end());
+                set_index_to_form_a_clique.insert(clq2->clique_variables.begin(), clq2->clique_variables.end());
+                for (auto index: set_index_to_form_a_clique) {
+                    set_node_ptrs_to_form_a_clique.insert(network->FindNodePtrByIndex(index));
+                }
+                Clique* clique = new Clique(set_node_ptrs_to_form_a_clique);
+                set_clique_ptr_container.insert(clique);
+                // 4. all neighbors of clq1 and clq2 become neighbors of the new big clique, and vice versa,
+                //    and remove clq1 and clq2 from the neighbors of their neighbors
+                // note that we don't remove their neighbors from the neighbors of clq1 and clq2
+                // because to do this may cause problem of erasing and traversing at the same time
+                // and we will erase and delete clq1 and clq2 so their neighbors don't matter
+                for (auto &sep_ptr: clq1->set_neighbours_ptr) {
+                    clique->set_neighbours_ptr.insert(sep_ptr);
+                    sep_ptr->set_neighbours_ptr.insert(clique);
+                    sep_ptr->set_neighbours_ptr.erase(clq1);
+                }
+                for (auto &sep_ptr: clq2->set_neighbours_ptr) {
+                    clique->set_neighbours_ptr.insert(sep_ptr);
+                    sep_ptr->set_neighbours_ptr.insert(clique);
+                    sep_ptr->set_neighbours_ptr.erase(clq2);
+                }
+                // 5. remove and delete clq1 and clq2
+                set_clique_ptr_container.erase(clq1);
+                set_clique_ptr_container.erase(clq2);
+                delete clq1;
+                delete clq2;
+            } else {
+                it++;
+            }
+        }
+        num_clique_old = num_clique_new;
+        num_clique_new = set_clique_ptr_container.size();
     }
 }
 

@@ -11,6 +11,7 @@ Separator::Separator() {
 }
 
 Separator::Separator(set<Node*> set_node_ptr): Clique(set_node_ptr) {
+    is_in_jt = false;
   is_separator = true;
   weight = clique_size;
 }

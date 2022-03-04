@@ -163,7 +163,7 @@ void PotentialTable::TableExtension(const set<int> &variables, const vector<int>
 
     new_table.potentials.resize(new_table.table_size);
 //    omp_set_num_threads(4);
-//#pragma omp parallel for schedule(static, 1) // thread2: 43->48, static: 49; thread4: 56
+//#pragma omp parallel for //schedule(static, 1) // thread2: 43->48, static: 49; thread4: 56
     for (int i = 0; i < new_table.table_size; ++i) {
         // obtain the config value according to loc_in_new
         // 1. get the full config value of new table
@@ -239,8 +239,8 @@ void PotentialTable::TableMultiplication(PotentialTable &second_table) {
         second_table.TableExtension(all_related_variables, dims);
     }
 
-//    omp_set_num_threads(2);
-//#pragma omp parallel for schedule(static, 1) // thread2: 43->49, static: 50; thread4: 52
+//    omp_set_num_threads(4);
+//#pragma omp parallel for //schedule(static, 1) // thread2: 43->49, static: 50; thread4: 52
     // do the multiplication
     for (int i = 0; i < this->table_size; ++i) {
         this->potentials[i] *= second_table.potentials[i];
@@ -385,8 +385,9 @@ void PotentialTable::TableMarginalization(int index) {
 //        new_table.potentials.push_back(0);
 //    }
 
-//    omp_set_num_threads(4);
-//#pragma omp parallel for //schedule(static, 1) // thread2:43->56; thread4: 56
+    int num_threads = 4;
+    omp_set_num_threads(num_threads);
+#pragma omp parallel for //schedule(static, 1) // thread2:43->56; thread4: 56
     // traverse all rows of the original table
     for (int i = 0; i < this->table_size; ++i) {
         // 1. get the full config value of old table
@@ -400,7 +401,8 @@ void PotentialTable::TableMarginalization(int index) {
         }
         // obtain the potential index
         int table_index = new_table.GetTableIndexByConfigValue(partial_config);
-//#pragma omp critical
+
+#pragma omp critical
         // potential[table_index]
         new_table.potentials[table_index] += this->potentials[i];
     }
