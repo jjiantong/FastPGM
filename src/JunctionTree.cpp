@@ -16,6 +16,9 @@ JunctionTree::JunctionTree(Network *net, string elim_ord_strategy, vector<int> c
 
   network = net;
 
+    vector_clique_ptr_container.reserve(network->num_nodes);
+    vector_separator_ptr_container.reserve(network->num_nodes - 1);
+
   int **direc_adjac_matrix = network->ConvertDAGNetworkToAdjacencyMatrix();
 //  cout << "finish ConvertDAGNetworkToAdjacencyMatrix" << endl;
 //    for (int i = 0; i < network->num_nodes; ++i) {
@@ -72,8 +75,8 @@ JunctionTree::JunctionTree(Network *net, string elim_ord_strategy, vector<int> c
 
   FormJunctionTree();//for discrete nodes
 //  FormListShapeJunctionTree(set_clique_ptr_container);//for continuous nodes
-    cout << "finish FormJunctionTree, number of cliques = " << set_clique_ptr_container.size()
-         << ", number of separators = " << set_separator_ptr_container.size() << endl;
+    cout << "finish FormJunctionTree, number of cliques = " << vector_clique_ptr_container.size()
+         << ", number of separators = " << vector_separator_ptr_container.size() << endl;
 
 //    CliqueMerging(3);
 //    cout << "finish CliqueMerging, number of cliques = " << set_clique_ptr_container.size()
@@ -518,7 +521,7 @@ void JunctionTree::Triangulate(Network *net,
     }
     cout << endl;
     bool to_be_inserted = true;
-    for (auto &ptr_clq : set_clique_ptr_container) {
+    for (auto &ptr_clq : vector_clique_ptr_container) {
         set<int> intersection;
         set_intersection(clique->clique_variables.begin(), clique->clique_variables.end(),
                          ptr_clq->clique_variables.begin(), ptr_clq->clique_variables.end(),
@@ -530,15 +533,16 @@ void JunctionTree::Triangulate(Network *net,
     }
 
     if (to_be_inserted) {
-        set_clique_ptr_container.insert(clique);
-        cout << "cliques now: ";
-        for (auto c: set_clique_ptr_container) {
-            for (auto v: c->clique_variables) {
-                cout << v << " ";
-            }
-            cout << "; ";
-        }
-        cout << endl;
+        vector_clique_ptr_container.push_back(clique);
+//        set_clique_ptr_container.insert(clique);
+//        cout << "cliques now: ";
+//        for (auto c: set_clique_ptr_container) {
+//            for (auto v: c->clique_variables) {
+//                cout << v << " ";
+//            }
+//            cout << "; ";
+//        }
+//        cout << endl;
     } else {
         cout << "not insert" << endl;
         delete clique;
@@ -618,8 +622,8 @@ void JunctionTree::FormJunctionTree() {
   set<Separator*> all_possible_seps;
   // TODO: can we just traverse i from 0 to cliques.size and j from i+1 to cliques.size?
   // TODO: then we dont need to use "mark" or frequently find pair from "mark"
-  for (auto &clique_ptr : set_clique_ptr_container) {
-    for (auto &clique_ptr_2 : set_clique_ptr_container) {
+  for (auto &clique_ptr : vector_clique_ptr_container) {
+    for (auto &clique_ptr_2 : vector_clique_ptr_container) {
 
       if (clique_ptr == clique_ptr_2) {
         continue; // The same cliques do not need a separator
@@ -659,9 +663,9 @@ void JunctionTree::FormJunctionTree() {
   // If we construct a maximum spanning tree by the weights of the separators,
   // then the tree will satisfy running intersection property.
   set<Clique*> tree_so_far;
-  tree_so_far.insert(*set_clique_ptr_container.begin()); // randomly insert a clique in tree, as the start of the Prim algorithm
+  tree_so_far.insert(vector_clique_ptr_container[0]); // randomly insert a clique in tree, as the start of the Prim algorithm
 
-  while (tree_so_far.size()<set_clique_ptr_container.size()) {
+  while (tree_so_far.size() < vector_clique_ptr_container.size()) {
     Separator* max_weight_sep = nullptr;
     for (auto &sep_ptr : all_possible_seps) { // traverse all separators
       // find the two cliques the separator connected
@@ -680,8 +684,7 @@ void JunctionTree::FormJunctionTree() {
       }
     }
 
-//    max_weight_sep->clique_id = set_separator_ptr_container.size();
-    set_separator_ptr_container.insert(max_weight_sep);
+    vector_separator_ptr_container.push_back(max_weight_sep);
 
     auto iter = max_weight_sep->set_neighbours_ptr.begin();
     Clique *clq1 = *iter, *clq2 = *(++iter);
@@ -702,7 +705,7 @@ void JunctionTree::FormJunctionTree() {
   }   // end of: while. Until all cliques are in "tree_so_far"
 
   // Now let the cliques to know the separators that they connect to.
-  for (auto &sep_ptr : set_separator_ptr_container) {
+  for (auto &sep_ptr : vector_separator_ptr_container) {
     auto iter = sep_ptr->set_neighbours_ptr.begin();
     Clique *clq1 = *iter, *clq2 = *(++iter);
     clq1->set_neighbours_ptr.insert(sep_ptr);
@@ -720,103 +723,103 @@ void JunctionTree::FormJunctionTree() {
     }
 }
 
-void JunctionTree::CliqueMerging(int threshold) {
-    int num_clique_old = 0;
-    int num_clique_new = set_clique_ptr_container.size();
-
-    while (num_clique_old != num_clique_new) { // repeat until no reduction in cliques
-        for (auto it = set_separator_ptr_container.begin(); it != set_separator_ptr_container.end(); ) { // traverse all seps
-            cout << "sep ";
-            for (auto v: (*it)->clique_variables) {
-                cout << v << " ";
-            }
-            cout << endl;
-            auto iter = (*it)->set_neighbours_ptr.begin();
-            Clique *clq1 = *iter, *clq2 = *(++iter);
-            cout << "clq1 ";
-            for (auto v: clq1->clique_variables) {
-                cout << v << " ";
-            }
-            cout << endl;
-            cout << "clq2 ";
-            for (auto v: clq2->clique_variables) {
-                cout << v << " ";
-            }
-            cout << endl;
-            if (clq1->clique_size < threshold && clq2->clique_size < threshold) {
-                cout << "clq1 ";
-                for (auto v: clq1->clique_variables) {
-                    cout << v << " ";
-                }
-                cout << endl;
-                cout << "clq2 ";
-                for (auto v: clq2->clique_variables) {
-                    cout << v << " ";
-                }
-                cout << endl;
-                // 1. remove this sep from the neighbors of clq1 and clq2
-                clq1->set_neighbours_ptr.erase(*it);
-                clq2->set_neighbours_ptr.erase(*it);
-                // 2. remove and delete the sep
-                auto tmp = *it;
-                set_separator_ptr_container.erase(it++);
-                delete tmp;
-                cout << "remove sep and neighbors...." << endl;
-                // 3. create a new big clique
-                set<int> set_index_to_form_a_clique;
-                set<Node*> set_node_ptrs_to_form_a_clique;
-                set_index_to_form_a_clique.insert(clq1->clique_variables.begin(), clq1->clique_variables.end());
-                set_index_to_form_a_clique.insert(clq2->clique_variables.begin(), clq2->clique_variables.end());
-                for (auto index: set_index_to_form_a_clique) {
-                    set_node_ptrs_to_form_a_clique.insert(network->FindNodePtrByIndex(index));
-                }
-                Clique* clique = new Clique(set_node_ptrs_to_form_a_clique);
-                set_clique_ptr_container.insert(clique);
-                cout << "create new clique ";
-                for (auto v: clique->clique_variables) {
-                    cout << v << " ";
-                }
-                cout << endl;
-                // 4. all neighbors of clq1 and clq2 become neighbors of the new big clique, and vice versa,
-                //    and remove clq1 and clq2 from the neighbors of their neighbors
-                // note that we don't remove their neighbors from the neighbors of clq1 and clq2
-                // because to do this may cause problem of erasing and traversing at the same time
-                // and we will erase and delete clq1 and clq2 so their neighbors don't matter
-                for (auto &sep_ptr: clq1->set_neighbours_ptr) {
-                    clique->set_neighbours_ptr.insert(sep_ptr);
-                    sep_ptr->set_neighbours_ptr.insert(clique);
-                    sep_ptr->set_neighbours_ptr.erase(clq1);
-                }
-                for (auto &sep_ptr: clq2->set_neighbours_ptr) {
-                    clique->set_neighbours_ptr.insert(sep_ptr);
-                    sep_ptr->set_neighbours_ptr.insert(clique);
-                    sep_ptr->set_neighbours_ptr.erase(clq2);
-                }
-                // 5. remove and delete clq1 and clq2
-                set_clique_ptr_container.erase(clq1);
-                set_clique_ptr_container.erase(clq2);
-                delete clq1;
-                delete clq2;
-                cout << "update neighbor and remove clq1 clq2..." << endl;
-            } else {
-                it++;
-            }
-        }
-        num_clique_old = num_clique_new;
-        num_clique_new = set_clique_ptr_container.size();
-    }
-}
+//void JunctionTree::CliqueMerging(int threshold) {
+//    int num_clique_old = 0;
+//    int num_clique_new = set_clique_ptr_container.size();
+//
+//    while (num_clique_old != num_clique_new) { // repeat until no reduction in cliques
+//        for (auto it = set_separator_ptr_container.begin(); it != set_separator_ptr_container.end(); ) { // traverse all seps
+//            cout << "sep ";
+//            for (auto v: (*it)->clique_variables) {
+//                cout << v << " ";
+//            }
+//            cout << endl;
+//            auto iter = (*it)->set_neighbours_ptr.begin();
+//            Clique *clq1 = *iter, *clq2 = *(++iter);
+//            cout << "clq1 ";
+//            for (auto v: clq1->clique_variables) {
+//                cout << v << " ";
+//            }
+//            cout << endl;
+//            cout << "clq2 ";
+//            for (auto v: clq2->clique_variables) {
+//                cout << v << " ";
+//            }
+//            cout << endl;
+//            if (clq1->clique_size < threshold && clq2->clique_size < threshold) {
+//                cout << "clq1 ";
+//                for (auto v: clq1->clique_variables) {
+//                    cout << v << " ";
+//                }
+//                cout << endl;
+//                cout << "clq2 ";
+//                for (auto v: clq2->clique_variables) {
+//                    cout << v << " ";
+//                }
+//                cout << endl;
+//                // 1. remove this sep from the neighbors of clq1 and clq2
+//                clq1->set_neighbours_ptr.erase(*it);
+//                clq2->set_neighbours_ptr.erase(*it);
+//                // 2. remove and delete the sep
+//                auto tmp = *it;
+//                set_separator_ptr_container.erase(it++);
+//                delete tmp;
+//                cout << "remove sep and neighbors...." << endl;
+//                // 3. create a new big clique
+//                set<int> set_index_to_form_a_clique;
+//                set<Node*> set_node_ptrs_to_form_a_clique;
+//                set_index_to_form_a_clique.insert(clq1->clique_variables.begin(), clq1->clique_variables.end());
+//                set_index_to_form_a_clique.insert(clq2->clique_variables.begin(), clq2->clique_variables.end());
+//                for (auto index: set_index_to_form_a_clique) {
+//                    set_node_ptrs_to_form_a_clique.insert(network->FindNodePtrByIndex(index));
+//                }
+//                Clique* clique = new Clique(set_node_ptrs_to_form_a_clique);
+//                set_clique_ptr_container.insert(clique);
+//                cout << "create new clique ";
+//                for (auto v: clique->clique_variables) {
+//                    cout << v << " ";
+//                }
+//                cout << endl;
+//                // 4. all neighbors of clq1 and clq2 become neighbors of the new big clique, and vice versa,
+//                //    and remove clq1 and clq2 from the neighbors of their neighbors
+//                // note that we don't remove their neighbors from the neighbors of clq1 and clq2
+//                // because to do this may cause problem of erasing and traversing at the same time
+//                // and we will erase and delete clq1 and clq2 so their neighbors don't matter
+//                for (auto &sep_ptr: clq1->set_neighbours_ptr) {
+//                    clique->set_neighbours_ptr.insert(sep_ptr);
+//                    sep_ptr->set_neighbours_ptr.insert(clique);
+//                    sep_ptr->set_neighbours_ptr.erase(clq1);
+//                }
+//                for (auto &sep_ptr: clq2->set_neighbours_ptr) {
+//                    clique->set_neighbours_ptr.insert(sep_ptr);
+//                    sep_ptr->set_neighbours_ptr.insert(clique);
+//                    sep_ptr->set_neighbours_ptr.erase(clq2);
+//                }
+//                // 5. remove and delete clq1 and clq2
+//                set_clique_ptr_container.erase(clq1);
+//                set_clique_ptr_container.erase(clq2);
+//                delete clq1;
+//                delete clq2;
+//                cout << "update neighbor and remove clq1 clq2..." << endl;
+//            } else {
+//                it++;
+//            }
+//        }
+//        num_clique_old = num_clique_new;
+//        num_clique_new = set_clique_ptr_container.size();
+//    }
+//}
 
 /**
  * @brief: assign an id to each clique and separator
  */
 void JunctionTree::NumberTheCliquesAndSeparators() {//checked
   int i = 0;
-  for (auto c : set_clique_ptr_container) {
+  for (auto c : vector_clique_ptr_container) {
     c->clique_id = i++;
   }
   int j = 0;
-  for (auto s : set_separator_ptr_container) {
+  for (auto s : vector_separator_ptr_container) {
     s->clique_id = j++;
   }
 }
@@ -957,7 +960,7 @@ void JunctionTree::AssignPotentials(Timer *timer) { //checked
     /************************* use potential table ******************************/
     // For potentials from discrete nodes, they should be assigned to purely discrete cliques.
     for (auto &pt : potential_tables) { // for each factor of the network
-        for (auto &clique_ptr : set_clique_ptr_container) { // for each clique of the graph
+        for (auto &clique_ptr : vector_clique_ptr_container) { // for each clique of the graph
             if (pt.related_variables.empty() || clique_ptr->clique_variables.empty()) {
                 break;
             }
@@ -1025,10 +1028,10 @@ void JunctionTree::AssignPotentials(Timer *timer) { //checked
  * Otherwise, we need to re-construct the tree each time we want to make inference.
  */
 void JunctionTree::BackUpJunctionTree() {//checked
-  for (const auto &c : set_clique_ptr_container) {
+  for (const auto &c : vector_clique_ptr_container) {
     map_cliques_backup[c] = *c;
   }
-  for (const auto &s : set_separator_ptr_container) {
+  for (const auto &s : vector_separator_ptr_container) {
     map_separators_backup[s] = *s;
   }
 }
@@ -1039,10 +1042,10 @@ void JunctionTree::BackUpJunctionTree() {//checked
  * Otherwise, we need to re-construct the tree each time we want to make inference.
  */
 void JunctionTree::ResetJunctionTree() {
-  for (auto &c : set_clique_ptr_container) {
+  for (auto &c : vector_clique_ptr_container) {
     *c = map_cliques_backup[c];
   }
-  for (auto &s : set_separator_ptr_container) {
+  for (auto &s : vector_separator_ptr_container) {
     *s = map_separators_backup[s];
   }
 }
@@ -1157,7 +1160,7 @@ void JunctionTree::LoadDiscreteEvidence(const DiscreteConfig &E) {
             }
         }
 
-        for (auto &clique_ptr : set_clique_ptr_container) { // for each clique
+        for (auto &clique_ptr : vector_clique_ptr_container) { // for each clique
 //            cout << "clique ";
 //            for (auto &v: clique_ptr->p_table.related_variables) {
 //                cout << v << " ";
@@ -1169,7 +1172,7 @@ void JunctionTree::LoadDiscreteEvidence(const DiscreteConfig &E) {
                 clique_ptr->p_table.TableReduction(index, value_index);
             }
         }
-        for (auto &sep_ptr : set_separator_ptr_container) { // for each sep
+        for (auto &sep_ptr : vector_separator_ptr_container) { // for each sep
 //            cout << "sep ";
 //            for (auto &v: sep_ptr->p_table.related_variables) {
 //                cout << v << " ";
@@ -1209,14 +1212,14 @@ void JunctionTree::LoadDiscreteEvidence(const DiscreteConfig &E) {
 //}
 
 /**
- * 
+ *
  * Message passing is just COLLECT and DISTRIBUTE (these two words is used by paper and text book).
  * The order between COLLECT and DISTRIBUTE does not matter, but they must not interleave.
  * After message passing, any clique (junction tree node) contains the right distribution of the related variables.
  */
 void JunctionTree::MessagePassingUpdateJT(Timer *timer) {
   // Arbitrarily select a clique as the root.
-  auto iter = set_clique_ptr_container.begin();
+  auto iter = vector_clique_ptr_container.begin();
   Clique *arb_root = *iter;
 //    /************************* use factor ******************************/
 //  arb_root->Collect(timer);
@@ -1262,7 +1265,7 @@ Factor JunctionTree::BeliefPropagationCalcuDiscreteVarMarginal(int query_index) 
   // whose size of potentials table is the smallest,
   // which can reduce the number of sum operation.
   // TODO: find from separator
-  for (auto &c : set_clique_ptr_container) {
+  for (auto &c : vector_clique_ptr_container) {
     if (!c->pure_discrete) {
         continue;
     }
@@ -1313,7 +1316,7 @@ PotentialTable JunctionTree::BeliefPropagationCalcuDiscreteVarMarginal2(int quer
     // whose size of potentials table is the smallest,
     // which can reduce the number of sum operation.
     // TODO: find from separator
-    for (auto &c : set_clique_ptr_container) {
+    for (auto &c : vector_clique_ptr_container) {
         if (!c->pure_discrete) {
             continue;
         }
@@ -1630,26 +1633,62 @@ int JunctionTree::PredictUseJTInfer(const DiscreteConfig &E, int Y_index, Timer 
 vector<int> JunctionTree::PredictUseJTInfer(const vector<DiscreteConfig> &evidences, int target_node_idx, Timer *timer) {
     int size = evidences.size();
 
-//    cout << "Progress indicator: ";
-//    int every_1_of_20 = size / 20; // used to print, print 20 times in total
-//    int progress = 0;
+    cout << "Progress indicator: ";
+    int every_1_of_20 = size / 20; // used to print, print 20 times in total
+    int progress = 0;
 
     vector<int> results(size, 0);
-    int i = 7;
+//    int i = 7;
 
-//    for (int i = 0; i < size; ++i) {
-//        ++progress;
-//
-//        if (progress % every_1_of_20 == 0) {
-//            string progress_percentage = to_string((double)progress/size * 100) + "%...\n";
-//            fprintf(stdout, "%s\n", progress_percentage.c_str());
-////            double acc_so_far = num_of_correct / (double)(num_of_correct+num_of_wrong);
-////            fprintf(stdout, "Accuracy so far: %f\n", acc_so_far);
-//            fflush(stdout);
-//        }
+    for (int i = 0; i < size; ++i) {
+        ++progress;
+
+        if (progress % every_1_of_20 == 0) {
+            string progress_percentage = to_string((double)progress/size * 100) + "%...\n";
+            fprintf(stdout, "%s\n", progress_percentage.c_str());
+//            double acc_so_far = num_of_correct / (double)(num_of_correct+num_of_wrong);
+//            fprintf(stdout, "Accuracy so far: %f\n", acc_so_far);
+            fflush(stdout);
+        }
 
         int label_predict = PredictUseJTInfer(evidences.at(i), target_node_idx, timer);
         results.at(i) = label_predict;
-//    }
+    }
     return results;
 }
+
+///*!
+// * whether v2 is a subset of v1
+// * @param v1 the big one
+// * @param v2 the small one
+// * @return true if v2 is a subset of v1
+// */
+//bool IsSubset(const vector<int> &v1, const vector<int> &v2) {
+//    int i = 0, j = 0;
+//    int m = v1.size();
+//    int n = v2.size();
+//
+//    if (m < n) {
+//        return false;
+//    }
+//
+//    sort(v1.begin(), v1.end());
+//    sort(v2.begin(), v2.end());
+//
+//    while (i < n && j < m) {
+//        if (v1[j] < v2[i]) {
+//            j++;
+//        } else if (v1[j] == v2[i]) {
+//            j++;
+//            i++;
+//        } else {
+//            return false;
+//        }
+//    }
+//
+//    if (i < n) {
+//        return false;
+//    } else {
+//        return true;
+//    }
+//}

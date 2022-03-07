@@ -3,6 +3,7 @@
 
 #include <set>
 #include <vector>
+#include <algorithm>
 #include "Clique.h"
 #include "Separator.h"
 #include "Network.h"
@@ -15,8 +16,10 @@ class JunctionTree: public Inference {
   //==================================================
  public:
   Network *network;//the learned network which can be used for inference
-  set<Clique*> set_clique_ptr_container;//store all the cliques in this Junction Tree
-  set<Separator*> set_separator_ptr_container;//all the separators in the Junction tree
+//  set<Clique*> set_clique_ptr_container;//store all the cliques in this Junction Tree
+//  set<Separator*> set_separator_ptr_container;//all the separators in the Junction tree
+    vector<Clique*> vector_clique_ptr_container;//store all the cliques in this Junction Tree
+    vector<Separator*> vector_separator_ptr_container;//all the separators in the Junction tree
 
   vector<int> elimination_ordering;
 //  map<int, Clique*> map_elim_var_to_clique; //key: main variable of a clique; value: the clique
@@ -50,14 +53,17 @@ class JunctionTree: public Inference {
   void Triangulate(Network *net, int **adjac_matrix, vector<int> elim_ord);
 //  void FormListShapeJunctionTree(set<Clique*> &cliques);
   void FormJunctionTree();
-  void CliqueMerging(int threshold);
+//  void CliqueMerging(int threshold);
   void NumberTheCliquesAndSeparators();
   void AssignPotentials(Timer *timer);
   void BackUpJunctionTree();
+
   virtual void MessagePassingUpdateJT(Timer *timer);
   static vector<int> MinNeighbourElimOrd(int **adjac_matrix, int &num_nodes);
   static void Moralize(int **direc_adjac_matrix, int &num_nodes);
 //  void GenMapElimVarToClique();
 };
+
+//bool IsSubset(const vector<int> &v1, const vector<int> &v2);
 
 #endif //BAYESIANNETWORK_JUNCTIONTREE_H
