@@ -56,7 +56,7 @@ protected:
         network = new Network(true);
 
         string train_set_file_path = DATA_PATH + "/Bayesian-network/data/dataset/a1a.txt",//"../../data/dataset/a1a.txt",
-                test_set_file_path = DATA_PATH + "/Bayesian-network/data/dataset/a1a.test.txt";//"../../data/dataset/a1a.test.txt";
+                test_set_file_path = DATA_PATH + "/Bayesian-network/data/dataset/a1a.test2.txt";//"../../data/dataset/a1a.test.txt";
 
         trainer->LoadLIBSVMData(train_set_file_path);
         tester->LoadLIBSVMData(test_set_file_path);

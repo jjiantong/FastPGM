@@ -385,9 +385,9 @@ void PotentialTable::TableMarginalization(int index) {
 //        new_table.potentials.push_back(0);
 //    }
 
-    int num_threads = 4;
-    omp_set_num_threads(num_threads);
-#pragma omp parallel for //schedule(static, 1) // thread2:43->56; thread4: 56
+//    int num_threads = 4;
+//    omp_set_num_threads(num_threads);
+//#pragma omp parallel for //schedule(static, 1) // thread2:43->56; thread4: 56
     // traverse all rows of the original table
     for (int i = 0; i < this->table_size; ++i) {
         // 1. get the full config value of old table
@@ -402,7 +402,7 @@ void PotentialTable::TableMarginalization(int index) {
         // obtain the potential index
         int table_index = new_table.GetTableIndexByConfigValue(partial_config);
 
-#pragma omp critical
+//#pragma omp critical
         // potential[table_index]
         new_table.potentials[table_index] += this->potentials[i];
     }
