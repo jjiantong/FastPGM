@@ -53,7 +53,7 @@ class JunctionTree: public Inference {
   void Triangulate(Network *net, int **adjac_matrix, vector<int> elim_ord);
 //  void FormListShapeJunctionTree(set<Clique*> &cliques);
   void FormJunctionTree();
-//  void CliqueMerging(int threshold);
+  void CliqueMerging(int threshold);
   void NumberTheCliquesAndSeparators();
   void AssignPotentials(Timer *timer);
   void BackUpJunctionTree();
@@ -63,7 +63,5 @@ class JunctionTree: public Inference {
   static void Moralize(int **direc_adjac_matrix, int &num_nodes);
 //  void GenMapElimVarToClique();
 };
-
-//bool IsSubset(const vector<int> &v1, const vector<int> &v2);
 
 #endif //BAYESIANNETWORK_JUNCTIONTREE_H
