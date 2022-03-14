@@ -78,7 +78,7 @@ JunctionTree::JunctionTree(Network *net, string elim_ord_strategy, vector<int> c
     cout << "finish FormJunctionTree, number of cliques = " << vector_clique_ptr_container.size()
          << ", number of separators = " << vector_separator_ptr_container.size() << endl;
 
-    CliqueMerging(3);
+    CliqueMerging(8, 12);
     cout << "finish CliqueMerging, number of cliques = " << vector_clique_ptr_container.size()
          << ", number of separators = " << vector_separator_ptr_container.size() << endl;
 
@@ -86,38 +86,38 @@ JunctionTree::JunctionTree(Network *net, string elim_ord_strategy, vector<int> c
   NumberTheCliquesAndSeparators();
 //  cout << "finish NumberTheCliquesAndSeparators" << endl;
 
-//    cout << "cliques: " << endl;
-//    for (auto &c : vector_clique_ptr_container) {
-//        cout << c->clique_id << ": ";
-//        // set<int> related_variables
-//        for (auto &v : c->p_table.related_variables) {
-//            cout << v << " ";
-//        }
-//        cout << endl;
+    cout << "cliques: " << endl;
+    for (auto &c : vector_clique_ptr_container) {
+        cout << c->clique_id << ": ";
+        // set<int> related_variables
+        for (auto &v : c->p_table.related_variables) {
+            cout << v << " ";
+        }
+        cout << endl;
 //        cout << "neighbors: ";
 //        for (auto &s: c->set_neighbours_ptr) {
 //            cout << s->clique_id << " ";
 //        }
 //        cout << endl;
-////        // int num_variables
-////        // int table_size
-////        cout << "num variables = " << c->p_table.num_variables << ", table size = " << c->p_table.table_size << endl;
-////        // vector<int> var_dims
-////        cout << "var dims: ";
-////        for (int j = 0; j < c->p_table.var_dims.size(); ++j) {
-////            cout << c->p_table.var_dims[j] << " ";
-////        }
-////        // vector<int> cum_levels
-////        cout << "cum_levels: ";
-////        for (int j = 0; j < c->p_table.cum_levels.size(); ++j) {
-////            cout << c->p_table.cum_levels[j] << " ";
-////        }
-////        // vector<double> potentials
-////        cout << "table: " << endl;
-////        for (int j = 0; j < c->p_table.potentials.size(); ++j) {
-////            cout << c->p_table.potentials[j] << endl;
-////        }
-//    }
+//        // int num_variables
+//        // int table_size
+//        cout << "num variables = " << c->p_table.num_variables << ", table size = " << c->p_table.table_size << endl;
+//        // vector<int> var_dims
+//        cout << "var dims: ";
+//        for (int j = 0; j < c->p_table.var_dims.size(); ++j) {
+//            cout << c->p_table.var_dims[j] << " ";
+//        }
+//        // vector<int> cum_levels
+//        cout << "cum_levels: ";
+//        for (int j = 0; j < c->p_table.cum_levels.size(); ++j) {
+//            cout << c->p_table.cum_levels[j] << " ";
+//        }
+//        // vector<double> potentials
+//        cout << "table: " << endl;
+//        for (int j = 0; j < c->p_table.potentials.size(); ++j) {
+//            cout << c->p_table.potentials[j] << endl;
+//        }
+    }
 //    cout << "separators: " << endl;
 //    for (auto &s : vector_separator_ptr_container) {
 //        cout << s->clique_id << ": ";
@@ -704,7 +704,7 @@ void JunctionTree::FormJunctionTree() {
     }
 }
 
-void JunctionTree::CliqueMerging(int threshold) {
+void JunctionTree::CliqueMerging(int low, int high) {
     int num_clique_old = 0;
     int num_clique_new = vector_clique_ptr_container.size();
 
@@ -727,7 +727,8 @@ void JunctionTree::CliqueMerging(int threshold) {
 //                cout << v << " ";
 //            }
 //            cout << endl;
-            if (clq1->clique_size < threshold && clq2->clique_size < threshold) {
+            if ((clq1->clique_size < low || clq2->clique_size < low) &&
+                (clq1->clique_size + clq2->clique_size < high)) {
                 // 1. remove this sep from the neighbors of clq1 and clq2
                 clq1->set_neighbours_ptr.erase(*it);
                 clq2->set_neighbours_ptr.erase(*it);
@@ -1031,7 +1032,7 @@ void JunctionTree::ResetJunctionTree() {
 /**
  * @brief: when inferring, an evidence is given. The evidence needs to be loaded and propagate in the network.
  */
-void JunctionTree::LoadDiscreteEvidence(const DiscreteConfig &E) {
+void JunctionTree::LoadDiscreteEvidence(const DiscreteConfig &E, Timer *timer) {
 //    /*********************** load evidence on all cliques and seps **************************/
 //    // cannot just erase "comb" inside the inner most loop,
 //    // because it will cause problem in factor division...
@@ -1147,7 +1148,7 @@ void JunctionTree::LoadDiscreteEvidence(const DiscreteConfig &E) {
             // if this factor is related to the observation
             if (clique_ptr->p_table.related_variables.find(index) != clique_ptr->p_table.related_variables.end()) {
 //                cout << "this clique is related to the observation" << endl;
-                clique_ptr->p_table.TableReduction(index, value_index);
+                clique_ptr->p_table.TableReduction(index, value_index, timer);
             }
         }
         for (auto &sep_ptr : vector_separator_ptr_container) { // for each sep
@@ -1159,7 +1160,7 @@ void JunctionTree::LoadDiscreteEvidence(const DiscreteConfig &E) {
             // if this factor is related to the observation
             if (sep_ptr->p_table.related_variables.find(index) != sep_ptr->p_table.related_variables.end()) {
 //                cout << "this sep is related to the observation" << endl;
-                sep_ptr->p_table.TableReduction(index, value_index);
+                sep_ptr->p_table.TableReduction(index, value_index, timer);
             }
         }
     }
@@ -1280,7 +1281,7 @@ Factor JunctionTree::BeliefPropagationCalcuDiscreteVarMarginal(int query_index) 
 /**
  * @brief: compute the marginal distribution for a query variable
  **/
-PotentialTable JunctionTree::BeliefPropagationCalcuDiscreteVarMarginal2(int query_index) {
+PotentialTable JunctionTree::BeliefPropagationCalcuDiscreteVarMarginal2(int query_index, Timer *timer) {
 
     // The input is a set of query_indexes of variables.
     // The output is a factor representing the joint marginal of these variables.
@@ -1336,7 +1337,7 @@ PotentialTable JunctionTree::BeliefPropagationCalcuDiscreteVarMarginal2(int quer
 //    }
 
     for (auto &index : other_vars) {
-        pt.TableMarginalization(index);
+        pt.TableMarginalization(index, timer);
     }
 //    cout << "table after marginalization: " << endl;
 //    for (int j = 0; j < pt.potentials.size(); ++j) {
@@ -1355,7 +1356,7 @@ PotentialTable JunctionTree::BeliefPropagationCalcuDiscreteVarMarginal2(int quer
 /**
  * @brief: predict the label for a given variable.
  */
-int JunctionTree::InferenceUsingBeliefPropagation(int &query_index) {
+int JunctionTree::InferenceUsingBeliefPropagation(int &query_index, Timer *timer) {
 //    /************************* use factor ******************************/
 //  Factor f = BeliefPropagationCalcuDiscreteVarMarginal(query_index);
 //  double max_prob = 0;
@@ -1370,7 +1371,7 @@ int JunctionTree::InferenceUsingBeliefPropagation(int &query_index) {
 //    /************************* use factor ******************************/
 
     /************************* use potential table ******************************/
-    PotentialTable pt = BeliefPropagationCalcuDiscreteVarMarginal2(query_index);
+    PotentialTable pt = BeliefPropagationCalcuDiscreteVarMarginal2(query_index, timer);
     double max_prob = 0;
     int max_index;
     for (int i = 0; i < pt.table_size; ++i) { // traverse the potential table
@@ -1489,6 +1490,14 @@ double JunctionTree::EvaluateAccuracy(Dataset *dts, int num_samp, string alg, bo
 //    timer->Print("update clique"); cout << " (" << timer->time["update clique"] / timer->time["msg passing"] * 100 << "%)";
 //    timer->Print("construct sep"); cout << " (" << timer->time["construct sep"] / timer->time["msg passing"] * 100 << "%)";
 //    timer->Print("update sep"); cout << " (" << timer->time["update sep"] / timer->time["msg passing"] * 100 << "%)" << endl;
+    timer->Print("marginal1");
+    timer->Print("marginal2");
+    timer->Print("multi1");
+    timer->Print("multi2");
+    timer->Print("extension1");
+    timer->Print("extension2");
+    timer->Print("reduction1");
+    timer->Print("reduction2"); cout << endl;
     delete timer;
     timer = nullptr;
 
@@ -1502,7 +1511,7 @@ double JunctionTree::EvaluateAccuracy(Dataset *dts, int num_samp, string alg, bo
 int JunctionTree::PredictUseJTInfer(const DiscreteConfig &E, int Y_index, Timer *timer) {
     timer->Start("load evidence");
     //update a clique using the evidence
-    LoadDiscreteEvidence(E);
+    LoadDiscreteEvidence(E, timer);
     timer->Stop("load evidence");
 
 //    cout << "cliques: " << endl;
@@ -1594,7 +1603,7 @@ int JunctionTree::PredictUseJTInfer(const DiscreteConfig &E, int Y_index, Timer 
 //    cout << endl;
 
     timer->Start("predict");
-    int label_predict = InferenceUsingBeliefPropagation(Y_index);
+    int label_predict = InferenceUsingBeliefPropagation(Y_index, timer);
     timer->Stop("predict");
 
     timer->Start("reset");

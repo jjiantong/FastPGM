@@ -32,14 +32,14 @@ class JunctionTree: public Inference {
   virtual ~JunctionTree() = default;
 
   void ResetJunctionTree();
-  virtual void LoadDiscreteEvidence(const DiscreteConfig &E);
+  virtual void LoadDiscreteEvidence(const DiscreteConfig &E, Timer *timer);
 
 //  void PrintAllCliquesPotentials() const;
 //  void PrintAllSeparatorsPotentials() const;
 
     Factor BeliefPropagationCalcuDiscreteVarMarginal(int query_index);
-    PotentialTable BeliefPropagationCalcuDiscreteVarMarginal2(int query_index);
-    int InferenceUsingBeliefPropagation(int &query_index);
+    PotentialTable BeliefPropagationCalcuDiscreteVarMarginal2(int query_index, Timer *timer);
+    int InferenceUsingBeliefPropagation(int &query_index, Timer *timer);
 
     virtual double EvaluateAccuracy(Dataset *dts, int num_samp, string alg, bool is_dense);
     int PredictUseJTInfer(const DiscreteConfig &E, int Y_index, Timer *timer);
@@ -53,7 +53,7 @@ class JunctionTree: public Inference {
   void Triangulate(Network *net, int **adjac_matrix, vector<int> elim_ord);
 //  void FormListShapeJunctionTree(set<Clique*> &cliques);
   void FormJunctionTree();
-  void CliqueMerging(int threshold);
+  void CliqueMerging(int low, int high);
   void NumberTheCliquesAndSeparators();
   void AssignPotentials(Timer *timer);
   void BackUpJunctionTree();

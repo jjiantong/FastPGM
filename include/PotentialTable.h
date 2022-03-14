@@ -15,6 +15,7 @@
 #include "Node.h"
 #include "DiscreteNode.h"
 #include "Network.h"
+#include "Timer.h"
 
 using namespace std;
 
@@ -39,11 +40,11 @@ public:
     PotentialTable() = default;
     PotentialTable(DiscreteNode *disc_node, Network *net);
 
-    void TableExtension(const set<int> &variables, const vector<int> &dims);
-    void TableMultiplication(PotentialTable &second_table);
+    void TableExtension(const set<int> &variables, const vector<int> &dims, Timer *timer);
+    void TableMultiplication(PotentialTable &second_table, Timer *timer);
     void TableDivision(const PotentialTable &second_table);
-    void TableReduction(int e_index, int e_value_index);
-    void TableMarginalization(int index);
+    void TableReduction(int e_index, int e_value_index, Timer *timer);
+    void TableMarginalization(int index, Timer *timer);
     void Normalize();
 
 private:
@@ -52,5 +53,7 @@ private:
     int GetTableIndexByConfigValue(const vector<int> &config_value);
     int GetVariableIndex(const int &variable);
 };
+
+void GetBeginAndEnd(int total, int num, int loc, int &begin, int &end);
 
 #endif //BAYESIANNETWORK_POTENTIALTABLE_H

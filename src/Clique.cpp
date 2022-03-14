@@ -334,7 +334,7 @@ void Clique::SumOutExternalVars(PotentialTable &pt, Timer *timer) {
     timer->Start("factor marginalization");
     // Sum over the variables that are not in the scope of this clique/separator, so as to eliminate them.
     for (auto &ex_vars : set_external_vars) {
-        pt.TableMarginalization(ex_vars);
+        pt.TableMarginalization(ex_vars, timer);
     }
     timer->Stop("factor marginalization");
 }
@@ -353,9 +353,9 @@ void Clique::MultiplyWithFactorSumOverExternalVars(Factor &f, Timer *timer) {
     // so they all need to be changed here.
     // at the same time, the original implementation copy a new factor of the clique, use the copy to compute,
     // and then copy back the "map_potentials", which is not efficient...
-//    timer->Start("factor multiplication");
+    timer->Start("factor multiplication");
     table = table.MultiplyWithFactor(f); // multiply two factors
-//    timer->Stop("factor multiplication");
+    timer->Stop("factor multiplication");
 }
 
 /**
@@ -373,7 +373,7 @@ void Clique::MultiplyWithFactorSumOverExternalVars(PotentialTable &pt, Timer *ti
     // at the same time, the original implementation copy a new factor of the clique, use the copy to compute,
     // and then copy back the "map_potentials", which is not efficient...
     timer->Start("factor multiplication");
-    p_table.TableMultiplication(pt); // multiply two factors
+    p_table.TableMultiplication(pt, timer); // multiply two factors
     timer->Stop("factor multiplication");
 }
 
