@@ -12,6 +12,7 @@
 #include "gadget.h"
 #include "Node.h"
 #include "Factor.h"
+#include "Network.h"
 #include "PotentialTable.h"
 #include "CGRegression.h"
 #include "Timer.h"
@@ -28,7 +29,7 @@ class Clique {
   int clique_size;//the number of nodes in this clique
   bool pure_discrete;
 
-  set <int> clique_variables;
+    set <int> clique_variables;
   // the following three members are the same with the class "Factor"
 //  set<int> related_variables; //the variables involved in this clique
 //  set<DiscreteConfig> set_disc_configs; //all the configurations of the related variables
@@ -61,7 +62,8 @@ class Clique {
 
   Clique();
 //  Clique(set<Node*> set_node_ptrs, int elim_var_index);
-    Clique(set<Node*> set_node_ptrs);
+    Clique(set<Node*> set_node_ptr);
+    Clique(set<int> set_node_index, Network *net);
 
 //  Clique* CopyWithoutPtr();
   void MultiplyWithFactorSumOverExternalVars(Factor &f, Timer *timer);

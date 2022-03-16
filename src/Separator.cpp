@@ -16,6 +16,12 @@ Separator::Separator(set<Node*> set_node_ptr): Clique(set_node_ptr) {
   weight = clique_size;
 }
 
+Separator::Separator(set<int> set_node_index, Network *net): Clique(set_node_index, net) {
+    is_in_jt = false;
+    is_separator = true;
+    weight = clique_size;
+}
+
 Separator* Separator::CopyWithoutPtr() {
   auto s = new Separator(*this);
   s->set_neighbours_ptr.clear();
@@ -25,15 +31,12 @@ Separator* Separator::CopyWithoutPtr() {
 
 
 void Separator::UpdateUseMessage(Factor &f, Timer *timer) {
-//    timer->Start("update sep");
     old_table = table;
     SumOutExternalVars(f, timer);
     table = f;
-//    timer->Stop("update sep");
 }
 
 void Separator::UpdateUseMessage2(PotentialTable &pt, Timer *timer) {
-//    timer->Start("update sep");
 //    cout << "construct msg of sep ";
 //    for (auto &v: this->p_table.related_variables) {
 //        cout << v << " ";
@@ -56,14 +59,12 @@ void Separator::UpdateUseMessage2(PotentialTable &pt, Timer *timer) {
     old_ptable = p_table;
     SumOutExternalVars(pt, timer);
     p_table = pt;
-//    timer->Stop("update sep");
 }
 
 /**
  * @brief: this is a standard process for constructing the message of the separator cliques.
  */
 void Separator::ConstructMessage(Timer *timer) {
-//    timer->Start("construct sep");
 //    timer->Start("factor division");
 //    if (table.related_variables.size() != old_table.related_variables.size()) {
 //        cout << "error!!!!!!" << endl;
@@ -84,11 +85,9 @@ void Separator::ConstructMessage(Timer *timer) {
         }
     }
 //    timer->Stop("factor division");
-//    timer->Stop("construct sep");
 }
 
 void Separator::ConstructMessage2(Timer *timer) {
-//    timer->Start("construct sep");
     timer->Start("factor division");
 //    if (table.related_variables.size() != old_table.related_variables.size()) {
 //        cout << "error!!!!!!" << endl;
@@ -109,7 +108,35 @@ void Separator::ConstructMessage2(Timer *timer) {
 //    }
 //    cout << endl;
 
+//    cout << "divide" << endl;
+//    cout << "before1: ";
+//    for (auto v: p_table.related_variables) {
+//        cout << v << " ";
+//    }
+//    cout << endl;
+//    for (int i = 0; i < p_table.table_size; ++i) {
+//        cout << p_table.potentials[i] << " ";
+//    }
+//    cout << endl;
+//    cout << "before2: ";
+//    for (auto v: old_ptable.related_variables) {
+//        cout << v << " ";
+//    }
+//    cout << endl;
+//    for (int i = 0; i < old_ptable.table_size; ++i) {
+//        cout << old_ptable.potentials[i] << " ";
+//    }
+//    cout << endl;
     p_table.TableDivision(old_ptable);
+//    cout << "after: ";
+//    for (auto v: p_table.related_variables) {
+//        cout << v << " ";
+//    }
+//    cout << endl;
+//    for (int i = 0; i < p_table.table_size; ++i) {
+//        cout << p_table.potentials[i] << " ";
+//    }
+//    cout << endl;
 
 //    // if related variable of both new and old are empty
 //    if (p_table.related_variables.empty()) {
@@ -125,5 +152,4 @@ void Separator::ConstructMessage2(Timer *timer) {
 //        }
 //    }
     timer->Stop("factor division");
-//    timer->Stop("construct sep");
 }

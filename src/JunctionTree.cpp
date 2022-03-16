@@ -78,30 +78,30 @@ JunctionTree::JunctionTree(Network *net, string elim_ord_strategy, vector<int> c
     cout << "finish FormJunctionTree, number of cliques = " << vector_clique_ptr_container.size()
          << ", number of separators = " << vector_separator_ptr_container.size() << endl;
 
-    CliqueMerging(8, 12);
-    cout << "finish CliqueMerging, number of cliques = " << vector_clique_ptr_container.size()
-         << ", number of separators = " << vector_separator_ptr_container.size() << endl;
+//    CliqueMerging(8, 12);
+//    cout << "finish CliqueMerging, number of cliques = " << vector_clique_ptr_container.size()
+//         << ", number of separators = " << vector_separator_ptr_container.size() << endl;
 
   //assign id to each clique
   NumberTheCliquesAndSeparators();
 //  cout << "finish NumberTheCliquesAndSeparators" << endl;
 
-    cout << "cliques: " << endl;
-    for (auto &c : vector_clique_ptr_container) {
-        cout << c->clique_id << ": ";
-        // set<int> related_variables
-        for (auto &v : c->p_table.related_variables) {
-            cout << v << " ";
-        }
-        cout << endl;
-//        cout << "neighbors: ";
-//        for (auto &s: c->set_neighbours_ptr) {
-//            cout << s->clique_id << " ";
+//    cout << "cliques: " << endl;
+//    for (auto &c : vector_clique_ptr_container) {
+//        cout << c->clique_id << ": ";
+//        // set<int> related_variables
+//        for (auto &v : c->p_table.related_variables) {
+//            cout << v << " ";
 //        }
 //        cout << endl;
-//        // int num_variables
-//        // int table_size
-//        cout << "num variables = " << c->p_table.num_variables << ", table size = " << c->p_table.table_size << endl;
+////        cout << "neighbors: ";
+////        for (auto &s: c->set_neighbours_ptr) {
+////            cout << s->clique_id << " ";
+////        }
+////        cout << endl;
+////        // int num_variables
+////        // int table_size
+////        cout << "num variables = " << c->p_table.num_variables << ", table size = " << c->p_table.table_size << endl;
 //        // vector<int> var_dims
 //        cout << "var dims: ";
 //        for (int j = 0; j < c->p_table.var_dims.size(); ++j) {
@@ -112,37 +112,11 @@ JunctionTree::JunctionTree(Network *net, string elim_ord_strategy, vector<int> c
 //        for (int j = 0; j < c->p_table.cum_levels.size(); ++j) {
 //            cout << c->p_table.cum_levels[j] << " ";
 //        }
-//        // vector<double> potentials
-//        cout << "table: " << endl;
-//        for (int j = 0; j < c->p_table.potentials.size(); ++j) {
-//            cout << c->p_table.potentials[j] << endl;
-//        }
-    }
-//    cout << "separators: " << endl;
-//    for (auto &s : vector_separator_ptr_container) {
-//        cout << s->clique_id << ": ";
-//        // set<int> related_variables
-//        for (auto &v : s->p_table.related_variables) {
-//            cout << v << " ";
-//        }
-//        cout << endl;
-////        // int num_variables
-////        // int table_size
-////        cout << "num variables = " << s->p_table.num_variables << ", table size = " << s->p_table.table_size << endl;
-////        // vector<int> var_dims
-////        cout << "var dims: ";
-////        for (int j = 0; j < s->p_table.var_dims.size(); ++j) {
-////            cout << s->p_table.var_dims[j] << " ";
-////        }
-////        // vector<int> cum_levels
-////        cout << "cum_levels: ";
-////        for (int j = 0; j < s->p_table.cum_levels.size(); ++j) {
-////            cout << s->p_table.cum_levels[j] << " ";
-////        }
+//        cout << "table size = " << c->p_table.table_size << endl;
 ////        // vector<double> potentials
 ////        cout << "table: " << endl;
-////        for (int j = 0; j < s->p_table.potentials.size(); ++j) {
-////            cout << s->p_table.potentials[j] << endl;
+////        for (int j = 0; j < c->p_table.potentials.size(); ++j) {
+////            cout << c->p_table.potentials[j] << endl;
 ////        }
 //    }
 
@@ -150,42 +124,7 @@ JunctionTree::JunctionTree(Network *net, string elim_ord_strategy, vector<int> c
   cout << "finish AssignPotentials" << endl;
 
 //    cout << "cliques: " << endl;
-//    for (auto &c : set_clique_ptr_container) {
-//        cout << c->clique_id << ": ";
-//        for (auto &v : c->table.related_variables) {
-//            cout << v << " ";
-//        }
-//        cout << endl;
-//        // set<DiscreteConfig> set_disc_configs; DiscreteConfig: set< pair<int, int> >
-//        // map<DiscreteConfig, double> map_potentials
-//        for (auto &config: c->table.set_disc_configs) {
-//            cout << "config: ";
-//            for (auto &varval: config) {
-//                cout << varval.first << "=" << varval.second << " ";
-//            }
-//            cout << ": " << c->table.map_potentials[config] << endl;
-//        }
-//    }
-//    cout << "separators: " << endl;
-//    for (auto &s : set_separator_ptr_container) {
-//        cout << s->clique_id << ": ";
-//        for (auto &v : s->table.related_variables) {
-//            cout << v << " ";
-//        }
-//        cout << endl;
-//        // set<DiscreteConfig> set_disc_configs; DiscreteConfig: set< pair<int, int> >
-//        // map<DiscreteConfig, double> map_potentials
-//        for (auto &config: s->table.set_disc_configs) {
-//            cout << "config: ";
-//            for (auto &varval: config) {
-//                cout << varval.first << "=" << varval.second << " ";
-//            }
-//            cout << ": " << s->table.map_potentials[config] << endl;
-//        }
-//    }
-
-//    cout << "cliques: " << endl;
-//    for (auto &c : set_clique_ptr_container) {
+//    for (auto &c : vector_clique_ptr_container) {
 //        cout << c->clique_id << ": ";
 //        // set<int> related_variables
 //        for (auto &v : c->p_table.related_variables) {
@@ -209,33 +148,6 @@ JunctionTree::JunctionTree(Network *net, string elim_ord_strategy, vector<int> c
 //        cout << "table: " << endl;
 //        for (int j = 0; j < c->p_table.potentials.size(); ++j) {
 //            cout << c->p_table.potentials[j] << endl;
-//        }
-//    }
-//    cout << "separators: " << endl;
-//    for (auto &s : set_separator_ptr_container) {
-//        cout << s->clique_id << ": ";
-//        // set<int> related_variables
-//        for (auto &v : s->p_table.related_variables) {
-//            cout << v << " ";
-//        }
-//        cout << endl;
-////        // int num_variables
-////        // int table_size
-////        cout << "num variables = " << s->p_table.num_variables << ", table size = " << s->p_table.table_size << endl;
-////        // vector<int> var_dims
-////        cout << "var dims: ";
-////        for (int j = 0; j < s->p_table.var_dims.size(); ++j) {
-////            cout << s->p_table.var_dims[j] << " ";
-////        }
-////        // vector<int> cum_levels
-////        cout << "cum_levels: ";
-////        for (int j = 0; j < s->p_table.cum_levels.size(); ++j) {
-////            cout << s->p_table.cum_levels[j] << " ";
-////        }
-//        // vector<double> potentials
-//        cout << "table: " << endl;
-//        for (int j = 0; j < s->p_table.potentials.size(); ++j) {
-//            cout << s->p_table.potentials[j] << endl;
 //        }
 //    }
 
@@ -486,11 +398,13 @@ void JunctionTree::Triangulate(Network *net,
     int num_nodes = net->num_nodes;
 
     vector<int> vec_neighbors;
-    set<Node*> set_node_ptrs_to_form_a_clique;
+//    set<Node*> set_node_ptrs_to_form_a_clique;
+    set<int> set_node_indexes_to_form_a_clique; // use node index instead
     int first_node_in_elim_ord = elim_ord.front();
 
     // insert the first node in the elimination order into "set_node_ptrs_to_form_a_clique"
-    set_node_ptrs_to_form_a_clique.insert(net->FindNodePtrByIndex(first_node_in_elim_ord));
+//    set_node_ptrs_to_form_a_clique.insert(net->FindNodePtrByIndex(first_node_in_elim_ord));
+    set_node_indexes_to_form_a_clique.insert(first_node_in_elim_ord);
 
     // insert all its neighbors into "vec_neighbors"
     for (int j = 0; j < num_nodes; ++j) {
@@ -505,12 +419,34 @@ void JunctionTree::Triangulate(Network *net,
             adjac_matrix[vec_neighbors.at(neighbor)][vec_neighbors.at(neighbor2)] = 1;
             adjac_matrix[vec_neighbors.at(neighbor2)][vec_neighbors.at(neighbor)] = 1;
         }
-        set_node_ptrs_to_form_a_clique.insert(net->FindNodePtrByIndex(vec_neighbors.at(neighbor)));
+//        set_node_ptrs_to_form_a_clique.insert(net->FindNodePtrByIndex(vec_neighbors.at(neighbor)));
+        set_node_indexes_to_form_a_clique.insert(vec_neighbors.at(neighbor));
     }
 
     // before adding a clique, we need to check whether the clique is redundant
     // if a clique is fully contained by another (existing/previous) clique, then the clique is no need to be inserted.
-    Clique* clique = new Clique(set_node_ptrs_to_form_a_clique);
+//    Clique* clique = new Clique(set_node_ptrs_to_form_a_clique);
+    Clique* clique = new Clique(set_node_indexes_to_form_a_clique, net);
+//    cout << "insert a clique: ";
+//    for (auto &v : clique->p_table.related_variables) {
+//        cout << v << " ";
+//    }
+//    cout << endl;
+//    // vector<int> var_dims
+//    cout << "var dims: ";
+//    for (int j = 0; j < clique->p_table.var_dims.size(); ++j) {
+//        cout << clique->p_table.var_dims[j] << " ";
+//    }
+//    // vector<int> cum_levels
+//    cout << "cum_levels: ";
+//    for (int j = 0; j < clique->p_table.cum_levels.size(); ++j) {
+//        cout << clique->p_table.cum_levels[j] << " ";
+//    }
+//    // vector<double> potentials
+//    cout << "table: " << endl;
+//    for (int j = 0; j < clique->p_table.potentials.size(); ++j) {
+//        cout << clique->p_table.potentials[j] << endl;
+//    }
 
     bool to_be_inserted = true;
     for (auto &ptr_clq : vector_clique_ptr_container) {
@@ -626,12 +562,13 @@ void JunctionTree::FormJunctionTree() {
           continue;
       }
 
-      set<Node*> common_related_node_ptrs;
-      for (auto &v : common_variables) {
-        common_related_node_ptrs.insert(network->FindNodePtrByIndex(v));
-      }
+//      set<Node*> common_related_node_ptrs;
+//      for (auto &v : common_variables) {
+//        common_related_node_ptrs.insert(network->FindNodePtrByIndex(v));
+//      }
 
-      Separator *sep = new Separator(common_related_node_ptrs);
+//      Separator *sep = new Separator(common_related_node_ptrs);
+      Separator *sep = new Separator(common_variables, network);
       // Let separator know the two cliques that it connects to.
       sep->set_neighbours_ptr.insert(clique_ptr);
       sep->set_neighbours_ptr.insert(clique_ptr_2);
@@ -738,14 +675,15 @@ void JunctionTree::CliqueMerging(int low, int high) {
                 delete tmp;
 //                cout << "remove sep and neighbors...." << endl;
                 // 3. create a new big clique
-                set<int> set_index_to_form_a_clique;
-                set<Node*> set_node_ptrs_to_form_a_clique;
-                set_index_to_form_a_clique.insert(clq1->clique_variables.begin(), clq1->clique_variables.end());
-                set_index_to_form_a_clique.insert(clq2->clique_variables.begin(), clq2->clique_variables.end());
-                for (auto index: set_index_to_form_a_clique) {
-                    set_node_ptrs_to_form_a_clique.insert(network->FindNodePtrByIndex(index));
-                }
-                Clique* clique = new Clique(set_node_ptrs_to_form_a_clique);
+                set<int> set_indexes_to_form_a_clique;
+//                set<Node*> set_node_ptrs_to_form_a_clique;
+                set_indexes_to_form_a_clique.insert(clq1->clique_variables.begin(), clq1->clique_variables.end());
+                set_indexes_to_form_a_clique.insert(clq2->clique_variables.begin(), clq2->clique_variables.end());
+//                for (auto index: set_indexes_to_form_a_clique) {
+//                    set_node_ptrs_to_form_a_clique.insert(network->FindNodePtrByIndex(index));
+//                }
+//                Clique* clique = new Clique(set_node_ptrs_to_form_a_clique);
+                Clique* clique = new Clique(set_indexes_to_form_a_clique, network);
                 vector_clique_ptr_container.push_back(clique);
 //                cout << "create new clique ";
 //                for (auto v: clique->clique_variables) {
@@ -1315,7 +1253,7 @@ PotentialTable JunctionTree::BeliefPropagationCalcuDiscreteVarMarginal2(int quer
         exit(1);
     }
 
-//    cout << "select clique: ";
+//    cout << "select clique: " << selected_clique->clique_id << ": ";
 //    for (auto v: selected_clique->p_table.related_variables) {
 //        cout << v << " ";
 //    }
@@ -1486,10 +1424,6 @@ double JunctionTree::EvaluateAccuracy(Dataset *dts, int num_samp, string alg, bo
     timer->Print("factor multiplication"); cout << " (" << timer->time["factor multiplication"] / timer->time["msg passing"] * 100 << "%)";
     timer->Print("factor division"); cout << " (" << timer->time["factor division"] / timer->time["msg passing"] * 100 << "%)";
     timer->Print("set_difference"); cout << " (" << timer->time["set_difference"] / timer->time["msg passing"] * 100 << "%)" << endl;
-//    timer->Print("construct clique"); cout << " (" << timer->time["construct clique"] / timer->time["msg passing"] * 100 << "%)";
-//    timer->Print("update clique"); cout << " (" << timer->time["update clique"] / timer->time["msg passing"] * 100 << "%)";
-//    timer->Print("construct sep"); cout << " (" << timer->time["construct sep"] / timer->time["msg passing"] * 100 << "%)";
-//    timer->Print("update sep"); cout << " (" << timer->time["update sep"] / timer->time["msg passing"] * 100 << "%)" << endl;
     timer->Print("marginal1");
     timer->Print("marginal2");
     timer->Print("multi1");
@@ -1513,9 +1447,10 @@ int JunctionTree::PredictUseJTInfer(const DiscreteConfig &E, int Y_index, Timer 
     //update a clique using the evidence
     LoadDiscreteEvidence(E, timer);
     timer->Stop("load evidence");
+//    cout << "finish load evidence" << endl;
 
 //    cout << "cliques: " << endl;
-//    for (auto &c : set_clique_ptr_container) {
+//    for (auto &c : vector_clique_ptr_container) {
 //        cout << c->clique_id << ": ";
 //        // set<int> related_variables
 //        for (auto &v : c->p_table.related_variables) {
@@ -1541,41 +1476,15 @@ int JunctionTree::PredictUseJTInfer(const DiscreteConfig &E, int Y_index, Timer 
 //            cout << c->p_table.potentials[j] << endl;
 //        }
 //    }
-//    cout << "separators: " << endl;
-//    for (auto &s : set_separator_ptr_container) {
-//        cout << s->clique_id << ": ";
-//        // set<int> related_variables
-//        for (auto &v : s->p_table.related_variables) {
-//            cout << v << " ";
-//        }
-//        cout << endl;
-//        // int num_variables
-//        // int table_size
-//        cout << "num variables = " << s->p_table.num_variables << ", table size = " << s->p_table.table_size << endl;
-//        // vector<int> var_dims
-//        cout << "var dims: ";
-//        for (int j = 0; j < s->p_table.var_dims.size(); ++j) {
-//            cout << s->p_table.var_dims[j] << " ";
-//        }
-//        // vector<int> cum_levels
-//        cout << "cum_levels: ";
-//        for (int j = 0; j < s->p_table.cum_levels.size(); ++j) {
-//            cout << s->p_table.cum_levels[j] << " ";
-//        }
-//        // vector<double> potentials
-//        cout << "table: " << endl;
-//        for (int j = 0; j < s->p_table.potentials.size(); ++j) {
-//            cout << s->p_table.potentials[j] << endl;
-//        }
-//    }
 
     timer->Start("msg passing");
     //update the whole Junction Tree
     MessagePassingUpdateJT(timer);
     timer->Stop("msg passing");
+//    cout << "finish msg passing" << endl;
 
 //    cout << "cliques: " << endl;
-//    for (auto &c : set_clique_ptr_container) {
+//    for (auto &c : vector_clique_ptr_container) {
 //        cout << c->clique_id << ": ";
 //        // set<int> related_variables
 //        for (auto &v : c->p_table.related_variables) {
@@ -1588,7 +1497,7 @@ int JunctionTree::PredictUseJTInfer(const DiscreteConfig &E, int Y_index, Timer 
 //        }
 //    }
 //    cout << "separators: " << endl;
-//    for (auto &s : set_separator_ptr_container) {
+//    for (auto &s : vector_separator_ptr_container) {
 //        cout << s->clique_id << ": ";
 //        // set<int> related_variables
 //        for (auto &v : s->p_table.related_variables) {
@@ -1605,10 +1514,12 @@ int JunctionTree::PredictUseJTInfer(const DiscreteConfig &E, int Y_index, Timer 
     timer->Start("predict");
     int label_predict = InferenceUsingBeliefPropagation(Y_index, timer);
     timer->Stop("predict");
+//    cout << "finish predict " << endl;
 
     timer->Start("reset");
     ResetJunctionTree();
     timer->Stop("reset");
+//    cout << "finish reset" << endl;
     return label_predict;
 }
 

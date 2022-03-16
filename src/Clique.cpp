@@ -14,6 +14,14 @@ Clique::Clique() {
   activeflag = false;
 }
 
+/*!
+ * @brief: constructor, given node ptrs of the clique
+ * @bug: the node ptrs in the set ("set_node_ptr") is not ordered by the index of the nodes
+ *       so the order of "var_dims" is not right using this constructor (TODO)
+ *       at the beginning, we used data set "a1a" where every feature and label has the same number of possible values
+ *       so we did not find the bug at the beginning...
+ * use the next constructor, given node indexes of the clique
+ */
 Clique::Clique(set<Node*> set_node_ptr) {
 //Clique::Clique(set<Node*> set_node_ptr, int elim_var_index) {
   is_separator = false;
@@ -60,13 +68,21 @@ Clique::Clique(set<Node*> set_node_ptr) {
     p_table.num_variables = clique_size;
     p_table.var_dims.reserve(clique_size);
     for (auto &n : set_node_ptr) { // for each node
+        cout << "operate " << n << ", ";
         //initialize related variables
         clique_variables.insert(n->GetNodeIndex());
+        cout << "insert to clique variables - " << n->GetNodeIndex() << ", ";
         if (n->is_discrete) {
             auto dn = dynamic_cast<DiscreteNode*>(n);
             p_table.var_dims.push_back(dn->GetDomainSize());
+            cout << "insert to dims - " << dn->GetDomainSize() << endl;
         }
     }
+    cout << "finally dims = ";
+    for (int i = 0; i < p_table.var_dims.size(); ++i) {
+        cout << p_table.var_dims[i] << " ";
+    }
+    cout << endl;
 
     p_table.cum_levels.resize(clique_size);
     // set the right-most one ...
@@ -88,6 +104,72 @@ Clique::Clique(set<Node*> set_node_ptr) {
 
     ptr_upstream_clique = nullptr;
 }
+
+/*!
+ * @brief: constructor, given node indexes of the clique
+ * use this constructor, the reason is shown in the last constructor
+ * we still need the node ptr, so we add parameter "net" to find node ptr by index
+ * TODO: only support (pure) discrete cases now
+ */
+Clique::Clique(set<int> set_node_index, Network *net) {
+    is_separator = false;
+    clique_size = set_node_index.size();
+    pure_discrete = true;
+
+//    /************************* use factor ******************************/
+//  // set_of_sets: set< set< pair<int, int> > >:
+//  //    one set is all possible values of one node(variable),
+//  //    set of sets is all possible values of all nodes.
+//  // c: set< pair<int, int> >
+//  set<DiscreteConfig> set_of_sets;
+//  clique_variables = set_node_index;
+//  for (auto &n : set_node_index) { // for each node
+//      Node *node_ptr = net->FindNodePtrByIndex(n);
+//      auto dn = dynamic_cast<DiscreteNode*>(node_ptr);
+//      DiscreteConfig c; // multiple groups: [node id, all possible values of this node]
+//      for (int i = 0; i < dn->GetDomainSize(); ++i) {
+//        c.insert(pair<int, int>(n, dn->vec_potential_vals.at(i)));
+//      set_of_sets.insert(c);
+//    }
+//  }
+//
+//    table.related_variables = set_node_index;
+//    table.set_disc_configs = GenAllCombinationsFromSets(&set_of_sets);
+//    PreInitializePotentials();
+//    /************************* use factor ******************************/
+
+    /************************* use potential table ******************************/
+    clique_variables = set_node_index;
+    // potential table
+    p_table.num_variables = clique_size;
+    p_table.var_dims.reserve(clique_size);
+    for (auto &n : set_node_index) { // for each node
+        Node *node_ptr = net->FindNodePtrByIndex(n);
+        auto dn = dynamic_cast<DiscreteNode*>(node_ptr);
+        p_table.var_dims.push_back(dn->GetDomainSize());
+    }
+
+    p_table.cum_levels.resize(clique_size);
+    // set the right-most one ...
+    p_table.cum_levels[clique_size - 1] = 1;
+    // ... then compute the left ones
+    for (int i = clique_size - 2; i >= 0; --i) {
+        p_table.cum_levels[i] = p_table.cum_levels[i + 1] * p_table.var_dims[i + 1];
+    }
+    // compute the table size -- number of possible configurations
+    p_table.table_size = p_table.cum_levels[0] * p_table.var_dims[0];
+
+    p_table.potentials.reserve(p_table.table_size);
+    for (int i = 0; i < p_table.table_size; ++i) {
+        p_table.potentials.push_back(1);
+    }
+
+    p_table.related_variables = set_node_index;
+    /************************* use potential table ******************************/
+
+    ptr_upstream_clique = nullptr;
+}
+
 
 /**
  * @brief: potential is similar to weight, and can be used to compute probability.
@@ -334,7 +416,34 @@ void Clique::SumOutExternalVars(PotentialTable &pt, Timer *timer) {
     timer->Start("factor marginalization");
     // Sum over the variables that are not in the scope of this clique/separator, so as to eliminate them.
     for (auto &ex_vars : set_external_vars) {
+//        cout << "sum out " << ex_vars << endl;
+//        cout << "before: ";
+//        for (auto v: pt.related_variables) {
+//            cout << v << " ";
+//        }
+//        cout << ", dim = ";
+//        for (int i = 0; i < pt.var_dims.size(); ++i) {
+//            cout << pt.var_dims[i] << " ";
+//        }
+//        cout << ", cum = ";
+//        for (int i = 0; i < pt.cum_levels.size(); ++i) {
+//            cout << pt.cum_levels[i] << " ";
+//        }
+//        cout << endl;
+//        for (int i = 0; i < pt.table_size; ++i) {
+//            cout << pt.potentials[i] << " ";
+//        }
+//        cout << endl;
         pt.TableMarginalization(ex_vars, timer);
+//        cout << "after: ";
+//        for (auto v: pt.related_variables) {
+//            cout << v << " ";
+//        }
+//        cout << endl;
+//        for (int i = 0; i < pt.table_size; ++i) {
+//            cout << pt.potentials[i] << " ";
+//        }
+//        cout << endl;
     }
     timer->Stop("factor marginalization");
 }
@@ -353,9 +462,9 @@ void Clique::MultiplyWithFactorSumOverExternalVars(Factor &f, Timer *timer) {
     // so they all need to be changed here.
     // at the same time, the original implementation copy a new factor of the clique, use the copy to compute,
     // and then copy back the "map_potentials", which is not efficient...
-    timer->Start("factor multiplication");
+//    timer->Start("factor multiplication");
     table = table.MultiplyWithFactor(f); // multiply two factors
-    timer->Stop("factor multiplication");
+//    timer->Stop("factor multiplication");
 }
 
 /**
@@ -373,18 +482,43 @@ void Clique::MultiplyWithFactorSumOverExternalVars(PotentialTable &pt, Timer *ti
     // at the same time, the original implementation copy a new factor of the clique, use the copy to compute,
     // and then copy back the "map_potentials", which is not efficient...
     timer->Start("factor multiplication");
+//    cout << "multi" << endl;
+//    cout << "before1: ";
+//    for (auto v: p_table.related_variables) {
+//        cout << v << " ";
+//    }
+//    cout << endl;
+//    for (int i = 0; i < p_table.table_size; ++i) {
+//        cout << p_table.potentials[i] << " ";
+//    }
+//    cout << endl;
+//    cout << "before2: ";
+//    for (auto v: pt.related_variables) {
+//        cout << v << " ";
+//    }
+//    cout << endl;
+//    for (int i = 0; i < pt.table_size; ++i) {
+//        cout << pt.potentials[i] << " ";
+//    }
+//    cout << endl;
     p_table.TableMultiplication(pt, timer); // multiply two factors
+//    cout << "after: ";
+//    for (auto v: p_table.related_variables) {
+//        cout << v << " ";
+//    }
+//    cout << endl;
+//    for (int i = 0; i < p_table.table_size; ++i) {
+//        cout << p_table.potentials[i] << " ";
+//    }
+//    cout << endl;
     timer->Stop("factor multiplication");
 }
 
 void Clique::UpdateUseMessage(Factor &f, Timer *timer) {
-//    timer->Start("update clique");
     MultiplyWithFactorSumOverExternalVars(f, timer);
-//    timer->Stop("update clique");
 }
 
 void Clique::UpdateUseMessage2(PotentialTable &pt, Timer *timer) {
-//    timer->Start("update clique");
 //    cout << "construct msg of clique ";
 //    for (auto &v: this->p_table.related_variables) {
 //        cout << v << " ";
@@ -404,7 +538,6 @@ void Clique::UpdateUseMessage2(PotentialTable &pt, Timer *timer) {
 //    }
 //    cout << endl;
     MultiplyWithFactorSumOverExternalVars(pt, timer);
-//    timer->Stop("update clique");
 }
 
 /**

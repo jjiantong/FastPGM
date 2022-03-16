@@ -130,6 +130,8 @@ void Dataset::LoadLIBSVMData(string data_file_path, set<int> cont_vars) {
                 // Because features of LIBSVM format do not record the value of 0, we need to add it in.
                 map_disc_vars_possible_values[i].insert(0);
                 map_disc_vars_possible_values[i].insert(1); // todo!!
+                map_disc_vars_possible_values[i].insert(2); // todo!!
+                map_disc_vars_possible_values[i].insert(3); // todo!!
             }
         }
         num_of_possible_values_of_disc_vars.push_back(map_disc_vars_possible_values[i].size());

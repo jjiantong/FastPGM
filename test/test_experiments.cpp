@@ -46,32 +46,32 @@ string DATA_PATH = "/home/zeyiwen/jiantong/BN"; // NUS
 //    bnsl->StructLearnCompData(trainer, 1, 1, true, false);
 //    delete trainer;
 
-class ExperimentOnA1a : public ::testing::Test {
-protected:
-
-    void SetUp() override {
-        trainer = new Dataset();
-        tester = new Dataset();
-//        network = new ChowLiuTree(true);
-        network = new Network(true);
-
-        string train_set_file_path = DATA_PATH + "/Bayesian-network/data/dataset/a1a.txt",//"../../data/dataset/a1a.txt",
-                test_set_file_path = DATA_PATH + "/Bayesian-network/data/dataset/a1a.test.txt";//"../../data/dataset/a1a.test.txt";
-
-        trainer->LoadLIBSVMData(train_set_file_path);
-        tester->LoadLIBSVMData(test_set_file_path);
-
-//        network->StructLearnCompData(trainer, true);
-        StructureLearning *bnsl = new ChowLiuTree(network);
-        bnsl->StructLearnCompData(trainer, 1, 1, true, false);
-        ParameterLearning *bnpl = new ParameterLearning(network);
-        bnpl->LearnParamsKnowStructCompData(trainer, 2, true);
-    }
-
-    Dataset *trainer;
-    Dataset *tester;
-    Network *network;
-};
+//class ExperimentOnA1a : public ::testing::Test {
+//protected:
+//
+//    void SetUp() override {
+//        trainer = new Dataset();
+//        tester = new Dataset();
+////        network = new ChowLiuTree(true);
+//        network = new Network(true);
+//
+//        string train_set_file_path = DATA_PATH + "/Bayesian-network/data/dataset/a1a.txt",//"../../data/dataset/a1a.txt",
+//                test_set_file_path = DATA_PATH + "/Bayesian-network/data/dataset/a1a.test.txt";//"../../data/dataset/a1a.test.txt";
+//
+//        trainer->LoadLIBSVMData(train_set_file_path);
+//        tester->LoadLIBSVMData(test_set_file_path);
+//
+////        network->StructLearnCompData(trainer, true);
+//        StructureLearning *bnsl = new ChowLiuTree(network);
+//        bnsl->StructLearnCompData(trainer, 1, 1, true, false);
+//        ParameterLearning *bnpl = new ParameterLearning(network);
+//        bnpl->LearnParamsKnowStructCompData(trainer, 2, true);
+//    }
+//
+//    Dataset *trainer;
+//    Dataset *tester;
+//    Network *network;
+//};
 
 //TEST_F(ExperimentOnA1a, brute_force) {
 //    Inference *inference = new BruteForce(network);
@@ -101,12 +101,12 @@ protected:
 //    EXPECT_GT(accuracy, 0.8230);
 //}
 
-TEST_F(ExperimentOnA1a, junction_tree_partial) {
-    Inference *inference = new JunctionTree(network);
-    double accuracy = inference->EvaluateAccuracy(tester, -1, "jt", false);
-    delete inference;
-    EXPECT_GT(accuracy, 0.8230);
-}
+//TEST_F(ExperimentOnA1a, junction_tree_partial) {
+//    Inference *inference = new JunctionTree(network);
+//    double accuracy = inference->EvaluateAccuracy(tester, -1, "jt", false);
+//    delete inference;
+//    EXPECT_GT(accuracy, 0.8230);
+//}
 //
 //TEST_F(ExperimentOnA1a, likelihood_weighing) {
 //    Inference *inference = new ApproximateInference(network);
@@ -120,6 +120,74 @@ TEST_F(ExperimentOnA1a, junction_tree_partial) {
 //    EXPECT_GT(accuracy, 0.650);
 //}
 //
+
+//class ExperimentOnDNA : public ::testing::Test {
+//protected:
+//
+//    void SetUp() override {
+//        trainer = new Dataset();
+//        tester = new Dataset();
+//        network = new Network(true);
+//
+//        string train_set_file_path = DATA_PATH + "/dataset/dna.scale",
+//                test_set_file_path = DATA_PATH + "/dataset/dna.scale.t";
+//
+//        trainer->LoadLIBSVMData(train_set_file_path);
+//        tester->LoadLIBSVMData(test_set_file_path);
+//
+//        StructureLearning *bnsl = new ChowLiuTree(network);
+//        bnsl->StructLearnCompData(trainer, 1, 1, true, false);
+//        ParameterLearning *bnpl = new ParameterLearning(network);
+//        bnpl->LearnParamsKnowStructCompData(trainer, 2, true);
+//    }
+//
+//    Dataset *trainer;
+//    Dataset *tester;
+//    Network *network;
+//};
+//
+//TEST_F(ExperimentOnDNA, junction_tree_partial) {
+//    Inference *inference = new JunctionTree(network);
+//    double accuracy = inference->EvaluateAccuracy(tester, -1, "jt", false);
+//    delete inference;
+//    EXPECT_GT(accuracy, 0.8230);
+//}
+
+
+
+
+class ExperimentOnMNIST : public ::testing::Test {
+protected:
+
+    void SetUp() override {
+        trainer = new Dataset();
+        tester = new Dataset();
+//        network = new ChowLiuTree(true);
+        network = new Network(true);
+
+        string train_set_file_path = DATA_PATH + "/dataset/mnist.scale.dis4.t",
+        test_set_file_path = DATA_PATH + "/dataset/mnist.scale.dis4.t";
+
+        trainer->LoadLIBSVMData(train_set_file_path);
+        tester->LoadLIBSVMData(test_set_file_path);
+
+        StructureLearning *bnsl = new ChowLiuTree(network);
+        bnsl->StructLearnCompData(trainer, 1, 1, true, false);
+        ParameterLearning *bnpl = new ParameterLearning(network);
+        bnpl->LearnParamsKnowStructCompData(trainer, 2, true);
+    }
+
+    Dataset *trainer;
+    Dataset *tester;
+    Network *network;
+};
+
+TEST_F(ExperimentOnMNIST, junction_tree_partial) {
+    Inference *inference = new JunctionTree(network);
+    double accuracy = inference->EvaluateAccuracy(tester, -1, "jt", false);
+    delete inference;
+    EXPECT_GT(accuracy, 0.8230);
+}
 
 
 
