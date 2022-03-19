@@ -7,6 +7,7 @@
 /**
  * @brief: construct a potential table given a node;
  * the table consists of the node and all the existing related_variables, i.e., all its parents.
+ * this constructor is used in class JunctionTree (when doing the triangulation)
  */
 PotentialTable::PotentialTable(DiscreteNode *disc_node, Network *net) {
     int node_index = disc_node->GetNodeIndex();
@@ -14,7 +15,8 @@ PotentialTable::PotentialTable(DiscreteNode *disc_node, Network *net) {
 
     related_variables.insert(node_index); // related_variables is empty initially, because this is a constructor
 
-    if (!disc_node->HasParents()) { // if this disc_node has no parents.
+    if (!disc_node->HasParents()) {
+        // if this disc_node has no parents. then the potential table only contains 1 variable
         num_variables = 1;
         var_dims.reserve(num_variables);
         var_dims.push_back(node_dim);
@@ -32,24 +34,7 @@ PotentialTable::PotentialTable(DiscreteNode *disc_node, Network *net) {
         related_variables.insert(disc_node->set_parent_indexes.begin(), disc_node->set_parent_indexes.end());
         num_variables = related_variables.size();
 
-        var_dims.reserve(num_variables);
-        for (auto &node_idx: related_variables) {
-            if (node_idx == node_index) { // it is exactly this node
-                var_dims.push_back(node_dim);
-            } else { // if not, find its domain
-                var_dims.push_back(dynamic_cast<DiscreteNode*>(net->FindNodePtrByIndex(node_idx))->GetDomainSize());
-            }
-        }
-
-        cum_levels.resize(num_variables);
-        // set the right-most one ...
-        cum_levels[num_variables - 1] = 1;
-        // ... then compute the left ones
-        for (int i = num_variables - 2; i >= 0; --i) {
-            cum_levels[i] = cum_levels[i + 1] * var_dims[i + 1];
-        }
-        // compute the table size -- number of possible configurations
-        table_size = cum_levels[0] * var_dims[0];
+        ConstructVarDimsAndCumLevels(net);
 
         potentials.reserve(table_size);
         for (int i = 0; i < table_size; ++i) {
@@ -70,6 +55,51 @@ PotentialTable::PotentialTable(DiscreteNode *disc_node, Network *net) {
             potentials.push_back(disc_node->GetProbability(node_value, parent_config));
         }
     }//end has parents
+}
+
+/**
+ * @brief: it is actually a constructor to construct a potential table according a set of nodes
+ * all entries in the potential table are initialized to 1
+ * it is used in class Clique (when constructing a clique)
+ */
+void PotentialTable::ConstructEmptyPotentialTable(const set<int> &set_node_index, Network *net){
+    related_variables = set_node_index;
+    num_variables = set_node_index.size();
+
+    ConstructVarDimsAndCumLevels(net);
+
+    potentials.reserve(table_size);
+    for (int i = 0; i < table_size; ++i) {
+        potentials.push_back(1);
+    }
+}
+
+/**
+ * @brief: construct: 1. var_dims; 2. cum_levels; 3. table size
+ * it is used in the constructor of PotentialTable
+ */
+inline void PotentialTable::ConstructVarDimsAndCumLevels(Network *net){
+    var_dims.reserve(num_variables);
+    for (auto &node_idx: related_variables) { // for each node
+        var_dims.push_back(dynamic_cast<DiscreteNode*>(net->FindNodePtrByIndex(node_idx))->GetDomainSize());
+    }
+
+    ConstructCumLevels();
+    // compute the table size -- number of possible configurations
+    table_size = cum_levels[0] * var_dims[0];
+}
+
+/**
+ * construct "cum_levels" according to "var_dims"
+ */
+inline void PotentialTable::ConstructCumLevels() {
+    cum_levels.resize(num_variables);
+    // set the right-most one ...
+    cum_levels[num_variables - 1] = 1;
+    // ... then compute the left ones
+    for (int i = num_variables - 2; i >= 0; --i) {
+        cum_levels[i] = cum_levels[i + 1] * var_dims[i + 1];
+    }
 }
 
 /*!
@@ -145,13 +175,7 @@ void PotentialTable::TableExtension(const set<int> &variables, const vector<int>
     new_table.num_variables = variables.size();
     new_table.var_dims = dims;
 
-    new_table.cum_levels.resize(new_table.num_variables);
-    // set the right-most one ...
-    new_table.cum_levels[new_table.num_variables - 1] = 1;
-    // ... then compute the left ones
-    for (int i = new_table.num_variables - 2; i >= 0; --i) {
-        new_table.cum_levels[i] = new_table.cum_levels[i + 1] * new_table.var_dims[i + 1];
-    }
+    new_table.ConstructCumLevels();
     // compute the table size -- number of possible configurations
     new_table.table_size = new_table.cum_levels[0] * new_table.var_dims[0];
 
@@ -343,16 +367,7 @@ void PotentialTable::TableReduction(int e_index, int e_value_index, Timer *timer
         }
         this->var_dims = dims;
 
-        vector<int> levels;
-        levels.resize(this->num_variables);
-        // set the right-most one ...
-        levels[this->num_variables - 1] = 1;
-        // ... then compute the left ones
-        for (int i = this->num_variables - 2; i >= 0; --i) {
-            levels[i] = levels[i + 1] * this->var_dims[i + 1];
-        }
-        this->cum_levels = levels;
-
+        this->ConstructCumLevels();
         // compute the table size -- number of possible configurations
         this->table_size = this->cum_levels[0] * this->var_dims[0];
     } else {
@@ -394,14 +409,7 @@ void PotentialTable::TableMarginalization(int index, Timer *timer) {
             }
         }
 
-        new_table.cum_levels.resize(new_table.num_variables);
-        // set the right-most one ...
-        new_table.cum_levels[new_table.num_variables - 1] = 1;
-        // ... then compute the left ones
-        for (int i = new_table.num_variables - 2; i >= 0; --i) {
-            new_table.cum_levels[i] = new_table.cum_levels[i + 1] * new_table.var_dims[i + 1];
-        }
-
+        new_table.ConstructCumLevels();
         // compute the table size -- number of possible configurations
         new_table.table_size = new_table.cum_levels[0] * new_table.var_dims[0];
     } else {

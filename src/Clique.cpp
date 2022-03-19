@@ -140,31 +140,16 @@ Clique::Clique(set<int> set_node_index, Network *net) {
 
     /************************* use potential table ******************************/
     clique_variables = set_node_index;
-    // potential table
-    p_table.num_variables = clique_size;
-    p_table.var_dims.reserve(clique_size);
-    for (auto &n : set_node_index) { // for each node
-        Node *node_ptr = net->FindNodePtrByIndex(n);
-        auto dn = dynamic_cast<DiscreteNode*>(node_ptr);
-        p_table.var_dims.push_back(dn->GetDomainSize());
-    }
 
-    p_table.cum_levels.resize(clique_size);
-    // set the right-most one ...
-    p_table.cum_levels[clique_size - 1] = 1;
-    // ... then compute the left ones
-    for (int i = clique_size - 2; i >= 0; --i) {
-        p_table.cum_levels[i] = p_table.cum_levels[i + 1] * p_table.var_dims[i + 1];
-    }
-    // compute the table size -- number of possible configurations
-    p_table.table_size = p_table.cum_levels[0] * p_table.var_dims[0];
-
-    p_table.potentials.reserve(p_table.table_size);
-    for (int i = 0; i < p_table.table_size; ++i) {
-        p_table.potentials.push_back(1);
-    }
-
-    p_table.related_variables = set_node_index;
+    /**
+     * potential table
+     * an object of class PotentialTable is a class variable of class Clique ("p_table")
+     * it will call the default constructor of class PotentialTable in the construction of a Clique object
+     * so I cannot let it call another defined PotentialTable constructor
+     * so I use a method in class PotentialTable instead
+     * TODO: maybe consider to use a pointer instead of an object?
+     */
+    p_table.ConstructEmptyPotentialTable(set_node_index, net);
     /************************* use potential table ******************************/
 
     ptr_upstream_clique = nullptr;

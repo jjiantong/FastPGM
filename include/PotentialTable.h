@@ -41,6 +41,7 @@ public:
 
     PotentialTable() = default;
     PotentialTable(DiscreteNode *disc_node, Network *net);
+    void ConstructEmptyPotentialTable(const set<int> &set_node_index, Network *net);
 
     void TableExtension(const set<int> &variables, const vector<int> &dims, Timer *timer);
     void TableMultiplication(PotentialTable &second_table, Timer *timer);
@@ -50,6 +51,8 @@ public:
     void Normalize();
 
 private:
+    void ConstructVarDimsAndCumLevels(Network *net);
+    void ConstructCumLevels();
     void GetConfigByTableIndex(const int &table_index, Network *net, DiscreteConfig &config);
     void GetConfigValueByTableIndex(const int &table_index, int *config_value);
     int GetTableIndexByConfigValue(int *config_value);
