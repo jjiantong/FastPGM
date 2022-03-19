@@ -78,9 +78,9 @@ JunctionTree::JunctionTree(Network *net, string elim_ord_strategy, vector<int> c
     cout << "finish FormJunctionTree, number of cliques = " << vector_clique_ptr_container.size()
          << ", number of separators = " << vector_separator_ptr_container.size() << endl;
 
-//    CliqueMerging(8, 12);
-//    cout << "finish CliqueMerging, number of cliques = " << vector_clique_ptr_container.size()
-//         << ", number of separators = " << vector_separator_ptr_container.size() << endl;
+    CliqueMerging(8, 12);
+    cout << "finish CliqueMerging, number of cliques = " << vector_clique_ptr_container.size()
+         << ", number of separators = " << vector_separator_ptr_container.size() << endl;
 
   //assign id to each clique
   NumberTheCliquesAndSeparators();
@@ -1432,6 +1432,11 @@ double JunctionTree::EvaluateAccuracy(Dataset *dts, int num_samp, string alg, bo
     timer->Print("extension2");
     timer->Print("reduction1");
     timer->Print("reduction2"); cout << endl;
+    timer->Print("full config");
+    timer->Print("partial config");
+    timer->Print("get index");
+    timer->Print("update");
+    timer->Print("aaa");cout << endl;
     delete timer;
     timer = nullptr;
 

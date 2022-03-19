@@ -46,32 +46,32 @@ string DATA_PATH = "/home/zeyiwen/jiantong/BN"; // NUS
 //    bnsl->StructLearnCompData(trainer, 1, 1, true, false);
 //    delete trainer;
 
-//class ExperimentOnA1a : public ::testing::Test {
-//protected:
-//
-//    void SetUp() override {
-//        trainer = new Dataset();
-//        tester = new Dataset();
-////        network = new ChowLiuTree(true);
-//        network = new Network(true);
-//
-//        string train_set_file_path = DATA_PATH + "/Bayesian-network/data/dataset/a1a.txt",//"../../data/dataset/a1a.txt",
-//                test_set_file_path = DATA_PATH + "/Bayesian-network/data/dataset/a1a.test.txt";//"../../data/dataset/a1a.test.txt";
-//
-//        trainer->LoadLIBSVMData(train_set_file_path);
-//        tester->LoadLIBSVMData(test_set_file_path);
-//
-////        network->StructLearnCompData(trainer, true);
-//        StructureLearning *bnsl = new ChowLiuTree(network);
-//        bnsl->StructLearnCompData(trainer, 1, 1, true, false);
-//        ParameterLearning *bnpl = new ParameterLearning(network);
-//        bnpl->LearnParamsKnowStructCompData(trainer, 2, true);
-//    }
-//
-//    Dataset *trainer;
-//    Dataset *tester;
-//    Network *network;
-//};
+class ExperimentOnA1a : public ::testing::Test {
+protected:
+
+    void SetUp() override {
+        trainer = new Dataset();
+        tester = new Dataset();
+//        network = new ChowLiuTree(true);
+        network = new Network(true);
+
+        string train_set_file_path = DATA_PATH + "/Bayesian-network/data/dataset/a1a.txt",//"../../data/dataset/a1a.txt",
+                test_set_file_path = DATA_PATH + "/Bayesian-network/data/dataset/a1a.test.txt";//"../../data/dataset/a1a.test.txt";
+
+        trainer->LoadLIBSVMData(train_set_file_path);
+        tester->LoadLIBSVMData(test_set_file_path);
+
+//        network->StructLearnCompData(trainer, true);
+        StructureLearning *bnsl = new ChowLiuTree(network);
+        bnsl->StructLearnCompData(trainer, 1, 1, true, false);
+        ParameterLearning *bnpl = new ParameterLearning(network);
+        bnpl->LearnParamsKnowStructCompData(trainer, 2, true);
+    }
+
+    Dataset *trainer;
+    Dataset *tester;
+    Network *network;
+};
 
 //TEST_F(ExperimentOnA1a, brute_force) {
 //    Inference *inference = new BruteForce(network);
@@ -101,12 +101,12 @@ string DATA_PATH = "/home/zeyiwen/jiantong/BN"; // NUS
 //    EXPECT_GT(accuracy, 0.8230);
 //}
 
-//TEST_F(ExperimentOnA1a, junction_tree_partial) {
-//    Inference *inference = new JunctionTree(network);
-//    double accuracy = inference->EvaluateAccuracy(tester, -1, "jt", false);
-//    delete inference;
-//    EXPECT_GT(accuracy, 0.8230);
-//}
+TEST_F(ExperimentOnA1a, junction_tree_partial) {
+    Inference *inference = new JunctionTree(network);
+    double accuracy = inference->EvaluateAccuracy(tester, -1, "jt", false);
+    delete inference;
+    EXPECT_GT(accuracy, 0.8230);
+}
 //
 //TEST_F(ExperimentOnA1a, likelihood_weighing) {
 //    Inference *inference = new ApproximateInference(network);
@@ -155,39 +155,176 @@ string DATA_PATH = "/home/zeyiwen/jiantong/BN"; // NUS
 
 
 
+//class ExperimentOnMNIST : public ::testing::Test {
+//protected:
+//
+//    void SetUp() override {
+//        trainer = new Dataset();
+//        tester = new Dataset();
+////        network = new ChowLiuTree(true);
+//        network = new Network(true);
+//
+//        string train_set_file_path = DATA_PATH + "/dataset/mnist.scale.dis8.t",
+//        test_set_file_path = DATA_PATH + "/dataset/mnist.scale.dis8.t";
+//
+//        trainer->LoadLIBSVMData(train_set_file_path);
+//        tester->LoadLIBSVMData(test_set_file_path);
+//
+//        StructureLearning *bnsl = new ChowLiuTree(network);
+//        bnsl->StructLearnCompData(trainer, 1, 1, true, false);
+//        ParameterLearning *bnpl = new ParameterLearning(network);
+//        bnpl->LearnParamsKnowStructCompData(trainer, 2, true);
+//    }
+//
+//    Dataset *trainer;
+//    Dataset *tester;
+//    Network *network;
+//};
+//
+//TEST_F(ExperimentOnMNIST, junction_tree_partial) {
+//    Inference *inference = new JunctionTree(network);
+//    double accuracy = inference->EvaluateAccuracy(tester, -1, "jt", false);
+//    delete inference;
+//    EXPECT_GT(accuracy, 0.8230);
+//}
 
-class ExperimentOnMNIST : public ::testing::Test {
-protected:
 
-    void SetUp() override {
-        trainer = new Dataset();
-        tester = new Dataset();
-//        network = new ChowLiuTree(true);
-        network = new Network(true);
 
-        string train_set_file_path = DATA_PATH + "/dataset/mnist.scale.dis4.t",
-        test_set_file_path = DATA_PATH + "/dataset/mnist.scale.dis4.t";
+//class ExperimentOnMadelon : public ::testing::Test {
+//protected:
+//
+//    void SetUp() override {
+//        trainer = new Dataset();
+//        tester = new Dataset();
+////        network = new ChowLiuTree(true);
+//        network = new Network(true);
+//
+//        string train_set_file_path = DATA_PATH + "/dataset/madelon.scale.dis8.p10",
+//                test_set_file_path = DATA_PATH + "/dataset/madelon.scale.dis8.p10.t";
+//
+//        trainer->LoadLIBSVMData(train_set_file_path);
+//        tester->LoadLIBSVMData(test_set_file_path);
+//
+//        StructureLearning *bnsl = new ChowLiuTree(network);
+//        bnsl->StructLearnCompData(trainer, 1, 1, true, false);
+//        ParameterLearning *bnpl = new ParameterLearning(network);
+//        bnpl->LearnParamsKnowStructCompData(trainer, 2, true);
+//    }
+//
+//    Dataset *trainer;
+//    Dataset *tester;
+//    Network *network;
+//};
+//
+//TEST_F(ExperimentOnMadelon, junction_tree_partial) {
+//Inference *inference = new JunctionTree(network);
+//double accuracy = inference->EvaluateAccuracy(tester, -1, "jt", false);
+//delete inference;
+//EXPECT_GT(accuracy, 0.8230);
+//}
 
-        trainer->LoadLIBSVMData(train_set_file_path);
-        tester->LoadLIBSVMData(test_set_file_path);
 
-        StructureLearning *bnsl = new ChowLiuTree(network);
-        bnsl->StructLearnCompData(trainer, 1, 1, true, false);
-        ParameterLearning *bnpl = new ParameterLearning(network);
-        bnpl->LearnParamsKnowStructCompData(trainer, 2, true);
-    }
+//class ExperimentOnUsps : public ::testing::Test {
+//protected:
+//
+//    void SetUp() override {
+//        trainer = new Dataset();
+//        tester = new Dataset();
+////        network = new ChowLiuTree(true);
+//        network = new Network(true);
+//
+//        string train_set_file_path = DATA_PATH + "/dataset/usps.scale.dis8.p10",
+//                test_set_file_path = DATA_PATH + "/dataset/usps.scale.dis8.p10.t";
+//
+//        trainer->LoadLIBSVMData(train_set_file_path);
+//        tester->LoadLIBSVMData(test_set_file_path);
+//
+//        StructureLearning *bnsl = new ChowLiuTree(network);
+//        bnsl->StructLearnCompData(trainer, 1, 1, true, false);
+//        ParameterLearning *bnpl = new ParameterLearning(network);
+//        bnpl->LearnParamsKnowStructCompData(trainer, 2, true);
+//    }
+//
+//    Dataset *trainer;
+//    Dataset *tester;
+//    Network *network;
+//};
+//
+//TEST_F(ExperimentOnUsps, junction_tree_partial) {
+//Inference *inference = new JunctionTree(network);
+//double accuracy = inference->EvaluateAccuracy(tester, -1, "jt", false);
+//delete inference;
+//EXPECT_GT(accuracy, 0.8230);
+//}
 
-    Dataset *trainer;
-    Dataset *tester;
-    Network *network;
-};
 
-TEST_F(ExperimentOnMNIST, junction_tree_partial) {
-    Inference *inference = new JunctionTree(network);
-    double accuracy = inference->EvaluateAccuracy(tester, -1, "jt", false);
-    delete inference;
-    EXPECT_GT(accuracy, 0.8230);
-}
+
+//class ExperimentOnAloi : public ::testing::Test {
+//protected:
+//
+//    void SetUp() override {
+//        trainer = new Dataset();
+//        tester = new Dataset();
+////        network = new ChowLiuTree(true);
+//        network = new Network(true);
+//
+//        string train_set_file_path = DATA_PATH + "/dataset/aloi.scale.dis8",
+//                test_set_file_path = DATA_PATH + "/dataset/aloi.scale.dis8";
+//
+//        trainer->LoadLIBSVMData(train_set_file_path);
+//        tester->LoadLIBSVMData(test_set_file_path);
+//
+//        StructureLearning *bnsl = new ChowLiuTree(network);
+//        bnsl->StructLearnCompData(trainer, 1, 1, true, false);
+//        ParameterLearning *bnpl = new ParameterLearning(network);
+//        bnpl->LearnParamsKnowStructCompData(trainer, 2, true);
+//    }
+//
+//    Dataset *trainer;
+//    Dataset *tester;
+//    Network *network;
+//};
+//
+//TEST_F(ExperimentOnAloi, junction_tree_partial) {
+//Inference *inference = new JunctionTree(network);
+//double accuracy = inference->EvaluateAccuracy(tester, -1, "jt", false);
+//delete inference;
+//EXPECT_GT(accuracy, 0.8230);
+//}
+
+
+//class ExperimentOnConnect : public ::testing::Test {
+//protected:
+//
+//    void SetUp() override {
+//        trainer = new Dataset();
+//        tester = new Dataset();
+////        network = new ChowLiuTree(true);
+//        network = new Network(true);
+//
+//        string train_set_file_path = DATA_PATH + "/dataset/connect-4",
+//                test_set_file_path = DATA_PATH + "/dataset/connect-4";
+//
+//        trainer->LoadLIBSVMData(train_set_file_path);
+//        tester->LoadLIBSVMData(test_set_file_path);
+//
+//        StructureLearning *bnsl = new ChowLiuTree(network);
+//        bnsl->StructLearnCompData(trainer, 1, 1, true, false);
+//        ParameterLearning *bnpl = new ParameterLearning(network);
+//        bnpl->LearnParamsKnowStructCompData(trainer, 2, true);
+//    }
+//
+//    Dataset *trainer;
+//    Dataset *tester;
+//    Network *network;
+//};
+//
+//TEST_F(ExperimentOnConnect, junction_tree_partial) {
+//Inference *inference = new JunctionTree(network);
+//double accuracy = inference->EvaluateAccuracy(tester, -1, "jt", false);
+//delete inference;
+//EXPECT_GT(accuracy, 0.8230);
+//}
 
 
 

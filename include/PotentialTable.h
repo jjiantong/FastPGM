@@ -17,6 +17,8 @@
 #include "Network.h"
 #include "Timer.h"
 
+#define N_T 1
+
 using namespace std;
 
 //typedef set< pair<int, int> > DiscreteConfig; // set of [variable id, variable value]
@@ -49,8 +51,8 @@ public:
 
 private:
     void GetConfigByTableIndex(const int &table_index, Network *net, DiscreteConfig &config);
-    void GetConfigValueByTableIndex(const int &table_index, vector<int> &config_value);
-    int GetTableIndexByConfigValue(const vector<int> &config_value);
+    void GetConfigValueByTableIndex(const int &table_index, int *config_value);
+    int GetTableIndexByConfigValue(int *config_value);
     int GetVariableIndex(const int &variable);
 };
 
