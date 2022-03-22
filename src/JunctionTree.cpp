@@ -1432,11 +1432,6 @@ double JunctionTree::EvaluateAccuracy(Dataset *dts, int num_samp, string alg, bo
     timer->Print("extension2");
     timer->Print("reduction1");
     timer->Print("reduction2"); cout << endl;
-    timer->Print("full config");
-    timer->Print("partial config");
-    timer->Print("get index");
-    timer->Print("update");
-    timer->Print("aaa");cout << endl;
     delete timer;
     timer = nullptr;
 

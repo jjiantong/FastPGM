@@ -17,7 +17,7 @@
 #include "Network.h"
 #include "Timer.h"
 
-#define N_T 1
+#define N_T 2
 
 using namespace std;
 
@@ -58,7 +58,5 @@ private:
     int GetTableIndexByConfigValue(int *config_value);
     int GetVariableIndex(const int &variable);
 };
-
-void GetBeginAndEnd(int total, int num, int loc, int &begin, int &end);
 
 #endif //BAYESIANNETWORK_POTENTIALTABLE_H

@@ -46,6 +46,9 @@ string DATA_PATH = "/home/zeyiwen/jiantong/BN"; // NUS
 //    bnsl->StructLearnCompData(trainer, 1, 1, true, false);
 //    delete trainer;
 
+
+
+
 class ExperimentOnA1a : public ::testing::Test {
 protected:
 
