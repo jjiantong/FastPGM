@@ -78,9 +78,9 @@ JunctionTree::JunctionTree(Network *net, string elim_ord_strategy, vector<int> c
     cout << "finish FormJunctionTree, number of cliques = " << vector_clique_ptr_container.size()
          << ", number of separators = " << vector_separator_ptr_container.size() << endl;
 
-    CliqueMerging(8, 12);
-    cout << "finish CliqueMerging, number of cliques = " << vector_clique_ptr_container.size()
-         << ", number of separators = " << vector_separator_ptr_container.size() << endl;
+//    CliqueMerging(8, 12);
+//    cout << "finish CliqueMerging, number of cliques = " << vector_clique_ptr_container.size()
+//         << ", number of separators = " << vector_separator_ptr_container.size() << endl;
 
   //assign id to each clique
   NumberTheCliquesAndSeparators();
@@ -1144,8 +1144,25 @@ void JunctionTree::MessagePassingUpdateJT(Timer *timer) {
 //    /************************* use factor ******************************/
 
     /************************* use potential table ******************************/
-    arb_root->Collect2(timer);
-    arb_root->Distribute2(timer);
+    timer->Start("upstream");
+#pragma omp parallel num_threads(2)
+    {
+#pragma omp single
+        {
+            arb_root->Collect2(timer);
+        }
+    }
+    timer->Stop("upstream");
+
+    timer->Start("downstream");
+//#pragma omp parallel num_threads(2)
+//    {
+//#pragma omp single
+//        {
+            arb_root->Distribute2(timer);
+//        }
+//    }
+    timer->Stop("downstream");
     /************************* use potential table ******************************/
 }
 
@@ -1418,20 +1435,22 @@ double JunctionTree::EvaluateAccuracy(Dataset *dts, int num_samp, string alg, bo
     timer->Print("jt");
     timer->Print("load evidence"); cout << " (" << timer->time["load evidence"] / timer->time["jt"] * 100 << "%)";
     timer->Print("msg passing"); cout << " (" << timer->time["msg passing"] / timer->time["jt"] * 100 << "%)";
+    timer->Print("upstream");
+    timer->Print("downstream");
     timer->Print("predict"); cout << " (" << timer->time["predict"] / timer->time["jt"] * 100 << "%)";
     timer->Print("reset"); cout << " (" << timer->time["reset"] / timer->time["jt"] * 100 << "%)" << endl;
-    timer->Print("factor marginalization"); cout << " (" << timer->time["factor marginalization"] / timer->time["msg passing"] * 100 << "%)";
-    timer->Print("factor multiplication"); cout << " (" << timer->time["factor multiplication"] / timer->time["msg passing"] * 100 << "%)";
-    timer->Print("factor division"); cout << " (" << timer->time["factor division"] / timer->time["msg passing"] * 100 << "%)";
-    timer->Print("set_difference"); cout << " (" << timer->time["set_difference"] / timer->time["msg passing"] * 100 << "%)" << endl;
-    timer->Print("marginal1");
-    timer->Print("marginal2");
-    timer->Print("multi1");
-    timer->Print("multi2");
-    timer->Print("extension1");
-    timer->Print("extension2");
-    timer->Print("reduction1");
-    timer->Print("reduction2"); cout << endl;
+//    timer->Print("factor marginalization"); cout << " (" << timer->time["factor marginalization"] / timer->time["msg passing"] * 100 << "%)";
+//    timer->Print("factor multiplication"); cout << " (" << timer->time["factor multiplication"] / timer->time["msg passing"] * 100 << "%)";
+//    timer->Print("factor division"); cout << " (" << timer->time["factor division"] / timer->time["msg passing"] * 100 << "%)";
+//    timer->Print("set_difference"); cout << " (" << timer->time["set_difference"] / timer->time["msg passing"] * 100 << "%)" << endl;
+//    timer->Print("marginal1");
+//    timer->Print("marginal2");
+//    timer->Print("multi1");
+//    timer->Print("multi2");
+//    timer->Print("extension1");
+//    timer->Print("extension2");
+//    timer->Print("reduction1");
+//    timer->Print("reduction2"); cout << endl;
     delete timer;
     timer = nullptr;
 

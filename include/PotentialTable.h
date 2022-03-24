@@ -17,7 +17,7 @@
 #include "Network.h"
 #include "Timer.h"
 
-#define N_T 2
+#define N_T 1
 
 using namespace std;
 

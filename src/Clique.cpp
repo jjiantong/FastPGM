@@ -249,19 +249,20 @@ void Clique::Collect2(Timer *timer) {
             continue;
         }
 
-        // the current neighbor "ptr_separator" is a downstream clique
-        ptr_separator->ptr_upstream_clique = this;  // Let the callee know the caller.
-
-        // collect the msg f from downstream
-        ptr_separator->Collect2(timer);
-        PotentialTable pt = ptr_separator->p_table;
-        // update the msg by multiplying the current factor with f
-        // the current factor is the initial potential, or
-        // the product of the initial potential and factors received from other downstream neighbors
-
-        UpdateUseMessage2(pt, timer);  // Update itself.
+#pragma omp task shared(ptr_separator)
+        {
+            // the current neighbor "ptr_separator" is a downstream clique
+            ptr_separator->ptr_upstream_clique = this;  // Let the callee know the caller.
+            // collect the msg f from downstream
+            ptr_separator->Collect2(timer);
+            PotentialTable pt = ptr_separator->p_table;
+            // update the msg by multiplying the current factor with f
+            // the current factor is the initial potential, or
+            // the product of the initial potential and factors received from other downstream neighbors
+            UpdateUseMessage2(pt, timer);  // Update itself.
+        }
     }
-
+#pragma omp taskwait
     // Prepare message for the upstream.
     ConstructMessage2(timer);
 }
@@ -336,33 +337,26 @@ void Clique::Distribute(Factor &f, Timer *timer) {
  * The reload version with parameter. Called by recursion.
  */
 void Clique::Distribute2(PotentialTable &pt, Timer *timer) {
-    // If the next clique connected by this separator is a continuous clique,
-    // then the program should not distribute information to it.// TODO: double-check
-//  bool reach_boundary = false;
-//  for (const auto &next_clq_ptr : set_neighbours_ptr) {
-//    reach_boundary = !next_clq_ptr->pure_discrete;
-//  }
-//  if (reach_boundary) { return; }
-
     // update the msg by multiplying the current factor with f
     UpdateUseMessage2(pt, timer);  // Update itself.
-
     // Prepare message for the downstream.
     ConstructMessage2(timer);
 
+//#pragma omp taskwait
     for (auto &ptr_separator : set_neighbours_ptr) {
-
         // all neighbor cliques contain the upstream clique and downstream clique(s)
         // if the current neighbor "ptr_separator" is the upstream clique, not distribute to it
         // otherwise, distribute the msg to "ptr_separator"
         if (ptr_separator == ptr_upstream_clique) {
             continue;
         }
-
-        // the current neighbor "ptr_separator" is a downstream clique
-        ptr_separator->ptr_upstream_clique = this;  // Let the callee know the caller.
-        // distribute the msg to downstream
-        ptr_separator->Distribute2(p_table, timer); // Distribute to downstream.
+//#pragma omp task shared(ptr_separator)
+//        {
+            // the current neighbor "ptr_separator" is a downstream clique
+            ptr_separator->ptr_upstream_clique = this;  // Let the callee know the caller.
+            // distribute the msg to downstream
+            ptr_separator->Distribute2(p_table, timer); // Distribute to downstream.
+//        }
     }
 }
 
@@ -390,15 +384,15 @@ void Clique::SumOutExternalVars(Factor &f, Timer *timer) {
  * @brief: sum over external variables which are the results of factor multiplication.
  */
 void Clique::SumOutExternalVars(PotentialTable &pt, Timer *timer) {
-    timer->Start("set_difference");
+//    timer->Start("set_difference");
     // get the variables that in "f" but not in "factor_of_this_clique"
     set<int> set_external_vars;
     set_difference(pt.related_variables.begin(), pt.related_variables.end(),
                    this->clique_variables.begin(), this->clique_variables.end(),
                    inserter(set_external_vars, set_external_vars.begin()));
-    timer->Stop("set_difference");
+//    timer->Stop("set_difference");
 
-    timer->Start("factor marginalization");
+//    timer->Start("factor marginalization");
     // Sum over the variables that are not in the scope of this clique/separator, so as to eliminate them.
     for (auto &ex_vars : set_external_vars) {
 //        cout << "sum out " << ex_vars << endl;
@@ -430,7 +424,7 @@ void Clique::SumOutExternalVars(PotentialTable &pt, Timer *timer) {
 //        }
 //        cout << endl;
     }
-    timer->Stop("factor marginalization");
+//    timer->Stop("factor marginalization");
 }
 
 /**
@@ -466,7 +460,7 @@ void Clique::MultiplyWithFactorSumOverExternalVars(PotentialTable &pt, Timer *ti
     // so they all need to be changed here.
     // at the same time, the original implementation copy a new factor of the clique, use the copy to compute,
     // and then copy back the "map_potentials", which is not efficient...
-    timer->Start("factor multiplication");
+//    timer->Start("factor multiplication");
 //    cout << "multi" << endl;
 //    cout << "before1: ";
 //    for (auto v: p_table.related_variables) {
@@ -496,7 +490,7 @@ void Clique::MultiplyWithFactorSumOverExternalVars(PotentialTable &pt, Timer *ti
 //        cout << p_table.potentials[i] << " ";
 //    }
 //    cout << endl;
-    timer->Stop("factor multiplication");
+//    timer->Stop("factor multiplication");
 }
 
 void Clique::UpdateUseMessage(Factor &f, Timer *timer) {

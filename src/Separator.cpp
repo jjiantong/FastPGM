@@ -88,7 +88,7 @@ void Separator::ConstructMessage(Timer *timer) {
 }
 
 void Separator::ConstructMessage2(Timer *timer) {
-    timer->Start("factor division");
+//    timer->Start("factor division");
 //    if (table.related_variables.size() != old_table.related_variables.size()) {
 //        cout << "error!!!!!!" << endl;
 //        // TODO: exit
@@ -151,5 +151,5 @@ void Separator::ConstructMessage2(Timer *timer) {
 //            p_table.potentials[i] /= old_ptable.potentials[i];
 //        }
 //    }
-    timer->Stop("factor division");
+//    timer->Stop("factor division");
 }

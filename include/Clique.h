@@ -80,6 +80,8 @@ class Clique {
     virtual void UpdateUseMessage2(PotentialTable &pt, Timer *timer);
     virtual void ConstructMessage2(Timer *timer);
 
+//    virtual bool Equals(const Clique &c);
+
 //  void PrintPotentials() const;
 //  void PrintRelatedVars() const;
 
