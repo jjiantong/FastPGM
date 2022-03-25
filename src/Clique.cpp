@@ -249,8 +249,8 @@ void Clique::Collect2(Timer *timer) {
             continue;
         }
 
-#pragma omp task shared(ptr_separator)
-        {
+//#pragma omp task shared(ptr_separator)
+//        {
             // the current neighbor "ptr_separator" is a downstream clique
             ptr_separator->ptr_upstream_clique = this;  // Let the callee know the caller.
             // collect the msg f from downstream
@@ -260,9 +260,9 @@ void Clique::Collect2(Timer *timer) {
             // the current factor is the initial potential, or
             // the product of the initial potential and factors received from other downstream neighbors
             UpdateUseMessage2(pt, timer);  // Update itself.
-        }
+//        }
     }
-#pragma omp taskwait
+//#pragma omp taskwait
     // Prepare message for the upstream.
     ConstructMessage2(timer);
 }
@@ -279,13 +279,35 @@ void Clique::Distribute(Timer *timer) {
 }
 
 /**
- * Distribute the information it knows to the downstream cliques.
- * The reload version without parameter. Called on the selected root.
+ * @brief: a step of msg passing in clique trees
+ * msg passes from upstream to downstream
+ * use "while" loop and a queue instead of using recursive function
+ * first push the root to the queue; then consecutively pop a clique from the queue and handle it until the queue is empty
+ * in the handling process, first update the msg; then construct the msg and push the clique to the queue
  */
 void Clique::Distribute2(Timer *timer) {
-    ConstructMessage2(timer);
-    for (auto &sep : set_neighbours_ptr) {
-        sep->Distribute2(p_table, timer);
+    // Prepare message for the downstream.
+    this->ConstructMessage2(timer);
+    queue<Clique*> q;
+    q.push(this);
+    while(!q.empty()) {
+        Clique *clique = q.front();
+        q.pop();
+        for (auto &ptr_separator : clique->set_neighbours_ptr) {
+            // all neighbor cliques of "clique" contain the upstream clique and downstream clique(s)
+            // if the current neighbor "ptr_separator" is the upstream clique, not distribute to it
+            // otherwise, distribute the msg to "ptr_separator"
+            if (ptr_separator == clique->ptr_upstream_clique) {
+                continue;
+            }
+            // the current neighbor "ptr_separator" is a downstream clique of "clique"
+            ptr_separator->ptr_upstream_clique = clique;  // Let the callee know the caller.
+            // update the msg of "ptr_separator" by multiplying the current table with "clique"' table
+            ptr_separator->UpdateUseMessage2(clique->p_table, timer);  // Update itself.
+            // Prepare message for the downstream.
+            ptr_separator->ConstructMessage2(timer);
+            q.push(ptr_separator);
+        }
     }
 }
 
@@ -328,37 +350,33 @@ void Clique::Distribute(Factor &f, Timer *timer) {
   }
 }
 
-/**
- * @brief: a step of msg passing in clique trees
- * distribute the information it knows to the downstream cliques; the msg passes from upstream to downstream
- * first update the msg; then distribute the msgs to its downstream neighbors;
- * @param f is in fact a factor received from its upstream clique
- * @return a msg, which is a factor
- * The reload version with parameter. Called by recursion.
- */
-void Clique::Distribute2(PotentialTable &pt, Timer *timer) {
-    // update the msg by multiplying the current factor with f
-    UpdateUseMessage2(pt, timer);  // Update itself.
-    // Prepare message for the downstream.
-    ConstructMessage2(timer);
-
-//#pragma omp taskwait
-    for (auto &ptr_separator : set_neighbours_ptr) {
-        // all neighbor cliques contain the upstream clique and downstream clique(s)
-        // if the current neighbor "ptr_separator" is the upstream clique, not distribute to it
-        // otherwise, distribute the msg to "ptr_separator"
-        if (ptr_separator == ptr_upstream_clique) {
-            continue;
-        }
-//#pragma omp task shared(ptr_separator)
-//        {
-            // the current neighbor "ptr_separator" is a downstream clique
-            ptr_separator->ptr_upstream_clique = this;  // Let the callee know the caller.
-            // distribute the msg to downstream
-            ptr_separator->Distribute2(p_table, timer); // Distribute to downstream.
+///**
+// * @brief: a step of msg passing in clique trees
+// * distribute the information it knows to the downstream cliques; the msg passes from upstream to downstream
+// * first update the msg; then distribute the msgs to its downstream neighbors;
+// * @param f is in fact a factor received from its upstream clique
+// * @return a msg, which is a factor
+// * The reload version with parameter. Called by recursion.
+// */
+//void Clique::Distribute2(PotentialTable &pt, Timer *timer) {
+//    // update the msg by multiplying the current factor with f
+//    UpdateUseMessage2(pt, timer);  // Update itself.
+//    // Prepare message for the downstream.
+//    ConstructMessage2(timer);
+//
+//    for (auto &ptr_separator : set_neighbours_ptr) {
+//        // all neighbor cliques contain the upstream clique and downstream clique(s)
+//        // if the current neighbor "ptr_separator" is the upstream clique, not distribute to it
+//        // otherwise, distribute the msg to "ptr_separator"
+//        if (ptr_separator == ptr_upstream_clique) {
+//            continue;
 //        }
-    }
-}
+//            // the current neighbor "ptr_separator" is a downstream clique
+//            ptr_separator->ptr_upstream_clique = this;  // Let the callee know the caller.
+//            // distribute the msg to downstream
+//            ptr_separator->Distribute2(p_table, timer); // Distribute to downstream.
+//    }
+//}
 
 /**
  * @brief: sum over external variables which are the results of factor multiplication.

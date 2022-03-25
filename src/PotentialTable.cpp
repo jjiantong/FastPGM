@@ -192,8 +192,8 @@ void PotentialTable::TableExtension(const set<int> &variables, const vector<int>
     int *partial_config = new int[new_table.table_size * this->num_variables];
     int *table_index = new int[new_table.table_size];
 
-    omp_set_num_threads(N_T);
-#pragma omp parallel for //schedule(dynamic, 1) // thread2: 43->48, static: 49; thread4: 56
+//    omp_set_num_threads(N_T);
+//#pragma omp parallel for //schedule(dynamic, 1) // thread2: 43->48, static: 49; thread4: 56
 //#pragma omp taskloop
     for (int i = 0; i < new_table.table_size; ++i) {
         // obtain the config value according to loc_in_new
@@ -333,8 +333,8 @@ void PotentialTable::TableReduction(int e_index, int e_value_index, Timer *timer
     int *full_config = new int[this->table_size * this->num_variables];
     int *value_index = new int[this->table_size];
 
-    omp_set_num_threads(N_T);
-#pragma omp parallel for //schedule(dynamic, 1)
+//    omp_set_num_threads(N_T);
+//#pragma omp parallel for //schedule(dynamic, 1)
 //#pragma omp taskloop
     for (int i = 0; i < this->table_size; ++i) {
         // 1. get the full config value of old table
@@ -423,8 +423,8 @@ void PotentialTable::TableMarginalization(int index, Timer *timer) {
     int *partial_config = new int[this->table_size * new_table.num_variables];
     int *table_index = new int[this->table_size];
 
-    omp_set_num_threads(N_T);
-#pragma omp parallel for //schedule(dynamic, 1)
+//    omp_set_num_threads(N_T);
+//#pragma omp parallel for //schedule(dynamic, 1)
 //#pragma omp taskloop
     for (int i = 0; i < this->table_size; ++i) {
         // 1. get the full config value of old table

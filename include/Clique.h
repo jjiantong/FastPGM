@@ -9,6 +9,7 @@
 #include <map>
 #include <utility>
 #include <string>
+#include <queue>
 #include "gadget.h"
 #include "Node.h"
 #include "Factor.h"
@@ -92,7 +93,7 @@ class Clique {
   void PreInitializePotentials();
 
     void SumOutExternalVars(PotentialTable &pt, Timer *timer);
-    void Distribute2(PotentialTable &pt, Timer *timer);
+//    void Distribute2(PotentialTable &pt, Timer *timer);
 };
 
 #endif //BAYESIANNETWORK_CLIQUE_H

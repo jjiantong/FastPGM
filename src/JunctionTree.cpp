@@ -78,9 +78,9 @@ JunctionTree::JunctionTree(Network *net, string elim_ord_strategy, vector<int> c
     cout << "finish FormJunctionTree, number of cliques = " << vector_clique_ptr_container.size()
          << ", number of separators = " << vector_separator_ptr_container.size() << endl;
 
-//    CliqueMerging(8, 12);
-//    cout << "finish CliqueMerging, number of cliques = " << vector_clique_ptr_container.size()
-//         << ", number of separators = " << vector_separator_ptr_container.size() << endl;
+    CliqueMerging(8, 12);
+    cout << "finish CliqueMerging, number of cliques = " << vector_clique_ptr_container.size()
+         << ", number of separators = " << vector_separator_ptr_container.size() << endl;
 
   //assign id to each clique
   NumberTheCliquesAndSeparators();
@@ -1145,13 +1145,13 @@ void JunctionTree::MessagePassingUpdateJT(Timer *timer) {
 
     /************************* use potential table ******************************/
     timer->Start("upstream");
-#pragma omp parallel num_threads(2)
-    {
-#pragma omp single
-        {
+//#pragma omp parallel num_threads(1)
+//    {
+//#pragma omp single
+//        {
             arb_root->Collect2(timer);
-        }
-    }
+//        }
+//    }
     timer->Stop("upstream");
 
     timer->Start("downstream");
