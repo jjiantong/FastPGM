@@ -1,7 +1,3 @@
-//
-// Created by LinjianLi on 2019/2/16.
-//
-
 #ifndef BAYESIANNETWORK_CLIQUE_H
 #define BAYESIANNETWORK_CLIQUE_H
 
@@ -71,14 +67,13 @@ class Clique {
   void Collect(Timer *timer);
   void Distribute(Timer *timer);
 
-  virtual void UpdateUseMessage(Factor &f, Timer *timer);
+  virtual void UpdateUseMessage(const Factor &f, Timer *timer);
   virtual void ConstructMessage(Timer *timer);
 
-    void MultiplyWithFactorSumOverExternalVars(PotentialTable &pt, Timer *timer);
     void Collect2(Timer *timer);
     void Distribute2(Timer *timer);
 
-    virtual void UpdateUseMessage2(PotentialTable &pt, Timer *timer);
+    virtual void UpdateUseMessage2(const PotentialTable &pt, Timer *timer);
     virtual void ConstructMessage2(Timer *timer);
 
 //    virtual bool Equals(const Clique &c);

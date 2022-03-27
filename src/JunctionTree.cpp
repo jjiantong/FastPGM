@@ -876,7 +876,7 @@ void JunctionTree::AssignPotentials(Timer *timer) { //checked
 
     /************************* use potential table ******************************/
     // For potentials from discrete nodes, they should be assigned to purely discrete cliques.
-    for (auto &pt : potential_tables) { // for each factor of the network
+    for (auto &pt : potential_tables) { // for each potential table of the network
         for (auto &clique_ptr : vector_clique_ptr_container) { // for each clique of the graph
             if (pt.related_variables.empty() || clique_ptr->clique_variables.empty()) {
                 break;
@@ -885,7 +885,7 @@ void JunctionTree::AssignPotentials(Timer *timer) { //checked
                 continue;
             }
 
-            // get the variables that in the factor but not in the clique
+            // get the variables that in the potential table but not in the clique
             set<int> diff;
             set_difference(pt.related_variables.begin(), pt.related_variables.end(),
                            clique_ptr->clique_variables.begin(), clique_ptr->clique_variables.end(),
@@ -897,16 +897,7 @@ void JunctionTree::AssignPotentials(Timer *timer) { //checked
             if (diff.empty()) {
                 // 2.2 construct the initial potential of this clique,
                 // which is the product of factors that assigned to it
-//          cout << "assign factor ";
-//          for (auto &v: f.related_variables) {
-//              cout << v << " ";
-//          }
-//          cout << "to clique ";
-//          for (auto &v: clique_ptr->clique_variables) {
-//              cout << v << " ";
-//          }
-//          cout << endl;
-                clique_ptr->MultiplyWithFactorSumOverExternalVars(pt, timer);
+                clique_ptr->p_table.TableMultiplication(pt, timer); // multiply two factors
                 break;  // Ensure that each factor is used only once.
             }
         }
@@ -1145,23 +1136,23 @@ void JunctionTree::MessagePassingUpdateJT(Timer *timer) {
 
     /************************* use potential table ******************************/
     timer->Start("upstream");
-//#pragma omp parallel num_threads(1)
-//    {
-//#pragma omp single
-//        {
+#pragma omp parallel num_threads(1)
+    {
+#pragma omp single
+        {
             arb_root->Collect2(timer);
-//        }
-//    }
+        }
+    }
     timer->Stop("upstream");
 
     timer->Start("downstream");
-//#pragma omp parallel num_threads(2)
-//    {
-//#pragma omp single
-//        {
+#pragma omp parallel num_threads(1)
+    {
+#pragma omp single
+        {
             arb_root->Distribute2(timer);
-//        }
-//    }
+        }
+    }
     timer->Stop("downstream");
     /************************* use potential table ******************************/
 }

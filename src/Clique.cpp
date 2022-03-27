@@ -1,7 +1,3 @@
-//
-// Created by LinjianLi on 2019/2/16.
-//
-
 #include "Clique.h"
 
 Clique::Clique() {
@@ -249,8 +245,8 @@ void Clique::Collect2(Timer *timer) {
             continue;
         }
 
-//#pragma omp task shared(ptr_separator)
-//        {
+#pragma omp task shared(ptr_separator)
+        {
             // the current neighbor "ptr_separator" is a downstream clique
             ptr_separator->ptr_upstream_clique = this;  // Let the callee know the caller.
             // collect the msg f from downstream
@@ -260,9 +256,9 @@ void Clique::Collect2(Timer *timer) {
             // the current factor is the initial potential, or
             // the product of the initial potential and factors received from other downstream neighbors
             UpdateUseMessage2(pt, timer);  // Update itself.
-//        }
+        }
     }
-//#pragma omp taskwait
+#pragma omp taskwait
     // Prepare message for the upstream.
     ConstructMessage2(timer);
 }
@@ -281,35 +277,88 @@ void Clique::Distribute(Timer *timer) {
 /**
  * @brief: a step of msg passing in clique trees
  * msg passes from upstream to downstream
- * use "while" loop and a queue instead of using recursive function
- * first push the root to the queue; then consecutively pop a clique from the queue and handle it until the queue is empty
+ * use "while" loop and a queue instead of using recursive function (originally)
+ * first push the root to the queue; then consecutively pop a clique from the queue and handle it until the queue is empty (originally)
+ * in the improved version, use a vector, not a queue, each time handle the whole vector,
+ * because the handling order of the cliques in the same level does not matter
  * in the handling process, first update the msg; then construct the msg and push the clique to the queue
  */
 void Clique::Distribute2(Timer *timer) {
-    // Prepare message for the downstream.
-    this->ConstructMessage2(timer);
-    queue<Clique*> q;
-    q.push(this);
-    while(!q.empty()) {
-        Clique *clique = q.front();
-        q.pop();
-        for (auto &ptr_separator : clique->set_neighbours_ptr) {
-            // all neighbor cliques of "clique" contain the upstream clique and downstream clique(s)
-            // if the current neighbor "ptr_separator" is the upstream clique, not distribute to it
-            // otherwise, distribute the msg to "ptr_separator"
-            if (ptr_separator == clique->ptr_upstream_clique) {
-                continue;
+    vector<Clique*> vec;
+    vec.push_back(this);
+    while (!vec.empty()) {
+        vector<Clique*> vec2;
+        for (int i = 0; i < vec.size(); ++i) {
+            Clique *clique = vec[i];
+            for (auto &ptr_separator : clique->set_neighbours_ptr) {
+                // all neighbor cliques of "clique" contain the upstream clique and downstream clique(s)
+                // if the current neighbor "ptr_separator" is the upstream clique, not distribute to it
+                // otherwise, distribute the msg to "ptr_separator"
+                if (ptr_separator == clique->ptr_upstream_clique) {
+                    continue;
+                }
+#pragma omp task shared(ptr_separator)
+                {
+                    // the current neighbor "ptr_separator" is a downstream clique of "clique"
+                    ptr_separator->ptr_upstream_clique = clique;  // Let the callee know the caller.
+                    // update the msg of "ptr_separator" by multiplying the current table with "clique"' table
+                    ptr_separator->UpdateUseMessage2(clique->p_table, timer);  // Update itself.
+                    // Prepare message for the downstream.
+                    ptr_separator->ConstructMessage2(timer);
+                }
             }
-            // the current neighbor "ptr_separator" is a downstream clique of "clique"
-            ptr_separator->ptr_upstream_clique = clique;  // Let the callee know the caller.
-            // update the msg of "ptr_separator" by multiplying the current table with "clique"' table
-            ptr_separator->UpdateUseMessage2(clique->p_table, timer);  // Update itself.
-            // Prepare message for the downstream.
-            ptr_separator->ConstructMessage2(timer);
-            q.push(ptr_separator);
         }
+#pragma omp taskwait
+        for (int i = 0; i < vec.size(); ++i) {
+            Clique *clique = vec[i];
+            for (auto &ptr_separator : clique->set_neighbours_ptr) {
+                if (ptr_separator != clique->ptr_upstream_clique) {
+                    vec2.push_back(ptr_separator);
+                }
+            }
+        }
+        vec = vec2;
     }
 }
+
+
+//void Clique::Distribute2(Timer *timer) {
+//    vector <Clique*> vec;
+//    vec.push_back(this);
+//    while (!vec.empty()) {
+//        vector <Clique*> vec2, vec3;
+//        for (int i = 0; i < vec.size(); ++i) {
+//            for (auto &ptr_separator : vec[i]->set_neighbours_ptr) {
+//                // all neighbor cliques of "clique" contain the upstream clique and downstream clique(s)
+//                // if the current neighbor "ptr_separator" is the upstream clique, not distribute to it
+//                // otherwise, distribute the msg to "ptr_separator"
+//                if (ptr_separator == vec[i]->ptr_upstream_clique) {
+//                    continue;
+//                }
+//                vec2.push_back(vec[i]);
+//                vec2.push_back(ptr_separator);
+//            }
+//        }
+//
+//#pragma omp parallel for num_threads(8)
+//        for (int i = 0; i < vec2.size() / 2; ++i) {
+//            Clique *clique1 = vec2[i * 2 + 0];
+//            Clique *clique2 = vec2[i * 2 + 1];
+//            // the current neighbor "ptr_separator" is a downstream clique of "clique"
+//            clique2->ptr_upstream_clique = clique1;  // Let the callee know the caller.
+//            // update the msg of "ptr_separator" by multiplying the current table with "clique"' table
+//            clique2->UpdateUseMessage2(clique1->p_table, timer);  // Update itself.
+//            // Prepare message for the downstream.
+//            clique2->ConstructMessage2(timer);
+//        }
+//
+//        for (int i = 0; i < vec2.size() / 2; ++i) {
+//            vec3.push_back(vec2[i * 2 + 1]);
+//        }
+//
+//        vec = vec3;
+//    }
+//}
 
 /**
  * @brief: a step of msg passing in clique trees
@@ -449,7 +498,7 @@ void Clique::SumOutExternalVars(PotentialTable &pt, Timer *timer) {
  * @brief: multiply a clique with a factor
  */
 void Clique::MultiplyWithFactorSumOverExternalVars(Factor &f, Timer *timer) {
-    // sum over the irrelevant variables of the clique
+    // sum over the irrelevant variables of the clique todo: no need to do sum out
     SumOutExternalVars(f, timer);
 
     // in the original implementation, "related_variables" is always all the variables in the clique,
@@ -464,77 +513,14 @@ void Clique::MultiplyWithFactorSumOverExternalVars(Factor &f, Timer *timer) {
 //    timer->Stop("factor multiplication");
 }
 
-/**
- * @brief: multiply a clique with a factor
- */
-void Clique::MultiplyWithFactorSumOverExternalVars(PotentialTable &pt, Timer *timer) {
-    // sum over the irrelevant variables of the clique
-    SumOutExternalVars(pt, timer);
-
-    // in the original implementation, "related_variables" is always all the variables in the clique,
-    // "set_disc_configs" is always all the configurations of the variables in the clique,
-    // so they are not required to be changed, the only thing changed is the "map_potentials".
-    // for the current implementation, all "related_variables", "set_disc_configs" and "map_potentials" are reduced if possible,
-    // so they all need to be changed here.
-    // at the same time, the original implementation copy a new factor of the clique, use the copy to compute,
-    // and then copy back the "map_potentials", which is not efficient...
-//    timer->Start("factor multiplication");
-//    cout << "multi" << endl;
-//    cout << "before1: ";
-//    for (auto v: p_table.related_variables) {
-//        cout << v << " ";
-//    }
-//    cout << endl;
-//    for (int i = 0; i < p_table.table_size; ++i) {
-//        cout << p_table.potentials[i] << " ";
-//    }
-//    cout << endl;
-//    cout << "before2: ";
-//    for (auto v: pt.related_variables) {
-//        cout << v << " ";
-//    }
-//    cout << endl;
-//    for (int i = 0; i < pt.table_size; ++i) {
-//        cout << pt.potentials[i] << " ";
-//    }
-//    cout << endl;
-    p_table.TableMultiplication(pt, timer); // multiply two factors
-//    cout << "after: ";
-//    for (auto v: p_table.related_variables) {
-//        cout << v << " ";
-//    }
-//    cout << endl;
-//    for (int i = 0; i < p_table.table_size; ++i) {
-//        cout << p_table.potentials[i] << " ";
-//    }
-//    cout << endl;
-//    timer->Stop("factor multiplication");
+void Clique::UpdateUseMessage(const Factor &f, Timer *timer) {
+    Factor tmp_f = f;
+    MultiplyWithFactorSumOverExternalVars(tmp_f, timer);
 }
 
-void Clique::UpdateUseMessage(Factor &f, Timer *timer) {
-    MultiplyWithFactorSumOverExternalVars(f, timer);
-}
-
-void Clique::UpdateUseMessage2(PotentialTable &pt, Timer *timer) {
-//    cout << "construct msg of clique ";
-//    for (auto &v: this->p_table.related_variables) {
-//        cout << v << " ";
-//    }
-//    cout << " use msg ";
-//    for (auto &v: pt.related_variables) {
-//        cout << v << " ";
-//    }
-//    cout << endl;
-//    cout << "tables: " << endl;
-//    for (int i = 0; i < this->p_table.table_size; ++i) {
-//        cout << this->p_table.potentials[i] << " ";
-//    }
-//    cout << endl;
-//    for (int i = 0; i < pt.table_size; ++i) {
-//        cout << pt.potentials[i] << " ";
-//    }
-//    cout << endl;
-    MultiplyWithFactorSumOverExternalVars(pt, timer);
+void Clique::UpdateUseMessage2(const PotentialTable &pt, Timer *timer) {
+    PotentialTable tmp_pt = pt;
+    p_table.TableMultiplication(tmp_pt, timer); // multiply two factors
 }
 
 /**

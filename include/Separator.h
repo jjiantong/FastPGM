@@ -1,7 +1,3 @@
-//
-// Created by LinjianLi on 2019/2/20.
-//
-
 #ifndef BAYESIANNETWORK_SEPARATOR_H
 #define BAYESIANNETWORK_SEPARATOR_H
 
@@ -28,10 +24,10 @@ class Separator : public Clique {
 
   Separator* CopyWithoutPtr();
 
-  void UpdateUseMessage(Factor &f, Timer *timer) override;
+  void UpdateUseMessage(const Factor &f, Timer *timer) override;
   void ConstructMessage(Timer *timer) override;
 
-    void UpdateUseMessage2(PotentialTable &pt, Timer *timer) override;
+    void UpdateUseMessage2(const PotentialTable &pt, Timer *timer) override;
     void ConstructMessage2(Timer *timer) override;
 };
 

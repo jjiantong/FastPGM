@@ -1,7 +1,3 @@
-//
-// Created by LinjianLi on 2019/2/20.
-//
-
 #include "Separator.h"
 
 Separator::Separator() {
@@ -30,35 +26,18 @@ Separator* Separator::CopyWithoutPtr() {
 }
 
 
-void Separator::UpdateUseMessage(Factor &f, Timer *timer) {
+void Separator::UpdateUseMessage(const Factor &f, Timer *timer) {
     old_table = table;
-    SumOutExternalVars(f, timer);
-    table = f;
+    Factor tmp_f = f;
+    SumOutExternalVars(tmp_f, timer);
+    table = tmp_f;
 }
 
-void Separator::UpdateUseMessage2(PotentialTable &pt, Timer *timer) {
-//    cout << "construct msg of sep ";
-//    for (auto &v: this->p_table.related_variables) {
-//        cout << v << " ";
-//    }
-//    cout << " use msg ";
-//    for (auto &v: pt.related_variables) {
-//        cout << v << " ";
-//    }
-//    cout << endl;
-//    cout << "tables: " << endl;
-//    for (int i = 0; i < this->p_table.table_size; ++i) {
-//        cout << this->p_table.potentials[i] << " ";
-//    }
-//    cout << endl;
-//    for (int i = 0; i < pt.table_size; ++i) {
-//        cout << pt.potentials[i] << " ";
-//    }
-//    cout << endl;
-
+void Separator::UpdateUseMessage2(const PotentialTable &pt, Timer *timer) {
     old_ptable = p_table;
-    SumOutExternalVars(pt, timer);
-    p_table = pt;
+    PotentialTable tmp_pt = pt;
+    SumOutExternalVars(tmp_pt, timer);
+    p_table = tmp_pt;
 }
 
 /**
@@ -66,11 +45,6 @@ void Separator::UpdateUseMessage2(PotentialTable &pt, Timer *timer) {
  */
 void Separator::ConstructMessage(Timer *timer) {
 //    timer->Start("factor division");
-//    if (table.related_variables.size() != old_table.related_variables.size()) {
-//        cout << "error!!!!!!" << endl;
-//        // TODO: exit
-//    }
-
     // if related variable of both new and old are empty
     if (table.related_variables.empty()) {
         // do nothing, just return, because "table" is a constant
@@ -89,67 +63,6 @@ void Separator::ConstructMessage(Timer *timer) {
 
 void Separator::ConstructMessage2(Timer *timer) {
 //    timer->Start("factor division");
-//    if (table.related_variables.size() != old_table.related_variables.size()) {
-//        cout << "error!!!!!!" << endl;
-//        // TODO: exit
-//    }
-
-//    cout << "construct msg of sep ";
-//    for (auto &v: this->p_table.related_variables) {
-//        cout << v << " ";
-//    }
-//    cout << endl << "table: ";
-//    for (int i = 0; i < this->p_table.table_size; ++i) {
-//        cout << this->p_table.potentials[i] << " ";
-//    }
-//    cout << endl << "old ones: ";
-//    for (int i = 0; i < old_ptable.table_size; ++i) {
-//        cout << old_ptable.potentials[i] << " ";
-//    }
-//    cout << endl;
-
-//    cout << "divide" << endl;
-//    cout << "before1: ";
-//    for (auto v: p_table.related_variables) {
-//        cout << v << " ";
-//    }
-//    cout << endl;
-//    for (int i = 0; i < p_table.table_size; ++i) {
-//        cout << p_table.potentials[i] << " ";
-//    }
-//    cout << endl;
-//    cout << "before2: ";
-//    for (auto v: old_ptable.related_variables) {
-//        cout << v << " ";
-//    }
-//    cout << endl;
-//    for (int i = 0; i < old_ptable.table_size; ++i) {
-//        cout << old_ptable.potentials[i] << " ";
-//    }
-//    cout << endl;
     p_table.TableDivision(old_ptable);
-//    cout << "after: ";
-//    for (auto v: p_table.related_variables) {
-//        cout << v << " ";
-//    }
-//    cout << endl;
-//    for (int i = 0; i < p_table.table_size; ++i) {
-//        cout << p_table.potentials[i] << " ";
-//    }
-//    cout << endl;
-
-//    // if related variable of both new and old are empty
-//    if (p_table.related_variables.empty()) {
-//        // do nothing, just return, because "p_table" is a constant
-//        return;
-//    }
-//
-//    for (int i = 0; i < p_table.table_size; ++i) {
-//        if (old_ptable.potentials[i] == 0) {
-//            p_table.potentials[i] = 0;
-//        } else {
-//            p_table.potentials[i] /= old_ptable.potentials[i];
-//        }
-//    }
 //    timer->Stop("factor division");
 }
