@@ -320,7 +320,7 @@ void PotentialTable::TableDivision(const PotentialTable &second_table) {
  * @param e_index: the variable index of the evidence
  * @param e_value_index: the value (index) of the evidence
  */
-void PotentialTable::TableReduction(int e_index, int e_value_index, Timer *timer) {
+void PotentialTable::TableReduction(int e_index, int e_value_index, int num_threads, Timer *timer) {
     // in table reduction, we first update potentials, then consider the other things
 
 //    timer->Start("reduction2");
@@ -333,7 +333,7 @@ void PotentialTable::TableReduction(int e_index, int e_value_index, Timer *timer
     int *full_config = new int[this->table_size * this->num_variables];
     int *value_index = new int[this->table_size];
 
-    omp_set_num_threads(N_T);
+    omp_set_num_threads(num_threads);
 #pragma omp parallel for //schedule(dynamic, 1)
 //#pragma omp taskloop
     for (int i = 0; i < this->table_size; ++i) {

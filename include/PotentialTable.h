@@ -17,7 +17,7 @@
 #include "Network.h"
 #include "Timer.h"
 
-#define N_T 1
+//#define N_T 1
 
 using namespace std;
 
@@ -46,7 +46,7 @@ public:
     void TableExtension(const set<int> &variables, const vector<int> &dims, Timer *timer);
     void TableMultiplication(PotentialTable &second_table, Timer *timer);
     void TableDivision(const PotentialTable &second_table);
-    void TableReduction(int e_index, int e_value_index, Timer *timer);
+    void TableReduction(int e_index, int e_value_index, int num_threads, Timer *timer);
     void TableMarginalization(int index, Timer *timer);
     void Normalize();
 

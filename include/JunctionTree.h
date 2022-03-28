@@ -32,7 +32,7 @@ class JunctionTree: public Inference {
   virtual ~JunctionTree() = default;
 
   void ResetJunctionTree();
-  virtual void LoadDiscreteEvidence(const DiscreteConfig &E, Timer *timer);
+  virtual void LoadDiscreteEvidence(const DiscreteConfig &E, int num_threads, Timer *timer);
 
 //  void PrintAllCliquesPotentials() const;
 //  void PrintAllSeparatorsPotentials() const;
@@ -41,9 +41,9 @@ class JunctionTree: public Inference {
     PotentialTable BeliefPropagationCalcuDiscreteVarMarginal2(int query_index, Timer *timer);
     int InferenceUsingBeliefPropagation(int &query_index, Timer *timer);
 
-    virtual double EvaluateAccuracy(Dataset *dts, int num_samp, string alg, bool is_dense);
-    int PredictUseJTInfer(const DiscreteConfig &E, int Y_index, Timer *timer);
-    vector<int> PredictUseJTInfer(const vector<DiscreteConfig> &evidences, int target_node_idx, Timer *timer);
+    virtual double EvaluateAccuracy(Dataset *dts, int num_threads, int num_samp, string alg, bool is_dense);
+    int PredictUseJTInfer(const DiscreteConfig &E, int Y_index, int num_threads, Timer *timer);
+    vector<int> PredictUseJTInfer(const vector<DiscreteConfig> &evidences, int target_node_idx, int num_threads, Timer *timer);
 
   //==================================================
  protected:
@@ -58,7 +58,7 @@ class JunctionTree: public Inference {
   void AssignPotentials(Timer *timer);
   void BackUpJunctionTree();
 
-  virtual void MessagePassingUpdateJT(Timer *timer);
+  virtual void MessagePassingUpdateJT(int num_threads, Timer *timer);
   static vector<int> MinNeighbourElimOrd(int **adjac_matrix, int &num_nodes);
   static void Moralize(int **direc_adjac_matrix, int &num_nodes);
 //  void GenMapElimVarToClique();

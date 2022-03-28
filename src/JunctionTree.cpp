@@ -961,7 +961,7 @@ void JunctionTree::ResetJunctionTree() {
 /**
  * @brief: when inferring, an evidence is given. The evidence needs to be loaded and propagate in the network.
  */
-void JunctionTree::LoadDiscreteEvidence(const DiscreteConfig &E, Timer *timer) {
+void JunctionTree::LoadDiscreteEvidence(const DiscreteConfig &E, int num_threads, Timer *timer) {
 //    /*********************** load evidence on all cliques and seps **************************/
 //    // cannot just erase "comb" inside the inner most loop,
 //    // because it will cause problem in factor division...
@@ -1077,7 +1077,7 @@ void JunctionTree::LoadDiscreteEvidence(const DiscreteConfig &E, Timer *timer) {
             // if this factor is related to the observation
             if (clique_ptr->p_table.related_variables.find(index) != clique_ptr->p_table.related_variables.end()) {
 //                cout << "this clique is related to the observation" << endl;
-                clique_ptr->p_table.TableReduction(index, value_index, timer);
+                clique_ptr->p_table.TableReduction(index, value_index, num_threads, timer);
             }
         }
         for (auto &sep_ptr : vector_separator_ptr_container) { // for each sep
@@ -1089,7 +1089,7 @@ void JunctionTree::LoadDiscreteEvidence(const DiscreteConfig &E, Timer *timer) {
             // if this factor is related to the observation
             if (sep_ptr->p_table.related_variables.find(index) != sep_ptr->p_table.related_variables.end()) {
 //                cout << "this sep is related to the observation" << endl;
-                sep_ptr->p_table.TableReduction(index, value_index, timer);
+                sep_ptr->p_table.TableReduction(index, value_index, num_threads, timer);
             }
         }
     }
@@ -1125,7 +1125,7 @@ void JunctionTree::LoadDiscreteEvidence(const DiscreteConfig &E, Timer *timer) {
  * The order between COLLECT and DISTRIBUTE does not matter, but they must not interleave.
  * After message passing, any clique (junction tree node) contains the right distribution of the related variables.
  */
-void JunctionTree::MessagePassingUpdateJT(Timer *timer) {
+void JunctionTree::MessagePassingUpdateJT(int num_threads, Timer *timer) {
   // Arbitrarily select a clique as the root.
   auto iter = vector_clique_ptr_container.begin();
   Clique *arb_root = *iter;
@@ -1136,7 +1136,7 @@ void JunctionTree::MessagePassingUpdateJT(Timer *timer) {
 
     /************************* use potential table ******************************/
     timer->Start("upstream");
-#pragma omp parallel num_threads(1)
+#pragma omp parallel num_threads(num_threads)
     {
 #pragma omp single
         {
@@ -1146,7 +1146,7 @@ void JunctionTree::MessagePassingUpdateJT(Timer *timer) {
     timer->Stop("upstream");
 
     timer->Start("downstream");
-#pragma omp parallel num_threads(1)
+#pragma omp parallel num_threads(num_threads)
     {
 #pragma omp single
         {
@@ -1346,7 +1346,7 @@ int JunctionTree::InferenceUsingBeliefPropagation(int &query_index, Timer *timer
 /**
  * @brief: test the Junction Tree given a data set
  */
-double JunctionTree::EvaluateAccuracy(Dataset *dts, int num_samp, string alg, bool is_dense) {
+double JunctionTree::EvaluateAccuracy(Dataset *dts, int num_threads, int num_samp, string alg, bool is_dense) {
 
   cout << "==================================================" << '\n'
        << "Begin testing the trained network." << endl;
@@ -1408,7 +1408,7 @@ double JunctionTree::EvaluateAccuracy(Dataset *dts, int num_samp, string alg, bo
     }
 
     // predict the labels of the test instances
-    vector<int> predictions = PredictUseJTInfer(evidences, class_var_index, timer);
+    vector<int> predictions = PredictUseJTInfer(evidences, class_var_index, num_threads, timer);
 
     double accuracy = Accuracy(ground_truths, predictions);
 //    cout << "result: ";
@@ -1452,44 +1452,15 @@ double JunctionTree::EvaluateAccuracy(Dataset *dts, int num_samp, string alg, bo
  * @brief: predict label given evidence E and target variable id Y_index
  * @return label of the target variable
  */
-int JunctionTree::PredictUseJTInfer(const DiscreteConfig &E, int Y_index, Timer *timer) {
+int JunctionTree::PredictUseJTInfer(const DiscreteConfig &E, int Y_index, int num_threads, Timer *timer) {
     timer->Start("load evidence");
     //update a clique using the evidence
-    LoadDiscreteEvidence(E, timer);
+    LoadDiscreteEvidence(E, num_threads, timer);
     timer->Stop("load evidence");
-//    cout << "finish load evidence" << endl;
-
-//    cout << "cliques: " << endl;
-//    for (auto &c : vector_clique_ptr_container) {
-//        cout << c->clique_id << ": ";
-//        // set<int> related_variables
-//        for (auto &v : c->p_table.related_variables) {
-//            cout << v << " ";
-//        }
-//        cout << endl;
-//        // int num_variables
-//        // int table_size
-//        cout << "num variables = " << c->p_table.num_variables << ", table size = " << c->p_table.table_size << endl;
-//        // vector<int> var_dims
-//        cout << "var dims: ";
-//        for (int j = 0; j < c->p_table.var_dims.size(); ++j) {
-//            cout << c->p_table.var_dims[j] << " ";
-//        }
-//        // vector<int> cum_levels
-//        cout << "cum_levels: ";
-//        for (int j = 0; j < c->p_table.cum_levels.size(); ++j) {
-//            cout << c->p_table.cum_levels[j] << " ";
-//        }
-//        // vector<double> potentials
-//        cout << "table: " << endl;
-//        for (int j = 0; j < c->p_table.potentials.size(); ++j) {
-//            cout << c->p_table.potentials[j] << endl;
-//        }
-//    }
 
     timer->Start("msg passing");
     //update the whole Junction Tree
-    MessagePassingUpdateJT(timer);
+    MessagePassingUpdateJT(num_threads, timer);
     timer->Stop("msg passing");
 //    cout << "finish msg passing" << endl;
 
@@ -1538,7 +1509,8 @@ int JunctionTree::PredictUseJTInfer(const DiscreteConfig &E, int Y_index, Timer 
  * it just repeats the function above multiple times, and print the progress at the meantime
  * @param elim_orders: elimination order which may be different given different evidences due to the simplification of elimination order
  */
-vector<int> JunctionTree::PredictUseJTInfer(const vector<DiscreteConfig> &evidences, int target_node_idx, Timer *timer) {
+vector<int> JunctionTree::PredictUseJTInfer(const vector<DiscreteConfig> &evidences, int target_node_idx,
+                                            int num_threads, Timer *timer) {
     int size = evidences.size();
 
     cout << "Progress indicator: ";
@@ -1558,7 +1530,7 @@ vector<int> JunctionTree::PredictUseJTInfer(const vector<DiscreteConfig> &eviden
             fflush(stdout);
         }
 
-        int label_predict = PredictUseJTInfer(evidences.at(i), target_node_idx, timer);
+        int label_predict = PredictUseJTInfer(evidences.at(i), target_node_idx, num_threads, timer);
         results.at(i) = label_predict;
     }
     return results;

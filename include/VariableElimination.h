@@ -11,7 +11,7 @@ class VariableElimination: public Inference {
 public:
     VariableElimination(Network *net) { network = net;};
 
-    virtual double EvaluateAccuracy(Dataset *dts, int num_samp, string alg, bool is_dense);
+    virtual double EvaluateAccuracy(Dataset *dts, int num_threads, int num_samp, string alg, bool is_dense);
 
     int PredictUseVEInfer(DiscreteConfig evid, int target_node_idx, Timer *timer, vector<int> elim_order=vector<int>{});
     vector<int> PredictUseVEInfer(vector<DiscreteConfig> evidences, int target_node_idx, Timer *timer,

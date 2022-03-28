@@ -4,7 +4,7 @@
 
 #include "VariableElimination.h"
 
-double VariableElimination::EvaluateAccuracy(Dataset *dts, int num_samp, string alg, bool is_dense) { // TODO: remove alg
+double VariableElimination::EvaluateAccuracy(Dataset *dts, int num_threads, int num_samp, string alg, bool is_dense) { // TODO: remove alg
 
     cout << "==================================================" << '\n'
          << "Begin testing the trained network." << endl;
