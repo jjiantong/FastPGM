@@ -24,6 +24,10 @@ class JunctionTree: public Inference {
   vector<int> elimination_ordering;
 //  map<int, Clique*> map_elim_var_to_clique; //key: main variable of a clique; value: the clique
 
+    Clique *arb_root;
+    vector<vector<Clique*>> cliques_by_level;
+    int max_level;
+
   JunctionTree() = default;
   JunctionTree(Network *net);
   JunctionTree(Network *net, string elim_ord_strategy);
@@ -33,9 +37,6 @@ class JunctionTree: public Inference {
 
   void ResetJunctionTree();
   virtual void LoadDiscreteEvidence(const DiscreteConfig &E, int num_threads, Timer *timer);
-
-//  void PrintAllCliquesPotentials() const;
-//  void PrintAllSeparatorsPotentials() const;
 
     Factor BeliefPropagationCalcuDiscreteVarMarginal(int query_index);
     PotentialTable BeliefPropagationCalcuDiscreteVarMarginal2(int query_index, Timer *timer);

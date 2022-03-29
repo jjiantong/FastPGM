@@ -106,7 +106,7 @@ protected:
 
 TEST_F(ExperimentOnA1a, junction_tree_partial) {
     Inference *inference = new JunctionTree(network);
-    double accuracy = inference->EvaluateAccuracy(tester, 8, -1, "jt", false);
+    double accuracy = inference->EvaluateAccuracy(tester, 4, -1, "jt", false);
     delete inference;
     EXPECT_GT(accuracy, 0.8230);
 }

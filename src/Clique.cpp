@@ -244,11 +244,10 @@ void Clique::Collect2(Timer *timer) {
         if (ptr_separator == ptr_upstream_clique) {
             continue;
         }
-
 #pragma omp task shared(ptr_separator)
         {
-            // the current neighbor "ptr_separator" is a downstream clique
-            ptr_separator->ptr_upstream_clique = this;  // Let the callee know the caller.
+//            // the current neighbor "ptr_separator" is a downstream clique of "clique"
+//            ptr_separator->ptr_upstream_clique = this;  // Let the callee know the caller.
             // collect the msg f from downstream
             ptr_separator->Collect2(timer);
             PotentialTable pt = ptr_separator->p_table;
@@ -262,6 +261,24 @@ void Clique::Collect2(Timer *timer) {
     // Prepare message for the upstream.
     ConstructMessage2(timer);
 }
+
+
+//void Clique::Collect2(vector<vector<Clique*>> &cliques, int max_level, Timer *timer) {
+//    for (int i = max_level - 1; i > 0; --i) {
+//        for (int j = 0; j < cliques[i].size(); ++j) {
+////#pragma omp task shared(cliques)
+////            {
+//                Clique *clique = cliques[i][j];
+//                auto ptr_separator = clique->ptr_upstream_clique; // we only need to use its upstream clique
+//                // update the msg of "ptr_separator" by multiplying the current table with "clique"'s table
+//                ptr_separator->UpdateUseMessage2(clique->p_table, timer);  // Update itself.
+//                // Prepare message for the downstream.
+//                ptr_separator->ConstructMessage2(timer);
+////            }
+//        }
+////#pragma omp taskwait
+//    }
+//}
 
 /**
  * Distribute the information it knows to the downstream cliques.
@@ -299,9 +316,7 @@ void Clique::Distribute2(Timer *timer) {
                 }
 #pragma omp task shared(ptr_separator)
                 {
-                    // the current neighbor "ptr_separator" is a downstream clique of "clique"
-                    ptr_separator->ptr_upstream_clique = clique;  // Let the callee know the caller.
-                    // update the msg of "ptr_separator" by multiplying the current table with "clique"' table
+                    // update the msg of "ptr_separator" by multiplying the current table with "clique"'s table
                     ptr_separator->UpdateUseMessage2(clique->p_table, timer);  // Update itself.
                     // Prepare message for the downstream.
                     ptr_separator->ConstructMessage2(timer);
@@ -320,6 +335,60 @@ void Clique::Distribute2(Timer *timer) {
         vec = vec2;
     }
 }
+
+void Clique::Distribute2(vector<vector<Clique*>> &cliques, int max_level, Timer *timer) {
+    for (int i = 0; i < max_level; ++i) {
+        for (int j = 0; j < cliques[i].size(); ++j) {
+            Clique *clique = cliques[i][j];
+            for (auto &ptr_separator : clique->set_neighbours_ptr) {
+                // all neighbor cliques of "clique" contain the upstream clique and downstream clique(s)
+                // if the current neighbor "ptr_separator" is the upstream clique, not distribute to it
+                // otherwise, distribute the msg to "ptr_separator"
+                if (ptr_separator == clique->ptr_upstream_clique) {
+                    continue;
+                }
+#pragma omp task shared(ptr_separator)
+                {
+                    // update the msg of "ptr_separator" by multiplying the current table with "clique"'s table
+                    ptr_separator->UpdateUseMessage2(clique->p_table, timer);  // Update itself.
+                    // Prepare message for the downstream.
+                    ptr_separator->ConstructMessage2(timer);
+                }
+            }
+        }
+#pragma omp taskwait
+    }
+}
+
+void Clique::MarkLevel(vector<vector<Clique*>> &cliques, int &max_level) {
+    vector<Clique*> vec;
+    vec.push_back(this);
+    cliques.push_back(vec);
+
+    while (!vec.empty()) {
+        vector<Clique*> vec2;
+        for (int i = 0; i < vec.size(); ++i) {
+            Clique *clique = vec[i];
+            for (auto &ptr_separator : clique->set_neighbours_ptr) {
+                // all neighbor cliques of "clique" contain the upstream clique and downstream clique(s)
+                // if the current neighbor "ptr_separator" is the upstream clique, not distribute to it
+                // otherwise, distribute the msg to "ptr_separator"
+                if (ptr_separator == clique->ptr_upstream_clique) {
+                    continue;
+                }
+                // the current neighbor "ptr_separator" is a downstream clique of "clique"
+                ptr_separator->ptr_upstream_clique = clique;  // Let the callee know the caller.
+                vec2.push_back(ptr_separator);
+            }
+        }
+        cliques.push_back(vec2);
+        vec = vec2;
+    }
+
+    cliques.pop_back();
+    max_level = cliques.size();
+}
+
 
 
 //void Clique::Distribute2(Timer *timer) {

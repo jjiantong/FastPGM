@@ -70,8 +70,11 @@ class Clique {
   virtual void UpdateUseMessage(const Factor &f, Timer *timer);
   virtual void ConstructMessage(Timer *timer);
 
+    void MarkLevel(vector<vector<Clique*>> &cliques, int &max_level);
     void Collect2(Timer *timer);
+//    void Collect2(vector<vector<Clique*>> &cliques, int max_level, Timer *timer);
     void Distribute2(Timer *timer);
+    void Distribute2(vector<vector<Clique*>> &cliques, int max_level, Timer *timer);
 
     virtual void UpdateUseMessage2(const PotentialTable &pt, Timer *timer);
     virtual void ConstructMessage2(Timer *timer);

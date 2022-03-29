@@ -14,7 +14,7 @@ JunctionTree::JunctionTree(Network *net, string elim_ord_strategy, vector<int> c
     // record time
     timer->Start("construct jt");
 
-  network = net;
+    network = net;
 
     vector_clique_ptr_container.reserve(network->num_nodes);
     vector_separator_ptr_container.reserve(network->num_nodes - 1);
@@ -150,6 +150,11 @@ JunctionTree::JunctionTree(Network *net, string elim_ord_strategy, vector<int> c
 //            cout << c->p_table.potentials[j] << endl;
 //        }
 //    }
+
+    // Arbitrarily select a clique as the root.
+    auto iter = vector_clique_ptr_container.begin();
+    arb_root = *iter;
+    arb_root->MarkLevel(cliques_by_level, max_level);
 
   BackUpJunctionTree();
 //  cout << "finish BackUpJunctionTree" << endl;
@@ -1069,26 +1074,14 @@ void JunctionTree::LoadDiscreteEvidence(const DiscreteConfig &E, int num_threads
         }
 
         for (auto &clique_ptr : vector_clique_ptr_container) { // for each clique
-//            cout << "clique ";
-//            for (auto &v: clique_ptr->p_table.related_variables) {
-//                cout << v << " ";
-//            }
-//            cout << endl;
             // if this factor is related to the observation
             if (clique_ptr->p_table.related_variables.find(index) != clique_ptr->p_table.related_variables.end()) {
-//                cout << "this clique is related to the observation" << endl;
                 clique_ptr->p_table.TableReduction(index, value_index, num_threads, timer);
             }
         }
         for (auto &sep_ptr : vector_separator_ptr_container) { // for each sep
-//            cout << "sep ";
-//            for (auto &v: sep_ptr->p_table.related_variables) {
-//                cout << v << " ";
-//            }
-//            cout << endl;
             // if this factor is related to the observation
             if (sep_ptr->p_table.related_variables.find(index) != sep_ptr->p_table.related_variables.end()) {
-//                cout << "this sep is related to the observation" << endl;
                 sep_ptr->p_table.TableReduction(index, value_index, num_threads, timer);
             }
         }
@@ -1126,9 +1119,6 @@ void JunctionTree::LoadDiscreteEvidence(const DiscreteConfig &E, int num_threads
  * After message passing, any clique (junction tree node) contains the right distribution of the related variables.
  */
 void JunctionTree::MessagePassingUpdateJT(int num_threads, Timer *timer) {
-  // Arbitrarily select a clique as the root.
-  auto iter = vector_clique_ptr_container.begin();
-  Clique *arb_root = *iter;
 //    /************************* use factor ******************************/
 //  arb_root->Collect(timer);
 //  arb_root->Distribute(timer);
@@ -1150,28 +1140,13 @@ void JunctionTree::MessagePassingUpdateJT(int num_threads, Timer *timer) {
     {
 #pragma omp single
         {
-            arb_root->Distribute2(timer);
+//            arb_root->Distribute2(timer);
+            arb_root->Distribute2(cliques_by_level, max_level, timer);
         }
     }
     timer->Stop("downstream");
     /************************* use potential table ******************************/
 }
-
-//void JunctionTree::PrintAllCliquesPotentials() const {
-//  cout << "Cliques" << '\n';
-//  for (auto &c : set_clique_ptr_container) {
-//    c->PrintPotentials();
-//  }
-//  cout << "==================================================" << endl;
-//}
-
-//void JunctionTree::PrintAllSeparatorsPotentials() const {
-//  cout << "Separators" << '\n';
-//  for (auto &s : set_separator_ptr_container) {
-//    s->PrintPotentials();
-//  }
-//  cout << "==================================================" << endl;
-//}
 
 /**
  * @brief: compute the marginal distribution for a query variable
