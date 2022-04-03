@@ -246,8 +246,8 @@ void Clique::Collect2(Timer *timer) {
         }
 #pragma omp task shared(ptr_separator)
         {
-//            // the current neighbor "ptr_separator" is a downstream clique of "clique"
-//            ptr_separator->ptr_upstream_clique = this;  // Let the callee know the caller.
+            // the current neighbor "ptr_separator" is a downstream clique of "clique"
+            ptr_separator->ptr_upstream_clique = this;  // Let the callee know the caller.
             // collect the msg f from downstream
             ptr_separator->Collect2(timer);
             PotentialTable pt = ptr_separator->p_table;

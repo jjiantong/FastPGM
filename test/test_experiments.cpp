@@ -66,9 +66,9 @@ protected:
 
 //        network->StructLearnCompData(trainer, true);
         StructureLearning *bnsl = new ChowLiuTree(network);
-        bnsl->StructLearnCompData(trainer, 1, 1, true, false);
+        bnsl->StructLearnCompData(trainer, 1, 1, false, false);
         ParameterLearning *bnpl = new ParameterLearning(network);
-        bnpl->LearnParamsKnowStructCompData(trainer, 2, true);
+        bnpl->LearnParamsKnowStructCompData(trainer, 2, false);
     }
 
     Dataset *trainer;
@@ -104,12 +104,104 @@ protected:
 //    EXPECT_GT(accuracy, 0.8230);
 //}
 
-TEST_F(ExperimentOnA1a, junction_tree_partial) {
+TEST_F(ExperimentOnA1a, junction_tree_partial1) {
     Inference *inference = new JunctionTree(network);
-    double accuracy = inference->EvaluateAccuracy(tester, 4, -1, "jt", false);
+    double accuracy = inference->EvaluateAccuracy(tester, 1, -1, "jt", false);
     delete inference;
     EXPECT_GT(accuracy, 0.8230);
 }
+TEST_F(ExperimentOnA1a, junction_tree_partial2) {
+Inference *inference = new JunctionTree(network);
+double accuracy = inference->EvaluateAccuracy(tester, 2, -1, "jt", false);
+delete inference;
+EXPECT_GT(accuracy, 0.8230);
+}
+//TEST_F(ExperimentOnA1a, junction_tree_partial3) {
+//Inference *inference = new JunctionTree(network);
+//double accuracy = inference->EvaluateAccuracy(tester, 3, -1, "jt", false);
+//delete inference;
+//EXPECT_GT(accuracy, 0.8230);
+//}
+//TEST_F(ExperimentOnA1a, junction_tree_partial4) {
+//Inference *inference = new JunctionTree(network);
+//double accuracy = inference->EvaluateAccuracy(tester, 4, -1, "jt", false);
+//delete inference;
+//EXPECT_GT(accuracy, 0.8230);
+//}
+//TEST_F(ExperimentOnA1a, junction_tree_partial5) {
+//Inference *inference = new JunctionTree(network);
+//double accuracy = inference->EvaluateAccuracy(tester, 5, -1, "jt", false);
+//delete inference;
+//EXPECT_GT(accuracy, 0.8230);
+//}
+//TEST_F(ExperimentOnA1a, junction_tree_partial6) {
+//Inference *inference = new JunctionTree(network);
+//double accuracy = inference->EvaluateAccuracy(tester, 6, -1, "jt", false);
+//delete inference;
+//EXPECT_GT(accuracy, 0.8230);
+//}
+//TEST_F(ExperimentOnA1a, junction_tree_partial7) {
+//Inference *inference = new JunctionTree(network);
+//double accuracy = inference->EvaluateAccuracy(tester, 7, -1, "jt", false);
+//delete inference;
+//EXPECT_GT(accuracy, 0.8230);
+//}
+//TEST_F(ExperimentOnA1a, junction_tree_partial8) {
+//Inference *inference = new JunctionTree(network);
+//double accuracy = inference->EvaluateAccuracy(tester, 8, -1, "jt", false);
+//delete inference;
+//EXPECT_GT(accuracy, 0.8230);
+//}
+//TEST_F(ExperimentOnA1a, junction_tree_partial9) {
+//Inference *inference = new JunctionTree(network);
+//double accuracy = inference->EvaluateAccuracy(tester, 9, -1, "jt", false);
+//delete inference;
+//EXPECT_GT(accuracy, 0.8230);
+//}
+//TEST_F(ExperimentOnA1a, junction_tree_partial10) {
+//Inference *inference = new JunctionTree(network);
+//double accuracy = inference->EvaluateAccuracy(tester, 10, -1, "jt", false);
+//delete inference;
+//EXPECT_GT(accuracy, 0.8230);
+//}
+//TEST_F(ExperimentOnA1a, junction_tree_partial11) {
+//Inference *inference = new JunctionTree(network);
+//double accuracy = inference->EvaluateAccuracy(tester, 11, -1, "jt", false);
+//delete inference;
+//EXPECT_GT(accuracy, 0.8230);
+//}
+//TEST_F(ExperimentOnA1a, junction_tree_partial12) {
+//Inference *inference = new JunctionTree(network);
+//double accuracy = inference->EvaluateAccuracy(tester, 12, -1, "jt", false);
+//delete inference;
+//EXPECT_GT(accuracy, 0.8230);
+//}
+//TEST_F(ExperimentOnA1a, junction_tree_partial13) {
+//Inference *inference = new JunctionTree(network);
+//double accuracy = inference->EvaluateAccuracy(tester, 13, -1, "jt", false);
+//delete inference;
+//EXPECT_GT(accuracy, 0.8230);
+//}
+//TEST_F(ExperimentOnA1a, junction_tree_partial14) {
+//Inference *inference = new JunctionTree(network);
+//double accuracy = inference->EvaluateAccuracy(tester, 14, -1, "jt", false);
+//delete inference;
+//EXPECT_GT(accuracy, 0.8230);
+//}
+//TEST_F(ExperimentOnA1a, junction_tree_partial15) {
+//Inference *inference = new JunctionTree(network);
+//double accuracy = inference->EvaluateAccuracy(tester, 15, -1, "jt", false);
+//delete inference;
+//EXPECT_GT(accuracy, 0.8230);
+//}
+//TEST_F(ExperimentOnA1a, junction_tree_partial16) {
+//Inference *inference = new JunctionTree(network);
+//double accuracy = inference->EvaluateAccuracy(tester, 16, -1, "jt", false);
+//delete inference;
+//EXPECT_GT(accuracy, 0.8230);
+//}
+
+
 //
 //TEST_F(ExperimentOnA1a, likelihood_weighing) {
 //    Inference *inference = new ApproximateInference(network);
@@ -164,7 +256,6 @@ TEST_F(ExperimentOnA1a, junction_tree_partial) {
 //    void SetUp() override {
 //        trainer = new Dataset();
 //        tester = new Dataset();
-////        network = new ChowLiuTree(true);
 //        network = new Network(true);
 //
 //        string train_set_file_path = DATA_PATH + "/dataset/mnist.scale.dis8.t",
@@ -174,9 +265,9 @@ TEST_F(ExperimentOnA1a, junction_tree_partial) {
 //        tester->LoadLIBSVMData(test_set_file_path);
 //
 //        StructureLearning *bnsl = new ChowLiuTree(network);
-//        bnsl->StructLearnCompData(trainer, 1, 1, true, false);
+//        bnsl->StructLearnCompData(trainer, 1, 1, false, false);
 //        ParameterLearning *bnpl = new ParameterLearning(network);
-//        bnpl->LearnParamsKnowStructCompData(trainer, 2, true);
+//        bnpl->LearnParamsKnowStructCompData(trainer, 2, false);
 //    }
 //
 //    Dataset *trainer;
@@ -184,11 +275,101 @@ TEST_F(ExperimentOnA1a, junction_tree_partial) {
 //    Network *network;
 //};
 //
-//TEST_F(ExperimentOnMNIST, junction_tree_partial) {
+//TEST_F(ExperimentOnMNIST, junction_tree_partial1) {
 //    Inference *inference = new JunctionTree(network);
-//    double accuracy = inference->EvaluateAccuracy(tester, -1, "jt", false);
+//    double accuracy = inference->EvaluateAccuracy(tester, 1, -1, "jt", false);
 //    delete inference;
 //    EXPECT_GT(accuracy, 0.8230);
+//}
+//TEST_F(ExperimentOnMNIST, junction_tree_partial2) {
+//Inference *inference = new JunctionTree(network);
+//double accuracy = inference->EvaluateAccuracy(tester, 2, -1, "jt", false);
+//delete inference;
+//EXPECT_GT(accuracy, 0.8230);
+//}
+//TEST_F(ExperimentOnMNIST, junction_tree_partial3) {
+//Inference *inference = new JunctionTree(network);
+//double accuracy = inference->EvaluateAccuracy(tester, 3, -1, "jt", false);
+//delete inference;
+//EXPECT_GT(accuracy, 0.8230);
+//}
+//TEST_F(ExperimentOnMNIST, junction_tree_partial4) {
+//Inference *inference = new JunctionTree(network);
+//double accuracy = inference->EvaluateAccuracy(tester, 4, -1, "jt", false);
+//delete inference;
+//EXPECT_GT(accuracy, 0.8230);
+//}
+//TEST_F(ExperimentOnMNIST, junction_tree_partial5) {
+//Inference *inference = new JunctionTree(network);
+//double accuracy = inference->EvaluateAccuracy(tester, 5, -1, "jt", false);
+//delete inference;
+//EXPECT_GT(accuracy, 0.8230);
+//}
+//TEST_F(ExperimentOnMNIST, junction_tree_partial6) {
+//Inference *inference = new JunctionTree(network);
+//double accuracy = inference->EvaluateAccuracy(tester, 6, -1, "jt", false);
+//delete inference;
+//EXPECT_GT(accuracy, 0.8230);
+//}
+//TEST_F(ExperimentOnMNIST, junction_tree_partial7) {
+//Inference *inference = new JunctionTree(network);
+//double accuracy = inference->EvaluateAccuracy(tester, 7, -1, "jt", false);
+//delete inference;
+//EXPECT_GT(accuracy, 0.8230);
+//}
+//TEST_F(ExperimentOnMNIST, junction_tree_partial8) {
+//Inference *inference = new JunctionTree(network);
+//double accuracy = inference->EvaluateAccuracy(tester, 8, -1, "jt", false);
+//delete inference;
+//EXPECT_GT(accuracy, 0.8230);
+//}
+//TEST_F(ExperimentOnMNIST, junction_tree_partial9) {
+//Inference *inference = new JunctionTree(network);
+//double accuracy = inference->EvaluateAccuracy(tester, 9, -1, "jt", false);
+//delete inference;
+//EXPECT_GT(accuracy, 0.8230);
+//}
+//TEST_F(ExperimentOnMNIST, junction_tree_partial10) {
+//Inference *inference = new JunctionTree(network);
+//double accuracy = inference->EvaluateAccuracy(tester, 10, -1, "jt", false);
+//delete inference;
+//EXPECT_GT(accuracy, 0.8230);
+//}
+//TEST_F(ExperimentOnMNIST, junction_tree_partial11) {
+//Inference *inference = new JunctionTree(network);
+//double accuracy = inference->EvaluateAccuracy(tester, 11, -1, "jt", false);
+//delete inference;
+//EXPECT_GT(accuracy, 0.8230);
+//}
+//TEST_F(ExperimentOnMNIST, junction_tree_partial12) {
+//Inference *inference = new JunctionTree(network);
+//double accuracy = inference->EvaluateAccuracy(tester, 12, -1, "jt", false);
+//delete inference;
+//EXPECT_GT(accuracy, 0.8230);
+//}
+//TEST_F(ExperimentOnMNIST, junction_tree_partial13) {
+//Inference *inference = new JunctionTree(network);
+//double accuracy = inference->EvaluateAccuracy(tester, 13, -1, "jt", false);
+//delete inference;
+//EXPECT_GT(accuracy, 0.8230);
+//}
+//TEST_F(ExperimentOnMNIST, junction_tree_partial14) {
+//Inference *inference = new JunctionTree(network);
+//double accuracy = inference->EvaluateAccuracy(tester, 14, -1, "jt", false);
+//delete inference;
+//EXPECT_GT(accuracy, 0.8230);
+//}
+//TEST_F(ExperimentOnMNIST, junction_tree_partial15) {
+//Inference *inference = new JunctionTree(network);
+//double accuracy = inference->EvaluateAccuracy(tester, 15, -1, "jt", false);
+//delete inference;
+//EXPECT_GT(accuracy, 0.8230);
+//}
+//TEST_F(ExperimentOnMNIST, junction_tree_partial16) {
+//Inference *inference = new JunctionTree(network);
+//double accuracy = inference->EvaluateAccuracy(tester, 16, -1, "jt", false);
+//delete inference;
+//EXPECT_GT(accuracy, 0.8230);
 //}
 
 
@@ -209,9 +390,9 @@ TEST_F(ExperimentOnA1a, junction_tree_partial) {
 //        tester->LoadLIBSVMData(test_set_file_path);
 //
 //        StructureLearning *bnsl = new ChowLiuTree(network);
-//        bnsl->StructLearnCompData(trainer, 1, 1, true, false);
+//        bnsl->StructLearnCompData(trainer, 1, 1, false, false);
 //        ParameterLearning *bnpl = new ParameterLearning(network);
-//        bnpl->LearnParamsKnowStructCompData(trainer, 2, true);
+//        bnpl->LearnParamsKnowStructCompData(trainer, 2, false);
 //    }
 //
 //    Dataset *trainer;
@@ -219,14 +400,104 @@ TEST_F(ExperimentOnA1a, junction_tree_partial) {
 //    Network *network;
 //};
 //
-//TEST_F(ExperimentOnMadelon, junction_tree_partial) {
+//TEST_F(ExperimentOnMadelon, junction_tree_partial1) {
 //Inference *inference = new JunctionTree(network);
-//double accuracy = inference->EvaluateAccuracy(tester, -1, "jt", false);
+//double accuracy = inference->EvaluateAccuracy(tester, 1, -1, "jt", false);
 //delete inference;
 //EXPECT_GT(accuracy, 0.8230);
 //}
-
-
+//TEST_F(ExperimentOnMadelon, junction_tree_partial2) {
+//Inference *inference = new JunctionTree(network);
+//double accuracy = inference->EvaluateAccuracy(tester, 2, -1, "jt", false);
+//delete inference;
+//EXPECT_GT(accuracy, 0.8230);
+//}
+//TEST_F(ExperimentOnMadelon, junction_tree_partial3) {
+//Inference *inference = new JunctionTree(network);
+//double accuracy = inference->EvaluateAccuracy(tester, 3, -1, "jt", false);
+//delete inference;
+//EXPECT_GT(accuracy, 0.8230);
+//}
+//TEST_F(ExperimentOnMadelon, junction_tree_partial4) {
+//Inference *inference = new JunctionTree(network);
+//double accuracy = inference->EvaluateAccuracy(tester, 4, -1, "jt", false);
+//delete inference;
+//EXPECT_GT(accuracy, 0.8230);
+//}
+//TEST_F(ExperimentOnMadelon, junction_tree_partial5) {
+//Inference *inference = new JunctionTree(network);
+//double accuracy = inference->EvaluateAccuracy(tester, 5, -1, "jt", false);
+//delete inference;
+//EXPECT_GT(accuracy, 0.8230);
+//}
+//TEST_F(ExperimentOnMadelon, junction_tree_partial6) {
+//Inference *inference = new JunctionTree(network);
+//double accuracy = inference->EvaluateAccuracy(tester, 6, -1, "jt", false);
+//delete inference;
+//EXPECT_GT(accuracy, 0.8230);
+//}
+//TEST_F(ExperimentOnMadelon, junction_tree_partial7) {
+//Inference *inference = new JunctionTree(network);
+//double accuracy = inference->EvaluateAccuracy(tester, 7, -1, "jt", false);
+//delete inference;
+//EXPECT_GT(accuracy, 0.8230);
+//}
+//TEST_F(ExperimentOnMadelon, junction_tree_partial8) {
+//Inference *inference = new JunctionTree(network);
+//double accuracy = inference->EvaluateAccuracy(tester, 8, -1, "jt", false);
+//delete inference;
+//EXPECT_GT(accuracy, 0.8230);
+//}
+//TEST_F(ExperimentOnMadelon, junction_tree_partial9) {
+//Inference *inference = new JunctionTree(network);
+//double accuracy = inference->EvaluateAccuracy(tester, 9, -1, "jt", false);
+//delete inference;
+//EXPECT_GT(accuracy, 0.8230);
+//}
+//TEST_F(ExperimentOnMadelon, junction_tree_partial10) {
+//Inference *inference = new JunctionTree(network);
+//double accuracy = inference->EvaluateAccuracy(tester, 10, -1, "jt", false);
+//delete inference;
+//EXPECT_GT(accuracy, 0.8230);
+//}
+//TEST_F(ExperimentOnMadelon, junction_tree_partial11) {
+//Inference *inference = new JunctionTree(network);
+//double accuracy = inference->EvaluateAccuracy(tester, 11, -1, "jt", false);
+//delete inference;
+//EXPECT_GT(accuracy, 0.8230);
+//}
+//TEST_F(ExperimentOnMadelon, junction_tree_partial12) {
+//Inference *inference = new JunctionTree(network);
+//double accuracy = inference->EvaluateAccuracy(tester, 12, -1, "jt", false);
+//delete inference;
+//EXPECT_GT(accuracy, 0.8230);
+//}
+//TEST_F(ExperimentOnMadelon, junction_tree_partial13) {
+//Inference *inference = new JunctionTree(network);
+//double accuracy = inference->EvaluateAccuracy(tester, 13, -1, "jt", false);
+//delete inference;
+//EXPECT_GT(accuracy, 0.8230);
+//}
+//TEST_F(ExperimentOnMadelon, junction_tree_partial14) {
+//Inference *inference = new JunctionTree(network);
+//double accuracy = inference->EvaluateAccuracy(tester, 14, -1, "jt", false);
+//delete inference;
+//EXPECT_GT(accuracy, 0.8230);
+//}
+//TEST_F(ExperimentOnMadelon, junction_tree_partial15) {
+//Inference *inference = new JunctionTree(network);
+//double accuracy = inference->EvaluateAccuracy(tester, 15, -1, "jt", false);
+//delete inference;
+//EXPECT_GT(accuracy, 0.8230);
+//}
+//TEST_F(ExperimentOnMadelon, junction_tree_partial16) {
+//Inference *inference = new JunctionTree(network);
+//double accuracy = inference->EvaluateAccuracy(tester, 16, -1, "jt", false);
+//delete inference;
+//EXPECT_GT(accuracy, 0.8230);
+//}
+//
+//
 //class ExperimentOnUsps : public ::testing::Test {
 //protected:
 //
@@ -243,9 +514,9 @@ TEST_F(ExperimentOnA1a, junction_tree_partial) {
 //        tester->LoadLIBSVMData(test_set_file_path);
 //
 //        StructureLearning *bnsl = new ChowLiuTree(network);
-//        bnsl->StructLearnCompData(trainer, 1, 1, true, false);
+//        bnsl->StructLearnCompData(trainer, 1, 1, false, false);
 //        ParameterLearning *bnpl = new ParameterLearning(network);
-//        bnpl->LearnParamsKnowStructCompData(trainer, 2, true);
+//        bnpl->LearnParamsKnowStructCompData(trainer, 2, false);
 //    }
 //
 //    Dataset *trainer;
@@ -253,15 +524,106 @@ TEST_F(ExperimentOnA1a, junction_tree_partial) {
 //    Network *network;
 //};
 //
-//TEST_F(ExperimentOnUsps, junction_tree_partial) {
+//TEST_F(ExperimentOnUsps, junction_tree_partial1) {
 //Inference *inference = new JunctionTree(network);
-//double accuracy = inference->EvaluateAccuracy(tester, -1, "jt", false);
+//double accuracy = inference->EvaluateAccuracy(tester, 1, -1, "jt", false);
 //delete inference;
 //EXPECT_GT(accuracy, 0.8230);
 //}
-
-
-
+//TEST_F(ExperimentOnUsps, junction_tree_partial2) {
+//Inference *inference = new JunctionTree(network);
+//double accuracy = inference->EvaluateAccuracy(tester, 2, -1, "jt", false);
+//delete inference;
+//EXPECT_GT(accuracy, 0.8230);
+//}
+//TEST_F(ExperimentOnUsps, junction_tree_partial3) {
+//Inference *inference = new JunctionTree(network);
+//double accuracy = inference->EvaluateAccuracy(tester, 3, -1, "jt", false);
+//delete inference;
+//EXPECT_GT(accuracy, 0.8230);
+//}
+//TEST_F(ExperimentOnUsps, junction_tree_partial4) {
+//Inference *inference = new JunctionTree(network);
+//double accuracy = inference->EvaluateAccuracy(tester, 4, -1, "jt", false);
+//delete inference;
+//EXPECT_GT(accuracy, 0.8230);
+//}
+//TEST_F(ExperimentOnUsps, junction_tree_partial5) {
+//Inference *inference = new JunctionTree(network);
+//double accuracy = inference->EvaluateAccuracy(tester, 5, -1, "jt", false);
+//delete inference;
+//EXPECT_GT(accuracy, 0.8230);
+//}
+//TEST_F(ExperimentOnUsps, junction_tree_partial6) {
+//Inference *inference = new JunctionTree(network);
+//double accuracy = inference->EvaluateAccuracy(tester, 6, -1, "jt", false);
+//delete inference;
+//EXPECT_GT(accuracy, 0.8230);
+//}
+//TEST_F(ExperimentOnUsps, junction_tree_partial7) {
+//Inference *inference = new JunctionTree(network);
+//double accuracy = inference->EvaluateAccuracy(tester, 7, -1, "jt", false);
+//delete inference;
+//EXPECT_GT(accuracy, 0.8230);
+//}
+//TEST_F(ExperimentOnUsps, junction_tree_partial8) {
+//Inference *inference = new JunctionTree(network);
+//double accuracy = inference->EvaluateAccuracy(tester, 8, -1, "jt", false);
+//delete inference;
+//EXPECT_GT(accuracy, 0.8230);
+//}
+//TEST_F(ExperimentOnUsps, junction_tree_partial9) {
+//Inference *inference = new JunctionTree(network);
+//double accuracy = inference->EvaluateAccuracy(tester, 9, -1, "jt", false);
+//delete inference;
+//EXPECT_GT(accuracy, 0.8230);
+//}
+//TEST_F(ExperimentOnUsps, junction_tree_partial10) {
+//Inference *inference = new JunctionTree(network);
+//double accuracy = inference->EvaluateAccuracy(tester, 10, -1, "jt", false);
+//delete inference;
+//EXPECT_GT(accuracy, 0.8230);
+//}
+//TEST_F(ExperimentOnUsps, junction_tree_partial11) {
+//Inference *inference = new JunctionTree(network);
+//double accuracy = inference->EvaluateAccuracy(tester, 11, -1, "jt", false);
+//delete inference;
+//EXPECT_GT(accuracy, 0.8230);
+//}
+//TEST_F(ExperimentOnUsps, junction_tree_partial12) {
+//Inference *inference = new JunctionTree(network);
+//double accuracy = inference->EvaluateAccuracy(tester, 12, -1, "jt", false);
+//delete inference;
+//EXPECT_GT(accuracy, 0.8230);
+//}
+//TEST_F(ExperimentOnUsps, junction_tree_partial13) {
+//Inference *inference = new JunctionTree(network);
+//double accuracy = inference->EvaluateAccuracy(tester, 13, -1, "jt", false);
+//delete inference;
+//EXPECT_GT(accuracy, 0.8230);
+//}
+//TEST_F(ExperimentOnUsps, junction_tree_partial14) {
+//Inference *inference = new JunctionTree(network);
+//double accuracy = inference->EvaluateAccuracy(tester, 14, -1, "jt", false);
+//delete inference;
+//EXPECT_GT(accuracy, 0.8230);
+//}
+//TEST_F(ExperimentOnUsps, junction_tree_partial15) {
+//Inference *inference = new JunctionTree(network);
+//double accuracy = inference->EvaluateAccuracy(tester, 15, -1, "jt", false);
+//delete inference;
+//EXPECT_GT(accuracy, 0.8230);
+//}
+//TEST_F(ExperimentOnUsps, junction_tree_partial16) {
+//Inference *inference = new JunctionTree(network);
+//double accuracy = inference->EvaluateAccuracy(tester, 16, -1, "jt", false);
+//delete inference;
+//EXPECT_GT(accuracy, 0.8230);
+//}
+//
+//
+//
+//
 //class ExperimentOnAloi : public ::testing::Test {
 //protected:
 //
@@ -278,9 +640,9 @@ TEST_F(ExperimentOnA1a, junction_tree_partial) {
 //        tester->LoadLIBSVMData(test_set_file_path);
 //
 //        StructureLearning *bnsl = new ChowLiuTree(network);
-//        bnsl->StructLearnCompData(trainer, 1, 1, true, false);
+//        bnsl->StructLearnCompData(trainer, 1, 1, false, false);
 //        ParameterLearning *bnpl = new ParameterLearning(network);
-//        bnpl->LearnParamsKnowStructCompData(trainer, 2, true);
+//        bnpl->LearnParamsKnowStructCompData(trainer, 2, false);
 //    }
 //
 //    Dataset *trainer;
@@ -288,12 +650,354 @@ TEST_F(ExperimentOnA1a, junction_tree_partial) {
 //    Network *network;
 //};
 //
-//TEST_F(ExperimentOnAloi, junction_tree_partial) {
+//TEST_F(ExperimentOnAloi, junction_tree_partial1) {
 //Inference *inference = new JunctionTree(network);
-//double accuracy = inference->EvaluateAccuracy(tester, -1, "jt", false);
+//double accuracy = inference->EvaluateAccuracy(tester, 1, -1, "jt", false);
 //delete inference;
 //EXPECT_GT(accuracy, 0.8230);
 //}
+//TEST_F(ExperimentOnAloi, junction_tree_partial2) {
+//Inference *inference = new JunctionTree(network);
+//double accuracy = inference->EvaluateAccuracy(tester, 2, -1, "jt", false);
+//delete inference;
+//EXPECT_GT(accuracy, 0.8230);
+//}
+//TEST_F(ExperimentOnAloi, junction_tree_partial3) {
+//Inference *inference = new JunctionTree(network);
+//double accuracy = inference->EvaluateAccuracy(tester, 3, -1, "jt", false);
+//delete inference;
+//EXPECT_GT(accuracy, 0.8230);
+//}
+//TEST_F(ExperimentOnAloi, junction_tree_partial4) {
+//Inference *inference = new JunctionTree(network);
+//double accuracy = inference->EvaluateAccuracy(tester, 4, -1, "jt", false);
+//delete inference;
+//EXPECT_GT(accuracy, 0.8230);
+//}
+//TEST_F(ExperimentOnAloi, junction_tree_partial5) {
+//Inference *inference = new JunctionTree(network);
+//double accuracy = inference->EvaluateAccuracy(tester, 5, -1, "jt", false);
+//delete inference;
+//EXPECT_GT(accuracy, 0.8230);
+//}
+//TEST_F(ExperimentOnAloi, junction_tree_partial6) {
+//Inference *inference = new JunctionTree(network);
+//double accuracy = inference->EvaluateAccuracy(tester, 6, -1, "jt", false);
+//delete inference;
+//EXPECT_GT(accuracy, 0.8230);
+//}
+//TEST_F(ExperimentOnAloi, junction_tree_partial7) {
+//Inference *inference = new JunctionTree(network);
+//double accuracy = inference->EvaluateAccuracy(tester, 7, -1, "jt", false);
+//delete inference;
+//EXPECT_GT(accuracy, 0.8230);
+//}
+//TEST_F(ExperimentOnAloi, junction_tree_partial8) {
+//Inference *inference = new JunctionTree(network);
+//double accuracy = inference->EvaluateAccuracy(tester, 8, -1, "jt", false);
+//delete inference;
+//EXPECT_GT(accuracy, 0.8230);
+//}
+//TEST_F(ExperimentOnAloi, junction_tree_partial9) {
+//Inference *inference = new JunctionTree(network);
+//double accuracy = inference->EvaluateAccuracy(tester, 9, -1, "jt", false);
+//delete inference;
+//EXPECT_GT(accuracy, 0.8230);
+//}
+//TEST_F(ExperimentOnAloi, junction_tree_partial10) {
+//Inference *inference = new JunctionTree(network);
+//double accuracy = inference->EvaluateAccuracy(tester, 10, -1, "jt", false);
+//delete inference;
+//EXPECT_GT(accuracy, 0.8230);
+//}
+//TEST_F(ExperimentOnAloi, junction_tree_partial11) {
+//Inference *inference = new JunctionTree(network);
+//double accuracy = inference->EvaluateAccuracy(tester, 11, -1, "jt", false);
+//delete inference;
+//EXPECT_GT(accuracy, 0.8230);
+//}
+//TEST_F(ExperimentOnAloi, junction_tree_partial12) {
+//Inference *inference = new JunctionTree(network);
+//double accuracy = inference->EvaluateAccuracy(tester, 12, -1, "jt", false);
+//delete inference;
+//EXPECT_GT(accuracy, 0.8230);
+//}
+//TEST_F(ExperimentOnAloi, junction_tree_partial13) {
+//Inference *inference = new JunctionTree(network);
+//double accuracy = inference->EvaluateAccuracy(tester, 13, -1, "jt", false);
+//delete inference;
+//EXPECT_GT(accuracy, 0.8230);
+//}
+//TEST_F(ExperimentOnAloi, junction_tree_partial14) {
+//Inference *inference = new JunctionTree(network);
+//double accuracy = inference->EvaluateAccuracy(tester, 14, -1, "jt", false);
+//delete inference;
+//EXPECT_GT(accuracy, 0.8230);
+//}
+//TEST_F(ExperimentOnAloi, junction_tree_partial15) {
+//Inference *inference = new JunctionTree(network);
+//double accuracy = inference->EvaluateAccuracy(tester, 15, -1, "jt", false);
+//delete inference;
+//EXPECT_GT(accuracy, 0.8230);
+//}
+//TEST_F(ExperimentOnAloi, junction_tree_partial16) {
+//Inference *inference = new JunctionTree(network);
+//double accuracy = inference->EvaluateAccuracy(tester, 16, -1, "jt", false);
+//delete inference;
+//EXPECT_GT(accuracy, 0.8230);
+//}
+
+
+
+//class ExperimentOnSVHN : public ::testing::Test {
+//protected:
+//
+//    void SetUp() override {
+//        trainer = new Dataset();
+//        tester = new Dataset();
+////        network = new ChowLiuTree(true);
+//        network = new Network(true);
+//
+//        string train_set_file_path = DATA_PATH + "/dataset/SVHN.scale.dis8.p10.t",
+//                test_set_file_path = DATA_PATH + "/dataset/SVHN.scale.dis8.p10.t";
+//
+//        trainer->LoadLIBSVMData(train_set_file_path);
+//        tester->LoadLIBSVMData(test_set_file_path);
+//
+//        StructureLearning *bnsl = new ChowLiuTree(network);
+//        bnsl->StructLearnCompData(trainer, 1, 1, false, false);
+//        ParameterLearning *bnpl = new ParameterLearning(network);
+//        bnpl->LearnParamsKnowStructCompData(trainer, 2, false);
+//    }
+//
+//    Dataset *trainer;
+//    Dataset *tester;
+//    Network *network;
+//};
+//
+//TEST_F(ExperimentOnSVHN, junction_tree_partial1) {
+//Inference *inference = new JunctionTree(network);
+//double accuracy = inference->EvaluateAccuracy(tester, 1, -1, "jt", false);
+//delete inference;
+//EXPECT_GT(accuracy, 0.8230);
+//}
+//TEST_F(ExperimentOnSVHN, junction_tree_partial2) {
+//Inference *inference = new JunctionTree(network);
+//double accuracy = inference->EvaluateAccuracy(tester, 2, -1, "jt", false);
+//delete inference;
+//EXPECT_GT(accuracy, 0.8230);
+//}
+//TEST_F(ExperimentOnSVHN, junction_tree_partial3) {
+//Inference *inference = new JunctionTree(network);
+//double accuracy = inference->EvaluateAccuracy(tester, 3, -1, "jt", false);
+//delete inference;
+//EXPECT_GT(accuracy, 0.8230);
+//}
+//TEST_F(ExperimentOnSVHN, junction_tree_partial4) {
+//Inference *inference = new JunctionTree(network);
+//double accuracy = inference->EvaluateAccuracy(tester, 4, -1, "jt", false);
+//delete inference;
+//EXPECT_GT(accuracy, 0.8230);
+//}
+//TEST_F(ExperimentOnSVHN, junction_tree_partial5) {
+//Inference *inference = new JunctionTree(network);
+//double accuracy = inference->EvaluateAccuracy(tester, 5, -1, "jt", false);
+//delete inference;
+//EXPECT_GT(accuracy, 0.8230);
+//}
+//TEST_F(ExperimentOnSVHN, junction_tree_partial6) {
+//Inference *inference = new JunctionTree(network);
+//double accuracy = inference->EvaluateAccuracy(tester, 6, -1, "jt", false);
+//delete inference;
+//EXPECT_GT(accuracy, 0.8230);
+//}
+//TEST_F(ExperimentOnSVHN, junction_tree_partial7) {
+//Inference *inference = new JunctionTree(network);
+//double accuracy = inference->EvaluateAccuracy(tester, 7, -1, "jt", false);
+//delete inference;
+//EXPECT_GT(accuracy, 0.8230);
+//}
+//TEST_F(ExperimentOnSVHN, junction_tree_partial8) {
+//Inference *inference = new JunctionTree(network);
+//double accuracy = inference->EvaluateAccuracy(tester, 8, -1, "jt", false);
+//delete inference;
+//EXPECT_GT(accuracy, 0.8230);
+//}
+//TEST_F(ExperimentOnSVHN, junction_tree_partial9) {
+//Inference *inference = new JunctionTree(network);
+//double accuracy = inference->EvaluateAccuracy(tester, 9, -1, "jt", false);
+//delete inference;
+//EXPECT_GT(accuracy, 0.8230);
+//}
+//TEST_F(ExperimentOnSVHN, junction_tree_partial10) {
+//Inference *inference = new JunctionTree(network);
+//double accuracy = inference->EvaluateAccuracy(tester, 10, -1, "jt", false);
+//delete inference;
+//EXPECT_GT(accuracy, 0.8230);
+//}
+//TEST_F(ExperimentOnSVHN, junction_tree_partial11) {
+//Inference *inference = new JunctionTree(network);
+//double accuracy = inference->EvaluateAccuracy(tester, 11, -1, "jt", false);
+//delete inference;
+//EXPECT_GT(accuracy, 0.8230);
+//}
+//TEST_F(ExperimentOnSVHN, junction_tree_partial12) {
+//Inference *inference = new JunctionTree(network);
+//double accuracy = inference->EvaluateAccuracy(tester, 12, -1, "jt", false);
+//delete inference;
+//EXPECT_GT(accuracy, 0.8230);
+//}
+//TEST_F(ExperimentOnSVHN, junction_tree_partial13) {
+//Inference *inference = new JunctionTree(network);
+//double accuracy = inference->EvaluateAccuracy(tester, 13, -1, "jt", false);
+//delete inference;
+//EXPECT_GT(accuracy, 0.8230);
+//}
+//TEST_F(ExperimentOnSVHN, junction_tree_partial14) {
+//Inference *inference = new JunctionTree(network);
+//double accuracy = inference->EvaluateAccuracy(tester, 14, -1, "jt", false);
+//delete inference;
+//EXPECT_GT(accuracy, 0.8230);
+//}
+//TEST_F(ExperimentOnSVHN, junction_tree_partial15) {
+//Inference *inference = new JunctionTree(network);
+//double accuracy = inference->EvaluateAccuracy(tester, 15, -1, "jt", false);
+//delete inference;
+//EXPECT_GT(accuracy, 0.8230);
+//}
+//TEST_F(ExperimentOnSVHN, junction_tree_partial16) {
+//Inference *inference = new JunctionTree(network);
+//double accuracy = inference->EvaluateAccuracy(tester, 16, -1, "jt", false);
+//delete inference;
+//EXPECT_GT(accuracy, 0.8230);
+//}
+
+
+
+//class ExperimentOnCifar : public ::testing::Test {
+//protected:
+//
+//    void SetUp() override {
+//        trainer = new Dataset();
+//        tester = new Dataset();
+////        network = new ChowLiuTree(true);
+//        network = new Network(true);
+//
+//        string train_set_file_path = DATA_PATH + "/dataset/cifar10.scale.dis8.p10",
+//                test_set_file_path = DATA_PATH + "/dataset/cifar10.scale.dis8.p10.t";
+//
+//        trainer->LoadLIBSVMData(train_set_file_path);
+//        tester->LoadLIBSVMData(test_set_file_path);
+//
+//        StructureLearning *bnsl = new ChowLiuTree(network);
+//        bnsl->StructLearnCompData(trainer, 1, 1, false, false);
+//        ParameterLearning *bnpl = new ParameterLearning(network);
+//        bnpl->LearnParamsKnowStructCompData(trainer, 2, false);
+//    }
+//
+//    Dataset *trainer;
+//    Dataset *tester;
+//    Network *network;
+//};
+//
+//TEST_F(ExperimentOnCifar, junction_tree_partial1) {
+//Inference *inference = new JunctionTree(network);
+//double accuracy = inference->EvaluateAccuracy(tester, 1, -1, "jt", false);
+//delete inference;
+//EXPECT_GT(accuracy, 0.8230);
+//}
+//TEST_F(ExperimentOnCifar, junction_tree_partial2) {
+//Inference *inference = new JunctionTree(network);
+//double accuracy = inference->EvaluateAccuracy(tester, 2, -1, "jt", false);
+//delete inference;
+//EXPECT_GT(accuracy, 0.8230);
+//}
+//TEST_F(ExperimentOnCifar, junction_tree_partial3) {
+//Inference *inference = new JunctionTree(network);
+//double accuracy = inference->EvaluateAccuracy(tester, 3, -1, "jt", false);
+//delete inference;
+//EXPECT_GT(accuracy, 0.8230);
+//}
+//TEST_F(ExperimentOnCifar, junction_tree_partial4) {
+//Inference *inference = new JunctionTree(network);
+//double accuracy = inference->EvaluateAccuracy(tester, 4, -1, "jt", false);
+//delete inference;
+//EXPECT_GT(accuracy, 0.8230);
+//}
+//TEST_F(ExperimentOnCifar, junction_tree_partial5) {
+//Inference *inference = new JunctionTree(network);
+//double accuracy = inference->EvaluateAccuracy(tester, 5, -1, "jt", false);
+//delete inference;
+//EXPECT_GT(accuracy, 0.8230);
+//}
+//TEST_F(ExperimentOnCifar, junction_tree_partial6) {
+//Inference *inference = new JunctionTree(network);
+//double accuracy = inference->EvaluateAccuracy(tester, 6, -1, "jt", false);
+//delete inference;
+//EXPECT_GT(accuracy, 0.8230);
+//}
+//TEST_F(ExperimentOnCifar, junction_tree_partial7) {
+//Inference *inference = new JunctionTree(network);
+//double accuracy = inference->EvaluateAccuracy(tester, 7, -1, "jt", false);
+//delete inference;
+//EXPECT_GT(accuracy, 0.8230);
+//}
+//TEST_F(ExperimentOnCifar, junction_tree_partial8) {
+//Inference *inference = new JunctionTree(network);
+//double accuracy = inference->EvaluateAccuracy(tester, 8, -1, "jt", false);
+//delete inference;
+//EXPECT_GT(accuracy, 0.8230);
+//}
+//TEST_F(ExperimentOnCifar, junction_tree_partial9) {
+//Inference *inference = new JunctionTree(network);
+//double accuracy = inference->EvaluateAccuracy(tester, 9, -1, "jt", false);
+//delete inference;
+//EXPECT_GT(accuracy, 0.8230);
+//}
+//TEST_F(ExperimentOnCifar, junction_tree_partial10) {
+//Inference *inference = new JunctionTree(network);
+//double accuracy = inference->EvaluateAccuracy(tester, 10, -1, "jt", false);
+//delete inference;
+//EXPECT_GT(accuracy, 0.8230);
+//}
+//TEST_F(ExperimentOnCifar, junction_tree_partial11) {
+//Inference *inference = new JunctionTree(network);
+//double accuracy = inference->EvaluateAccuracy(tester, 11, -1, "jt", false);
+//delete inference;
+//EXPECT_GT(accuracy, 0.8230);
+//}
+//TEST_F(ExperimentOnCifar, junction_tree_partial12) {
+//Inference *inference = new JunctionTree(network);
+//double accuracy = inference->EvaluateAccuracy(tester, 12, -1, "jt", false);
+//delete inference;
+//EXPECT_GT(accuracy, 0.8230);
+//}
+//TEST_F(ExperimentOnCifar, junction_tree_partial13) {
+//Inference *inference = new JunctionTree(network);
+//double accuracy = inference->EvaluateAccuracy(tester, 13, -1, "jt", false);
+//delete inference;
+//EXPECT_GT(accuracy, 0.8230);
+//}
+//TEST_F(ExperimentOnCifar, junction_tree_partial14) {
+//Inference *inference = new JunctionTree(network);
+//double accuracy = inference->EvaluateAccuracy(tester, 14, -1, "jt", false);
+//delete inference;
+//EXPECT_GT(accuracy, 0.8230);
+//}
+//TEST_F(ExperimentOnCifar, junction_tree_partial15) {
+//Inference *inference = new JunctionTree(network);
+//double accuracy = inference->EvaluateAccuracy(tester, 15, -1, "jt", false);
+//delete inference;
+//EXPECT_GT(accuracy, 0.8230);
+//}
+//TEST_F(ExperimentOnCifar, junction_tree_partial16) {
+//Inference *inference = new JunctionTree(network);
+//double accuracy = inference->EvaluateAccuracy(tester, 16, -1, "jt", false);
+//delete inference;
+//EXPECT_GT(accuracy, 0.8230);
+//}
+
+
 
 
 //class ExperimentOnConnect : public ::testing::Test {
