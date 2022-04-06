@@ -7,51 +7,56 @@
 #include "gtest/gtest.h"
 #include "gadget.h"
 
-#include "XMLBIFParser.h"
 #include "Node.h"
 #include "DiscreteNode.h"
+#include "Network.h"
+#include "CustomNetwork.h"
 
 class XMLTest: public ::testing::Test {
 protected:
 
     void SetUp() override {
+        network = new CustomNetwork(true);
+
         string file_path = "/home/zeyiwen/jiantong/BN/Bayesian-network/data/interchange-format-file/dog-problem.xml";
-        xmlbif_parser = new XMLBIFParser(file_path);
+        network->GetNetFromXMLBIFFile(file_path);
     }
-    XMLBIFParser *xmlbif_parser;
+    CustomNetwork *network;
 };
 
-TEST_F(XMLTest, dog_node) {
-    vector<Node*> nodes = xmlbif_parser->GetConnectedNodes();
-    for (auto &node: nodes) {
-        cout << "node index = " << node->GetNodeIndex() << ", node name = " << node->node_name << endl;
+TEST_F(XMLTest, print) {
+    cout << "network name: " << network->network_name << endl;
+    for (auto &node: network->map_idx_node_ptr) {
+        Node *node_ptr = node.second;
+        int node_index = node.first;
+        cout << "node index = " << node_index << ", node name = " << node_ptr->node_name << endl;
 
         cout << "set parent indexes = ";
-        for (auto &par: node->set_parent_indexes) {
+        for (auto &par: node_ptr->set_parent_indexes) {
             cout << par << " ";
         }
         cout << endl;
 
         cout << "vec disc parent indexes = ";
-        for (auto &par: node->vec_disc_parent_indexes) {
+        for (auto &par: node_ptr->vec_disc_parent_indexes) {
             cout << par << " ";
         }
         cout << endl;
 
         cout << "set children indexes = ";
-        for (auto &child: node->set_children_indexes) {
+        for (auto &child: node_ptr->set_children_indexes) {
             cout << child << " ";
         }
         cout << endl;
 
         cout << "map disc parents domain size = ";
-        for (auto &par: node->map_disc_parents_domain_size) {
+        for (auto &par: node_ptr->map_disc_parents_domain_size) {
             cout << par.first << ", " << par.second << "; ";
         }
         cout << endl;
 
         cout << "set discrete parents combinations: ";
-        for (auto &single_par_config: node->set_discrete_parents_combinations) {
+        for (auto &single_par_config: node_ptr->set_discrete_parents_combinations) {
             cout << "config: ";
             for (auto &pair: single_par_config) {
                 cout << pair.first << "=" << pair.second << " ";
@@ -59,7 +64,7 @@ TEST_F(XMLTest, dog_node) {
         }
         cout << endl;
 
-        DiscreteNode* dis_node = dynamic_cast<DiscreteNode*>(node);
+        DiscreteNode* dis_node = dynamic_cast<DiscreteNode*>(node_ptr);
         cout << "num potential vals = " << dis_node->GetNumPotentialVals() << endl;
 
         cout << "vec str potential vals = ";

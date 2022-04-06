@@ -26,7 +26,6 @@ void CustomNetwork::GetNetFromXMLBIFFile(string file_path) {//XMLBIF is the xml 
     fprintf(stderr, "Unable to open file %s!", file_path.c_str());
     exit(1);
   }
-//TODO: Check XMLBIF Parser and the rest of this function
 
   XMLBIFParser xbp(file_path);
   vector<Node*> connected_nodes = xbp.GetConnectedNodes();

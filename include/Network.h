@@ -52,6 +52,7 @@ class Network {//this class is used by both the customized networks and networks
   Network();
   explicit Network(bool pure_disc);
   Network(Network &net);
+    Network(vector<Node*> nodes, string name);
   virtual ~Network();
 
   void PrintEachNodeParents();

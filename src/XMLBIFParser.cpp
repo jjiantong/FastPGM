@@ -46,7 +46,6 @@ vector<Node*> XMLBIFParser::GetUnconnectedNodes() const {
         if (((string)xvp->FirstChildElement("TYPE")->GetText()) == "discrete") {
             string name = xvp->FirstChildElement("NAME")->GetText();
             DiscreteNode *n_p = new DiscreteNode(vec_node_ptrs.size(), name);
-//            n_p->node_name = xvp->FirstChildElement("NAME")->GetText();
 
             XMLElement *xml_val_ptr = xvp->FirstChildElement("VALUE");
             while (xml_val_ptr != nullptr) {

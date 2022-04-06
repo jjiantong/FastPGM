@@ -12,6 +12,23 @@ Network::Network(bool pure_disc) {
   this->pure_discrete = pure_disc;
 }
 
+Network::Network(vector<Node*> nodes, string name) {
+    this->network_name = name;
+    this->num_nodes = nodes.size();
+    this->pure_discrete = true;
+    for(auto &n: nodes) {
+        if(!n->is_discrete) {
+            this->pure_discrete = false;
+            break;
+        }
+    }
+
+    for (auto &n: nodes) {
+        int index = n->GetNodeIndex();
+        map_idx_node_ptr[index] = n;
+    }
+}
+
 Network::Network(Network &net) {
   //need to test correctness
 
