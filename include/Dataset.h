@@ -41,7 +41,8 @@ public:
   ~Dataset();
 
   void LoadLIBSVMData(string data_file_path, set<int> cont_vars={});
-  void SamplesToLIBSVMFile(vector<DiscreteConfig> &samples, string &file) const;
+    void LoadLIBSVMDataKnownNetwork(string data_file_path, int num_nodes, set<int> cont_vars={});
+    void SamplesToLIBSVMFile(vector<DiscreteConfig> &samples, string &file) const;
   void SamplesToLIBSVMFile(vector<Configuration> &samples, string &file) const;
 
   void LoadCSVData(string data_file_path, bool header=true, bool str_val=true, int cls_var_id=-1, set<int> cont_vars={});

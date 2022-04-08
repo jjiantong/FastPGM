@@ -29,7 +29,7 @@ void CustomNetwork::GetNetFromXMLBIFFile(string file_path) {//XMLBIF is the xml 
 
   XMLBIFParser xbp(file_path);
   vector<Node*> connected_nodes = xbp.GetConnectedNodes();
-  
+
   network_name = xbp.xml_network_name_ptr->GetText();
   num_nodes = connected_nodes.size();
   for (auto &node_ptr : connected_nodes) {

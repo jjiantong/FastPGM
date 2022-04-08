@@ -156,6 +156,108 @@ void Dataset::LoadLIBSVMData(string data_file_path, set<int> cont_vars) {
     in_file.close();
 }
 
+void Dataset::LoadLIBSVMDataKnownNetwork(string data_file_path, int num_nodes, set<int> cont_vars) {
+
+    ifstream in_file;
+    in_file.open(data_file_path);
+    if (!in_file.is_open()) {
+        fprintf(stderr, "Error in function %s!", __FUNCTION__);
+        fprintf(stderr, "Unable to open file %s!", data_file_path.c_str());
+        exit(1);
+    }
+    cout << "Data file opened. Begin to load data. " << endl;
+
+    class_var_index = 0;
+    string sample;
+    vector<Value> dataset_y_vector;
+    vector<vector<VarVal>> dataset_X_vector; // VarVal: pair<int, Value>
+
+    // 1, read the data file and store with the representation of std::vector.
+    getline(in_file, sample);
+    while (!in_file.eof()) {
+        // There is a whitespace at the end of each line of
+        // libSVM dataset format, which will cause a bug if we do not trim it.
+        sample = TrimRight(sample);
+
+        vector<string> parsed_sample = Split(sample, " ");
+        int it = 0;   // id of the label is 0
+
+        Value v; // to insert the value of label of one sample into "dataset_y_vector"
+        // check whether the label is continuous
+        if (cont_vars.find(0) == cont_vars.end()) {
+            //the label is not continuous (i.e., classification task)
+            int value = stoi(parsed_sample[it]); // the value of label
+            v.SetInt(value);
+        } else {
+            //the label is continuous (i.e., regression task)
+            float value = stof(parsed_sample[it]); // the value of label
+            v.SetFloat(value);
+        }
+        dataset_y_vector.push_back(v); // insert the value of label into "dataset_y_vector"
+
+        vector<VarVal> single_sample_vector; // one instance
+        for (++it; it < parsed_sample.size(); ++it) {
+            // Each element is in the form of "feature_index:feature_value".
+            string feature_val = parsed_sample[it];
+
+            // split the feature index and the feature value using ":"
+            vector<string> parsed_feature_val = Split(feature_val, ":");
+
+            int index = stoi(parsed_feature_val[0]);
+
+            //same as the processing of label
+            Value v;
+            if (cont_vars.find(index) == cont_vars.end()) {
+                int value = stoi(parsed_feature_val[1]);
+                v.SetInt(value);
+            } else {
+                float value = stof(parsed_feature_val[1]);
+                v.SetFloat(value);
+            }
+            VarVal var_value(index, v);
+
+            single_sample_vector.push_back(var_value);
+        }
+        dataset_X_vector.push_back(single_sample_vector);
+
+        getline(in_file, sample);
+    }
+
+    // vector_dataset_all_vars: vector<vector<VarVal>>; label + feature
+    vector_dataset_all_vars = dataset_X_vector;
+
+    //insert label to the beginning of each instance
+    for (int i = 0; i < vector_dataset_all_vars.size(); ++i) {
+        vector_dataset_all_vars[i].insert(
+                vector_dataset_all_vars[i].begin(),
+                VarVal(class_var_index, dataset_y_vector[i])
+        );
+    }
+
+    num_instance = vector_dataset_all_vars.size();
+    num_vars = num_nodes;//the number of variables of the data set
+
+    is_vars_discrete.reserve(num_vars);
+    num_of_possible_values_of_disc_vars.reserve(num_vars);
+
+    // whether a variable is continuous
+    for (int i = 0; i < num_vars; ++i) {
+        is_vars_discrete.push_back(cont_vars.find(i) == cont_vars.end());
+    }
+
+//    // 2, convert vector "vector_dataset_all_vars" into array "dataset_all_vars" (does not erase "vector_dataset_all_vars").
+//    if (cont_vars.empty()) {//the data set only contains discrete variables.
+//        Vector2IntArray();
+//        RowMajor2ColumnMajor();
+//    }
+
+    cout << "Finish loading data. " << '\n'
+         << "Number of instances: " << num_instance << ". \n"
+            << "Number of features: " << num_vars << ". " << endl;
+
+    in_file.close();
+}
+
 /**
  * @brief: load data file with csv format
  */

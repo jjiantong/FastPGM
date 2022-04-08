@@ -2,6 +2,9 @@
 #define BAYESIANNETWORK_XMLBIFPARSER_H
 
 #include <cstdio>
+#include <cstdlib>
+#include <time.h>
+
 #include "tinyxml2.h"
 #include "Node.h"
 #include "DiscreteNode.h"

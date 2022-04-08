@@ -183,5 +183,34 @@ vector<Node*> XMLBIFParser::GetConnectedNodes() {
     vector<Node*> unconnected_nodes = GetUnconnectedNodes();
     AssignProbsToNodes(unconnected_nodes);
     vector<Node*> &connected_nodes = unconnected_nodes; // Just change a name.
+
+    /************************* data set generation *************************/
+    /**
+     * this part is used to randomly generate one possible value for each variable
+     * we choose variable 0 as the class variable, only output value, but the value is not important!
+     * save using the libsvm format, but the value of the class variable is not important!
+     * the value of the class variable is wrong, is not the ground-truth! just for the format
+     * we don't care the accuracy of the inference...!
+     */
+//    srand(time(NULL));
+//    for (int i = 0; i < 20000; ++i) {
+//        for (int j = 0; j < connected_nodes.size(); ++j) {
+//            Node *node_ptr = connected_nodes[j];
+//            int node_index = node_ptr->GetNodeIndex();
+//            string node_name = node_ptr->node_name;
+//            DiscreteNode* dis_node = dynamic_cast<DiscreteNode*>(node_ptr);
+//            int num_vals = dis_node->GetNumPotentialVals();
+//
+//            int rand_num = rand() % num_vals;
+//            if (node_index == 0) {
+//                cout << dis_node->vec_potential_vals[rand_num] << " ";
+//            } else {
+//                cout << node_index << ":" << dis_node->vec_potential_vals[rand_num] << " ";
+//            }
+//        }
+//        cout << endl;
+//    }
+    /************************* data set generation *************************/
+
     return connected_nodes;
 }
