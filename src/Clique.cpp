@@ -226,12 +226,11 @@ void Clique::Collect(Timer *timer) {
 }
 
 /*!
- * @brief: a step of msg passing
+ * @brief: a step of msg passing (alg1, use recursive functions)
  * msg passes from downstream to upstream
  * first collect the msgs from its downstream neighbors;
  * then update the msg by multiplying its initial potential with all msgs received from its downstream neighbors
  * (initial potential of a cluster/node is constructed via the product of factors that assigned to it)
- * @return a msg, which is a factor
  */
 void Clique::Collect2(Timer *timer) {
     for (auto &ptr_separator : set_neighbours_ptr) {
@@ -262,23 +261,35 @@ void Clique::Collect2(Timer *timer) {
     ConstructMessage2(timer);
 }
 
-
-//void Clique::Collect2(vector<vector<Clique*>> &cliques, int max_level, Timer *timer) {
-//    for (int i = max_level - 1; i > 0; --i) {
-//        for (int j = 0; j < cliques[i].size(); ++j) {
-////#pragma omp task shared(cliques)
-////            {
-//                Clique *clique = cliques[i][j];
-//                auto ptr_separator = clique->ptr_upstream_clique; // we only need to use its upstream clique
-//                // update the msg of "ptr_separator" by multiplying the current table with "clique"'s table
-//                ptr_separator->UpdateUseMessage2(clique->p_table, timer);  // Update itself.
-//                // Prepare message for the downstream.
-//                ptr_separator->ConstructMessage2(timer);
-////            }
-//        }
-////#pragma omp taskwait
-//    }
-//}
+/*!
+ * @brief: a step of msg passing (alg2, avoid recursive functions)
+ * msg passes from downstream to upstream
+ * traverse the tree from leaves to root, by levels
+ * for each level, update the cliques (separators) of the level according to their children
+ * computations inside each level can be parallelized
+ * @param cliques: all cliques (separators) in the junction tree, ordered by levels
+ * @param max_level: the max level of the junction tree (cliques and separators are all included)
+ */
+void Clique::Collect2(vector<vector<Clique*>> &cliques, int max_level, Timer *timer) {
+    for (int i = max_level - 2; i >= 0 ; --i) {
+        for (int j = 0; j < cliques[i].size(); ++j) {
+#pragma omp task shared(cliques)
+            {
+                for (auto &ptr_separator : cliques[i][j]->set_neighbours_ptr) {
+                    // all neighbor cliques of "clique" contain the upstream clique and downstream clique(s)
+                    // if the current neighbor "ptr_separator" is the upstream clique, not collect from it
+                    // otherwise, collect from the msg to "ptr_separator"
+                    if (ptr_separator == cliques[i][j]->ptr_upstream_clique) {
+                        continue;
+                    }
+                    cliques[i][j]->UpdateUseMessage2(ptr_separator->p_table, timer);
+                }
+                cliques[i][j]->ConstructMessage2(timer);
+            }
+        }
+#pragma omp taskwait
+    }
+}
 
 /**
  * Distribute the information it knows to the downstream cliques.
@@ -299,6 +310,7 @@ void Clique::Distribute(Timer *timer) {
  * in the improved version, use a vector, not a queue, each time handle the whole vector,
  * because the handling order of the cliques in the same level does not matter
  * in the handling process, first update the msg; then construct the msg and push the clique to the queue
+ * TODO: this one is not used, use the next one
  */
 void Clique::Distribute2(Timer *timer) {
     vector<Clique*> vec;
@@ -337,7 +349,7 @@ void Clique::Distribute2(Timer *timer) {
 }
 
 void Clique::Distribute2(vector<vector<Clique*>> &cliques, int max_level, Timer *timer) {
-    for (int i = 0; i < max_level; ++i) {
+    for (int i = 0; i < max_level - 1; ++i) {
         for (int j = 0; j < cliques[i].size(); ++j) {
             Clique *clique = cliques[i][j];
             for (auto &ptr_separator : clique->set_neighbours_ptr) {

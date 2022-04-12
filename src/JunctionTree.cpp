@@ -78,9 +78,10 @@ JunctionTree::JunctionTree(Network *net, string elim_ord_strategy, vector<int> c
     cout << "finish FormJunctionTree, number of cliques = " << vector_clique_ptr_container.size()
          << ", number of separators = " << vector_separator_ptr_container.size() << endl;
 
-//    CliqueMerging(8, 12);
-//    cout << "finish CliqueMerging, number of cliques = " << vector_clique_ptr_container.size()
-//         << ", number of separators = " << vector_separator_ptr_container.size() << endl;
+    CliqueMerging(8, 12);
+    CliqueMerging(8, 12);
+    cout << "finish CliqueMerging, number of cliques = " << vector_clique_ptr_container.size()
+         << ", number of separators = " << vector_separator_ptr_container.size() << endl;
 
   //assign id to each clique
   NumberTheCliquesAndSeparators();
@@ -1130,7 +1131,8 @@ void JunctionTree::MessagePassingUpdateJT(int num_threads, Timer *timer) {
     {
 #pragma omp single
         {
-            arb_root->Collect2(timer);
+//            arb_root->Collect2(timer);
+            arb_root->Collect2(cliques_by_level, max_level, timer);
         }
     }
     timer->Stop("upstream");
