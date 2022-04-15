@@ -16,7 +16,7 @@
  * this text was used when testing the correctness of the xmlbif parser
  * now it is used to generate random samples from the input xmlbif reference BNs
  * for this purpose, go to XMLBIFParser.cpp, find vector<Node*> XMLBIFParser::GetConnectedNodes()
- *                   remember to use "./test_exe 2>&1 | tee file name"
+ *                   remember to use "./test_exe 2>&1 | tee filename"
  */
 //class XMLTest: public ::testing::Test {
 //protected:
@@ -24,8 +24,7 @@
 //    void SetUp() override {
 //        network = new CustomNetwork(true);
 //
-////        string file_path = "/home/zeyiwen/jiantong/BN/Bayesian-network/data/interchange-format-file/dog-problem.xml";
-//        string file_path = "/home/zeyiwen/jiantong/BN/dataset/alarm/alarm.xml";
+//        string file_path = "/home/zeyiwen/jiantong/BN/dataset/win95pts/win95pts.xml";
 //        network->GetNetFromXMLBIFFile(file_path);
 //    }
 //    CustomNetwork *network;

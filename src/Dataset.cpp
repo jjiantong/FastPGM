@@ -7,19 +7,23 @@
 Dataset::Dataset() {}
 
 Dataset::~Dataset() {
-    for (int i = 0; i < num_instance; ++i) {
-        delete [] dataset_all_vars[i];
-        dataset_all_vars[i] = nullptr;
+    if (dataset_all_vars) {
+        for (int i = 0; i < num_instance; ++i) {
+            delete [] dataset_all_vars[i];
+            dataset_all_vars[i] = nullptr;
+        }
+        delete [] dataset_all_vars;
+        dataset_all_vars = nullptr;
     }
-    delete [] dataset_all_vars;
-    dataset_all_vars = nullptr;
 
-    for (int i = 0; i < num_vars; ++i) {
-        delete [] dataset_columns[i];
-        dataset_columns[i] = nullptr;
+    if (dataset_columns) {
+        for (int i = 0; i < num_vars; ++i) {
+            delete [] dataset_columns[i];
+            dataset_columns[i] = nullptr;
+        }
+        delete [] dataset_columns;
+        dataset_columns = nullptr;
     }
-    delete [] dataset_columns;
-    dataset_columns = nullptr;
 }
 
 /**

@@ -20,7 +20,7 @@ JunctionTree::JunctionTree(Network *net, string elim_ord_strategy, vector<int> c
     vector_separator_ptr_container.reserve(network->num_nodes - 1);
 
   int **direc_adjac_matrix = network->ConvertDAGNetworkToAdjacencyMatrix();
-//  cout << "finish ConvertDAGNetworkToAdjacencyMatrix" << endl;
+  cout << "finish ConvertDAGNetworkToAdjacencyMatrix" << endl;
 //    for (int i = 0; i < network->num_nodes; ++i) {
 //        for (int j = 0; j < network->num_nodes; ++j) {
 //            cout << direc_adjac_matrix[i][j] << " ";
@@ -30,7 +30,7 @@ JunctionTree::JunctionTree(Network *net, string elim_ord_strategy, vector<int> c
 
   Moralize(direc_adjac_matrix, network->num_nodes);
   int **moral_graph_adjac_matrix = direc_adjac_matrix;
-//  cout << "finish Moralize" << endl;
+  cout << "finish Moralize" << endl;
 //    for (int i = 0; i < network->num_nodes; ++i) {
 //        for (int j = 0; j < network->num_nodes; ++j) {
 //            cout << moral_graph_adjac_matrix[i][j] << " ";
@@ -67,7 +67,12 @@ JunctionTree::JunctionTree(Network *net, string elim_ord_strategy, vector<int> c
 
   //construct a clique for each node in the network
   Triangulate(network, moral_graph_adjac_matrix, elimination_ordering);
-//  cout << "finish Triangulate, number of cliques = " << set_clique_ptr_container.size() << endl;
+  cout << "finish Triangulate, number of cliques = " << vector_separator_ptr_container.size() << endl;
+
+    for (int i = 0; i < network->num_nodes; ++i) {
+        delete[] direc_adjac_matrix[i];
+    }
+    delete[] direc_adjac_matrix;
 
   //construct map from main variable to a clique
 //  GenMapElimVarToClique();
@@ -78,10 +83,9 @@ JunctionTree::JunctionTree(Network *net, string elim_ord_strategy, vector<int> c
     cout << "finish FormJunctionTree, number of cliques = " << vector_clique_ptr_container.size()
          << ", number of separators = " << vector_separator_ptr_container.size() << endl;
 
-    CliqueMerging(8, 12);
-    CliqueMerging(8, 12);
-    cout << "finish CliqueMerging, number of cliques = " << vector_clique_ptr_container.size()
-         << ", number of separators = " << vector_separator_ptr_container.size() << endl;
+//    CliqueMerging(8, 12);
+//    cout << "finish CliqueMerging, number of cliques = " << vector_clique_ptr_container.size()
+//         << ", number of separators = " << vector_separator_ptr_container.size() << endl;
 
   //assign id to each clique
   NumberTheCliquesAndSeparators();
@@ -165,8 +169,6 @@ JunctionTree::JunctionTree(Network *net, string elim_ord_strategy, vector<int> c
     timer->Print("construct jt"); cout << endl;
     delete timer;
     timer = nullptr;
-
-  delete[] direc_adjac_matrix;
 }
 
 

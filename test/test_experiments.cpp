@@ -48,32 +48,32 @@ string DATA_PATH = "/home/zeyiwen/jiantong/BN"; // NUS
 
 
 
-class ExperimentOnA1a : public ::testing::Test {
-protected:
-
-    void SetUp() override {
-        trainer = new Dataset();
-        tester = new Dataset();
-//        network = new ChowLiuTree(true);
-        network = new Network(true);
-
-        string train_set_file_path = DATA_PATH + "/Bayesian-network/data/dataset/a1a.txt",//"../../data/dataset/a1a.txt",
-                test_set_file_path = DATA_PATH + "/Bayesian-network/data/dataset/a1a.test.txt";//"../../data/dataset/a1a.test.txt";
-
-        trainer->LoadLIBSVMData(train_set_file_path);
-        tester->LoadLIBSVMData(test_set_file_path);
-
-//        network->StructLearnCompData(trainer, true);
-        StructureLearning *bnsl = new ChowLiuTree(network);
-        bnsl->StructLearnCompData(trainer, 1, 1, false, false);
-        ParameterLearning *bnpl = new ParameterLearning(network);
-        bnpl->LearnParamsKnowStructCompData(trainer, 2, false);
-    }
-
-    Dataset *trainer;
-    Dataset *tester;
-    Network *network;
-};
+//class ExperimentOnA1a : public ::testing::Test {
+//protected:
+//
+//    void SetUp() override {
+//        trainer = new Dataset();
+//        tester = new Dataset();
+////        network = new ChowLiuTree(true);
+//        network = new Network(true);
+//
+//        string train_set_file_path = DATA_PATH + "/Bayesian-network/data/dataset/a1a.txt",//"../../data/dataset/a1a.txt",
+//                test_set_file_path = DATA_PATH + "/Bayesian-network/data/dataset/a1a.test.txt";//"../../data/dataset/a1a.test.txt";
+//
+//        trainer->LoadLIBSVMData(train_set_file_path);
+//        tester->LoadLIBSVMData(test_set_file_path);
+//
+////        network->StructLearnCompData(trainer, true);
+//        StructureLearning *bnsl = new ChowLiuTree(network);
+//        bnsl->StructLearnCompData(trainer, 1, 1, false, false);
+//        ParameterLearning *bnpl = new ParameterLearning(network);
+//        bnpl->LearnParamsKnowStructCompData(trainer, 2, false);
+//    }
+//
+//    Dataset *trainer;
+//    Dataset *tester;
+//    Network *network;
+//};
 
 //TEST_F(ExperimentOnA1a, brute_force) {
 //    Inference *inference = new BruteForce(network);
@@ -103,12 +103,12 @@ protected:
 //    EXPECT_GT(accuracy, 0.8230);
 //}
 
-TEST_F(ExperimentOnA1a, junction_tree_partial1) {
-    Inference *inference = new JunctionTree(network);
-    double accuracy = inference->EvaluateAccuracy(tester, 1, -1, "jt", false);
-    delete inference;
-    EXPECT_GT(accuracy, 0.8230);
-}
+//TEST_F(ExperimentOnA1a, junction_tree_partial1) {
+//    Inference *inference = new JunctionTree(network);
+//    double accuracy = inference->EvaluateAccuracy(tester, 1, -1, "jt", false);
+//    delete inference;
+//    EXPECT_GT(accuracy, 0.8230);
+//}
 //TEST_F(ExperimentOnA1a, junction_tree_partial2) {
 //Inference *inference = new JunctionTree(network);
 //double accuracy = inference->EvaluateAccuracy(tester, 2, -1, "jt", false);

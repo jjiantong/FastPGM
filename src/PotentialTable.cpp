@@ -119,6 +119,7 @@ inline void PotentialTable::GetConfigByTableIndex(const int &table_index, Networ
         tmp_pair.second = node->vec_potential_vals.at(config_value[i++]);
         config.insert(tmp_pair);
     }
+    delete[] config_value;
 }
 
 /*!
@@ -342,6 +343,7 @@ void PotentialTable::TableReduction(int e_index, int e_value_index, int num_thre
         // 2. get the value of the evidence variable from the new table
         value_index[i] = full_config[i * this->num_variables + e_loc];
     }
+    delete[] full_config;
 
     for (int i = 0, j = 0; i < this->table_size; ++i) {
         // 3. whether it is consistent with the evidence
@@ -350,6 +352,7 @@ void PotentialTable::TableReduction(int e_index, int e_value_index, int num_thre
         }
     }
     this->potentials = new_potentials;
+    delete[] value_index;
 //    timer->Stop("reduction2");
 
 //    timer->Start("reduction1");
