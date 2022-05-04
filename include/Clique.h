@@ -86,7 +86,7 @@ class Clique {
 //  void PrintRelatedVars() const;
 
  protected:
-  Clique(const Clique&) = default;
+//  Clique(const Clique&) = default;
   void SumOutExternalVars(Factor &f, Timer *timer);
   void Distribute(Factor &f, Timer *timer);
   void PreInitializePotentials();

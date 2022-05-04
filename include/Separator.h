@@ -8,7 +8,7 @@
  */
 class Separator : public Clique {
  protected:
-  Separator(const Separator&) = default;
+//  Separator(const Separator&) = default;
 
  public:
   int weight;//the number of nodes in this separator

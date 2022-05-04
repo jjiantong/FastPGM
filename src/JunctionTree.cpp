@@ -259,6 +259,9 @@ JunctionTree::~JunctionTree() {
             *it = nullptr;
         }
     }
+
+    delete [] clique_backup;
+    delete [] separator_backup;
 }
 
 
@@ -620,12 +623,12 @@ void JunctionTree::FormJunctionTree() {
           (tree_so_far.find(clq1) == tree_so_far.end() && tree_so_far.find(clq2) != tree_so_far.end())) {
         // And if the weight of this separator is the largest.
         if (max_weight_sep==nullptr || max_weight_sep->weight < sep_ptr->weight) {
-            sep_ptr->is_in_jt = true;
           max_weight_sep = sep_ptr;
         }
       }
     }
 
+      max_weight_sep->is_in_jt = true;
     vector_separator_ptr_container.push_back(max_weight_sep);
 
     auto iter = max_weight_sep->set_neighbours_ptr.begin();
@@ -665,91 +668,91 @@ void JunctionTree::FormJunctionTree() {
     }
 }
 
-void JunctionTree::CliqueMerging(int low, int high) {
-    int num_clique_old = 0;
-    int num_clique_new = vector_clique_ptr_container.size();
-
-    while (num_clique_old != num_clique_new) { // repeat until no reduction in cliques
-        for (auto it = vector_separator_ptr_container.begin(); it != vector_separator_ptr_container.end(); ) { // traverse all seps
-//            cout << "sep ";
-//            for (auto v: (*it)->clique_variables) {
-//                cout << v << " ";
-//            }
-//            cout << endl;
-            auto iter = (*it)->set_neighbours_ptr.begin();
-            Clique *clq1 = *iter, *clq2 = *(++iter);
-//            cout << "clq1 ";
-//            for (auto v: clq1->clique_variables) {
-//                cout << v << " ";
-//            }
-//            cout << endl;
-//            cout << "clq2 ";
-//            for (auto v: clq2->clique_variables) {
-//                cout << v << " ";
-//            }
-//            cout << endl;
-            if ((clq1->clique_size < low || clq2->clique_size < low) &&
-                (clq1->clique_size + clq2->clique_size < high)) {
-                // 1. remove this sep from the neighbors of clq1 and clq2
-                clq1->set_neighbours_ptr.erase(*it);
-                clq2->set_neighbours_ptr.erase(*it);
-                // 2. remove and delete the sep
-                auto tmp = *it;
-                it = vector_separator_ptr_container.erase(it);
-                delete tmp;
-//                cout << "remove sep and neighbors...." << endl;
-                // 3. create a new big clique
-                set<int> set_indexes_to_form_a_clique;
-//                set<Node*> set_node_ptrs_to_form_a_clique;
-                set_indexes_to_form_a_clique.insert(clq1->clique_variables.begin(), clq1->clique_variables.end());
-                set_indexes_to_form_a_clique.insert(clq2->clique_variables.begin(), clq2->clique_variables.end());
-//                for (auto index: set_indexes_to_form_a_clique) {
-//                    set_node_ptrs_to_form_a_clique.insert(network->FindNodePtrByIndex(index));
+//void JunctionTree::CliqueMerging(int low, int high) {
+//    int num_clique_old = 0;
+//    int num_clique_new = vector_clique_ptr_container.size();
+//
+//    while (num_clique_old != num_clique_new) { // repeat until no reduction in cliques
+//        for (auto it = vector_separator_ptr_container.begin(); it != vector_separator_ptr_container.end(); ) { // traverse all seps
+////            cout << "sep ";
+////            for (auto v: (*it)->clique_variables) {
+////                cout << v << " ";
+////            }
+////            cout << endl;
+//            auto iter = (*it)->set_neighbours_ptr.begin();
+//            Clique *clq1 = *iter, *clq2 = *(++iter);
+////            cout << "clq1 ";
+////            for (auto v: clq1->clique_variables) {
+////                cout << v << " ";
+////            }
+////            cout << endl;
+////            cout << "clq2 ";
+////            for (auto v: clq2->clique_variables) {
+////                cout << v << " ";
+////            }
+////            cout << endl;
+//            if ((clq1->clique_size < low || clq2->clique_size < low) &&
+//                (clq1->clique_size + clq2->clique_size < high)) {
+//                // 1. remove this sep from the neighbors of clq1 and clq2
+//                clq1->set_neighbours_ptr.erase(*it);
+//                clq2->set_neighbours_ptr.erase(*it);
+//                // 2. remove and delete the sep
+//                auto tmp = *it;
+//                it = vector_separator_ptr_container.erase(it);
+//                delete tmp;
+////                cout << "remove sep and neighbors...." << endl;
+//                // 3. create a new big clique
+//                set<int> set_indexes_to_form_a_clique;
+////                set<Node*> set_node_ptrs_to_form_a_clique;
+//                set_indexes_to_form_a_clique.insert(clq1->clique_variables.begin(), clq1->clique_variables.end());
+//                set_indexes_to_form_a_clique.insert(clq2->clique_variables.begin(), clq2->clique_variables.end());
+////                for (auto index: set_indexes_to_form_a_clique) {
+////                    set_node_ptrs_to_form_a_clique.insert(network->FindNodePtrByIndex(index));
+////                }
+////                Clique* clique = new Clique(set_node_ptrs_to_form_a_clique);
+//                Clique* clique = new Clique(set_indexes_to_form_a_clique, network);
+//                vector_clique_ptr_container.push_back(clique);
+////                cout << "create new clique ";
+////                for (auto v: clique->clique_variables) {
+////                    cout << v << " ";
+////                }
+////                cout << endl;
+//                // 4. all neighbors of clq1 and clq2 become neighbors of the new big clique, and vice versa,
+//                //    and remove clq1 and clq2 from the neighbors of their neighbors
+//                // note that we don't remove their neighbors from the neighbors of clq1 and clq2
+//                // because to do this may cause problem of erasing and traversing at the same time
+//                // and we will erase and delete clq1 and clq2 so their neighbors don't matter
+//                for (auto &sep_ptr: clq1->set_neighbours_ptr) {
+//                    clique->set_neighbours_ptr.insert(sep_ptr);
+//                    sep_ptr->set_neighbours_ptr.insert(clique);
+//                    sep_ptr->set_neighbours_ptr.erase(clq1);
 //                }
-//                Clique* clique = new Clique(set_node_ptrs_to_form_a_clique);
-                Clique* clique = new Clique(set_indexes_to_form_a_clique, network);
-                vector_clique_ptr_container.push_back(clique);
-//                cout << "create new clique ";
-//                for (auto v: clique->clique_variables) {
-//                    cout << v << " ";
+//                for (auto &sep_ptr: clq2->set_neighbours_ptr) {
+//                    clique->set_neighbours_ptr.insert(sep_ptr);
+//                    sep_ptr->set_neighbours_ptr.insert(clique);
+//                    sep_ptr->set_neighbours_ptr.erase(clq2);
 //                }
-//                cout << endl;
-                // 4. all neighbors of clq1 and clq2 become neighbors of the new big clique, and vice versa,
-                //    and remove clq1 and clq2 from the neighbors of their neighbors
-                // note that we don't remove their neighbors from the neighbors of clq1 and clq2
-                // because to do this may cause problem of erasing and traversing at the same time
-                // and we will erase and delete clq1 and clq2 so their neighbors don't matter
-                for (auto &sep_ptr: clq1->set_neighbours_ptr) {
-                    clique->set_neighbours_ptr.insert(sep_ptr);
-                    sep_ptr->set_neighbours_ptr.insert(clique);
-                    sep_ptr->set_neighbours_ptr.erase(clq1);
-                }
-                for (auto &sep_ptr: clq2->set_neighbours_ptr) {
-                    clique->set_neighbours_ptr.insert(sep_ptr);
-                    sep_ptr->set_neighbours_ptr.insert(clique);
-                    sep_ptr->set_neighbours_ptr.erase(clq2);
-                }
-                // 5. remove and delete clq1 and clq2
-                for (auto iter = vector_clique_ptr_container.begin(); iter != vector_clique_ptr_container.end();) {
-                    if (*iter == clq1) {
-                        iter = vector_clique_ptr_container.erase(iter);
-                    } else if (*iter == clq2) {
-                        iter = vector_clique_ptr_container.erase(iter);
-                    } else {
-                        ++iter;
-                    }
-                }
-                delete clq1;
-                delete clq2;
-//                cout << "update neighbor and remove clq1 clq2... num clique = " << vector_clique_ptr_container.size() << endl;
-            } else {
-                ++it;
-            }
-        }
-        num_clique_old = num_clique_new;
-        num_clique_new = vector_clique_ptr_container.size();
-    }
-}
+//                // 5. remove and delete clq1 and clq2
+//                for (auto iter = vector_clique_ptr_container.begin(); iter != vector_clique_ptr_container.end();) {
+//                    if (*iter == clq1) {
+//                        iter = vector_clique_ptr_container.erase(iter);
+//                    } else if (*iter == clq2) {
+//                        iter = vector_clique_ptr_container.erase(iter);
+//                    } else {
+//                        ++iter;
+//                    }
+//                }
+//                delete clq1;
+//                delete clq2;
+////                cout << "update neighbor and remove clq1 clq2... num clique = " << vector_clique_ptr_container.size() << endl;
+//            } else {
+//                ++it;
+//            }
+//        }
+//        num_clique_old = num_clique_new;
+//        num_clique_new = vector_clique_ptr_container.size();
+//    }
+//}
 
 /**
  * @brief: assign an id to each clique and separator
@@ -959,12 +962,25 @@ void JunctionTree::AssignPotentials(Timer *timer) { //checked
  * So, we need to backup the tree and restore it after an inference.
  * Otherwise, we need to re-construct the tree each time we want to make inference.
  */
+//void JunctionTree::BackUpJunctionTree() {
+//    for (const auto &c : vector_clique_ptr_container) {
+//        map_cliques_backup[c] = *c;
+//    }
+//    for (const auto &s : vector_separator_ptr_container) {
+//        map_separators_backup[s] = *s;
+//    }
+//}
+
 void JunctionTree::BackUpJunctionTree() {
+    clique_backup = new Clique[vector_clique_ptr_container.size()];
+    separator_backup = new Separator[vector_separator_ptr_container.size()];
+    int i = 0;
     for (const auto &c : vector_clique_ptr_container) {
-        map_cliques_backup[c] = *c;
+        clique_backup[i++] = *c;
     }
+    i = 0;
     for (const auto &s : vector_separator_ptr_container) {
-        map_separators_backup[s] = *s;
+        separator_backup[i++] = *s;
     }
 }
 
@@ -973,13 +989,24 @@ void JunctionTree::BackUpJunctionTree() {
  * So, we need to backup the tree and restore it after an inference.
  * Otherwise, we need to re-construct the tree each time we want to make inference.
  */
+//void JunctionTree::ResetJunctionTree() {
+//  for (auto &c : vector_clique_ptr_container) {
+//    *c = map_cliques_backup[c];
+//  }
+//  for (auto &s : vector_separator_ptr_container) {
+//    *s = map_separators_backup[s];
+//  }
+//}
+
 void JunctionTree::ResetJunctionTree() {
-  for (auto &c : vector_clique_ptr_container) {
-    *c = map_cliques_backup[c];
-  }
-  for (auto &s : vector_separator_ptr_container) {
-    *s = map_separators_backup[s];
-  }
+    int i = 0;
+    for (auto &c : vector_clique_ptr_container) {
+        *c = clique_backup[i++];
+    }
+    i = 0;
+    for (auto &s : vector_separator_ptr_container) {
+        *s = separator_backup[i++];
+    }
 }
 
 /**
