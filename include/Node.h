@@ -75,7 +75,7 @@ class Node {
   void ClearParents();
   void ClearChildren();
   virtual int GetNumParams() = 0;
-  virtual void ClearParams() = 0;
+//  virtual void ClearParams() = 0;
 };
 
 

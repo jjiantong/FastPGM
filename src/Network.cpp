@@ -822,29 +822,29 @@ int Network::GetNumParams() const {
   return result;
 }
 
-/**
- * @brief: clear structure; mainly for reuse some content for fast testing
- *
- * Important: may have bugs! TODO
- */
-void Network::ClearStructure() {
-  for (const auto &i_n_p : this->map_idx_node_ptr) {
-    i_n_p.second->ClearParams();
-    i_n_p.second->ClearParents();
-    i_n_p.second->ClearChildren();
-  }
-}
+///**
+// * @brief: clear structure; mainly for reuse some content for fast testing
+// *
+// * Important: may have bugs! TODO
+// */
+//void Network::ClearStructure() {
+//  for (const auto &i_n_p : this->map_idx_node_ptr) {
+//    i_n_p.second->ClearParams();
+//    i_n_p.second->ClearParents();
+//    i_n_p.second->ClearChildren();
+//  }
+//}
 
-/**
- * @brief: clear structure; mainly for reuse some content for fast testing
- *
- * Important: may have bugs! TODO
- */
-void Network::ClearParams() {
-  for (const auto &i_n_p : this->map_idx_node_ptr) { // TODO: function "FindNodePtrByIndex"
-    i_n_p.second->ClearParams(); // TODO: Node::ClearParams is a virtual function
-  }
-}
+///**
+// * @brief: clear structure; mainly for reuse some content for fast testing
+// *
+// * Important: may have bugs! TODO
+// */
+//void Network::ClearParams() {
+//  for (const auto &i_n_p : this->map_idx_node_ptr) { // TODO: function "FindNodePtrByIndex"
+//    i_n_p.second->ClearParams(); // TODO: Node::ClearParams is a virtual function
+//  }
+//}
 
 /**
  * @brief: this is a virtual function;

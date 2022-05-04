@@ -81,14 +81,14 @@ int DiscreteNode::GetNumParams() {
 /**
  * @brief: clear the cells of the conditional probability table
  */
-void DiscreteNode::ClearParams() {
-    map_cond_prob_table_statistics.clear();
-    map_cond_prob.clear();
-    map_total_count_under_parents_config.clear();
-
-    //TODO: potential bugs; may need to add the following line
-    //cpt_initialized = false;
-}
+//void DiscreteNode::ClearParams() {
+//    map_cond_prob_table_statistics.clear();
+//    map_cond_prob.clear();
+//    map_total_count_under_parents_config.clear();
+//
+//    //TODO: potential bugs; may need to add the following line
+//    //cpt_initialized = false;
+//}
 
 
 void DiscreteNode::PrintProbabilityTable() {//checked

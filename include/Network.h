@@ -64,8 +64,8 @@ class Network {//this class is used by both the customized networks and networks
   void ConstructNaiveBayesNetwork(Dataset *dts);
 
   int GetNumParams() const;
-  void ClearStructure();
-  void ClearParams();
+//  void ClearStructure();
+//  void ClearParams();
 
   void AddNode(Node *node_ptr);
   void RemoveNode(int node_index);

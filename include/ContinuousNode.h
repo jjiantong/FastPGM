@@ -52,7 +52,7 @@ class ContinuousNode : public Node {//the parent nodes of ContinuousNode can be 
   void AddChild(Node *node_ptr) override;
   void RemoveParent(Node *node_ptr) override;
   int GetNumParams() override;
-  void ClearParams() override;
+//  void ClearParams() override;
 
  private:
   void IdentifyContPar();

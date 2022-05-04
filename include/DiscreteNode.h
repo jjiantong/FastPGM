@@ -60,7 +60,7 @@ class DiscreteNode : public Node {//the parent nodes of DiscreteNode must be dis
   void SetDomainSize(int size);
   void AddParent(Node *node_ptr) override;
   int GetNumParams() override;
-  void ClearParams() override;
+//  void ClearParams() override;
   void PrintProbabilityTable();
   int SampleNodeGivenParents(DiscreteConfig &evidence);
 

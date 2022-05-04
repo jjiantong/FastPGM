@@ -4,7 +4,10 @@
 #include "Dataset.h"
 
 
-Dataset::Dataset() {}
+Dataset::Dataset() {
+    dataset_all_vars = nullptr;
+    dataset_columns = nullptr;
+}
 
 Dataset::~Dataset() {
     if (dataset_all_vars) {

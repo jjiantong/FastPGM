@@ -62,11 +62,11 @@ int ContinuousNode::GetNumParams() {
 }
 
 
-void ContinuousNode::ClearParams() {
-  //TODO: incomplete implementation
-  fprintf(stderr, "Function [%s] not implemented yet!", __FUNCTION__);
-  exit(1);
-}
+//void ContinuousNode::ClearParams() {
+//  //TODO: incomplete implementation
+//  fprintf(stderr, "Function [%s] not implemented yet!", __FUNCTION__);
+//  exit(1);
+//}
 
 /**
  * @brief: identify continuous parents
