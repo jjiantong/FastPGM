@@ -33,7 +33,7 @@ class JunctionTree: public Inference {
   JunctionTree(Network *net, string elim_ord_strategy);
   JunctionTree(Network *net, string elim_ord_strategy, vector<int> custom_elim_ord);
 //  JunctionTree(JunctionTree*);
-  virtual ~JunctionTree() = default;
+    ~JunctionTree();
 
   void ResetJunctionTree();
   virtual void LoadDiscreteEvidence(const DiscreteConfig &E, int num_threads, Timer *timer);

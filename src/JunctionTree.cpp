@@ -245,6 +245,22 @@ JunctionTree::JunctionTree(Network *net, string elim_ord_strategy, vector<int> c
 //  delete[] seps_that_cliques_connect_to;
 //}
 
+JunctionTree::~JunctionTree() {
+    // delete cliques and separators
+    for (auto it = vector_clique_ptr_container.begin(); it != vector_clique_ptr_container.end(); it++) {
+        if (*it != nullptr) {
+            delete *it;
+            *it = nullptr;
+        }
+    }
+    for (auto it = vector_separator_ptr_container.begin(); it != vector_separator_ptr_container.end(); it++) {
+        if (*it != nullptr) {
+            delete *it;
+            *it = nullptr;
+        }
+    }
+}
+
 
 /**
  * @brief: moralization -> moral graph
@@ -943,13 +959,13 @@ void JunctionTree::AssignPotentials(Timer *timer) { //checked
  * So, we need to backup the tree and restore it after an inference.
  * Otherwise, we need to re-construct the tree each time we want to make inference.
  */
-void JunctionTree::BackUpJunctionTree() {//checked
-  for (const auto &c : vector_clique_ptr_container) {
-    map_cliques_backup[c] = *c;
-  }
-  for (const auto &s : vector_separator_ptr_container) {
-    map_separators_backup[s] = *s;
-  }
+void JunctionTree::BackUpJunctionTree() {
+    for (const auto &c : vector_clique_ptr_container) {
+        map_cliques_backup[c] = *c;
+    }
+    for (const auto &s : vector_separator_ptr_container) {
+        map_separators_backup[s] = *s;
+    }
 }
 
 /**

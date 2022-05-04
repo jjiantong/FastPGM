@@ -61,6 +61,7 @@ class Clique {
 //  Clique(set<Node*> set_node_ptrs, int elim_var_index);
     Clique(set<Node*> set_node_ptr);
     Clique(set<int> set_node_index, Network *net);
+    virtual ~Clique() {};
 
 //  Clique* CopyWithoutPtr();
   void MultiplyWithFactorSumOverExternalVars(Factor &f, Timer *timer);

@@ -21,6 +21,7 @@ class Separator : public Clique {
   Separator();
   explicit Separator(set<Node*>);
     explicit Separator(set<int>, Network*);
+    ~Separator() {};
 
   Separator* CopyWithoutPtr();
 

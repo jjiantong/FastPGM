@@ -54,8 +54,9 @@ vector<Node*> XMLBIFParser::GetUnconnectedNodes() const {
             }
             n_p->SetDomainSize(n_p->vec_str_potential_vals.size());
 
+            n_p->vec_potential_vals.resize(n_p->GetDomainSize());
             for (int i = 0; i < n_p->GetDomainSize(); ++i) {
-                n_p->vec_potential_vals.push_back(i);
+                n_p->vec_potential_vals[i] = i;
             }
             vec_node_ptrs.push_back(n_p);
         } else {  // if the "TYPE" is "continuous"
