@@ -1,12 +1,16 @@
 #include "JunctionTree.h"
 
-JunctionTree::JunctionTree(Network *net)
-  : JunctionTree(net, "min-nei") {}
+//JunctionTree::JunctionTree(Network *net)
+//  : JunctionTree(net, "min-nei") {}
+//
+//JunctionTree::JunctionTree(Network *net, string elim_ord_strategy)
+//  : JunctionTree(net, elim_ord_strategy, vector<int>()) {}
 
-JunctionTree::JunctionTree(Network *net, string elim_ord_strategy)
-  : JunctionTree(net, elim_ord_strategy, vector<int>()) {}
-
-JunctionTree::JunctionTree(Network *net, string elim_ord_strategy, vector<int> custom_elim_ord) {
+/**
+ * the optimized constructor
+ * see the comments in the former one (the original implementation)
+ */
+JunctionTree::JunctionTree(Network *net) {
 
     cout << "begin construction function of JunctionTree..." << endl;
 
@@ -19,8 +23,8 @@ JunctionTree::JunctionTree(Network *net, string elim_ord_strategy, vector<int> c
     vector_clique_ptr_container.reserve(network->num_nodes);
     vector_separator_ptr_container.reserve(network->num_nodes - 1);
 
-  int **direc_adjac_matrix = network->ConvertDAGNetworkToAdjacencyMatrix();
-  cout << "finish ConvertDAGNetworkToAdjacencyMatrix" << endl;
+    int **direc_adjac_matrix = network->ConvertDAGNetworkToAdjacencyMatrix();
+    cout << "finish ConvertDAGNetworkToAdjacencyMatrix" << endl;
 //    for (int i = 0; i < network->num_nodes; ++i) {
 //        for (int j = 0; j < network->num_nodes; ++j) {
 //            cout << direc_adjac_matrix[i][j] << " ";
@@ -28,9 +32,9 @@ JunctionTree::JunctionTree(Network *net, string elim_ord_strategy, vector<int> c
 //        cout << endl;
 //    }
 
-  Moralize(direc_adjac_matrix, network->num_nodes);
-  int **moral_graph_adjac_matrix = direc_adjac_matrix;
-  cout << "finish Moralize" << endl;
+    Moralize(direc_adjac_matrix, network->num_nodes);
+    int **moral_graph_adjac_matrix = direc_adjac_matrix;
+    cout << "finish Moralize" << endl;
 //    for (int i = 0; i < network->num_nodes; ++i) {
 //        for (int j = 0; j < network->num_nodes; ++j) {
 //            cout << moral_graph_adjac_matrix[i][j] << " ";
@@ -38,47 +42,21 @@ JunctionTree::JunctionTree(Network *net, string elim_ord_strategy, vector<int> c
 //        cout << endl;
 //    }
 
-//  cout << "elimination order = " << elim_ord_strategy << endl;
-  // There are different ways of determining elimination ordering.
-  if (elim_ord_strategy == "min-nei") {
-    elimination_ordering = MinNeighbourElimOrd(moral_graph_adjac_matrix, network->num_nodes);
-  }
-  else if (elim_ord_strategy == "rev-topo") {
-    elimination_ordering = network->GetReverseTopoOrd();
-  }
-  else if (elim_ord_strategy == "custom") {
-    if (custom_elim_ord.size() != net->num_nodes) {
-      fprintf(stderr, "Error in function [%s]\nSize of custom elimination"
-                      "ordering and size of the network is not the same!", __FUNCTION__);
-      exit(1);
-    }
-    elimination_ordering = custom_elim_ord;
-  }
-  else {
-    fprintf(stderr, "The elimination ordering strategy should be one of the following:\n"
-                    "{ min-nei, rev-topo, custom }.");
-    exit(1);
-  }
-//    cout << "finish order, order: ";
-//    for (int i = 0; i < network->num_nodes; ++i) {
-//        cout << elimination_ordering[i] << " ";
-//    }
-//    cout << endl;
-
-  //construct a clique for each node in the network
-  Triangulate(network, moral_graph_adjac_matrix, elimination_ordering);
-  cout << "finish Triangulate, number of cliques = " << vector_clique_ptr_container.size() << endl;
+    vector<int> has_processed(network->num_nodes);
+    //construct a clique for each node in the network
+    Triangulate(network, moral_graph_adjac_matrix, has_processed);
+    cout << "finish Triangulate, number of cliques = " << vector_clique_ptr_container.size() << endl;
 
     for (int i = 0; i < network->num_nodes; ++i) {
         delete[] direc_adjac_matrix[i];
     }
     delete[] direc_adjac_matrix;
 
-  //construct map from main variable to a clique
+    //construct map from main variable to a clique
 //  GenMapElimVarToClique();
 //  cout << "finish GenMapElimVarToClique" << endl;
 
-  FormJunctionTree();//for discrete nodes
+    FormJunctionTree();//for discrete nodes
 //  FormListShapeJunctionTree(set_clique_ptr_container);//for continuous nodes
     cout << "finish FormJunctionTree, number of cliques = " << vector_clique_ptr_container.size()
          << ", number of separators = " << vector_separator_ptr_container.size() << endl;
@@ -87,8 +65,8 @@ JunctionTree::JunctionTree(Network *net, string elim_ord_strategy, vector<int> c
 //    cout << "finish CliqueMerging, number of cliques = " << vector_clique_ptr_container.size()
 //         << ", number of separators = " << vector_separator_ptr_container.size() << endl;
 
-  //assign id to each clique
-  NumberTheCliquesAndSeparators();
+    //assign id to each clique
+    NumberTheCliquesAndSeparators();
 //  cout << "finish NumberTheCliquesAndSeparators" << endl;
 
 //    cout << "cliques: " << endl;
@@ -125,8 +103,8 @@ JunctionTree::JunctionTree(Network *net, string elim_ord_strategy, vector<int> c
 ////        }
 //    }
 
-  AssignPotentials(timer);
-  cout << "finish AssignPotentials" << endl;
+    AssignPotentials(timer);
+    cout << "finish AssignPotentials" << endl;
 
 //    cout << "cliques: " << endl;
 //    for (auto &c : vector_clique_ptr_container) {
@@ -161,7 +139,7 @@ JunctionTree::JunctionTree(Network *net, string elim_ord_strategy, vector<int> c
     arb_root = *iter;
     arb_root->MarkLevel(cliques_by_level, max_level);
 
-  BackUpJunctionTree();
+    BackUpJunctionTree();
 //  cout << "finish BackUpJunctionTree" << endl;
 
     cout << "==================================================";
@@ -170,6 +148,179 @@ JunctionTree::JunctionTree(Network *net, string elim_ord_strategy, vector<int> c
     delete timer;
     timer = nullptr;
 }
+
+/**
+ * this is the original implementation
+ * because we optimize triangulation, some parameters, thus some functions, are unnecessary,
+ * so simply reduce these unnecessary things and lead to the former optimized constructor
+ */
+//JunctionTree::JunctionTree(Network *net, string elim_ord_strategy, vector<int> custom_elim_ord) {
+//
+//    cout << "begin construction function of JunctionTree..." << endl;
+//
+//    Timer *timer = new Timer();
+//    // record time
+//    timer->Start("construct jt");
+//
+//    network = net;
+//
+//    vector_clique_ptr_container.reserve(network->num_nodes);
+//    vector_separator_ptr_container.reserve(network->num_nodes - 1);
+//
+//  int **direc_adjac_matrix = network->ConvertDAGNetworkToAdjacencyMatrix();
+//  cout << "finish ConvertDAGNetworkToAdjacencyMatrix" << endl;
+////    for (int i = 0; i < network->num_nodes; ++i) {
+////        for (int j = 0; j < network->num_nodes; ++j) {
+////            cout << direc_adjac_matrix[i][j] << " ";
+////        }
+////        cout << endl;
+////    }
+//
+//  Moralize(direc_adjac_matrix, network->num_nodes);
+//  int **moral_graph_adjac_matrix = direc_adjac_matrix;
+//  cout << "finish Moralize" << endl;
+////    for (int i = 0; i < network->num_nodes; ++i) {
+////        for (int j = 0; j < network->num_nodes; ++j) {
+////            cout << moral_graph_adjac_matrix[i][j] << " ";
+////        }
+////        cout << endl;
+////    }
+//
+////  cout << "elimination order = " << elim_ord_strategy << endl;
+//  // There are different ways of determining elimination ordering.
+//  if (elim_ord_strategy == "min-nei") {
+//    elimination_ordering = MinNeighbourElimOrd(moral_graph_adjac_matrix, network->num_nodes);
+//  }
+//  else if (elim_ord_strategy == "rev-topo") {
+//    elimination_ordering = network->GetReverseTopoOrd();
+//  }
+//  else if (elim_ord_strategy == "custom") {
+//    if (custom_elim_ord.size() != net->num_nodes) {
+//      fprintf(stderr, "Error in function [%s]\nSize of custom elimination"
+//                      "ordering and size of the network is not the same!", __FUNCTION__);
+//      exit(1);
+//    }
+//    elimination_ordering = custom_elim_ord;
+//  }
+//  else {
+//    fprintf(stderr, "The elimination ordering strategy should be one of the following:\n"
+//                    "{ min-nei, rev-topo, custom }.");
+//    exit(1);
+//  }
+////    cout << "finish order, order: ";
+////    for (int i = 0; i < network->num_nodes; ++i) {
+////        cout << elimination_ordering[i] << " ";
+////    }
+////    cout << endl;
+//
+//    vector<int> has_processed(network->num_nodes);
+//
+//  //construct a clique for each node in the network
+////  Triangulate(network, moral_graph_adjac_matrix, elimination_ordering);
+//    Triangulate(network, moral_graph_adjac_matrix, has_processed);
+//  cout << "finish Triangulate, number of cliques = " << vector_clique_ptr_container.size() << endl;
+//
+//    for (int i = 0; i < network->num_nodes; ++i) {
+//        delete[] direc_adjac_matrix[i];
+//    }
+//    delete[] direc_adjac_matrix;
+//
+//  //construct map from main variable to a clique
+////  GenMapElimVarToClique();
+////  cout << "finish GenMapElimVarToClique" << endl;
+//
+//  FormJunctionTree();//for discrete nodes
+////  FormListShapeJunctionTree(set_clique_ptr_container);//for continuous nodes
+//    cout << "finish FormJunctionTree, number of cliques = " << vector_clique_ptr_container.size()
+//         << ", number of separators = " << vector_separator_ptr_container.size() << endl;
+//
+////    CliqueMerging(8, 12);
+////    cout << "finish CliqueMerging, number of cliques = " << vector_clique_ptr_container.size()
+////         << ", number of separators = " << vector_separator_ptr_container.size() << endl;
+//
+//  //assign id to each clique
+//  NumberTheCliquesAndSeparators();
+////  cout << "finish NumberTheCliquesAndSeparators" << endl;
+//
+////    cout << "cliques: " << endl;
+////    for (auto &c : vector_clique_ptr_container) {
+////        cout << c->clique_id << ": ";
+////        // set<int> related_variables
+////        for (auto &v : c->p_table.related_variables) {
+////            cout << v << " ";
+////        }
+////        cout << endl;
+//////        cout << "neighbors: ";
+//////        for (auto &s: c->set_neighbours_ptr) {
+//////            cout << s->clique_id << " ";
+//////        }
+//////        cout << endl;
+//////        // int num_variables
+//////        // int table_size
+//////        cout << "num variables = " << c->p_table.num_variables << ", table size = " << c->p_table.table_size << endl;
+////        // vector<int> var_dims
+////        cout << "var dims: ";
+////        for (int j = 0; j < c->p_table.var_dims.size(); ++j) {
+////            cout << c->p_table.var_dims[j] << " ";
+////        }
+////        // vector<int> cum_levels
+////        cout << "cum_levels: ";
+////        for (int j = 0; j < c->p_table.cum_levels.size(); ++j) {
+////            cout << c->p_table.cum_levels[j] << " ";
+////        }
+////        cout << "table size = " << c->p_table.table_size << endl;
+//////        // vector<double> potentials
+//////        cout << "table: " << endl;
+//////        for (int j = 0; j < c->p_table.potentials.size(); ++j) {
+//////            cout << c->p_table.potentials[j] << endl;
+//////        }
+////    }
+//
+//  AssignPotentials(timer);
+//  cout << "finish AssignPotentials" << endl;
+//
+////    cout << "cliques: " << endl;
+////    for (auto &c : vector_clique_ptr_container) {
+////        cout << c->clique_id << ": ";
+////        // set<int> related_variables
+////        for (auto &v : c->p_table.related_variables) {
+////            cout << v << " ";
+////        }
+////        cout << endl;
+//////        // int num_variables
+//////        // int table_size
+//////        cout << "num variables = " << c->p_table.num_variables << ", table size = " << c->p_table.table_size << endl;
+//////        // vector<int> var_dims
+//////        cout << "var dims: ";
+//////        for (int j = 0; j < c->p_table.var_dims.size(); ++j) {
+//////            cout << c->p_table.var_dims[j] << " ";
+//////        }
+//////        // vector<int> cum_levels
+//////        cout << "cum_levels: ";
+//////        for (int j = 0; j < c->p_table.cum_levels.size(); ++j) {
+//////            cout << c->p_table.cum_levels[j] << " ";
+//////        }
+////        // vector<double> potentials
+////        cout << "table: " << endl;
+////        for (int j = 0; j < c->p_table.potentials.size(); ++j) {
+////            cout << c->p_table.potentials[j] << endl;
+////        }
+////    }
+//
+//    // Arbitrarily select a clique as the root.
+//    auto iter = vector_clique_ptr_container.begin();
+//    arb_root = *iter;
+//    arb_root->MarkLevel(cliques_by_level, max_level);
+//
+//  BackUpJunctionTree();
+////  cout << "finish BackUpJunctionTree" << endl;
+//
+//    cout << "==================================================";
+//    timer->Stop("construct jt");
+//    timer->Print("construct jt"); cout << endl;
+//    delete timer;
+//    timer = nullptr;
+//}
 
 
 //JunctionTree::JunctionTree(JunctionTree *jt) {
@@ -373,38 +524,37 @@ void JunctionTree::Moralize(int **direc_adjac_matrix, int &num_nodes) { //checke
 //  }
 //}
 
-/**
- * @brief: Generate the elimination order by the number of neighbours.
- * The node with the minimum number of neighbours is eliminated first.
- */
-vector<int> JunctionTree::MinNeighbourElimOrd(int **adjac_matrix, int &num_nodes) { //checked
-  //TODO: double-check correctness
-  vector< pair<int,int> > to_be_sorted;
-
-  // get the number of neighbors for each node
-  for (int i = 0; i < num_nodes; ++i) { // for each node
-    pair<int,int> p; // key: node id; value: number of neighbors
-    p.first = i;
-    p.second = 0;
-    for (int j = 0; j < num_nodes; ++j) {
-      if (adjac_matrix[i][j]==1) { // j is i's neighbor
-        ++p.second;
-      }
-    }
-    to_be_sorted.push_back(p);
-  }
-
-  // sort by the number of neighbors from smallest to largest
-  sort(to_be_sorted.begin(), to_be_sorted.end(), [](pair<int,int> a, pair<int,int> b){return a.second < b.second;});  // Using lambda expression.
-  vector< pair<int,int> > &sorted = to_be_sorted;
-
-  vector<int> result;
-  result.reserve(sorted.size());
-  for (auto &p : sorted) {
-    result.push_back(p.first);
-  }
-  return result;
-}
+///**
+// * @brief: Generate the elimination order by the number of neighbours.
+// * The node with the minimum number of neighbours is eliminated first.
+// */
+//vector<int> JunctionTree::MinNeighbourElimOrd(int **adjac_matrix, int &num_nodes) { //checked
+//    vector< pair<int,int> > to_be_sorted;
+//
+//    // get the number of neighbors for each node
+//    for (int i = 0; i < num_nodes; ++i) { // for each node
+//        pair<int,int> p; // key: node id; value: number of neighbors
+//        p.first = i;
+//        p.second = 0;
+//        for (int j = 0; j < num_nodes; ++j) {
+//            if (adjac_matrix[i][j]==1) { // j is i's neighbor
+//                ++p.second;
+//            }
+//        }
+//        to_be_sorted.push_back(p);
+//    }
+//
+//    // sort by the number of neighbors from smallest to largest
+//    sort(to_be_sorted.begin(), to_be_sorted.end(), [](pair<int,int> a, pair<int,int> b){return a.second < b.second;});  // Using lambda expression.
+//    vector< pair<int,int> > &sorted = to_be_sorted;
+//
+//    vector<int> result;
+//    result.reserve(sorted.size());
+//    for (auto &p : sorted) {
+//        result.push_back(p.first);
+//    }
+//    return result;
+//}
 
 
 /**
@@ -414,30 +564,61 @@ vector<int> JunctionTree::MinNeighbourElimOrd(int **adjac_matrix, int &num_nodes
  * the selected node should try to minimize the added edges, so the "elim_ord" may according to the number or neighbors
  * (if we connect two nodes if they appeared in the same factor in a run of the VE algorithm, we can exactly get a induced graph)
  * in this function, the purpose is to generate a clique while constructing the induced graph
+ *
+ * @note: this is an improved implementation - each time find the node with fewest neighbors to process
+ *        the original implementation is following it - use a fixed order generated before, according to the number of neighbors
  */
-void JunctionTree::Triangulate(Network *net,
-                               int **adjac_matrix,
-                               vector<int> elim_ord) { //checked
-  if (elim_ord.size() == 0) {
-    return;
-  }
-
+void JunctionTree::Triangulate(Network *net, int **adjac_matrix, vector<int> has_processed) {
+    /**
+     * terminating condition: all nodes have been processed
+     */
+    bool terminated = true;
     int num_nodes = net->num_nodes;
+    for (int i = 0; i < num_nodes; ++i) {
+        if (has_processed[i] == 0) {
+            terminated = false;
+            break;
+        }
+    }
+    if (terminated) {
+        return;
+    }
 
+    /**
+     * find the node that has minimum number of neighbors in the current graph
+     */
+    int min_nei = INT_MAX;
+    int min_nei_node;
+    for (int i = 0; i < num_nodes; ++i) { // for each node
+        if (has_processed[i]) {
+            continue;
+        }
+        // for each unprocessed node
+        int num_nei = 0;
+        for (int j = 0; j < num_nodes; ++j) {
+            if (adjac_matrix[i][j] == 1) { // j is i's neighbor
+                ++num_nei;
+            }
+        }
+        if (num_nei < min_nei) {
+            min_nei_node = i;
+            min_nei = num_nei;
+        }
+    }
+
+    /**
+     * construct a clique
+     */
+//    cout << "processing node " << min_nei_node << ": " << endl;
     vector<int> vec_neighbors;
-//    set<Node*> set_node_ptrs_to_form_a_clique;
-    set<int> set_node_indexes_to_form_a_clique; // use node index instead
-    int first_node_in_elim_ord = elim_ord.front();
-//    cout << "num left nodes = " << elim_ord.size() << " ";
-//    cout << "processing node " << first_node_in_elim_ord << ": " << endl;
+    set<int> set_node_indexes_to_form_a_clique;
 
-    // insert the first node in the elimination order into "set_node_ptrs_to_form_a_clique"
-//    set_node_ptrs_to_form_a_clique.insert(net->FindNodePtrByIndex(first_node_in_elim_ord));
-    set_node_indexes_to_form_a_clique.insert(first_node_in_elim_ord);
+    // insert the node into "set_node_indexes_to_form_a_clique"
+    set_node_indexes_to_form_a_clique.insert(min_nei_node);
 
     // insert all its neighbors into "vec_neighbors"
     for (int j = 0; j < num_nodes; ++j) {
-        if (adjac_matrix[first_node_in_elim_ord][j] == 1) {
+        if (adjac_matrix[min_nei_node][j] == 1) {
             vec_neighbors.push_back(j);
         }
     }
@@ -446,10 +627,12 @@ void JunctionTree::Triangulate(Network *net,
     // Form a clique that contains
     for (int neighbor = 0; neighbor < vec_neighbors.size(); ++neighbor) {
         for (int neighbor2 = neighbor + 1; neighbor2 < vec_neighbors.size(); ++neighbor2) {
+            if (adjac_matrix[vec_neighbors.at(neighbor)][vec_neighbors.at(neighbor2)] == 0) {
+                cout << "add" << endl;
+            }
             adjac_matrix[vec_neighbors.at(neighbor)][vec_neighbors.at(neighbor2)] = 1;
             adjac_matrix[vec_neighbors.at(neighbor2)][vec_neighbors.at(neighbor)] = 1;
         }
-//        set_node_ptrs_to_form_a_clique.insert(net->FindNodePtrByIndex(vec_neighbors.at(neighbor)));
         set_node_indexes_to_form_a_clique.insert(vec_neighbors.at(neighbor));
 //        cout << vec_neighbors.at(neighbor) << ", ";
     }
@@ -495,17 +678,87 @@ void JunctionTree::Triangulate(Network *net,
 //        }
     }
 
-    // Remove the first node in elimination ordering, which has already form a clique.
-    elim_ord.erase(elim_ord.begin());
-    // The node has been removed, so the edges connected to it should be removed too.
+    /**
+     * remove the node and its edges
+     */
+    // mark the node because it has already form a clique
+    has_processed[min_nei_node] = 1;
+    // the edges connected to it should be removed
     for (int neighbor = 0; neighbor < vec_neighbors.size(); ++neighbor) {
-        adjac_matrix[first_node_in_elim_ord][vec_neighbors.at(neighbor)] = 0;
-        adjac_matrix[vec_neighbors.at(neighbor)][first_node_in_elim_ord] = 0;
+        adjac_matrix[min_nei_node][vec_neighbors.at(neighbor)] = 0;
+        adjac_matrix[vec_neighbors.at(neighbor)][min_nei_node] = 0;
     }
 //    cout << "post-processing" << endl;
 
-    Triangulate(net, adjac_matrix, elim_ord);
+    Triangulate(net, adjac_matrix, has_processed);
 }
+
+//void JunctionTree::Triangulate(Network *net,
+//                               int **adjac_matrix,
+//                               vector<int> elim_ord) { //checked
+//    if (elim_ord.size() == 0) { // terminating condition for recursive procedure
+//        return;
+//    }
+//
+//    int num_nodes = net->num_nodes;
+//
+//    vector<int> vec_neighbors;
+////    set<Node*> set_node_ptrs_to_form_a_clique;
+//    set<int> set_node_indexes_to_form_a_clique; // use node index instead
+//    int first_node_in_elim_ord = elim_ord.front();
+//
+//    // insert the first node in the elimination order into "set_node_ptrs_to_form_a_clique"
+////    set_node_ptrs_to_form_a_clique.insert(net->FindNodePtrByIndex(first_node_in_elim_ord));
+//    set_node_indexes_to_form_a_clique.insert(first_node_in_elim_ord);
+//
+//    // insert all its neighbors into "vec_neighbors"
+//    for (int j = 0; j < num_nodes; ++j) {
+//        if (adjac_matrix[first_node_in_elim_ord][j] == 1) {
+//            vec_neighbors.push_back(j);
+//        }
+//    }
+//
+//    // Form a clique that contains
+//    for (int neighbor = 0; neighbor < vec_neighbors.size(); ++neighbor) {
+//        for (int neighbor2 = neighbor + 1; neighbor2 < vec_neighbors.size(); ++neighbor2) {
+//            if (adjac_matrix[vec_neighbors.at(neighbor)][vec_neighbors.at(neighbor2)] == 0) {
+//                cout << "add" << endl;
+//            }
+//            adjac_matrix[vec_neighbors.at(neighbor)][vec_neighbors.at(neighbor2)] = 1;
+//            adjac_matrix[vec_neighbors.at(neighbor2)][vec_neighbors.at(neighbor)] = 1;
+//        }
+//        set_node_indexes_to_form_a_clique.insert(vec_neighbors.at(neighbor));
+//    }
+//
+//    // before adding a clique, we need to check whether the clique is redundant
+//    // if a clique is fully contained by another (existing/previous) clique, then the clique is no need to be inserted.
+//    bool to_be_inserted = true;
+//    for (auto &ptr_clq : vector_clique_ptr_container) {
+//        set<int> intersection;
+//        set_intersection(set_node_indexes_to_form_a_clique.begin(), set_node_indexes_to_form_a_clique.end(),
+//                         ptr_clq->clique_variables.begin(), ptr_clq->clique_variables.end(),
+//                         std::inserter(intersection, intersection.begin()));
+//        if (intersection == set_node_indexes_to_form_a_clique) {
+//            to_be_inserted = false;
+//            break;
+//        }
+//    }
+//
+//    if (to_be_inserted) {
+//        Clique* clique = new Clique(set_node_indexes_to_form_a_clique, net);
+//        vector_clique_ptr_container.push_back(clique);
+//    }
+//
+//    // Remove the first node in elimination ordering, which has already form a clique.
+//    elim_ord.erase(elim_ord.begin());
+//    // The node has been removed, so the edges connected to it should be removed too.
+//    for (int neighbor = 0; neighbor < vec_neighbors.size(); ++neighbor) {
+//        adjac_matrix[first_node_in_elim_ord][vec_neighbors.at(neighbor)] = 0;
+//        adjac_matrix[vec_neighbors.at(neighbor)][first_node_in_elim_ord] = 0;
+//    }
+//
+//    Triangulate(net, adjac_matrix, elim_ord);
+//}
 
 ///**
 // * @brief: the Junction Tree here looks like a linked list.

@@ -161,7 +161,7 @@ EXPECT_GT(accuracy, 0.8230);
 //delete inference;
 //EXPECT_GT(accuracy, 0.8230);
 //}
-//
+
 //class InferenceMunin1: public ::testing::Test {
 //protected:
 //

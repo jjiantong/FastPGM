@@ -30,8 +30,8 @@ class JunctionTree: public Inference {
 
   JunctionTree() = default;
   JunctionTree(Network *net);
-  JunctionTree(Network *net, string elim_ord_strategy);
-  JunctionTree(Network *net, string elim_ord_strategy, vector<int> custom_elim_ord);
+//  JunctionTree(Network *net, string elim_ord_strategy);
+//  JunctionTree(Network *net, string elim_ord_strategy, vector<int> custom_elim_ord);
 //  JunctionTree(JunctionTree*);
     ~JunctionTree();
 
@@ -46,8 +46,6 @@ class JunctionTree: public Inference {
     int PredictUseJTInfer(const DiscreteConfig &E, int Y_index, int num_threads, Timer *timer);
     vector<int> PredictUseJTInfer(const vector<DiscreteConfig> &evidences, int target_node_idx, int num_threads, Timer *timer);
 
-
-
     int GetIndexByCliquePtr(Clique* clq);
 
   //==================================================
@@ -57,7 +55,8 @@ class JunctionTree: public Inference {
 //  map<Clique*,Clique> map_cliques_backup;
 //  map<Separator*,Separator> map_separators_backup;
 
-  void Triangulate(Network *net, int **adjac_matrix, vector<int> elim_ord);
+//  void Triangulate(Network *net, int **adjac_matrix, vector<int> elim_ord);
+    void Triangulate(Network *net, int **adjac_matrix, vector<int> has_processed);
 //  void FormListShapeJunctionTree(set<Clique*> &cliques);
   void FormJunctionTree();
 //  void CliqueMerging(int low, int high);
@@ -66,7 +65,7 @@ class JunctionTree: public Inference {
   void BackUpJunctionTree();
 
   virtual void MessagePassingUpdateJT(int num_threads, Timer *timer);
-  static vector<int> MinNeighbourElimOrd(int **adjac_matrix, int &num_nodes);
+//  static vector<int> MinNeighbourElimOrd(int **adjac_matrix, int &num_nodes);
   static void Moralize(int **direc_adjac_matrix, int &num_nodes);
 //  void GenMapElimVarToClique();
 };
