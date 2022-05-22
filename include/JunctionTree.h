@@ -46,10 +46,14 @@ class JunctionTree: public Inference {
     int PredictUseJTInfer(const DiscreteConfig &E, int Y_index, int num_threads, Timer *timer);
     vector<int> PredictUseJTInfer(const vector<DiscreteConfig> &evidences, int target_node_idx, int num_threads, Timer *timer);
 
+
+
+    int GetIndexByCliquePtr(Clique* clq);
+
   //==================================================
  protected:
-    Clique* clique_backup;
-    Separator* separator_backup;
+    Clique* clique_backup; // use an array to backup cliques
+    Separator* separator_backup; // use an array to backup separators
 //  map<Clique*,Clique> map_cliques_backup;
 //  map<Separator*,Separator> map_separators_backup;
 

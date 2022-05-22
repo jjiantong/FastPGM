@@ -67,7 +67,7 @@ JunctionTree::JunctionTree(Network *net, string elim_ord_strategy, vector<int> c
 
   //construct a clique for each node in the network
   Triangulate(network, moral_graph_adjac_matrix, elimination_ordering);
-  cout << "finish Triangulate, number of cliques = " << vector_separator_ptr_container.size() << endl;
+  cout << "finish Triangulate, number of cliques = " << vector_clique_ptr_container.size() << endl;
 
     for (int i = 0; i < network->num_nodes; ++i) {
         delete[] direc_adjac_matrix[i];
@@ -428,6 +428,8 @@ void JunctionTree::Triangulate(Network *net,
 //    set<Node*> set_node_ptrs_to_form_a_clique;
     set<int> set_node_indexes_to_form_a_clique; // use node index instead
     int first_node_in_elim_ord = elim_ord.front();
+//    cout << "num left nodes = " << elim_ord.size() << " ";
+//    cout << "processing node " << first_node_in_elim_ord << ": " << endl;
 
     // insert the first node in the elimination order into "set_node_ptrs_to_form_a_clique"
 //    set_node_ptrs_to_form_a_clique.insert(net->FindNodePtrByIndex(first_node_in_elim_ord));
@@ -440,6 +442,7 @@ void JunctionTree::Triangulate(Network *net,
         }
     }
 
+//    cout << "neis: ";
     // Form a clique that contains
     for (int neighbor = 0; neighbor < vec_neighbors.size(); ++neighbor) {
         for (int neighbor2 = neighbor + 1; neighbor2 < vec_neighbors.size(); ++neighbor2) {
@@ -448,49 +451,48 @@ void JunctionTree::Triangulate(Network *net,
         }
 //        set_node_ptrs_to_form_a_clique.insert(net->FindNodePtrByIndex(vec_neighbors.at(neighbor)));
         set_node_indexes_to_form_a_clique.insert(vec_neighbors.at(neighbor));
+//        cout << vec_neighbors.at(neighbor) << ", ";
     }
+//    cout << endl;
 
     // before adding a clique, we need to check whether the clique is redundant
     // if a clique is fully contained by another (existing/previous) clique, then the clique is no need to be inserted.
-//    Clique* clique = new Clique(set_node_ptrs_to_form_a_clique);
-    Clique* clique = new Clique(set_node_indexes_to_form_a_clique, net);
-//    cout << "insert a clique: ";
-//    for (auto &v : clique->p_table.related_variables) {
-//        cout << v << " ";
-//    }
-//    cout << endl;
-//    // vector<int> var_dims
-//    cout << "var dims: ";
-//    for (int j = 0; j < clique->p_table.var_dims.size(); ++j) {
-//        cout << clique->p_table.var_dims[j] << " ";
-//    }
-//    // vector<int> cum_levels
-//    cout << "cum_levels: ";
-//    for (int j = 0; j < clique->p_table.cum_levels.size(); ++j) {
-//        cout << clique->p_table.cum_levels[j] << " ";
-//    }
-//    // vector<double> potentials
-//    cout << "table: " << endl;
-//    for (int j = 0; j < clique->p_table.potentials.size(); ++j) {
-//        cout << clique->p_table.potentials[j] << endl;
-//    }
-
     bool to_be_inserted = true;
     for (auto &ptr_clq : vector_clique_ptr_container) {
         set<int> intersection;
-        set_intersection(clique->clique_variables.begin(), clique->clique_variables.end(),
+        set_intersection(set_node_indexes_to_form_a_clique.begin(), set_node_indexes_to_form_a_clique.end(),
                          ptr_clq->clique_variables.begin(), ptr_clq->clique_variables.end(),
                          std::inserter(intersection, intersection.begin()));
-        if (intersection == clique->clique_variables) {
+        if (intersection == set_node_indexes_to_form_a_clique) {
             to_be_inserted = false;
             break;
         }
     }
 
     if (to_be_inserted) {
+        Clique* clique = new Clique(set_node_indexes_to_form_a_clique, net);
         vector_clique_ptr_container.push_back(clique);
-    } else {
-        delete clique;
+//        cout << "insert a clique: ";
+//        for (auto &v : clique->p_table.related_variables) {
+//            cout << v << " ";
+//        }
+//        cout << endl;
+//        // vector<int> var_dims
+//        cout << "var dims: ";
+//        for (int j = 0; j < clique->p_table.var_dims.size(); ++j) {
+//            cout << clique->p_table.var_dims[j] << " ";
+//        }
+//        // vector<int> cum_levels
+//        cout << "cum_levels: ";
+//        for (int j = 0; j < clique->p_table.cum_levels.size(); ++j) {
+//            cout << clique->p_table.cum_levels[j] << " ";
+//        }
+//        // vector<double> potentials
+//        cout << "table size = " << clique->p_table.potentials.size() << endl;
+//        cout << "table: " << endl;
+//        for (int j = 0; j < clique->p_table.potentials.size(); ++j) {
+//            cout << clique->p_table.potentials[j] << endl;
+//        }
     }
 
     // Remove the first node in elimination ordering, which has already form a clique.
@@ -500,6 +502,7 @@ void JunctionTree::Triangulate(Network *net,
         adjac_matrix[first_node_in_elim_ord][vec_neighbors.at(neighbor)] = 0;
         adjac_matrix[vec_neighbors.at(neighbor)][first_node_in_elim_ord] = 0;
     }
+//    cout << "post-processing" << endl;
 
     Triangulate(net, adjac_matrix, elim_ord);
 }
@@ -556,6 +559,15 @@ void JunctionTree::Triangulate(Network *net,
 //  }
 //}
 
+int JunctionTree::GetIndexByCliquePtr(Clique* clq) {
+    for (int i = 0; i < vector_clique_ptr_container.size(); ++i) {
+        if (vector_clique_ptr_container[i] == clq) {
+            return i;
+        }
+    }
+    return -1;
+}
+
 /**
  * @brief: construct a tree where each node is a clique and each edge is a separator.
  * use Prim algorithm; the weights of edges is represented by the weights of the separators
@@ -603,6 +615,14 @@ void JunctionTree::FormJunctionTree() {
       all_possible_seps.insert(sep);
     }
   }
+
+//  for (auto &sep_ptr : all_possible_seps) {
+//      cout << "sep neis: ";
+//      for (auto &nei :sep_ptr->set_neighbours_ptr) {
+//          cout << GetIndexByCliquePtr(nei) << " ";
+//      }
+//      cout << endl;
+//  }
 
   // Second, use Prim's algorithm to form a maximum spanning tree.
   // If we construct a maximum spanning tree by the weights of the separators,

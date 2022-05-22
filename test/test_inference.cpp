@@ -34,7 +34,7 @@ protected:
 
 TEST_F(InferenceAlarm, junction_tree_partial1) {
     Inference *inference = new JunctionTree(network);
-    double accuracy = inference->EvaluateAccuracy(tester, 1, -1, "jt", false);
+    double accuracy = inference->EvaluateAccuracy(tester, 4, -1, "jt", false);
     delete inference;
     delete network;
      delete tester;
@@ -66,29 +66,29 @@ TEST_F(InferenceAlarm, junction_tree_partial1) {
 //EXPECT_GT(accuracy, 0.8230);
 //}
 
-//class InferenceDiabetes: public ::testing::Test {
-//protected:
-//
-//    void SetUp() override {
-//        tester = new Dataset();
-//        network = new CustomNetwork(true);
-//
-//        string net_file_path = "/home/zeyiwen/jiantong/BN/dataset/diabetes/diabetes.xml";
-//        string test_set_file_path = "/home/zeyiwen/jiantong/BN/dataset/diabetes/diabetes_2w_p20";
-//
-//        network->GetNetFromXMLBIFFile(net_file_path);
-//        tester->LoadLIBSVMDataKnownNetwork(test_set_file_path, network->num_nodes);
-//    }
-//    CustomNetwork *network;
-//    Dataset *tester;
-//};
-//
-//TEST_F(InferenceDiabetes, junction_tree_partial1) {
-//Inference *inference = new JunctionTree(network);
-//double accuracy = inference->EvaluateAccuracy(tester, 1, -1, "jt", false);
-//delete inference;
-//EXPECT_GT(accuracy, 0.8230);
-//}
+class InferenceDiabetes: public ::testing::Test {
+protected:
+
+    void SetUp() override {
+        tester = new Dataset();
+        network = new CustomNetwork(true);
+
+        string net_file_path = "/home/zeyiwen/jiantong/BN/dataset/diabetes/diabetes.xml";
+        string test_set_file_path = "/home/zeyiwen/jiantong/BN/dataset/diabetes/diabetes_2w_p20";
+
+        network->GetNetFromXMLBIFFile(net_file_path);
+        tester->LoadLIBSVMDataKnownNetwork(test_set_file_path, network->num_nodes);
+    }
+    CustomNetwork *network;
+    Dataset *tester;
+};
+
+TEST_F(InferenceDiabetes, junction_tree_partial1) {
+Inference *inference = new JunctionTree(network);
+double accuracy = inference->EvaluateAccuracy(tester, 1, -1, "jt", false);
+delete inference;
+EXPECT_GT(accuracy, 0.8230);
+}
 //
 //class InferenceHailfinder: public ::testing::Test {
 //protected:
@@ -137,7 +137,7 @@ TEST_F(InferenceAlarm, junction_tree_partial1) {
 //delete inference;
 //EXPECT_GT(accuracy, 0.8230);
 //}
-//
+
 //class InferenceLink: public ::testing::Test {
 //protected:
 //
