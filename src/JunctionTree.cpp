@@ -25,24 +25,11 @@ JunctionTree::JunctionTree(Network *net) {
 
     int **direc_adjac_matrix = network->ConvertDAGNetworkToAdjacencyMatrix();
     cout << "finish ConvertDAGNetworkToAdjacencyMatrix" << endl;
-//    for (int i = 0; i < network->num_nodes; ++i) {
-//        for (int j = 0; j < network->num_nodes; ++j) {
-//            cout << direc_adjac_matrix[i][j] << " ";
-//        }
-//        cout << endl;
-//    }
 
     Moralize(direc_adjac_matrix, network->num_nodes);
     int **moral_graph_adjac_matrix = direc_adjac_matrix;
-    cout << "finish Moralize" << endl;
-//    for (int i = 0; i < network->num_nodes; ++i) {
-//        for (int j = 0; j < network->num_nodes; ++j) {
-//            cout << moral_graph_adjac_matrix[i][j] << " ";
-//        }
-//        cout << endl;
-//    }
 
-    vector<int> has_processed(network->num_nodes);
+    vector<bool> has_processed(network->num_nodes);
     //construct a clique for each node in the network
     Triangulate(network, moral_graph_adjac_matrix, has_processed);
     cout << "finish Triangulate, number of cliques = " << vector_clique_ptr_container.size() << endl;
@@ -213,7 +200,7 @@ JunctionTree::JunctionTree(Network *net) {
 ////    }
 ////    cout << endl;
 //
-//    vector<int> has_processed(network->num_nodes);
+//    vector<bool> has_processed(network->num_nodes);
 //
 //  //construct a clique for each node in the network
 ////  Triangulate(network, moral_graph_adjac_matrix, elimination_ordering);
@@ -421,54 +408,7 @@ JunctionTree::~JunctionTree() {
  * 1. connect all the parents of each node (connect all the v-structure)
  * 2. directed graph -> undirected graph
  */
-void JunctionTree::Moralize(int **direc_adjac_matrix, int &num_nodes) { //checked
-//  // TODO: can we just get parents of each node and marry them?
-//
-//  // Find the parents that have common child(ren).
-//  // if node x has more than 1 parent, ex., i, j and k,
-//  // then we will find every one of them, and all of the
-//  // (i, j) (i, k) (j, i) (j, k) (k, i) (k, j) will be inserted into "to_marry"
-//  set<pair<int, int>> to_marry;
-////  #pragma omp parallel for collapse(2)
-//  for (int i = 0; i < num_nodes; ++i) {
-//    for (int j = 0; j < num_nodes; ++j) {
-//      if (i == j) {
-//        continue;
-//      }
-//      if (direc_adjac_matrix[i][j] == 1) {
-//        // "i" is a parent of "j"
-//        // The next step is to find other parents, "k", of "j"
-//        for (int k = 0; k < num_nodes; ++k) {
-//          // TODO: what if k = i?
-//          if (direc_adjac_matrix[k][j] == 1) {
-//            to_marry.insert(pair<int, int>(i, k));
-//          }
-//        }
-//      }
-//    }
-//  }
-//
-//  // Making the adjacency matrix undirected.
-////  #pragma omp parallel for collapse(2)
-//  for (int i = 0; i < num_nodes; ++i) {
-//    for (int j = 0; j < num_nodes; ++j) {
-//      if (i==j) {
-//        continue;
-//      }
-//      // TODO: repeated
-//      if (direc_adjac_matrix[i][j] == 1 || direc_adjac_matrix[j][i] == 1) {
-//        direc_adjac_matrix[i][j] = 1;
-//        direc_adjac_matrix[j][i] = 1;
-//      }
-//    }
-//  }
-//
-//  // Marrying parents.
-//  for (const auto &p : to_marry) {
-//    direc_adjac_matrix[p.first][p.second] = 1;
-//  }
-
-    // TODO: new (right) version
+void JunctionTree::Moralize(int **direc_adjac_matrix, int &num_nodes) {
     set<pair<int, int>> to_marry;
 
     for (int i = 0; i < num_nodes; ++i) {
@@ -568,14 +508,14 @@ void JunctionTree::Moralize(int **direc_adjac_matrix, int &num_nodes) { //checke
  * @note: this is an improved implementation - each time find the node with fewest neighbors to process
  *        the original implementation is following it - use a fixed order generated before, according to the number of neighbors
  */
-void JunctionTree::Triangulate(Network *net, int **adjac_matrix, vector<int> has_processed) {
+void JunctionTree::Triangulate(Network *net, int **adjac_matrix, vector<bool> &has_processed) {
     /**
      * terminating condition: all nodes have been processed
      */
     bool terminated = true;
     int num_nodes = net->num_nodes;
     for (int i = 0; i < num_nodes; ++i) {
-        if (has_processed[i] == 0) {
+        if (!has_processed[i]) {
             terminated = false;
             break;
         }
@@ -627,9 +567,9 @@ void JunctionTree::Triangulate(Network *net, int **adjac_matrix, vector<int> has
     // Form a clique that contains
     for (int neighbor = 0; neighbor < vec_neighbors.size(); ++neighbor) {
         for (int neighbor2 = neighbor + 1; neighbor2 < vec_neighbors.size(); ++neighbor2) {
-            if (adjac_matrix[vec_neighbors.at(neighbor)][vec_neighbors.at(neighbor2)] == 0) {
-                cout << "add" << endl;
-            }
+//            if (adjac_matrix[vec_neighbors.at(neighbor)][vec_neighbors.at(neighbor2)] == 0) {
+//                cout << "add" << endl;
+//            }
             adjac_matrix[vec_neighbors.at(neighbor)][vec_neighbors.at(neighbor2)] = 1;
             adjac_matrix[vec_neighbors.at(neighbor2)][vec_neighbors.at(neighbor)] = 1;
         }
@@ -672,6 +612,7 @@ void JunctionTree::Triangulate(Network *net, int **adjac_matrix, vector<int> has
 //        }
 //        // vector<double> potentials
 //        cout << "table size = " << clique->p_table.potentials.size() << endl;
+//        cout << "table size = " << clique->p_table.table_size << endl;
 //        cout << "table: " << endl;
 //        for (int j = 0; j < clique->p_table.potentials.size(); ++j) {
 //            cout << clique->p_table.potentials[j] << endl;
@@ -721,9 +662,9 @@ void JunctionTree::Triangulate(Network *net, int **adjac_matrix, vector<int> has
 //    // Form a clique that contains
 //    for (int neighbor = 0; neighbor < vec_neighbors.size(); ++neighbor) {
 //        for (int neighbor2 = neighbor + 1; neighbor2 < vec_neighbors.size(); ++neighbor2) {
-//            if (adjac_matrix[vec_neighbors.at(neighbor)][vec_neighbors.at(neighbor2)] == 0) {
-//                cout << "add" << endl;
-//            }
+////            if (adjac_matrix[vec_neighbors.at(neighbor)][vec_neighbors.at(neighbor2)] == 0) {
+////                cout << "add" << endl;
+////            }
 //            adjac_matrix[vec_neighbors.at(neighbor)][vec_neighbors.at(neighbor2)] = 1;
 //            adjac_matrix[vec_neighbors.at(neighbor2)][vec_neighbors.at(neighbor)] = 1;
 //        }
@@ -826,48 +767,31 @@ int JunctionTree::GetIndexByCliquePtr(Clique* clq) {
  * use Prim algorithm; the weights of edges is represented by the weights of the separators
  */
 void JunctionTree::FormJunctionTree() {
-  // First, generate all possible separators.
-  set<pair<Clique*,Clique*>> mark;
-  set<Separator*> all_possible_seps;
-  // TODO: can we just traverse i from 0 to cliques.size and j from i+1 to cliques.size?
-  // TODO: then we dont need to use "mark" or frequently find pair from "mark"
-  for (auto &clique_ptr : vector_clique_ptr_container) {
-    for (auto &clique_ptr_2 : vector_clique_ptr_container) {
+    // First, generate all possible separators.
+    set<Separator*> all_possible_seps;
+    for (int i = 0; i < vector_clique_ptr_container.size(); ++i) {
+        for (int j = i + 1; j < vector_clique_ptr_container.size(); ++j) {
+            auto clique_ptr = vector_clique_ptr_container[i];
+            auto clique_ptr_2 = vector_clique_ptr_container[j];
 
-      if (clique_ptr == clique_ptr_2) {
-        continue; // The same cliques do not need a separator
-      } else if (mark.find(pair<Clique*,Clique*>(clique_ptr,clique_ptr_2)) != mark.end()) {
-        continue; // The separator of this pair of cliques has been generated
-      }
+            set<int> common_variables;
+            set_intersection(clique_ptr->clique_variables.begin(), clique_ptr->clique_variables.end(),
+                             clique_ptr_2->clique_variables.begin(), clique_ptr_2->clique_variables.end(),
+                             std::inserter(common_variables,common_variables.begin()));
 
-      // Mark this pair.
-      mark.insert(pair<Clique*,Clique*>(clique_ptr,clique_ptr_2));
-      mark.insert(pair<Clique*,Clique*>(clique_ptr_2,clique_ptr));
+            // If they have no common variables, then they will not be connected by separator.
+            if (common_variables.empty()) {
+                continue;
+            }
 
-      set<int> common_variables;
-      set_intersection(clique_ptr->clique_variables.begin(),clique_ptr->clique_variables.end(),
-                       clique_ptr_2->clique_variables.begin(),clique_ptr_2->clique_variables.end(),
-                       std::inserter(common_variables,common_variables.begin()));
+            Separator *sep = new Separator(common_variables, network);
+            // Let separator know the two cliques that it connects to.
+            sep->set_neighbours_ptr.insert(clique_ptr);
+            sep->set_neighbours_ptr.insert(clique_ptr_2);
 
-      // If they have no common variables, then they will not be connected by separator.
-      if (common_variables.empty()) {
-          continue;
-      }
-
-//      set<Node*> common_related_node_ptrs;
-//      for (auto &v : common_variables) {
-//        common_related_node_ptrs.insert(network->FindNodePtrByIndex(v));
-//      }
-
-//      Separator *sep = new Separator(common_related_node_ptrs);
-      Separator *sep = new Separator(common_variables, network);
-      // Let separator know the two cliques that it connects to.
-      sep->set_neighbours_ptr.insert(clique_ptr);
-      sep->set_neighbours_ptr.insert(clique_ptr_2);
-
-      all_possible_seps.insert(sep);
+            all_possible_seps.insert(sep);
+        }
     }
-  }
 
 //  for (auto &sep_ptr : all_possible_seps) {
 //      cout << "sep neis: ";
@@ -1702,6 +1626,8 @@ double JunctionTree::EvaluateAccuracy(Dataset *dts, int num_threads, int num_sam
 //      }
     }
 
+    cout << "finish 2w samples" << endl;
+
     // predict the labels of the test instances
     vector<int> predictions = PredictUseJTInfer(evidences, class_var_index, num_threads, timer);
 
@@ -1752,6 +1678,36 @@ int JunctionTree::PredictUseJTInfer(const DiscreteConfig &E, int Y_index, int nu
     //update a clique using the evidence
     LoadDiscreteEvidence(E, num_threads, timer);
     timer->Stop("load evidence");
+//    cout << "finish load evidence" << endl;
+
+//    cout << "cliques: " << endl;
+//    for (auto &c : vector_clique_ptr_container) {
+//        cout << c->clique_id << ": ";
+//        // set<int> related_variables
+//        for (auto &v : c->p_table.related_variables) {
+//            cout << v << " ";
+//        }
+//        cout << endl;
+//        // vector<double> potentials
+//        for (int j = 0; j < c->p_table.potentials.size(); ++j) {
+//            cout << c->p_table.potentials[j] << " ";
+//        }
+//        cout << endl;
+//    }
+//    cout << "separators: " << endl;
+//    for (auto &s : vector_separator_ptr_container) {
+//        cout << s->clique_id << ": ";
+//        // set<int> related_variables
+//        for (auto &v : s->p_table.related_variables) {
+//            cout << v << " ";
+//        }
+//        cout << endl;
+//        // vector<double> potentials
+//        for (int j = 0; j < s->p_table.potentials.size(); ++j) {
+//            cout << s->p_table.potentials[j] << " ";
+//        }
+//        cout << endl;
+//    }
 
     timer->Start("msg passing");
     //update the whole Junction Tree
@@ -1769,8 +1725,9 @@ int JunctionTree::PredictUseJTInfer(const DiscreteConfig &E, int Y_index, int nu
 //        cout << endl;
 //        // vector<double> potentials
 //        for (int j = 0; j < c->p_table.potentials.size(); ++j) {
-//            cout << c->p_table.potentials[j] << endl;
+//            cout << c->p_table.potentials[j] << " ";
 //        }
+//        cout << endl;
 //    }
 //    cout << "separators: " << endl;
 //    for (auto &s : vector_separator_ptr_container) {
@@ -1782,10 +1739,10 @@ int JunctionTree::PredictUseJTInfer(const DiscreteConfig &E, int Y_index, int nu
 //        cout << endl;
 //        // vector<double> potentials
 //        for (int j = 0; j < s->p_table.potentials.size(); ++j) {
-//            cout << s->p_table.potentials[j] << endl;
+//            cout << s->p_table.potentials[j] << " ";
 //        }
+//        cout << endl;
 //    }
-//    cout << endl;
 
     timer->Start("predict");
     int label_predict = InferenceUsingBeliefPropagation(Y_index, timer);

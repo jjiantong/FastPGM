@@ -220,9 +220,9 @@ void DiscreteNode::AddCount(int query_val, DiscreteConfig &parents_config, int c
  * @brief: set the probability of a node given the evidence(s)
  * it is used when loading a saved BN
  */
-void DiscreteNode:: SetProbability(int query_val, DiscreteConfig &parents_config, double prob) {
-    map_cond_prob[query_val][parents_config] = prob;
-}
+//void DiscreteNode:: SetProbability(int query_val, DiscreteConfig &parents_config, double prob) {
+//    map_cond_prob[query_val][parents_config] = prob;
+//}
 
 /**
  * @brief: use the counters in the probability table to compute the probabilities
@@ -230,11 +230,11 @@ void DiscreteNode:: SetProbability(int query_val, DiscreteConfig &parents_config
  */
 // TODO: check the algorithm for the case of unseen values (based on a forgotten paper of weka)
 double DiscreteNode:: GetProbability(int query_val, DiscreteConfig &parents_config) {
-    if (map_cond_prob[query_val][parents_config] < 0) {
+//    if (map_cond_prob[query_val][parents_config] < 0) {
         return GetConditionalProbability(query_val, parents_config);
-    } else {
-        return map_cond_prob[query_val][parents_config];
-    }
+//    } else {
+//        return map_cond_prob[query_val][parents_config];
+//    }
 }
 
 /**

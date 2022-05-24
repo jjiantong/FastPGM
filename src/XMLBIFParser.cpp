@@ -171,7 +171,11 @@ void XMLBIFParser::AssignProbsToNodes(vector<Node*> vec_nodes_ptr) {
                                 dynamic_cast<DiscreteNode*>(vec_given_vars_ptrs[j-1])->vec_potential_vals.at(digits[j])));
             }
 
-            dynamic_cast<DiscreteNode*>(for_np)->SetProbability(query, comb, vec_db_table_entry.at(i));
+            // directly set probability based on the input file causes a problem when testing,
+            // the problem happens if some probabilities are 0
+            // so we use a "laplace_smooth" to avoid 0 probability
+//            dynamic_cast<DiscreteNode*>(for_np)->SetProbability(query, comb, vec_db_table_entry.at(i));
+            dynamic_cast<DiscreteNode*>(for_np)->AddCount(query, comb, vec_db_table_entry.at(i)*10000);
         }
     }
 }

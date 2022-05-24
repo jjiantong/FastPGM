@@ -39,7 +39,7 @@ class DiscreteNode : public Node {//the parent nodes of DiscreteNode must be dis
 
   void AddInstanceOfVarVal(DiscreteConfig instance_of_var_val);
   void AddCount(int query_val, DiscreteConfig &parents_config, int count);
-    void SetProbability(int query_val, DiscreteConfig &parents_config, double prob);
+//    void SetProbability(int query_val, DiscreteConfig &parents_config, double prob);
   double GetProbability(int query_val, DiscreteConfig &parents_config);
     double GetConditionalProbability(int query_val, DiscreteConfig &parents_config);
 //  int GetIndexOfValue(int val);
