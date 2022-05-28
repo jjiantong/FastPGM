@@ -34,12 +34,352 @@ protected:
 
 TEST_F(InferenceAlarm, junction_tree_partial1) {
     Inference *inference = new JunctionTree(network);
-    double accuracy = inference->EvaluateAccuracy(tester, 4, -1, "jt", false);
+    double accuracy = inference->EvaluateAccuracy(tester, 1, -1, "jt", false);
     delete inference;
     delete network;
      delete tester;
     EXPECT_GT(accuracy, 0.4);
 }
+
+TEST_F(InferenceAlarm, junction_tree_partial2) {
+Inference *inference = new JunctionTree(network);
+double accuracy = inference->EvaluateAccuracy(tester, 2, -1, "jt", false);
+delete inference;
+delete network;
+delete tester;
+EXPECT_GT(accuracy, 0.4);
+}
+
+//TEST_F(InferenceAlarm, junction_tree_partial4) {
+//Inference *inference = new JunctionTree(network);
+//double accuracy = inference->EvaluateAccuracy(tester, 4, -1, "jt", false);
+//delete inference;
+//delete network;
+//delete tester;
+//EXPECT_GT(accuracy, 0.4);
+//}
+//
+//TEST_F(InferenceAlarm, junction_tree_partial6) {
+//Inference *inference = new JunctionTree(network);
+//double accuracy = inference->EvaluateAccuracy(tester, 6, -1, "jt", false);
+//delete inference;
+//delete network;
+//delete tester;
+//EXPECT_GT(accuracy, 0.4);
+//}
+//
+//TEST_F(InferenceAlarm, junction_tree_partial8) {
+//Inference *inference = new JunctionTree(network);
+//double accuracy = inference->EvaluateAccuracy(tester, 8, -1, "jt", false);
+//delete inference;
+//delete network;
+//delete tester;
+//EXPECT_GT(accuracy, 0.4);
+//}
+//
+//TEST_F(InferenceAlarm, junction_tree_partial10) {
+//Inference *inference = new JunctionTree(network);
+//double accuracy = inference->EvaluateAccuracy(tester, 10, -1, "jt", false);
+//delete inference;
+//delete network;
+//delete tester;
+//EXPECT_GT(accuracy, 0.4);
+//}
+//
+
+
+
+//class InferenceHailfinder: public ::testing::Test {
+//protected:
+//
+//    void SetUp() override {
+//        tester = new Dataset();
+//        network = new CustomNetwork(true);
+//
+//        string net_file_path = "/home/zeyiwen/jiantong/BN/dataset/hailfinder/hailfinder.xml";
+//        string test_set_file_path = "/home/zeyiwen/jiantong/BN/dataset/hailfinder/hailfinder_2w_p20";
+//
+//        network->GetNetFromXMLBIFFile(net_file_path);
+//        tester->LoadLIBSVMDataKnownNetwork(test_set_file_path, network->num_nodes);
+//    }
+//    CustomNetwork *network;
+//    Dataset *tester;
+//};
+//
+//TEST_F(InferenceHailfinder, junction_tree_partial1) {
+//Inference *inference = new JunctionTree(network);
+//double accuracy = inference->EvaluateAccuracy(tester, 1, -1, "jt", false);
+//delete inference;
+//delete network;
+//delete tester;
+//EXPECT_GT(accuracy, 0.8230);
+//}
+//
+//TEST_F(InferenceHailfinder, junction_tree_partial2) {
+//Inference *inference = new JunctionTree(network);
+//double accuracy = inference->EvaluateAccuracy(tester, 2, -1, "jt", false);
+//delete inference;
+//delete network;
+//delete tester;
+//EXPECT_GT(accuracy, 0.8230);
+//}
+//
+//TEST_F(InferenceHailfinder, junction_tree_partial4) {
+//Inference *inference = new JunctionTree(network);
+//double accuracy = inference->EvaluateAccuracy(tester, 4, -1, "jt", false);
+//delete inference;
+//delete network;
+//delete tester;
+//EXPECT_GT(accuracy, 0.8230);
+//}
+//
+//TEST_F(InferenceHailfinder, junction_tree_partial6) {
+//Inference *inference = new JunctionTree(network);
+//double accuracy = inference->EvaluateAccuracy(tester, 6, -1, "jt", false);
+//delete inference;
+//delete network;
+//delete tester;
+//EXPECT_GT(accuracy, 0.8230);
+//}
+//
+//TEST_F(InferenceHailfinder, junction_tree_partial8) {
+//Inference *inference = new JunctionTree(network);
+//double accuracy = inference->EvaluateAccuracy(tester, 8, -1, "jt", false);
+//delete inference;
+//delete network;
+//delete tester;
+//EXPECT_GT(accuracy, 0.8230);
+//}
+//
+//TEST_F(InferenceHailfinder, junction_tree_partial10) {
+//Inference *inference = new JunctionTree(network);
+//double accuracy = inference->EvaluateAccuracy(tester, 10, -1, "jt", false);
+//delete inference;
+//delete network;
+//delete tester;
+//EXPECT_GT(accuracy, 0.8230);
+//}
+//
+//
+//
+//
+//class InferenceHepar2: public ::testing::Test {
+//protected:
+//
+//    void SetUp() override {
+//        tester = new Dataset();
+//        network = new CustomNetwork(true);
+//
+//        string net_file_path = "/home/zeyiwen/jiantong/BN/dataset/hepar2/hepar2.xml";
+//        string test_set_file_path = "/home/zeyiwen/jiantong/BN/dataset/hepar2/hepar2_2w_p20";
+//
+//        network->GetNetFromXMLBIFFile(net_file_path);
+//        tester->LoadLIBSVMDataKnownNetwork(test_set_file_path, network->num_nodes);
+//    }
+//    CustomNetwork *network;
+//    Dataset *tester;
+//};
+//
+//TEST_F(InferenceHepar2, junction_tree_partial1) {
+//Inference *inference = new JunctionTree(network);
+//double accuracy = inference->EvaluateAccuracy(tester, 1, -1, "jt", false);
+//delete inference;
+//delete network;
+//delete tester;
+//EXPECT_GT(accuracy, 0.8230);
+//}
+//
+//TEST_F(InferenceHepar2, junction_tree_partial2) {
+//Inference *inference = new JunctionTree(network);
+//double accuracy = inference->EvaluateAccuracy(tester, 2, -1, "jt", false);
+//delete inference;
+//delete network;
+//delete tester;
+//EXPECT_GT(accuracy, 0.8230);
+//}
+//
+//TEST_F(InferenceHepar2, junction_tree_partial4) {
+//Inference *inference = new JunctionTree(network);
+//double accuracy = inference->EvaluateAccuracy(tester, 4, -1, "jt", false);
+//delete inference;
+//delete network;
+//delete tester;
+//EXPECT_GT(accuracy, 0.8230);
+//}
+//
+//TEST_F(InferenceHepar2, junction_tree_partial6) {
+//Inference *inference = new JunctionTree(network);
+//double accuracy = inference->EvaluateAccuracy(tester, 6, -1, "jt", false);
+//delete inference;
+//delete network;
+//delete tester;
+//EXPECT_GT(accuracy, 0.8230);
+//}
+//
+//TEST_F(InferenceHepar2, junction_tree_partial8) {
+//Inference *inference = new JunctionTree(network);
+//double accuracy = inference->EvaluateAccuracy(tester, 8, -1, "jt", false);
+//delete inference;
+//delete network;
+//delete tester;
+//EXPECT_GT(accuracy, 0.8230);
+//}
+//
+//TEST_F(InferenceHepar2, junction_tree_partial10) {
+//Inference *inference = new JunctionTree(network);
+//double accuracy = inference->EvaluateAccuracy(tester, 10, -1, "jt", false);
+//delete inference;
+//delete network;
+//delete tester;
+//EXPECT_GT(accuracy, 0.8230);
+//}
+//
+//
+//class InferenceWin95pts: public ::testing::Test {
+//protected:
+//
+//    void SetUp() override {
+//        tester = new Dataset();
+//        network = new CustomNetwork(true);
+//
+//        string net_file_path = "/home/zeyiwen/jiantong/BN/dataset/win95pts/win95pts.xml";
+//        string test_set_file_path = "/home/zeyiwen/jiantong/BN/dataset/win95pts/win95pts_2w_p20";
+//
+//        network->GetNetFromXMLBIFFile(net_file_path);
+//        tester->LoadLIBSVMDataKnownNetwork(test_set_file_path, network->num_nodes);
+//    }
+//    CustomNetwork *network;
+//    Dataset *tester;
+//};
+//
+//TEST_F(InferenceWin95pts, junction_tree_partial1) {
+//Inference *inference = new JunctionTree(network);
+//double accuracy = inference->EvaluateAccuracy(tester, 1, -1, "jt", false);
+//delete inference;
+//delete network;
+//delete tester;
+//EXPECT_GT(accuracy, 0.8230);
+//}
+//
+//TEST_F(InferenceWin95pts, junction_tree_partial2) {
+//Inference *inference = new JunctionTree(network);
+//double accuracy = inference->EvaluateAccuracy(tester, 2, -1, "jt", false);
+//delete inference;
+//delete network;
+//delete tester;
+//EXPECT_GT(accuracy, 0.8230);
+//}
+//
+//TEST_F(InferenceWin95pts, junction_tree_partial4) {
+//Inference *inference = new JunctionTree(network);
+//double accuracy = inference->EvaluateAccuracy(tester, 4, -1, "jt", false);
+//delete inference;
+//delete network;
+//delete tester;
+//EXPECT_GT(accuracy, 0.8230);
+//}
+//
+//TEST_F(InferenceWin95pts, junction_tree_partial6) {
+//Inference *inference = new JunctionTree(network);
+//double accuracy = inference->EvaluateAccuracy(tester, 6, -1, "jt", false);
+//delete inference;
+//delete network;
+//delete tester;
+//EXPECT_GT(accuracy, 0.8230);
+//}
+//
+//TEST_F(InferenceWin95pts, junction_tree_partial8) {
+//Inference *inference = new JunctionTree(network);
+//double accuracy = inference->EvaluateAccuracy(tester, 8, -1, "jt", false);
+//delete inference;
+//delete network;
+//delete tester;
+//EXPECT_GT(accuracy, 0.8230);
+//}
+//
+//TEST_F(InferenceWin95pts, junction_tree_partial10) {
+//Inference *inference = new JunctionTree(network);
+//double accuracy = inference->EvaluateAccuracy(tester, 10, -1, "jt", false);
+//delete inference;
+//delete network;
+//delete tester;
+//EXPECT_GT(accuracy, 0.8230);
+//}
+
+
+
+class InferencePathfinder: public ::testing::Test {
+protected:
+
+    void SetUp() override {
+        tester = new Dataset();
+        network = new CustomNetwork(true);
+
+        string net_file_path = "/home/zeyiwen/jiantong/BN/dataset/pathfinder/pathfinder.xml";
+        string test_set_file_path = "/home/zeyiwen/jiantong/BN/dataset/pathfinder/pathfinder_2w_p20";
+
+        network->GetNetFromXMLBIFFile(net_file_path);
+        tester->LoadLIBSVMDataKnownNetwork(test_set_file_path, network->num_nodes);
+    }
+    CustomNetwork *network;
+    Dataset *tester;
+};
+
+TEST_F(InferencePathfinder, junction_tree_partial1) {
+Inference *inference = new JunctionTree(network);
+double accuracy = inference->EvaluateAccuracy(tester, 1, -1, "jt", false);
+delete inference;
+delete network;
+delete tester;
+EXPECT_GT(accuracy, 0.8230);
+}
+
+TEST_F(InferencePathfinder, junction_tree_partial2) {
+Inference *inference = new JunctionTree(network);
+double accuracy = inference->EvaluateAccuracy(tester, 2, -1, "jt", false);
+delete inference;
+delete network;
+delete tester;
+EXPECT_GT(accuracy, 0.8230);
+}
+
+//TEST_F(InferencePathfinder, junction_tree_partial4) {
+//Inference *inference = new JunctionTree(network);
+//double accuracy = inference->EvaluateAccuracy(tester, 4, -1, "jt", false);
+//delete inference;
+//delete network;
+//delete tester;
+//EXPECT_GT(accuracy, 0.8230);
+//}
+//
+//TEST_F(InferencePathfinder, junction_tree_partial6) {
+//Inference *inference = new JunctionTree(network);
+//double accuracy = inference->EvaluateAccuracy(tester, 6, -1, "jt", false);
+//delete inference;
+//delete network;
+//delete tester;
+//EXPECT_GT(accuracy, 0.8230);
+//}
+//
+//TEST_F(InferencePathfinder, junction_tree_partial8) {
+//Inference *inference = new JunctionTree(network);
+//double accuracy = inference->EvaluateAccuracy(tester, 8, -1, "jt", false);
+//delete inference;
+//delete network;
+//delete tester;
+//EXPECT_GT(accuracy, 0.8230);
+//}
+//
+//TEST_F(InferencePathfinder, junction_tree_partial10) {
+//Inference *inference = new JunctionTree(network);
+//double accuracy = inference->EvaluateAccuracy(tester, 10, -1, "jt", false);
+//delete inference;
+//delete network;
+//delete tester;
+//EXPECT_GT(accuracy, 0.8230);
+//}
+
+
 
 
 //class InferenceAndes: public ::testing::Test {
@@ -63,44 +403,20 @@ TEST_F(InferenceAlarm, junction_tree_partial1) {
 //Inference *inference = new JunctionTree(network);
 //double accuracy = inference->EvaluateAccuracy(tester, 1, -1, "jt", false);
 //delete inference;
+//delete network;
+//delete tester;
 //EXPECT_GT(accuracy, 0.8230);
 //}
 
-class InferenceDiabetes: public ::testing::Test {
-protected:
-
-    void SetUp() override {
-        tester = new Dataset();
-        network = new CustomNetwork(true);
-
-        string net_file_path = "/home/zeyiwen/jiantong/BN/dataset/diabetes/diabetes.xml";
-        string test_set_file_path = "/home/zeyiwen/jiantong/BN/dataset/diabetes/diabetes_2w_p20";
-
-        network->GetNetFromXMLBIFFile(net_file_path);
-        tester->LoadLIBSVMDataKnownNetwork(test_set_file_path, network->num_nodes);
-    }
-    CustomNetwork *network;
-    Dataset *tester;
-};
-
-TEST_F(InferenceDiabetes, junction_tree_partial1) {
-Inference *inference = new JunctionTree(network);
-double accuracy = inference->EvaluateAccuracy(tester, 1, -1, "jt", false);
-delete inference;
-delete network;
-delete tester;
-EXPECT_GT(accuracy, 0.4);
-}
-//
-//class InferenceHailfinder: public ::testing::Test {
+//class InferenceDiabetes: public ::testing::Test {
 //protected:
 //
 //    void SetUp() override {
 //        tester = new Dataset();
 //        network = new CustomNetwork(true);
 //
-//        string net_file_path = "/home/zeyiwen/jiantong/BN/dataset/hailfinder/hailfinder.xml";
-//        string test_set_file_path = "/home/zeyiwen/jiantong/BN/dataset/hailfinder/hailfinder_2w_p20";
+//        string net_file_path = "/home/zeyiwen/jiantong/BN/dataset/diabetes/diabetes.xml";
+//        string test_set_file_path = "/home/zeyiwen/jiantong/BN/dataset/diabetes/diabetes_2w_p20";
 //
 //        network->GetNetFromXMLBIFFile(net_file_path);
 //        tester->LoadLIBSVMDataKnownNetwork(test_set_file_path, network->num_nodes);
@@ -109,22 +425,71 @@ EXPECT_GT(accuracy, 0.4);
 //    Dataset *tester;
 //};
 //
-//TEST_F(InferenceHailfinder, junction_tree_partial1) {
+//TEST_F(InferenceDiabetes, junction_tree_partial1) {
 //Inference *inference = new JunctionTree(network);
 //double accuracy = inference->EvaluateAccuracy(tester, 1, -1, "jt", false);
 //delete inference;
-//EXPECT_GT(accuracy, 0.8230);
+//delete network;
+//delete tester;
+//EXPECT_GT(accuracy, 0.4);
 //}
 //
-//class InferenceHepar2: public ::testing::Test {
+//TEST_F(InferenceDiabetes, junction_tree_partial2) {
+//Inference *inference = new JunctionTree(network);
+//double accuracy = inference->EvaluateAccuracy(tester, 2, -1, "jt", false);
+//delete inference;
+//delete network;
+//delete tester;
+//EXPECT_GT(accuracy, 0.4);
+//}
+//
+//TEST_F(InferenceDiabetes, junction_tree_partial4) {
+//Inference *inference = new JunctionTree(network);
+//double accuracy = inference->EvaluateAccuracy(tester, 4, -1, "jt", false);
+//delete inference;
+//delete network;
+//delete tester;
+//EXPECT_GT(accuracy, 0.4);
+//}
+//
+//TEST_F(InferenceDiabetes, junction_tree_partial6) {
+//Inference *inference = new JunctionTree(network);
+//double accuracy = inference->EvaluateAccuracy(tester, 6, -1, "jt", false);
+//delete inference;
+//delete network;
+//delete tester;
+//EXPECT_GT(accuracy, 0.4);
+//}
+//
+//TEST_F(InferenceDiabetes, junction_tree_partial8) {
+//Inference *inference = new JunctionTree(network);
+//double accuracy = inference->EvaluateAccuracy(tester, 8, -1, "jt", false);
+//delete inference;
+//delete network;
+//delete tester;
+//EXPECT_GT(accuracy, 0.4);
+//}
+//
+//TEST_F(InferenceDiabetes, junction_tree_partial10) {
+//Inference *inference = new JunctionTree(network);
+//double accuracy = inference->EvaluateAccuracy(tester, 10, -1, "jt", false);
+//delete inference;
+//delete network;
+//delete tester;
+//EXPECT_GT(accuracy, 0.4);
+//}
+//
+//
+//
+//class InferencePigs: public ::testing::Test {
 //protected:
 //
 //    void SetUp() override {
 //        tester = new Dataset();
 //        network = new CustomNetwork(true);
 //
-//        string net_file_path = "/home/zeyiwen/jiantong/BN/dataset/hepar2/hepar2.xml";
-//        string test_set_file_path = "/home/zeyiwen/jiantong/BN/dataset/hepar2/hepar2_2w_p20";
+//        string net_file_path = "/home/zeyiwen/jiantong/BN/dataset/pigs/pigs.xml";
+//        string test_set_file_path = "/home/zeyiwen/jiantong/BN/dataset/pigs/pigs_2w_p20";
 //
 //        network->GetNetFromXMLBIFFile(net_file_path);
 //        tester->LoadLIBSVMDataKnownNetwork(test_set_file_path, network->num_nodes);
@@ -133,13 +498,65 @@ EXPECT_GT(accuracy, 0.4);
 //    Dataset *tester;
 //};
 //
-//TEST_F(InferenceHepar2, junction_tree_partial1) {
+//TEST_F(InferencePigs, junction_tree_partial1) {
 //Inference *inference = new JunctionTree(network);
 //double accuracy = inference->EvaluateAccuracy(tester, 1, -1, "jt", false);
 //delete inference;
+//delete network;
+//delete tester;
 //EXPECT_GT(accuracy, 0.8230);
 //}
-
+//
+//TEST_F(InferencePigs, junction_tree_partial2) {
+//Inference *inference = new JunctionTree(network);
+//double accuracy = inference->EvaluateAccuracy(tester, 2, -1, "jt", false);
+//delete inference;
+//delete network;
+//delete tester;
+//EXPECT_GT(accuracy, 0.8230);
+//}
+//
+//TEST_F(InferencePigs, junction_tree_partial4) {
+//Inference *inference = new JunctionTree(network);
+//double accuracy = inference->EvaluateAccuracy(tester, 4, -1, "jt", false);
+//delete inference;
+//delete network;
+//delete tester;
+//EXPECT_GT(accuracy, 0.8230);
+//}
+//
+//TEST_F(InferencePigs, junction_tree_partial6) {
+//Inference *inference = new JunctionTree(network);
+//double accuracy = inference->EvaluateAccuracy(tester, 6, -1, "jt", false);
+//delete inference;
+//delete network;
+//delete tester;
+//EXPECT_GT(accuracy, 0.8230);
+//}
+//
+//TEST_F(InferencePigs, junction_tree_partial8) {
+//Inference *inference = new JunctionTree(network);
+//double accuracy = inference->EvaluateAccuracy(tester, 8, -1, "jt", false);
+//delete inference;
+//delete network;
+//delete tester;
+//EXPECT_GT(accuracy, 0.8230);
+//}
+//
+//TEST_F(InferencePigs, junction_tree_partial10) {
+//Inference *inference = new JunctionTree(network);
+//double accuracy = inference->EvaluateAccuracy(tester, 10, -1, "jt", false);
+//delete inference;
+//delete network;
+//delete tester;
+//EXPECT_GT(accuracy, 0.8230);
+//}
+//
+//
+//
+//
+//
+//
 //class InferenceLink: public ::testing::Test {
 //protected:
 //
@@ -161,9 +578,59 @@ EXPECT_GT(accuracy, 0.4);
 //Inference *inference = new JunctionTree(network);
 //double accuracy = inference->EvaluateAccuracy(tester, 1, -1, "jt", false);
 //delete inference;
+//delete network;
+//delete tester;
 //EXPECT_GT(accuracy, 0.8230);
 //}
-
+//
+//TEST_F(InferenceLink, junction_tree_partial2) {
+//Inference *inference = new JunctionTree(network);
+//double accuracy = inference->EvaluateAccuracy(tester, 2, -1, "jt", false);
+//delete inference;
+//delete network;
+//delete tester;
+//EXPECT_GT(accuracy, 0.8230);
+//}
+//
+//TEST_F(InferenceLink, junction_tree_partial4) {
+//Inference *inference = new JunctionTree(network);
+//double accuracy = inference->EvaluateAccuracy(tester, 4, -1, "jt", false);
+//delete inference;
+//delete network;
+//delete tester;
+//EXPECT_GT(accuracy, 0.8230);
+//}
+//
+//TEST_F(InferenceLink, junction_tree_partial6) {
+//Inference *inference = new JunctionTree(network);
+//double accuracy = inference->EvaluateAccuracy(tester, 6, -1, "jt", false);
+//delete inference;
+//delete network;
+//delete tester;
+//EXPECT_GT(accuracy, 0.8230);
+//}
+//
+//TEST_F(InferenceLink, junction_tree_partial8) {
+//Inference *inference = new JunctionTree(network);
+//double accuracy = inference->EvaluateAccuracy(tester, 8, -1, "jt", false);
+//delete inference;
+//delete network;
+//delete tester;
+//EXPECT_GT(accuracy, 0.8230);
+//}
+//
+//TEST_F(InferenceLink, junction_tree_partial10) {
+//Inference *inference = new JunctionTree(network);
+//double accuracy = inference->EvaluateAccuracy(tester, 10, -1, "jt", false);
+//delete inference;
+//delete network;
+//delete tester;
+//EXPECT_GT(accuracy, 0.8230);
+//}
+//
+//
+//
+//
 //class InferenceMunin1: public ::testing::Test {
 //protected:
 //
@@ -185,8 +652,61 @@ EXPECT_GT(accuracy, 0.4);
 //Inference *inference = new JunctionTree(network);
 //double accuracy = inference->EvaluateAccuracy(tester, 1, -1, "jt", false);
 //delete inference;
-//EXPECT_GT(accuracy, 0.8230);
+//delete network;
+//delete tester;
+//EXPECT_GT(accuracy, 0.49);
 //}
+//
+//TEST_F(InferenceMunin1, junction_tree_partial2) {
+//Inference *inference = new JunctionTree(network);
+//double accuracy = inference->EvaluateAccuracy(tester, 2, -1, "jt", false);
+//delete inference;
+//delete network;
+//delete tester;
+//EXPECT_GT(accuracy, 0.49);
+//}
+//
+//TEST_F(InferenceMunin1, junction_tree_partial4) {
+//Inference *inference = new JunctionTree(network);
+//double accuracy = inference->EvaluateAccuracy(tester, 4, -1, "jt", false);
+//delete inference;
+//delete network;
+//delete tester;
+//EXPECT_GT(accuracy, 0.49);
+//}
+//
+//TEST_F(InferenceMunin1, junction_tree_partial6) {
+//Inference *inference = new JunctionTree(network);
+//double accuracy = inference->EvaluateAccuracy(tester, 6, -1, "jt", false);
+//delete inference;
+//delete network;
+//delete tester;
+//EXPECT_GT(accuracy, 0.49);
+//}
+//
+//TEST_F(InferenceMunin1, junction_tree_partial8) {
+//Inference *inference = new JunctionTree(network);
+//double accuracy = inference->EvaluateAccuracy(tester, 8, -1, "jt", false);
+//delete inference;
+//delete network;
+//delete tester;
+//EXPECT_GT(accuracy, 0.49);
+//}
+//
+//TEST_F(InferenceMunin1, junction_tree_partial10) {
+//Inference *inference = new JunctionTree(network);
+//double accuracy = inference->EvaluateAccuracy(tester, 10, -1, "jt", false);
+//delete inference;
+//delete network;
+//delete tester;
+//EXPECT_GT(accuracy, 0.49);
+//}
+
+
+
+
+
+
 //
 //class InferenceMunin2: public ::testing::Test {
 //protected:
@@ -196,7 +716,7 @@ EXPECT_GT(accuracy, 0.4);
 //        network = new CustomNetwork(true);
 //
 //        string net_file_path = "/home/zeyiwen/jiantong/BN/dataset/munin2/munin2.xml";
-//        string test_set_file_path = "/home/zeyiwen/jiantong/BN/dataset/munin2/munin2_2w_p20";
+//        string test_set_file_path = "/home/zeyiwen/jiantong/BN/dataset/munin2/munin2_cut";
 //
 //        network->GetNetFromXMLBIFFile(net_file_path);
 //        tester->LoadLIBSVMDataKnownNetwork(test_set_file_path, network->num_nodes);
@@ -209,9 +729,11 @@ EXPECT_GT(accuracy, 0.4);
 //Inference *inference = new JunctionTree(network);
 //double accuracy = inference->EvaluateAccuracy(tester, 1, -1, "jt", false);
 //delete inference;
+//delete network;
+//delete tester;
 //EXPECT_GT(accuracy, 0.8230);
 //}
-//
+
 //class InferenceMunin3: public ::testing::Test {
 //protected:
 //
@@ -233,6 +755,8 @@ EXPECT_GT(accuracy, 0.4);
 //Inference *inference = new JunctionTree(network);
 //double accuracy = inference->EvaluateAccuracy(tester, 1, -1, "jt", false);
 //delete inference;
+//delete network;
+//delete tester;
 //EXPECT_GT(accuracy, 0.8230);
 //}
 //
@@ -257,77 +781,10 @@ EXPECT_GT(accuracy, 0.4);
 //Inference *inference = new JunctionTree(network);
 //double accuracy = inference->EvaluateAccuracy(tester, 1, -1, "jt", false);
 //delete inference;
+//delete network;
+//delete tester;
 //EXPECT_GT(accuracy, 0.8230);
 //}
 //
-//class InferencePathfinder: public ::testing::Test {
-//protected:
-//
-//    void SetUp() override {
-//        tester = new Dataset();
-//        network = new CustomNetwork(true);
-//
-//        string net_file_path = "/home/zeyiwen/jiantong/BN/dataset/pathfinder/pathfinder.xml";
-//        string test_set_file_path = "/home/zeyiwen/jiantong/BN/dataset/pathfinder/pathfinder_2w_p20";
-//
-//        network->GetNetFromXMLBIFFile(net_file_path);
-//        tester->LoadLIBSVMDataKnownNetwork(test_set_file_path, network->num_nodes);
-//    }
-//    CustomNetwork *network;
-//    Dataset *tester;
-//};
-//
-//TEST_F(InferencePathfinder, junction_tree_partial1) {
-//Inference *inference = new JunctionTree(network);
-//double accuracy = inference->EvaluateAccuracy(tester, 1, -1, "jt", false);
-//delete inference;
-//EXPECT_GT(accuracy, 0.8230);
-//}
-//
-//class InferencePigs: public ::testing::Test {
-//protected:
-//
-//    void SetUp() override {
-//        tester = new Dataset();
-//        network = new CustomNetwork(true);
-//
-//        string net_file_path = "/home/zeyiwen/jiantong/BN/dataset/pigs/pigs.xml";
-//        string test_set_file_path = "/home/zeyiwen/jiantong/BN/dataset/pigs/pigs_2w_p20";
-//
-//        network->GetNetFromXMLBIFFile(net_file_path);
-//        tester->LoadLIBSVMDataKnownNetwork(test_set_file_path, network->num_nodes);
-//    }
-//    CustomNetwork *network;
-//    Dataset *tester;
-//};
-//
-//TEST_F(InferencePigs, junction_tree_partial1) {
-//Inference *inference = new JunctionTree(network);
-//double accuracy = inference->EvaluateAccuracy(tester, 1, -1, "jt", false);
-//delete inference;
-//EXPECT_GT(accuracy, 0.8230);
-//}
-//
-//class InferenceWin95pts: public ::testing::Test {
-//protected:
-//
-//    void SetUp() override {
-//        tester = new Dataset();
-//        network = new CustomNetwork(true);
-//
-//        string net_file_path = "/home/zeyiwen/jiantong/BN/dataset/win95pts/win95pts.xml";
-//        string test_set_file_path = "/home/zeyiwen/jiantong/BN/dataset/win95pts/win95pts_2w_p20";
-//
-//        network->GetNetFromXMLBIFFile(net_file_path);
-//        tester->LoadLIBSVMDataKnownNetwork(test_set_file_path, network->num_nodes);
-//    }
-//    CustomNetwork *network;
-//    Dataset *tester;
-//};
-//
-//TEST_F(InferenceWin95pts, junction_tree_partial1) {
-//Inference *inference = new JunctionTree(network);
-//double accuracy = inference->EvaluateAccuracy(tester, 1, -1, "jt", false);
-//delete inference;
-//EXPECT_GT(accuracy, 0.8230);
-//}
+
+

@@ -232,6 +232,8 @@ void Clique::Collect(Timer *timer) {
  * then update the msg by multiplying its initial potential with all msgs received from its downstream neighbors
  * (initial potential of a cluster/node is constructed via the product of factors that assigned to it)
  */
+// TODO: check the two algs below: recursive may be better?
+//  since we use omp task rather than omp parallel for, the advantages of using for loop is not obvious
 void Clique::Collect2(Timer *timer) {
     for (auto &ptr_separator : set_neighbours_ptr) {
         /** when it reaches a leaf, the only neighbour is the upstream,
@@ -271,8 +273,8 @@ void Clique::Collect2(Timer *timer) {
  * @param max_level: the max level of the junction tree (cliques and separators are all included)
  */
 void Clique::Collect2(vector<vector<Clique*>> &cliques, int max_level, Timer *timer) {
-    for (int i = max_level - 2; i >= 0 ; --i) {
-        for (int j = 0; j < cliques[i].size(); ++j) {
+    for (int i = max_level - 2; i >= 0 ; --i) { // for each level
+        for (int j = 0; j < cliques[i].size(); ++j) { // for each clique of this level
 #pragma omp task shared(cliques)
             {
                 for (auto &ptr_separator : cliques[i][j]->set_neighbours_ptr) {
@@ -373,18 +375,17 @@ void Clique::Distribute2(vector<vector<Clique*>> &cliques, int max_level, Timer 
 }
 
 void Clique::MarkLevel(vector<vector<Clique*>> &cliques, int &max_level) {
-    vector<Clique*> vec;
-    vec.push_back(this);
-    cliques.push_back(vec);
+    vector<Clique*> vec; // a set of cliques in one level
+    vec.push_back(this); // push the root into vec
+    cliques.push_back(vec); // the first level only has the root clique
 
     while (!vec.empty()) {
         vector<Clique*> vec2;
-        for (int i = 0; i < vec.size(); ++i) {
+        for (int i = 0; i < vec.size(); ++i) { // for each clique in the current level
             Clique *clique = vec[i];
             for (auto &ptr_separator : clique->set_neighbours_ptr) {
                 // all neighbor cliques of "clique" contain the upstream clique and downstream clique(s)
-                // if the current neighbor "ptr_separator" is the upstream clique, not distribute to it
-                // otherwise, distribute the msg to "ptr_separator"
+                // if the current neighbor "ptr_separator" is the upstream clique, do nothing
                 if (ptr_separator == clique->ptr_upstream_clique) {
                     continue;
                 }
@@ -532,13 +533,11 @@ void Clique::SumOutExternalVars(Factor &f, Timer *timer) {
  * @brief: sum over external variables which are the results of factor multiplication.
  */
 void Clique::SumOutExternalVars(PotentialTable &pt, Timer *timer) {
-//    timer->Start("set_difference");
     // get the variables that in "f" but not in "factor_of_this_clique"
     set<int> set_external_vars;
     set_difference(pt.related_variables.begin(), pt.related_variables.end(),
                    this->clique_variables.begin(), this->clique_variables.end(),
                    inserter(set_external_vars, set_external_vars.begin()));
-//    timer->Stop("set_difference");
 
 //    timer->Start("factor marginalization");
     // Sum over the variables that are not in the scope of this clique/separator, so as to eliminate them.

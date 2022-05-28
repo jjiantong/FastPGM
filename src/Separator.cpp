@@ -63,6 +63,6 @@ void Separator::ConstructMessage(Timer *timer) {
 
 void Separator::ConstructMessage2(Timer *timer) {
 //    timer->Start("factor division");
-    p_table.TableDivision(old_ptable);
+    p_table.TableDivision(old_ptable, timer);
 //    timer->Stop("factor division");
 }

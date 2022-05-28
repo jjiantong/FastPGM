@@ -45,7 +45,7 @@ public:
 
     void TableExtension(const set<int> &variables, const vector<int> &dims, Timer *timer);
     void TableMultiplication(PotentialTable &second_table, Timer *timer);
-    void TableDivision(const PotentialTable &second_table);
+    void TableDivision(const PotentialTable &second_table, Timer *timer);
     void TableReduction(int e_index, int e_value_index, int num_threads, Timer *timer);
     void TableMarginalization(int index, Timer *timer);
     void Normalize();

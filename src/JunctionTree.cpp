@@ -125,6 +125,7 @@ JunctionTree::JunctionTree(Network *net) {
     auto iter = vector_clique_ptr_container.begin();
     arb_root = *iter;
     arb_root->MarkLevel(cliques_by_level, max_level);
+    cout << "finish MarkLevel" << endl;
 
     BackUpJunctionTree();
 //  cout << "finish BackUpJunctionTree" << endl;
@@ -1626,8 +1627,6 @@ double JunctionTree::EvaluateAccuracy(Dataset *dts, int num_threads, int num_sam
 //      }
     }
 
-    cout << "finish 2w samples" << endl;
-
     // predict the labels of the test instances
     vector<int> predictions = PredictUseJTInfer(evidences, class_var_index, num_threads, timer);
 
@@ -1655,14 +1654,15 @@ double JunctionTree::EvaluateAccuracy(Dataset *dts, int num_threads, int num_sam
 //    timer->Print("factor multiplication"); cout << " (" << timer->time["factor multiplication"] / timer->time["msg passing"] * 100 << "%)";
 //    timer->Print("factor division"); cout << " (" << timer->time["factor division"] / timer->time["msg passing"] * 100 << "%)";
 //    timer->Print("set_difference"); cout << " (" << timer->time["set_difference"] / timer->time["msg passing"] * 100 << "%)" << endl;
-//    timer->Print("marginal1");
-//    timer->Print("marginal2");
-//    timer->Print("multi1");
-//    timer->Print("multi2");
-//    timer->Print("extension1");
-//    timer->Print("extension2");
-//    timer->Print("reduction1");
-//    timer->Print("reduction2"); cout << endl;
+    timer->Print("marginal1");
+    timer->Print("marginal2");
+    timer->Print("multi1");
+    timer->Print("multi2");
+    timer->Print("extension1");
+    timer->Print("extension2");
+    timer->Print("reduction1");
+    timer->Print("reduction2");
+    timer->Print("div1"); cout << endl;
     delete timer;
     timer = nullptr;
 
@@ -1694,20 +1694,6 @@ int JunctionTree::PredictUseJTInfer(const DiscreteConfig &E, int Y_index, int nu
 //        }
 //        cout << endl;
 //    }
-//    cout << "separators: " << endl;
-//    for (auto &s : vector_separator_ptr_container) {
-//        cout << s->clique_id << ": ";
-//        // set<int> related_variables
-//        for (auto &v : s->p_table.related_variables) {
-//            cout << v << " ";
-//        }
-//        cout << endl;
-//        // vector<double> potentials
-//        for (int j = 0; j < s->p_table.potentials.size(); ++j) {
-//            cout << s->p_table.potentials[j] << " ";
-//        }
-//        cout << endl;
-//    }
 
     timer->Start("msg passing");
     //update the whole Junction Tree
@@ -1726,20 +1712,6 @@ int JunctionTree::PredictUseJTInfer(const DiscreteConfig &E, int Y_index, int nu
 //        // vector<double> potentials
 //        for (int j = 0; j < c->p_table.potentials.size(); ++j) {
 //            cout << c->p_table.potentials[j] << " ";
-//        }
-//        cout << endl;
-//    }
-//    cout << "separators: " << endl;
-//    for (auto &s : vector_separator_ptr_container) {
-//        cout << s->clique_id << ": ";
-//        // set<int> related_variables
-//        for (auto &v : s->p_table.related_variables) {
-//            cout << v << " ";
-//        }
-//        cout << endl;
-//        // vector<double> potentials
-//        for (int j = 0; j < s->p_table.potentials.size(); ++j) {
-//            cout << s->p_table.potentials[j] << " ";
 //        }
 //        cout << endl;
 //    }
@@ -1772,6 +1744,7 @@ vector<int> JunctionTree::PredictUseJTInfer(const vector<DiscreteConfig> &eviden
     vector<int> results(size, 0);
 
     for (int i = 0; i < size; ++i) {
+//        cout << i << endl;
         ++progress;
 
         if (progress % every_1_of_20 == 0) {
