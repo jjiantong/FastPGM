@@ -25,48 +25,51 @@ Separator* Separator::CopyWithoutPtr() {
   return s;
 }
 
+///************************* use factor ******************************/
+//void Separator::UpdateUseMessage(const Factor &f, Timer *timer) {
+//    old_table = table;
+//    Factor tmp_f = f;
+//    SumOutExternalVars(tmp_f, timer);
+//    table = tmp_f;
+//}
+///************************* use factor ******************************/
 
-void Separator::UpdateUseMessage(const Factor &f, Timer *timer) {
-    old_table = table;
-    Factor tmp_f = f;
-    SumOutExternalVars(tmp_f, timer);
-    table = tmp_f;
-}
-
-void Separator::UpdateUseMessage2(const PotentialTable &pt, Timer *timer) {
+void Separator::UpdateUseMessage2(const PotentialTable &pt) {
     old_ptable = p_table;
     PotentialTable tmp_pt = pt;
-    SumOutExternalVars(tmp_pt, timer);
+    SumOutExternalVars(tmp_pt);
     p_table = tmp_pt;
 }
 
-/**
- * @brief: this is a standard process for constructing the message of the separator cliques.
- */
-void Separator::ConstructMessage(Timer *timer) {
-    // if related variable of both new and old are empty
-    if (table.related_variables.empty()) {
-        // do nothing, just return, because "table" is a constant
-        return;
-    }
+///************************* use factor ******************************/
+///**
+// * @brief: this is a standard process for constructing the message of the separator cliques.
+// */
+//void Separator::ConstructMessage(Timer *timer) {
+//    // if related variable of both new and old are empty
+//    if (table.related_variables.empty()) {
+//        // do nothing, just return, because "table" is a constant
+//        return;
+//    }
+//
+//    for (auto &comb : table.set_disc_configs) {
+//        if (old_table.map_potentials[comb] == 0) {
+//            table.map_potentials[comb] = 0;
+//        } else {
+//            table.map_potentials[comb] /= old_table.map_potentials[comb];
+//        }
+//    }
+//}
+///************************* use factor ******************************/
 
-    for (auto &comb : table.set_disc_configs) {
-        if (old_table.map_potentials[comb] == 0) {
-            table.map_potentials[comb] = 0;
-        } else {
-            table.map_potentials[comb] /= old_table.map_potentials[comb];
-        }
-    }
+void Separator::ConstructMessage2() {
+    p_table.TableDivision(old_ptable);
 }
 
-void Separator::ConstructMessage2(Timer *timer) {
-    p_table.TableDivision(old_ptable, timer);
-}
-
-void Separator::UpdateMessage(const PotentialTable &pt, Timer *timer) {
+void Separator::UpdateMessage(const PotentialTable &pt) {
     old_ptable = p_table;
     PotentialTable tmp_pt = pt;
-    SumOutExternalVars(tmp_pt, timer);
+    SumOutExternalVars(tmp_pt);
     p_table = tmp_pt;
-    p_table.TableDivision(old_ptable, timer);
+    p_table.TableDivision(old_ptable);
 }

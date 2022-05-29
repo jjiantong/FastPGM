@@ -69,20 +69,22 @@ class Clique {
 //  void Collect(Timer *timer);
 //  void Distribute(Timer *timer);
 
-  virtual void UpdateUseMessage(const Factor &f, Timer *timer);
-  virtual void ConstructMessage(Timer *timer);
+//    /************************* use factor ******************************/
+//  virtual void UpdateUseMessage(const Factor &f, Timer *timer);
+//  virtual void ConstructMessage(Timer *timer);
+//    /************************* use factor ******************************/
 
     void MarkLevel(vector<vector<Clique*>> &cliques, int &max_level);
-    void Collect2(Timer *timer);
-    void Collect2(vector<vector<Clique*>> &cliques, int max_level, Timer *timer);
-    void Collect3(vector<vector<Clique*>> &cliques, int max_level, Timer *timer);
-    void Distribute2(Timer *timer);
-    void Distribute2(vector<vector<Clique*>> &cliques, int max_level, Timer *timer);
-    void Distribute3(vector<vector<Clique*>> &cliques, int max_level, Timer *timer);
+    void Collect2();
+    void Collect2(vector<vector<Clique*>> &cliques, int max_level);
+    void Collect3(vector<vector<Clique*>> &cliques, int max_level);
+    void Distribute2();
+    void Distribute2(vector<vector<Clique*>> &cliques, int max_level);
+    void Distribute3(vector<vector<Clique*>> &cliques, int max_level);
 
-    virtual void UpdateUseMessage2(const PotentialTable &pt, Timer *timer);
-    virtual void ConstructMessage2(Timer *timer);
-    virtual void UpdateMessage(const PotentialTable &pt, Timer *timer);
+    virtual void UpdateUseMessage2(const PotentialTable &pt);
+    virtual void ConstructMessage2();
+    virtual void UpdateMessage(const PotentialTable &pt);
 
 //    virtual bool Equals(const Clique &c);
 
@@ -91,11 +93,14 @@ class Clique {
 
  protected:
 //  Clique(const Clique&) = default;
-  void SumOutExternalVars(Factor &f, Timer *timer);
-  void Distribute(Factor &f, Timer *timer);
-  void PreInitializePotentials();
+//    /************************* use factor ******************************/
+//  void SumOutExternalVars(Factor &f, Timer *timer);
+//  void Distribute(Factor &f, Timer *timer);
+//    /************************* use factor ******************************/
 
-    void SumOutExternalVars(PotentialTable &pt, Timer *timer);
+    void PreInitializePotentials();
+
+    void SumOutExternalVars(PotentialTable &pt);
 //    void Distribute2(PotentialTable &pt, Timer *timer);
 };
 

@@ -36,11 +36,11 @@ class JunctionTree: public Inference {
     ~JunctionTree();
 
   void ResetJunctionTree();
-  virtual void LoadDiscreteEvidence(const DiscreteConfig &E, int num_threads, Timer *timer);
+  virtual void LoadDiscreteEvidence(const DiscreteConfig &E, int num_threads);
 
     Factor BeliefPropagationCalcuDiscreteVarMarginal(int query_index);
-    PotentialTable BeliefPropagationCalcuDiscreteVarMarginal2(int query_index, Timer *timer);
-    int InferenceUsingBeliefPropagation(int &query_index, Timer *timer);
+    PotentialTable BeliefPropagationCalcuDiscreteVarMarginal2(int query_index);
+    int InferenceUsingBeliefPropagation(int &query_index);
 
     virtual double EvaluateAccuracy(Dataset *dts, int num_threads, int num_samp, string alg, bool is_dense);
     int PredictUseJTInfer(const DiscreteConfig &E, int Y_index, int num_threads, Timer *timer);
@@ -61,7 +61,7 @@ class JunctionTree: public Inference {
   void FormJunctionTree();
 //  void CliqueMerging(int low, int high);
   void NumberTheCliquesAndSeparators();
-  void AssignPotentials(Timer *timer);
+  void AssignPotentials();
   void BackUpJunctionTree();
 
   virtual void MessagePassingUpdateJT(int num_threads, Timer *timer);

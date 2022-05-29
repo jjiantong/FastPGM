@@ -90,7 +90,7 @@ JunctionTree::JunctionTree(Network *net) {
 ////        }
 //    }
 
-    AssignPotentials(timer);
+    AssignPotentials();
     cout << "finish AssignPotentials" << endl;
 
 //    cout << "cliques: " << endl;
@@ -970,7 +970,7 @@ void JunctionTree::NumberTheCliquesAndSeparators() {//checked
  * @brief: each clique has a potential;
  * the potentials of continuous and discrete cliques are computed differently
  */
-void JunctionTree::AssignPotentials(Timer *timer) { //checked
+void JunctionTree::AssignPotentials() { //checked
   // todo: test the correctness of the continuous part (discrete part works correctly)
 
   // For purely discrete cliques, the potentials have been initialized to 1 on creation,
@@ -1122,7 +1122,7 @@ void JunctionTree::AssignPotentials(Timer *timer) { //checked
             if (diff.empty()) {
                 // 2.2 construct the initial potential of this clique,
                 // which is the product of factors that assigned to it
-                clique_ptr->p_table.TableMultiplication(pt, timer); // multiply two factors
+                clique_ptr->p_table.TableMultiplication(pt); // multiply two factors
                 break;  // Ensure that each factor is used only once.
             }
         }
@@ -1210,7 +1210,7 @@ void JunctionTree::ResetJunctionTree() {
 /**
  * @brief: when inferring, an evidence is given. The evidence needs to be loaded and propagate in the network.
  */
-void JunctionTree::LoadDiscreteEvidence(const DiscreteConfig &E, int num_threads, Timer *timer) {
+void JunctionTree::LoadDiscreteEvidence(const DiscreteConfig &E, int num_threads) {
 //    /*********************** load evidence on all cliques and seps **************************/
 //    // cannot just erase "comb" inside the inner most loop,
 //    // because it will cause problem in factor division...
@@ -1320,13 +1320,13 @@ void JunctionTree::LoadDiscreteEvidence(const DiscreteConfig &E, int num_threads
         for (auto &clique_ptr : vector_clique_ptr_container) { // for each clique
             // if this factor is related to the observation
             if (clique_ptr->p_table.related_variables.find(index) != clique_ptr->p_table.related_variables.end()) {
-                clique_ptr->p_table.TableReduction(index, value_index, num_threads, timer);
+                clique_ptr->p_table.TableReduction(index, value_index, num_threads);
             }
         }
         for (auto &sep_ptr : vector_separator_ptr_container) { // for each sep
             // if this factor is related to the observation
             if (sep_ptr->p_table.related_variables.find(index) != sep_ptr->p_table.related_variables.end()) {
-                sep_ptr->p_table.TableReduction(index, value_index, num_threads, timer);
+                sep_ptr->p_table.TableReduction(index, value_index, num_threads);
             }
         }
     }
@@ -1375,7 +1375,7 @@ void JunctionTree::MessagePassingUpdateJT(int num_threads, Timer *timer) {
 #pragma omp single
         {
 //            arb_root->Collect2(timer);
-            arb_root->Collect3(cliques_by_level, max_level, timer);
+            arb_root->Collect3(cliques_by_level, max_level);
         }
     }
     timer->Stop("upstream");
@@ -1386,7 +1386,7 @@ void JunctionTree::MessagePassingUpdateJT(int num_threads, Timer *timer) {
 #pragma omp single
         {
 //            arb_root->Distribute2(timer);
-            arb_root->Distribute3(cliques_by_level, max_level, timer);
+            arb_root->Distribute3(cliques_by_level, max_level);
         }
     }
     timer->Stop("downstream");
@@ -1447,7 +1447,7 @@ Factor JunctionTree::BeliefPropagationCalcuDiscreteVarMarginal(int query_index) 
 /**
  * @brief: compute the marginal distribution for a query variable
  **/
-PotentialTable JunctionTree::BeliefPropagationCalcuDiscreteVarMarginal2(int query_index, Timer *timer) {
+PotentialTable JunctionTree::BeliefPropagationCalcuDiscreteVarMarginal2(int query_index) {
 
     // The input is a set of query_indexes of variables.
     // The output is a factor representing the joint marginal of these variables.
@@ -1503,7 +1503,7 @@ PotentialTable JunctionTree::BeliefPropagationCalcuDiscreteVarMarginal2(int quer
 //    }
 
     for (auto &index : other_vars) {
-        pt.TableMarginalization(index, timer);
+        pt.TableMarginalization(index);
     }
 //    cout << "table after marginalization: " << endl;
 //    for (int j = 0; j < pt.potentials.size(); ++j) {
@@ -1522,7 +1522,7 @@ PotentialTable JunctionTree::BeliefPropagationCalcuDiscreteVarMarginal2(int quer
 /**
  * @brief: predict the label for a given variable.
  */
-int JunctionTree::InferenceUsingBeliefPropagation(int &query_index, Timer *timer) {
+int JunctionTree::InferenceUsingBeliefPropagation(int &query_index) {
 //    /************************* use factor ******************************/
 //  Factor f = BeliefPropagationCalcuDiscreteVarMarginal(query_index);
 //  double max_prob = 0;
@@ -1537,7 +1537,7 @@ int JunctionTree::InferenceUsingBeliefPropagation(int &query_index, Timer *timer
 //    /************************* use factor ******************************/
 
     /************************* use potential table ******************************/
-    PotentialTable pt = BeliefPropagationCalcuDiscreteVarMarginal2(query_index, timer);
+    PotentialTable pt = BeliefPropagationCalcuDiscreteVarMarginal2(query_index);
     double max_prob = 0;
     int max_index;
     for (int i = 0; i < pt.table_size; ++i) { // traverse the potential table
@@ -1650,19 +1650,7 @@ double JunctionTree::EvaluateAccuracy(Dataset *dts, int num_threads, int num_sam
     timer->Print("downstream");
     timer->Print("predict"); cout << " (" << timer->time["predict"] / timer->time["jt"] * 100 << "%)";
     timer->Print("reset"); cout << " (" << timer->time["reset"] / timer->time["jt"] * 100 << "%)" << endl;
-//    timer->Print("factor marginalization"); cout << " (" << timer->time["factor marginalization"] / timer->time["msg passing"] * 100 << "%)";
-//    timer->Print("factor multiplication"); cout << " (" << timer->time["factor multiplication"] / timer->time["msg passing"] * 100 << "%)";
-//    timer->Print("factor division"); cout << " (" << timer->time["factor division"] / timer->time["msg passing"] * 100 << "%)";
-//    timer->Print("set_difference"); cout << " (" << timer->time["set_difference"] / timer->time["msg passing"] * 100 << "%)" << endl;
-    timer->Print("marginal1");
-    timer->Print("marginal2");
-    timer->Print("multi1");
-    timer->Print("multi2");
-    timer->Print("extension1");
-    timer->Print("extension2");
-    timer->Print("reduction1");
-    timer->Print("reduction2");
-    timer->Print("div1"); cout << endl;
+
     delete timer;
     timer = nullptr;
 
@@ -1676,7 +1664,7 @@ double JunctionTree::EvaluateAccuracy(Dataset *dts, int num_threads, int num_sam
 int JunctionTree::PredictUseJTInfer(const DiscreteConfig &E, int Y_index, int num_threads, Timer *timer) {
     timer->Start("load evidence");
     //update a clique using the evidence
-    LoadDiscreteEvidence(E, num_threads, timer);
+    LoadDiscreteEvidence(E, num_threads);
     timer->Stop("load evidence");
 //    cout << "finish load evidence" << endl;
 
@@ -1717,7 +1705,7 @@ int JunctionTree::PredictUseJTInfer(const DiscreteConfig &E, int Y_index, int nu
 //    }
 
     timer->Start("predict");
-    int label_predict = InferenceUsingBeliefPropagation(Y_index, timer);
+    int label_predict = InferenceUsingBeliefPropagation(Y_index);
     timer->Stop("predict");
 //    cout << "finish predict " << endl;
 

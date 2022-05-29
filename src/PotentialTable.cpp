@@ -166,8 +166,8 @@ inline int PotentialTable::GetVariableIndex(const int &variable) {
     return index;
 }
 
-void PotentialTable::TableExtension(const set<int> &variables, const vector<int> &dims, Timer *timer) {
-    timer->Start("extension2");
+void PotentialTable::TableExtension(const set<int> &variables, const vector<int> &dims) {
+//    timer->Start("extension2");
     PotentialTable new_table;
 
     new_table.related_variables = variables;
@@ -184,9 +184,9 @@ void PotentialTable::TableExtension(const set<int> &variables, const vector<int>
     for (auto &v: this->related_variables) {
         loc_in_new[i++] = new_table.GetVariableIndex(v);
     }
-    timer->Stop("extension2");
+//    timer->Stop("extension2");
 
-    timer->Start("extension1");
+//    timer->Start("extension1");
     new_table.potentials.resize(new_table.table_size);
 
     int *full_config = new int[new_table.table_size * new_table.num_variables];
@@ -211,9 +211,9 @@ void PotentialTable::TableExtension(const set<int> &variables, const vector<int>
     delete[] partial_config;
     delete[] loc_in_new;
 
-    timer->Stop("extension1");
+//    timer->Stop("extension1");
 
-    timer->Start("extension2");
+//    timer->Start("extension2");
 
 //#pragma omp parallel for //schedule(static, 1) // thread2: 43->48, static: 49; thread4: 56
     for (int i = 0; i < new_table.table_size; ++i) {
@@ -223,7 +223,7 @@ void PotentialTable::TableExtension(const set<int> &variables, const vector<int>
     delete[] table_index;
 
     (*this) = new_table;
-    timer->Stop("extension2");
+//    timer->Stop("extension2");
 }
 
 /**
@@ -234,8 +234,8 @@ void PotentialTable::TableExtension(const set<int> &variables, const vector<int>
  * @input: this table and "second_table"
  * @output: this table
  */
-void PotentialTable::TableMultiplication(PotentialTable &second_table, Timer *timer) {
-    timer->Start("multi2");
+void PotentialTable::TableMultiplication(PotentialTable &second_table) {
+//    timer->Start("multi2");
     if (this->related_variables.empty()) {
         (*this) = second_table; // directly return "second_table"
 //        return second_table;
@@ -258,14 +258,14 @@ void PotentialTable::TableMultiplication(PotentialTable &second_table, Timer *ti
     set_difference(all_related_variables.begin(), all_related_variables.end(),
                    second_table.related_variables.begin(), second_table.related_variables.end(),
                    inserter(diff2, diff2.begin()));
-    timer->Stop("multi2");
+//    timer->Stop("multi2");
 
     if (diff1.empty() && diff2.empty()) { // if both table1 and table2 should not be extended
         // do nothing
     } else if (!diff1.empty() && diff2.empty()) { // if table1 should be extended and table2 not
-        this->TableExtension(all_related_variables, second_table.var_dims, timer);
+        this->TableExtension(all_related_variables, second_table.var_dims);
     } else if (diff1.empty() && !diff2.empty()) { // if table2 should be extended and table1 not
-        second_table.TableExtension(all_related_variables, this->var_dims, timer);
+        second_table.TableExtension(all_related_variables, this->var_dims);
     } else { // if both table1 and table2 should be extended
         vector<int> dims; // to save dims of the new related variables
         dims.reserve(all_related_variables.size());
@@ -279,22 +279,22 @@ void PotentialTable::TableMultiplication(PotentialTable &second_table, Timer *ti
                 dims.push_back(second_table.var_dims[loc]);
             }
         }
-        this->TableExtension(all_related_variables, dims, timer);
-        second_table.TableExtension(all_related_variables, dims, timer);
+        this->TableExtension(all_related_variables, dims);
+        second_table.TableExtension(all_related_variables, dims);
     }
 
-    timer->Start("multi1");
+//    timer->Start("multi1");
 //    omp_set_num_threads(N_T);
 //#pragma omp parallel for //schedule(static, 1) // thread2: 43->49, static: 50; thread4: 52
 #pragma omp taskloop
     for (int i = 0; i < this->table_size; ++i) {
         this->potentials[i] *= second_table.potentials[i];
     }
-    timer->Stop("multi1");
+//    timer->Stop("multi1");
 }
 
-void PotentialTable::TableDivision(const PotentialTable &second_table, Timer *timer) {
-    timer->Start("div1");
+void PotentialTable::TableDivision(const PotentialTable &second_table) {
+//    timer->Start("div1");
     // if related variable of both are empty
     if (this->related_variables.empty()) {
         // do nothing, just return, because "table" is a constant
@@ -311,7 +311,7 @@ void PotentialTable::TableDivision(const PotentialTable &second_table, Timer *ti
             this->potentials[i] /= second_table.potentials[i];
         }
     }
-    timer->Stop("div1");
+//    timer->Stop("div1");
 }
 
 /*!
@@ -328,10 +328,10 @@ void PotentialTable::TableDivision(const PotentialTable &second_table, Timer *ti
  * @param e_index: the variable index of the evidence
  * @param e_value_index: the value (index) of the evidence
  */
-void PotentialTable::TableReduction(int e_index, int e_value_index, int num_threads, Timer *timer) {
+void PotentialTable::TableReduction(int e_index, int e_value_index, int num_threads) {
     // in table reduction, we first update potentials, then consider the other things
 
-    timer->Start("reduction1");
+//    timer->Start("reduction1");
     // find the location of the evidence in the old table
     int e_loc = this->GetVariableIndex(e_index);
 
@@ -352,9 +352,9 @@ void PotentialTable::TableReduction(int e_index, int e_value_index, int num_thre
     }
     delete[] full_config;
 
-    timer->Stop("reduction1");
+//    timer->Stop("reduction1");
 
-    timer->Start("reduction2");
+//    timer->Start("reduction2");
 
     for (int i = 0, j = 0; i < this->table_size; ++i) {
         // 3. whether it is consistent with the evidence
@@ -386,15 +386,15 @@ void PotentialTable::TableReduction(int e_index, int e_value_index, int num_thre
         this->cum_levels = vector<int>();
         this->table_size = 1;
     }
-    timer->Stop("reduction2");
+//    timer->Stop("reduction2");
 }
 
 /**
  * @brief: factor out a node by id; i.e., factor marginalization
  * eliminate variable "id" by summation of the factor over "id"
  */
-void PotentialTable::TableMarginalization(int index, Timer *timer) {
-    timer->Start("marginal2");
+void PotentialTable::TableMarginalization(int index) {
+//    timer->Start("marginal2");
     PotentialTable new_table;
 
     new_table.related_variables = this->related_variables;
@@ -425,9 +425,9 @@ void PotentialTable::TableMarginalization(int index, Timer *timer) {
         new_table.cum_levels = vector<int>();
         new_table.table_size = 1;
     }
-    timer->Stop("marginal2");
+//    timer->Stop("marginal2");
 
-    timer->Start("marginal1");
+//    timer->Start("marginal1");
     // initialize potentials
     new_table.potentials.resize(new_table.table_size);
 
@@ -452,9 +452,9 @@ void PotentialTable::TableMarginalization(int index, Timer *timer) {
     delete[] partial_config;
     delete[] loc_in_old;
 
-    timer->Stop("marginal1");
+//    timer->Stop("marginal1");
 
-    timer->Start("marginal2");
+//    timer->Start("marginal2");
 
 //#pragma omp parallel for
     for (int i = 0; i < this->table_size; ++i) {
@@ -465,7 +465,7 @@ void PotentialTable::TableMarginalization(int index, Timer *timer) {
     delete[] table_index;
 
     (*this) = new_table;
-    timer->Stop("marginal2");
+//    timer->Stop("marginal2");
 }
 
 void PotentialTable::Normalize() {

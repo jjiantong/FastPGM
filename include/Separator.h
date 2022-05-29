@@ -24,13 +24,14 @@ class Separator : public Clique {
     ~Separator() {};
 
   Separator* CopyWithoutPtr();
+//    /************************* use factor ******************************/
+//  void UpdateUseMessage(const Factor &f, Timer *timer) override;
+//  void ConstructMessage(Timer *timer) override;
+//    /************************* use factor ******************************/
 
-  void UpdateUseMessage(const Factor &f, Timer *timer) override;
-  void ConstructMessage(Timer *timer) override;
-
-    void UpdateUseMessage2(const PotentialTable &pt, Timer *timer) override;
-    void ConstructMessage2(Timer *timer) override;
-    void UpdateMessage(const PotentialTable &pt, Timer *timer) override;
+    void UpdateUseMessage2(const PotentialTable &pt) override;
+    void ConstructMessage2() override;
+    void UpdateMessage(const PotentialTable &pt) override;
 };
 
 #endif //BAYESIANNETWORK_SEPARATOR_H

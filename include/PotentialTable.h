@@ -43,11 +43,11 @@ public:
     PotentialTable(DiscreteNode *disc_node, Network *net);
     void ConstructEmptyPotentialTable(const set<int> &set_node_index, Network *net);
 
-    void TableExtension(const set<int> &variables, const vector<int> &dims, Timer *timer);
-    void TableMultiplication(PotentialTable &second_table, Timer *timer);
-    void TableDivision(const PotentialTable &second_table, Timer *timer);
-    void TableReduction(int e_index, int e_value_index, int num_threads, Timer *timer);
-    void TableMarginalization(int index, Timer *timer);
+    void TableExtension(const set<int> &variables, const vector<int> &dims);
+    void TableMultiplication(PotentialTable &second_table);
+    void TableDivision(const PotentialTable &second_table);
+    void TableReduction(int e_index, int e_value_index, int num_threads);
+    void TableMarginalization(int index);
     void Normalize();
 
 private:
