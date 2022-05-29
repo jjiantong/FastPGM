@@ -293,6 +293,21 @@ void Clique::Collect2(vector<vector<Clique*>> &cliques, int max_level, Timer *ti
     }
 }
 
+void Clique::Collect3(vector<vector<Clique*>> &cliques, int max_level, Timer *timer) {
+    for (int i = max_level - 2; i >= 0 ; --i) { // for each level
+        for (int j = 0; j < cliques[i].size(); ++j) { // for each clique of this level
+#pragma omp task shared(cliques)
+            {
+                for (auto &ptr_child : cliques[i][j]->ptr_downstream_cliques) {
+                    cliques[i][j]->UpdateUseMessage2(ptr_child->p_table, timer);
+                }
+                cliques[i][j]->ConstructMessage2(timer);
+            }
+        }
+#pragma omp taskwait
+    }
+}
+
 /**
  * Distribute the information it knows to the downstream cliques.
  * The reload version without parameter. Called on the selected root.
@@ -367,6 +382,24 @@ void Clique::Distribute2(vector<vector<Clique*>> &cliques, int max_level, Timer 
                     ptr_separator->UpdateUseMessage2(clique->p_table, timer);  // Update itself.
                     // Prepare message for the downstream.
                     ptr_separator->ConstructMessage2(timer);
+                }
+            }
+        }
+#pragma omp taskwait
+    }
+}
+
+void Clique::Distribute3(vector<vector<Clique*>> &cliques, int max_level, Timer *timer) {
+    for (int i = 0; i < max_level - 1; ++i) {
+        for (int j = 0; j < cliques[i].size(); ++j) {
+            Clique *clique = cliques[i][j];
+            for (auto &ptr_child : clique->ptr_downstream_cliques) {
+#pragma omp task shared(ptr_child)
+                {
+                    // update the msg of "ptr_separator" by multiplying the current table with "clique"'s table
+                    ptr_child->UpdateUseMessage2(clique->p_table, timer);  // Update itself.
+                    // Prepare message for the downstream.
+                    ptr_child->ConstructMessage2(timer);
                 }
             }
         }

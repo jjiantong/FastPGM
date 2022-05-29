@@ -1375,7 +1375,7 @@ void JunctionTree::MessagePassingUpdateJT(int num_threads, Timer *timer) {
 #pragma omp single
         {
 //            arb_root->Collect2(timer);
-            arb_root->Collect2(cliques_by_level, max_level, timer);
+            arb_root->Collect3(cliques_by_level, max_level, timer);
         }
     }
     timer->Stop("upstream");
@@ -1386,7 +1386,7 @@ void JunctionTree::MessagePassingUpdateJT(int num_threads, Timer *timer) {
 #pragma omp single
         {
 //            arb_root->Distribute2(timer);
-            arb_root->Distribute2(cliques_by_level, max_level, timer);
+            arb_root->Distribute3(cliques_by_level, max_level, timer);
         }
     }
     timer->Stop("downstream");
