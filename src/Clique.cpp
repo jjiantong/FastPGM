@@ -175,55 +175,59 @@ void Clique::PreInitializePotentials() {
 //  return c;
 //}
 
-/*!
- * @brief: a step of msg passing
- * msg passes from downstream to upstream
- * first collect the msgs from its downstream neighbors;
- * then update the msg by multiplying its initial potential with all msgs received from its downstream neighbors
- * (initial potential of a cluster/node is constructed via the product of factors that assigned to it)
- * @return a msg, which is a factor
- */
-void Clique::Collect(Timer *timer) {
 
-  for (auto &ptr_separator : set_neighbours_ptr) {
-
-    /** when it reaches a leaf, the only neighbour is the upstream,
-     * which can be viewed as the base case of recursive function.
-     */
-    // all neighbor cliques contain the upstream clique and downstream clique(s)
-    // if the current neighbor "ptr_separator" is the upstream clique, not collect from it
-    // otherwise, collect the msg from "ptr_separator" and update the msg
-    if (ptr_separator == ptr_upstream_clique) {
-      continue;
-    }
-
-    // the current neighbor "ptr_separator" is a downstream clique
-    ptr_separator->ptr_upstream_clique = this;  // Let the callee know the caller.
-
-//    /** This is for continuous nodes TODO: double-check
-//     * If the next clique connected by this separator is a continuous clique,
-//     * then the program should not collect from it. All information needed from
-//     * the continuous clique has been pushed to the boundary when entering the evidence.
+///************************* use factor ******************************/
+///*!
+// * @brief: a step of msg passing
+// * msg passes from downstream to upstream
+// * first collect the msgs from its downstream neighbors;
+// * then update the msg by multiplying its initial potential with all msgs received from its downstream neighbors
+// * (initial potential of a cluster/node is constructed via the product of factors that assigned to it)
+// * @return a msg, which is a factor
+// */
+//void Clique::Collect(Timer *timer) {
+//
+//  for (auto &ptr_separator : set_neighbours_ptr) {
+//
+//    /** when it reaches a leaf, the only neighbour is the upstream,
+//     * which can be viewed as the base case of recursive function.
 //     */
-//    bool reach_boundary = false;
-//    for (const auto &next_clq_ptr : ptr_separator->set_neighbours_ptr) {
-//        reach_boundary = (next_clq_ptr->ptr_upstream_clique!=ptr_separator && !next_clq_ptr->pure_discrete);
+//    // all neighbor cliques contain the upstream clique and downstream clique(s)
+//    // if the current neighbor "ptr_separator" is the upstream clique, not collect from it
+//    // otherwise, collect the msg from "ptr_separator" and update the msg
+//    if (ptr_separator == ptr_upstream_clique) {
+//      continue;
 //    }
-//    if (reach_boundary) { continue; }
+//
+//    // the current neighbor "ptr_separator" is a downstream clique
+//    ptr_separator->ptr_upstream_clique = this;  // Let the callee know the caller.
+//
+////    /** This is for continuous nodes TODO: double-check
+////     * If the next clique connected by this separator is a continuous clique,
+////     * then the program should not collect from it. All information needed from
+////     * the continuous clique has been pushed to the boundary when entering the evidence.
+////     */
+////    bool reach_boundary = false;
+////    for (const auto &next_clq_ptr : ptr_separator->set_neighbours_ptr) {
+////        reach_boundary = (next_clq_ptr->ptr_upstream_clique!=ptr_separator && !next_clq_ptr->pure_discrete);
+////    }
+////    if (reach_boundary) { continue; }
+//
+//    // collect the msg f from downstream
+//      ptr_separator->Collect(timer);
+//      Factor f = ptr_separator->table;
+//    // update the msg by multiplying the current factor with f
+//    // the current factor is the initial potential, or
+//    // the product of the initial potential and factors received from other downstream neighbors
+//
+//    UpdateUseMessage(f, timer);  // Update itself.
+//  }
+//
+//  // Prepare message for the upstream.
+//  ConstructMessage(timer);
+//}
+///************************* use factor ******************************/
 
-    // collect the msg f from downstream
-      ptr_separator->Collect(timer);
-      Factor f = ptr_separator->table;
-    // update the msg by multiplying the current factor with f
-    // the current factor is the initial potential, or
-    // the product of the initial potential and factors received from other downstream neighbors
-
-    UpdateUseMessage(f, timer);  // Update itself.
-  }
-
-  // Prepare message for the upstream.
-  ConstructMessage(timer);
-}
 
 /*!
  * @brief: a step of msg passing (alg1, use recursive functions)
@@ -232,8 +236,6 @@ void Clique::Collect(Timer *timer) {
  * then update the msg by multiplying its initial potential with all msgs received from its downstream neighbors
  * (initial potential of a cluster/node is constructed via the product of factors that assigned to it)
  */
-// TODO: check the two algs below: recursive may be better?
-//  since we use omp task rather than omp parallel for, the advantages of using for loop is not obvious
 void Clique::Collect2(Timer *timer) {
     for (auto &ptr_separator : set_neighbours_ptr) {
         /** when it reaches a leaf, the only neighbour is the upstream,
@@ -299,25 +301,28 @@ void Clique::Collect3(vector<vector<Clique*>> &cliques, int max_level, Timer *ti
 #pragma omp task shared(cliques)
             {
                 for (auto &ptr_child : cliques[i][j]->ptr_downstream_cliques) {
-                    cliques[i][j]->UpdateUseMessage2(ptr_child->p_table, timer);
+//                    cliques[i][j]->UpdateUseMessage2(ptr_child->p_table, timer);
+//                    cliques[i][j]->ConstructMessage2(timer);
+                    cliques[i][j]->UpdateMessage(ptr_child->p_table, timer);
                 }
-                cliques[i][j]->ConstructMessage2(timer);
             }
         }
 #pragma omp taskwait
     }
 }
 
-/**
- * Distribute the information it knows to the downstream cliques.
- * The reload version without parameter. Called on the selected root.
- */
-void Clique::Distribute(Timer *timer) {
-    ConstructMessage(timer);
-    for (auto &sep : set_neighbours_ptr) {
-        sep->Distribute(table, timer);
-    }
-}
+///************************* use factor ******************************/
+///**
+// * Distribute the information it knows to the downstream cliques.
+// * The reload version without parameter. Called on the selected root.
+// */
+//void Clique::Distribute(Timer *timer) {
+//    ConstructMessage(timer);
+//    for (auto &sep : set_neighbours_ptr) {
+//        sep->Distribute(table, timer);
+//    }
+//}
+///************************* use factor ******************************/
 
 /**
  * @brief: a step of msg passing in clique trees
@@ -396,16 +401,86 @@ void Clique::Distribute3(vector<vector<Clique*>> &cliques, int max_level, Timer 
             for (auto &ptr_child : clique->ptr_downstream_cliques) {
 #pragma omp task shared(ptr_child)
                 {
-                    // update the msg of "ptr_separator" by multiplying the current table with "clique"'s table
-                    ptr_child->UpdateUseMessage2(clique->p_table, timer);  // Update itself.
-                    // Prepare message for the downstream.
-                    ptr_child->ConstructMessage2(timer);
+//                    // update the msg of "ptr_separator" by multiplying the current table with "clique"'s table
+//                    ptr_child->UpdateUseMessage2(clique->p_table, timer);  // Update itself.
+//                    // Prepare message for the downstream.
+//                    ptr_child->ConstructMessage2(timer);
+                    ptr_child->UpdateMessage(clique->p_table, timer);
                 }
             }
         }
 #pragma omp taskwait
     }
 }
+
+///************************* use factor ******************************/
+///**
+// * @brief: a step of msg passing in clique trees
+// * distribute the information it knows to the downstream cliques; the msg passes from upstream to downstream
+// * first update the msg; then distribute the msgs to its downstream neighbors;
+// * @param f is in fact a factor received from its upstream clique
+// * @return a msg, which is a factor
+// * The reload version with parameter. Called by recursion.
+// */
+//void Clique::Distribute(Factor &f, Timer *timer) {
+//  // If the next clique connected by this separator is a continuous clique,
+//  // then the program should not distribute information to it.// TODO: double-check
+////  bool reach_boundary = false;
+////  for (const auto &next_clq_ptr : set_neighbours_ptr) {
+////    reach_boundary = !next_clq_ptr->pure_discrete;
+////  }
+////  if (reach_boundary) { return; }
+//
+//  // update the msg by multiplying the current factor with f
+//  UpdateUseMessage(f, timer);  // Update itself.
+//
+//  // Prepare message for the downstream.
+//  ConstructMessage(timer);
+//
+//  for (auto &ptr_separator : set_neighbours_ptr) {
+//
+//    // all neighbor cliques contain the upstream clique and downstream clique(s)
+//    // if the current neighbor "ptr_separator" is the upstream clique, not distribute to it
+//    // otherwise, distribute the msg to "ptr_separator"
+//    if (ptr_separator == ptr_upstream_clique) {
+//      continue;
+//    }
+//
+//    // the current neighbor "ptr_separator" is a downstream clique
+//    ptr_separator->ptr_upstream_clique = this;  // Let the callee know the caller.
+//    // distribute the msg to downstream
+//    ptr_separator->Distribute(table, timer); // Distribute to downstream.
+//  }
+//}
+///************************* use factor ******************************/
+
+///**
+// * @brief: a step of msg passing in clique trees
+// * distribute the information it knows to the downstream cliques; the msg passes from upstream to downstream
+// * first update the msg; then distribute the msgs to its downstream neighbors;
+// * @param f is in fact a factor received from its upstream clique
+// * @return a msg, which is a factor
+// * The reload version with parameter. Called by recursion.
+// */
+//void Clique::Distribute2(PotentialTable &pt, Timer *timer) {
+//    // update the msg by multiplying the current factor with f
+//    UpdateUseMessage2(pt, timer);  // Update itself.
+//    // Prepare message for the downstream.
+//    ConstructMessage2(timer);
+//
+//    for (auto &ptr_separator : set_neighbours_ptr) {
+//        // all neighbor cliques contain the upstream clique and downstream clique(s)
+//        // if the current neighbor "ptr_separator" is the upstream clique, not distribute to it
+//        // otherwise, distribute the msg to "ptr_separator"
+//        if (ptr_separator == ptr_upstream_clique) {
+//            continue;
+//        }
+//            // the current neighbor "ptr_separator" is a downstream clique
+//            ptr_separator->ptr_upstream_clique = this;  // Let the callee know the caller.
+//            // distribute the msg to downstream
+//            ptr_separator->Distribute2(p_table, timer); // Distribute to downstream.
+//    }
+//}
 
 /**
  * @brief: do level traverse of the tree, add all the cliques in "cliques" by level at the same time
@@ -443,131 +518,20 @@ void Clique::MarkLevel(vector<vector<Clique*>> &cliques, int &max_level) {
     max_level = cliques.size();
 }
 
-
-
-//void Clique::Distribute2(Timer *timer) {
-//    vector <Clique*> vec;
-//    vec.push_back(this);
-//    while (!vec.empty()) {
-//        vector <Clique*> vec2, vec3;
-//        for (int i = 0; i < vec.size(); ++i) {
-//            for (auto &ptr_separator : vec[i]->set_neighbours_ptr) {
-//                // all neighbor cliques of "clique" contain the upstream clique and downstream clique(s)
-//                // if the current neighbor "ptr_separator" is the upstream clique, not distribute to it
-//                // otherwise, distribute the msg to "ptr_separator"
-//                if (ptr_separator == vec[i]->ptr_upstream_clique) {
-//                    continue;
-//                }
-//                vec2.push_back(vec[i]);
-//                vec2.push_back(ptr_separator);
-//            }
-//        }
-//
-//#pragma omp parallel for num_threads(8)
-//        for (int i = 0; i < vec2.size() / 2; ++i) {
-//            Clique *clique1 = vec2[i * 2 + 0];
-//            Clique *clique2 = vec2[i * 2 + 1];
-//            // the current neighbor "ptr_separator" is a downstream clique of "clique"
-//            clique2->ptr_upstream_clique = clique1;  // Let the callee know the caller.
-//            // update the msg of "ptr_separator" by multiplying the current table with "clique"' table
-//            clique2->UpdateUseMessage2(clique1->p_table, timer);  // Update itself.
-//            // Prepare message for the downstream.
-//            clique2->ConstructMessage2(timer);
-//        }
-//
-//        for (int i = 0; i < vec2.size() / 2; ++i) {
-//            vec3.push_back(vec2[i * 2 + 1]);
-//        }
-//
-//        vec = vec3;
-//    }
-//}
-
-/**
- * @brief: a step of msg passing in clique trees
- * distribute the information it knows to the downstream cliques; the msg passes from upstream to downstream
- * first update the msg; then distribute the msgs to its downstream neighbors;
- * @param f is in fact a factor received from its upstream clique
- * @return a msg, which is a factor
- * The reload version with parameter. Called by recursion.
- */
-void Clique::Distribute(Factor &f, Timer *timer) {
-  // If the next clique connected by this separator is a continuous clique,
-  // then the program should not distribute information to it.// TODO: double-check
-//  bool reach_boundary = false;
-//  for (const auto &next_clq_ptr : set_neighbours_ptr) {
-//    reach_boundary = !next_clq_ptr->pure_discrete;
-//  }
-//  if (reach_boundary) { return; }
-
-  // update the msg by multiplying the current factor with f
-  UpdateUseMessage(f, timer);  // Update itself.
-
-  // Prepare message for the downstream.
-  ConstructMessage(timer);
-
-  for (auto &ptr_separator : set_neighbours_ptr) {
-
-    // all neighbor cliques contain the upstream clique and downstream clique(s)
-    // if the current neighbor "ptr_separator" is the upstream clique, not distribute to it
-    // otherwise, distribute the msg to "ptr_separator"
-    if (ptr_separator == ptr_upstream_clique) {
-      continue;
-    }
-
-    // the current neighbor "ptr_separator" is a downstream clique
-    ptr_separator->ptr_upstream_clique = this;  // Let the callee know the caller.
-    // distribute the msg to downstream
-    ptr_separator->Distribute(table, timer); // Distribute to downstream.
-  }
-}
-
-///**
-// * @brief: a step of msg passing in clique trees
-// * distribute the information it knows to the downstream cliques; the msg passes from upstream to downstream
-// * first update the msg; then distribute the msgs to its downstream neighbors;
-// * @param f is in fact a factor received from its upstream clique
-// * @return a msg, which is a factor
-// * The reload version with parameter. Called by recursion.
-// */
-//void Clique::Distribute2(PotentialTable &pt, Timer *timer) {
-//    // update the msg by multiplying the current factor with f
-//    UpdateUseMessage2(pt, timer);  // Update itself.
-//    // Prepare message for the downstream.
-//    ConstructMessage2(timer);
-//
-//    for (auto &ptr_separator : set_neighbours_ptr) {
-//        // all neighbor cliques contain the upstream clique and downstream clique(s)
-//        // if the current neighbor "ptr_separator" is the upstream clique, not distribute to it
-//        // otherwise, distribute the msg to "ptr_separator"
-//        if (ptr_separator == ptr_upstream_clique) {
-//            continue;
-//        }
-//            // the current neighbor "ptr_separator" is a downstream clique
-//            ptr_separator->ptr_upstream_clique = this;  // Let the callee know the caller.
-//            // distribute the msg to downstream
-//            ptr_separator->Distribute2(p_table, timer); // Distribute to downstream.
-//    }
-//}
-
 /**
  * @brief: sum over external variables which are the results of factor multiplication.
  */
 void Clique::SumOutExternalVars(Factor &f, Timer *timer) {
-//    timer->Start("set_difference");
     // get the variables that in "f" but not in "factor_of_this_clique"
     set<int> set_external_vars;
     set_difference(f.related_variables.begin(), f.related_variables.end(),
                    this->clique_variables.begin(), this->clique_variables.end(),
                    inserter(set_external_vars, set_external_vars.begin()));
-//    timer->Stop("set_difference");
 
-//    timer->Start("factor marginalization");
     // Sum over the variables that are not in the scope of this clique/separator, so as to eliminate them.
     for (auto &ex_vars : set_external_vars) {
         f = f.SumOverVar(ex_vars);
     }
-//    timer->Stop("factor marginalization");
 }
 
 /**
@@ -580,39 +544,10 @@ void Clique::SumOutExternalVars(PotentialTable &pt, Timer *timer) {
                    this->clique_variables.begin(), this->clique_variables.end(),
                    inserter(set_external_vars, set_external_vars.begin()));
 
-//    timer->Start("factor marginalization");
     // Sum over the variables that are not in the scope of this clique/separator, so as to eliminate them.
     for (auto &ex_vars : set_external_vars) {
-//        cout << "sum out " << ex_vars << endl;
-//        cout << "before: ";
-//        for (auto v: pt.related_variables) {
-//            cout << v << " ";
-//        }
-//        cout << ", dim = ";
-//        for (int i = 0; i < pt.var_dims.size(); ++i) {
-//            cout << pt.var_dims[i] << " ";
-//        }
-//        cout << ", cum = ";
-//        for (int i = 0; i < pt.cum_levels.size(); ++i) {
-//            cout << pt.cum_levels[i] << " ";
-//        }
-//        cout << endl;
-//        for (int i = 0; i < pt.table_size; ++i) {
-//            cout << pt.potentials[i] << " ";
-//        }
-//        cout << endl;
         pt.TableMarginalization(ex_vars, timer);
-//        cout << "after: ";
-//        for (auto v: pt.related_variables) {
-//            cout << v << " ";
-//        }
-//        cout << endl;
-//        for (int i = 0; i < pt.table_size; ++i) {
-//            cout << pt.potentials[i] << " ";
-//        }
-//        cout << endl;
     }
-//    timer->Stop("factor marginalization");
 }
 
 /**
@@ -629,9 +564,7 @@ void Clique::MultiplyWithFactorSumOverExternalVars(Factor &f, Timer *timer) {
     // so they all need to be changed here.
     // at the same time, the original implementation copy a new factor of the clique, use the copy to compute,
     // and then copy back the "map_potentials", which is not efficient...
-//    timer->Start("factor multiplication");
     table = table.MultiplyWithFactor(f); // multiply two factors
-//    timer->Stop("factor multiplication");
 }
 
 void Clique::UpdateUseMessage(const Factor &f, Timer *timer) {
@@ -658,6 +591,11 @@ void Clique::ConstructMessage(Timer *timer) {
 void Clique::ConstructMessage2(Timer *timer) {
     // do nothing
     return;
+}
+
+void Clique::UpdateMessage(const PotentialTable &pt, Timer *timer) {
+    PotentialTable tmp_pt = pt;
+    p_table.TableMultiplication(tmp_pt, timer); // multiply two factors
 }
 
 //void Clique::PrintPotentials() const {

@@ -44,7 +44,6 @@ void Separator::UpdateUseMessage2(const PotentialTable &pt, Timer *timer) {
  * @brief: this is a standard process for constructing the message of the separator cliques.
  */
 void Separator::ConstructMessage(Timer *timer) {
-//    timer->Start("factor division");
     // if related variable of both new and old are empty
     if (table.related_variables.empty()) {
         // do nothing, just return, because "table" is a constant
@@ -58,11 +57,16 @@ void Separator::ConstructMessage(Timer *timer) {
             table.map_potentials[comb] /= old_table.map_potentials[comb];
         }
     }
-//    timer->Stop("factor division");
 }
 
 void Separator::ConstructMessage2(Timer *timer) {
-//    timer->Start("factor division");
     p_table.TableDivision(old_ptable, timer);
-//    timer->Stop("factor division");
+}
+
+void Separator::UpdateMessage(const PotentialTable &pt, Timer *timer) {
+    old_ptable = p_table;
+    PotentialTable tmp_pt = pt;
+    SumOutExternalVars(tmp_pt, timer);
+    p_table = tmp_pt;
+    p_table.TableDivision(old_ptable, timer);
 }

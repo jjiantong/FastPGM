@@ -30,6 +30,7 @@ class Separator : public Clique {
 
     void UpdateUseMessage2(const PotentialTable &pt, Timer *timer) override;
     void ConstructMessage2(Timer *timer) override;
+    void UpdateMessage(const PotentialTable &pt, Timer *timer) override;
 };
 
 #endif //BAYESIANNETWORK_SEPARATOR_H

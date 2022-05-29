@@ -66,8 +66,8 @@ class Clique {
 
 //  Clique* CopyWithoutPtr();
   void MultiplyWithFactorSumOverExternalVars(Factor &f, Timer *timer);
-  void Collect(Timer *timer);
-  void Distribute(Timer *timer);
+//  void Collect(Timer *timer);
+//  void Distribute(Timer *timer);
 
   virtual void UpdateUseMessage(const Factor &f, Timer *timer);
   virtual void ConstructMessage(Timer *timer);
@@ -82,6 +82,7 @@ class Clique {
 
     virtual void UpdateUseMessage2(const PotentialTable &pt, Timer *timer);
     virtual void ConstructMessage2(Timer *timer);
+    virtual void UpdateMessage(const PotentialTable &pt, Timer *timer);
 
 //    virtual bool Equals(const Clique &c);
 
