@@ -374,6 +374,13 @@ void Clique::Distribute2(vector<vector<Clique*>> &cliques, int max_level, Timer 
     }
 }
 
+/**
+ * @brief: do level traverse of the tree, add all the cliques in "cliques" by level at the same time
+ * @param cliques: storing all the cliques by level; e.g. cliques[i][j] contains one clique in level i
+ * @param max_level: total number of levels
+ * @note1: separators also included
+ * @note2: mark both "ptr_upstream_clique" and "ptr_downstream_cliques" at the same time
+ */
 void Clique::MarkLevel(vector<vector<Clique*>> &cliques, int &max_level) {
     vector<Clique*> vec; // a set of cliques in one level
     vec.push_back(this); // push the root into vec
@@ -390,6 +397,7 @@ void Clique::MarkLevel(vector<vector<Clique*>> &cliques, int &max_level) {
                     continue;
                 }
                 // the current neighbor "ptr_separator" is a downstream clique of "clique"
+                clique->ptr_downstream_cliques.push_back(ptr_separator);
                 ptr_separator->ptr_upstream_clique = clique;  // Let the callee know the caller.
                 vec2.push_back(ptr_separator);
             }

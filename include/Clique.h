@@ -42,7 +42,8 @@ class Clique {
    * and the "Distribute" force messages flow from upstream to downstream.
    * So, we need a member to record the upstream of this clique (node).
    */
-  Clique *ptr_upstream_clique;//a clique only has one upstream, and all the other neighbours are downstreams.
+  Clique *ptr_upstream_clique; // a clique only has one upstream, and all the other neighbours are downstreams.
+    vector<Clique *> ptr_downstream_cliques;
 
   /**
    * Data structures needed for elimination tree

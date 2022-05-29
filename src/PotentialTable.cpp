@@ -290,7 +290,7 @@ void PotentialTable::TableMultiplication(PotentialTable &second_table, Timer *ti
     for (int i = 0; i < this->table_size; ++i) {
         this->potentials[i] *= second_table.potentials[i];
     }
-    timer->Stop("multi1");x
+    timer->Stop("multi1");
 }
 
 void PotentialTable::TableDivision(const PotentialTable &second_table, Timer *timer) {
