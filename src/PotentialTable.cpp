@@ -192,7 +192,7 @@ void PotentialTable::TableExtension(const set<int> &variables, const vector<int>
     int *partial_config = new int[new_table.table_size * this->num_variables];
     int *table_index = new int[new_table.table_size];
 
-#pragma omp taskloop
+//#pragma omp taskloop
     for (int i = 0; i < new_table.table_size; ++i) {
         // obtain the config value according to loc_in_new
         // 1. get the full config value of new table
@@ -272,7 +272,7 @@ void PotentialTable::TableMarginalization(const set<int> &ext_variables) {
     int *partial_config = new int[this->table_size * new_table.num_variables];
     int *table_index = new int[this->table_size];
 
-#pragma omp taskloop
+//#pragma omp taskloop
     for (int i = 0; i < this->table_size; ++i) {
         // 1. get the full config value of old table
         this->GetConfigValueByTableIndex(i, full_config + i * this->num_variables);
