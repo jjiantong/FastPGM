@@ -44,10 +44,13 @@ public:
     void ConstructEmptyPotentialTable(const set<int> &set_node_index, Network *net);
 
     void TableExtension(const set<int> &variables, const vector<int> &dims);
+    void TableMarginalization(const set<int> &ext_variables);
+    void TableMarginalizationAndDivision(const set<int> &ext_variables, const PotentialTable &second_table);
+
     void TableMultiplication(PotentialTable &second_table);
     void TableDivision(const PotentialTable &second_table);
+
     void TableReduction(int e_index, int e_value_index, int num_threads);
-    void TableMarginalization(int index);
     void Normalize();
 
 private:

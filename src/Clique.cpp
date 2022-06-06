@@ -530,16 +530,16 @@ void Clique::MarkLevel(vector<vector<Clique*>> &cliques, int &max_level) {
  * @brief: sum over external variables which are the results of factor multiplication.
  */
 void Clique::SumOutExternalVars(PotentialTable &pt) {
-    // get the variables that in "f" but not in "factor_of_this_clique"
-    set<int> set_external_vars;
-    set_difference(pt.related_variables.begin(), pt.related_variables.end(),
-                   this->clique_variables.begin(), this->clique_variables.end(),
-                   inserter(set_external_vars, set_external_vars.begin()));
-
-    // Sum over the variables that are not in the scope of this clique/separator, so as to eliminate them.
-    for (auto &ex_vars : set_external_vars) {
-        pt.TableMarginalization(ex_vars);
-    }
+//    // get the variables that in "f" but not in "factor_of_this_clique"
+//    set<int> set_external_vars;
+//    set_difference(pt.related_variables.begin(), pt.related_variables.end(),
+//                   this->clique_variables.begin(), this->clique_variables.end(),
+//                   inserter(set_external_vars, set_external_vars.begin()));
+//
+//    // Sum over the variables that are not in the scope of this clique/separator, so as to eliminate them.
+//    for (auto &ex_vars : set_external_vars) {
+//        pt.TableMarginalization(ex_vars);
+//    }
 }
 
 ///************************* use factor ******************************/

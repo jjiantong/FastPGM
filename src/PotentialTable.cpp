@@ -193,7 +193,7 @@ void PotentialTable::TableExtension(const set<int> &variables, const vector<int>
     int *partial_config = new int[new_table.table_size * this->num_variables];
     int *table_index = new int[new_table.table_size];
 
-#pragma omp taskloop
+//#pragma omp taskloop
     for (int i = 0; i < new_table.table_size; ++i) {
         // obtain the config value according to loc_in_new
         // 1. get the full config value of new table
@@ -221,6 +221,181 @@ void PotentialTable::TableExtension(const set<int> &variables, const vector<int>
 
     (*this) = new_table;
 //    timer->Stop("extension2");
+}
+
+/**
+ * @brief: factor out a node by id; i.e., factor marginalization
+ * eliminate variable "id" by summation of the factor over "id"
+ */
+void PotentialTable::TableMarginalization(const set<int> &ext_variables) {
+//    timer->Start("marginal2");
+    PotentialTable new_table;
+
+    new_table.related_variables = this->related_variables;
+    for (auto &ext_var: ext_variables) {
+        new_table.related_variables.erase(ext_var);
+    }
+    new_table.num_variables = this->num_variables - ext_variables.size();
+
+    if (new_table.num_variables > 0) {
+        new_table.var_dims.reserve(new_table.num_variables);
+        int i = 0;
+        for (auto &v: this->related_variables) {
+            if (ext_variables.find(v) == ext_variables.end()) { // v is not in ext_variables
+                new_table.var_dims.push_back(this->var_dims[i]);
+            }
+            i++;
+        }
+
+        new_table.ConstructCumLevels();
+        // compute the table size -- number of possible configurations
+        new_table.table_size = new_table.cum_levels[0] * new_table.var_dims[0];
+    } else {
+        new_table.var_dims = vector<int>();
+        new_table.cum_levels = vector<int>();
+        new_table.table_size = 1;
+    }
+
+    // generate an array showing the locations of the variables of the new table in the old table
+    int *loc_in_old = new int[new_table.num_variables];
+    int i = 0;
+    for (auto &v: new_table.related_variables) {
+        loc_in_old[i++] = this->GetVariableIndex(v);
+    }
+
+//    timer->Stop("marginal2");
+
+//    timer->Start("marginal1");
+    // initialize potentials
+    new_table.potentials.resize(new_table.table_size);
+
+    int *full_config = new int[this->table_size * this->num_variables];
+    int *partial_config = new int[this->table_size * new_table.num_variables];
+    int *table_index = new int[this->table_size];
+
+//#pragma omp taskloop
+    for (int i = 0; i < this->table_size; ++i) {
+        // 1. get the full config value of old table
+        this->GetConfigValueByTableIndex(i, full_config + i * this->num_variables);
+        // 2. get the partial config value from the old table
+        for (int j = 0; j < new_table.num_variables; ++j) {
+            partial_config[i * new_table.num_variables + j] = full_config[i * this->num_variables + loc_in_old[j]];
+        }
+        // 3. obtain the potential index
+        table_index[i] = new_table.GetTableIndexByConfigValue(partial_config + i * new_table.num_variables);
+    }
+    delete[] full_config;
+    delete[] partial_config;
+    delete[] loc_in_old;
+
+//    timer->Stop("marginal1");
+
+//    timer->Start("marginal2");
+
+//#pragma omp parallel for
+    for (int i = 0; i < this->table_size; ++i) {
+//#pragma omp atomic
+        // 4. potential[table_index]
+        new_table.potentials[table_index[i]] += this->potentials[i];
+    }
+    delete[] table_index;
+
+    (*this) = new_table;
+//    timer->Stop("marginal2");
+}
+
+void PotentialTable::TableMarginalizationAndDivision(const set<int> &ext_variables, const PotentialTable &second_table) {
+//    timer->Start("marginal2");
+    PotentialTable new_table;
+
+    new_table.related_variables = this->related_variables;
+    for (auto &ext_var: ext_variables) {
+        new_table.related_variables.erase(ext_var);
+    }
+    new_table.num_variables = this->num_variables - ext_variables.size();
+
+    if (new_table.num_variables > 0) {
+        new_table.var_dims.reserve(new_table.num_variables);
+        int i = 0;
+        for (auto &v: this->related_variables) {
+            if (ext_variables.find(v) == ext_variables.end()) { // v is not in ext_variables
+                new_table.var_dims.push_back(this->var_dims[i]);
+            }
+            i++;
+        }
+
+        new_table.ConstructCumLevels();
+        // compute the table size -- number of possible configurations
+        new_table.table_size = new_table.cum_levels[0] * new_table.var_dims[0];
+    } else {
+        new_table.var_dims = vector<int>();
+        new_table.cum_levels = vector<int>();
+        new_table.table_size = 1;
+    }
+
+    // generate an array showing the locations of the variables of the new table in the old table
+    int *loc_in_old = new int[new_table.num_variables];
+    int i = 0;
+    for (auto &v: new_table.related_variables) {
+        loc_in_old[i++] = this->GetVariableIndex(v);
+    }
+
+//    timer->Stop("marginal2");
+
+//    timer->Start("marginal1");
+    // initialize potentials
+    new_table.potentials.resize(new_table.table_size);
+
+    int *full_config = new int[this->table_size * this->num_variables];
+    int *partial_config = new int[this->table_size * new_table.num_variables];
+    int *table_index = new int[this->table_size];
+
+//#pragma omp taskloop
+    for (int i = 0; i < this->table_size; ++i) {
+        // 1. get the full config value of old table
+        this->GetConfigValueByTableIndex(i, full_config + i * this->num_variables);
+        // 2. get the partial config value from the old table
+        for (int j = 0; j < new_table.num_variables; ++j) {
+            partial_config[i * new_table.num_variables + j] = full_config[i * this->num_variables + loc_in_old[j]];
+        }
+        // 3. obtain the potential index
+        table_index[i] = new_table.GetTableIndexByConfigValue(partial_config + i * new_table.num_variables);
+    }
+    delete[] full_config;
+    delete[] partial_config;
+    delete[] loc_in_old;
+
+//    timer->Stop("marginal1");
+
+//    timer->Start("marginal2");
+
+//#pragma omp parallel for
+    for (int i = 0; i < this->table_size; ++i) {
+//#pragma omp atomic
+        // 4. potential[table_index]
+        new_table.potentials[table_index[i]] += this->potentials[i];
+    }
+    delete[] table_index;
+
+    (*this) = new_table;
+//    timer->Stop("marginal2");
+
+//    timer->Start("div1");
+    // if related variable of both are empty
+    if (this->related_variables.empty()) {
+        // do nothing, just return, because "table" is a constant
+        return;
+    }
+
+//#pragma omp taskloop
+    for (int i = 0; i < this->table_size; ++i) {
+        if (second_table.potentials[i] == 0) {
+            this->potentials[i] = 0;
+        } else {
+            this->potentials[i] /= second_table.potentials[i];
+        }
+    }
+//    timer->Stop("div1");
 }
 
 /**
@@ -281,7 +456,7 @@ void PotentialTable::TableMultiplication(PotentialTable &second_table) {
     }
 
 //    timer->Start("multi1");
-#pragma omp taskloop
+//#pragma omp taskloop
     for (int i = 0; i < this->table_size; ++i) {
         this->potentials[i] *= second_table.potentials[i];
     }
@@ -296,7 +471,7 @@ void PotentialTable::TableDivision(const PotentialTable &second_table) {
         return;
     }
 
-#pragma omp taskloop
+//#pragma omp taskloop
     for (int i = 0; i < this->table_size; ++i) {
         if (second_table.potentials[i] == 0) {
             this->potentials[i] = 0;
@@ -379,83 +554,6 @@ void PotentialTable::TableReduction(int e_index, int e_value_index, int num_thre
         this->table_size = 1;
     }
 //    timer->Stop("reduction2");
-}
-
-/**
- * @brief: factor out a node by id; i.e., factor marginalization
- * eliminate variable "id" by summation of the factor over "id"
- */
-void PotentialTable::TableMarginalization(int index) {
-//    timer->Start("marginal2");
-    PotentialTable new_table;
-
-    new_table.related_variables = this->related_variables;
-    new_table.related_variables.erase(index);
-    new_table.num_variables = this->num_variables - 1;
-
-    // find the location of the variable in the old table
-    int v_loc = this->GetVariableIndex(index); // eg. 2 ---- 0 1 2 3 4 -> 0 1 3 4
-    // generate an array showing the locations of the left variables in the old table
-    int *loc_in_old = new int[new_table.num_variables];
-    for (int i = 0; i < new_table.num_variables; ++i) {
-        loc_in_old[i] = i >= v_loc ? i + 1 : i;
-    }
-
-    if (new_table.num_variables > 0) {
-        new_table.var_dims.reserve(new_table.num_variables);
-        for (int i = 0; i < this->num_variables; ++i) {
-            if (i != v_loc) {
-                new_table.var_dims.push_back(this->var_dims[i]);
-            }
-        }
-
-        new_table.ConstructCumLevels();
-        // compute the table size -- number of possible configurations
-        new_table.table_size = new_table.cum_levels[0] * new_table.var_dims[0];
-    } else {
-        new_table.var_dims = vector<int>();
-        new_table.cum_levels = vector<int>();
-        new_table.table_size = 1;
-    }
-//    timer->Stop("marginal2");
-
-//    timer->Start("marginal1");
-    // initialize potentials
-    new_table.potentials.resize(new_table.table_size);
-
-    int *full_config = new int[this->table_size * this->num_variables];
-    int *partial_config = new int[this->table_size * new_table.num_variables];
-    int *table_index = new int[this->table_size];
-
-#pragma omp taskloop
-    for (int i = 0; i < this->table_size; ++i) {
-        // 1. get the full config value of old table
-        this->GetConfigValueByTableIndex(i, full_config + i * this->num_variables);
-        // 2. get the partial config value from the old table
-        for (int j = 0; j < new_table.num_variables; ++j) {
-            partial_config[i * new_table.num_variables + j] = full_config[i * this->num_variables + loc_in_old[j]];
-        }
-        // 3. obtain the potential index
-        table_index[i] = new_table.GetTableIndexByConfigValue(partial_config + i * new_table.num_variables);
-    }
-    delete[] full_config;
-    delete[] partial_config;
-    delete[] loc_in_old;
-
-//    timer->Stop("marginal1");
-
-//    timer->Start("marginal2");
-
-//#pragma omp parallel for
-    for (int i = 0; i < this->table_size; ++i) {
-//#pragma omp atomic
-        // 4. potential[table_index]
-        new_table.potentials[table_index[i]] += this->potentials[i];
-    }
-    delete[] table_index;
-
-    (*this) = new_table;
-//    timer->Stop("marginal2");
 }
 
 void PotentialTable::Normalize() {

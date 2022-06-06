@@ -1369,41 +1369,41 @@ void JunctionTree::MessagePassingUpdateJT(int num_threads, Timer *timer) {
 //    /************************* use factor ******************************/
 
     /************************* use potential table ******************************/
-    /**
-     * 1. omp task
-     */
-    timer->Start("upstream");
-#pragma omp parallel num_threads(num_threads)
-    {
-#pragma omp single
-        {
-            arb_root->Collect2();
-//            arb_root->Collect3(cliques_by_level, max_level);
-        }
-    }
-    timer->Stop("upstream");
-
-    timer->Start("downstream");
-#pragma omp parallel num_threads(num_threads)
-    {
-#pragma omp single
-        {
-            arb_root->Distribute2();
-//            arb_root->Distribute3(cliques_by_level, max_level);
-        }
-    }
-    timer->Stop("downstream");
-
 //    /**
-//     * 2. omp parallel for
+//     * 1. omp task
 //     */
 //    timer->Start("upstream");
-//    arb_root->Collect3(cliques_by_level, max_level, num_threads);
+//#pragma omp parallel num_threads(num_threads)
+//    {
+//#pragma omp single
+//        {
+//            arb_root->Collect2();
+////            arb_root->Collect3(cliques_by_level, max_level);
+//        }
+//    }
 //    timer->Stop("upstream");
 //
 //    timer->Start("downstream");
-//    arb_root->Distribute3(cliques_by_level, max_level, num_threads);
+//#pragma omp parallel num_threads(num_threads)
+//    {
+//#pragma omp single
+//        {
+//            arb_root->Distribute2();
+////            arb_root->Distribute3(cliques_by_level, max_level);
+//        }
+//    }
 //    timer->Stop("downstream");
+
+    /**
+     * 2. omp parallel for
+     */
+    timer->Start("upstream");
+    arb_root->Collect3(cliques_by_level, max_level, num_threads);
+    timer->Stop("upstream");
+
+    timer->Start("downstream");
+    arb_root->Distribute3(cliques_by_level, max_level, num_threads);
+    timer->Stop("downstream");
     /************************* use potential table ******************************/
 }
 
@@ -1516,9 +1516,10 @@ PotentialTable JunctionTree::BeliefPropagationCalcuDiscreteVarMarginal2(int quer
 //        cout << pt.potentials[j] << endl;
 //    }
 
-    for (auto &index : other_vars) {
-        pt.TableMarginalization(index);
-    }
+//    for (auto &index : other_vars) {
+//        pt.TableMarginalization(index);
+//    }
+    pt.TableMarginalization(other_vars);
 //    cout << "table after marginalization: " << endl;
 //    for (int j = 0; j < pt.potentials.size(); ++j) {
 //        cout << pt.potentials[j] << endl;

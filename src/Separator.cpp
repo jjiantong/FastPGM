@@ -69,7 +69,13 @@ void Separator::ConstructMessage2() {
 void Separator::UpdateMessage(const PotentialTable &pt) {
     old_ptable = p_table;
     PotentialTable tmp_pt = pt;
-    SumOutExternalVars(tmp_pt);
+//    SumOutExternalVars(tmp_pt);
+    set<int> set_external_vars;
+    set_difference(tmp_pt.related_variables.begin(), tmp_pt.related_variables.end(),
+                   this->clique_variables.begin(), this->clique_variables.end(),
+                   inserter(set_external_vars, set_external_vars.begin()));
+
+    tmp_pt.TableMarginalizationAndDivision(set_external_vars, old_ptable);
+
     p_table = tmp_pt;
-    p_table.TableDivision(old_ptable);
 }
