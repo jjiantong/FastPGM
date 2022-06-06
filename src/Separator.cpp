@@ -32,16 +32,7 @@ Separator* Separator::CopyWithoutPtr() {
 //    SumOutExternalVars(tmp_f, timer);
 //    table = tmp_f;
 //}
-///************************* use factor ******************************/
-
-void Separator::UpdateUseMessage2(const PotentialTable &pt) {
-    old_ptable = p_table;
-    PotentialTable tmp_pt = pt;
-    SumOutExternalVars(tmp_pt);
-    p_table = tmp_pt;
-}
-
-///************************* use factor ******************************/
+//
 ///**
 // * @brief: this is a standard process for constructing the message of the separator cliques.
 // */
@@ -62,10 +53,20 @@ void Separator::UpdateUseMessage2(const PotentialTable &pt) {
 //}
 ///************************* use factor ******************************/
 
-void Separator::ConstructMessage2() {
-    p_table.TableDivision(old_ptable);
-}
+//void Separator::UpdateUseMessage2(const PotentialTable &pt) {
+//    old_ptable = p_table;
+//    PotentialTable tmp_pt = pt;
+//    SumOutExternalVars(tmp_pt);
+//    p_table = tmp_pt;
+//}
+//
+//void Separator::ConstructMessage2() {
+//    p_table.TableDivision(old_ptable);
+//}
 
+/**
+ * merge the above two methods
+ */
 void Separator::UpdateMessage(const PotentialTable &pt) {
     old_ptable = p_table;
     PotentialTable tmp_pt = pt;

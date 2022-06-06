@@ -29,8 +29,8 @@ class Separator : public Clique {
 //  void ConstructMessage(Timer *timer) override;
 //    /************************* use factor ******************************/
 
-    void UpdateUseMessage2(const PotentialTable &pt) override;
-    void ConstructMessage2() override;
+//    void UpdateUseMessage2(const PotentialTable &pt) override;
+//    void ConstructMessage2() override;
     void UpdateMessage(const PotentialTable &pt) override;
 };
 

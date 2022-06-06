@@ -1369,41 +1369,41 @@ void JunctionTree::MessagePassingUpdateJT(int num_threads, Timer *timer) {
 //    /************************* use factor ******************************/
 
     /************************* use potential table ******************************/
-//    /**
-//     * 1. omp task
-//     */
-//    timer->Start("upstream");
-//#pragma omp parallel num_threads(num_threads)
-//    {
-//#pragma omp single
-//        {
-//            arb_root->Collect2();
-////            arb_root->Collect3(cliques_by_level, max_level);
-//        }
-//    }
-//    timer->Stop("upstream");
-//
-//    timer->Start("downstream");
-//#pragma omp parallel num_threads(num_threads)
-//    {
-//#pragma omp single
-//        {
-//            arb_root->Distribute2();
-////            arb_root->Distribute3(cliques_by_level, max_level);
-//        }
-//    }
-//    timer->Stop("downstream");
+    /**
+     * 1. omp task
+     */
+    timer->Start("upstream");
+#pragma omp parallel num_threads(num_threads)
+    {
+#pragma omp single
+        {
+            arb_root->Collect2();
+//            arb_root->Collect3(cliques_by_level, max_level);
+        }
+    }
+    timer->Stop("upstream");
+
+    timer->Start("downstream");
+#pragma omp parallel num_threads(num_threads)
+    {
+#pragma omp single
+        {
+            arb_root->Distribute2();
+//            arb_root->Distribute3(cliques_by_level, max_level);
+        }
+    }
+    timer->Stop("downstream");
 
     /**
      * 2. omp parallel for
      */
-    timer->Start("upstream");
-    arb_root->Collect3(cliques_by_level, max_level, num_threads);
-    timer->Stop("upstream");
-
-    timer->Start("downstream");
-    arb_root->Distribute3(cliques_by_level, max_level, num_threads);
-    timer->Stop("downstream");
+//    timer->Start("upstream");
+//    arb_root->Collect3(cliques_by_level, max_level, num_threads);
+//    timer->Stop("upstream");
+//
+//    timer->Start("downstream");
+//    arb_root->Distribute3(cliques_by_level, max_level, num_threads);
+//    timer->Stop("downstream");
     /************************* use potential table ******************************/
 }
 

@@ -241,30 +241,16 @@ void Clique::Collect2() {
         /** when it reaches a leaf, the only neighbour is the upstream,
          * which can be viewed as the base case of recursive function.
          */
-        // all neighbor cliques contain the upstream clique and downstream clique(s)
-        // if the current neighbor "ptr_separator" is the upstream clique, not collect from it
-        // otherwise, collect the msg from "ptr_separator" and update the msg
-//        if (ptr_child == ptr_upstream_clique) {
-//            continue;
-//        }
 #pragma omp task shared(ptr_child)
         {
-//            // the current neighbor "ptr_separator" is a downstream clique of "clique"
-//            ptr_child->ptr_upstream_clique = this;  // Let the callee know the caller.
             // collect the msg f from downstream
             ptr_child->Collect2();
             PotentialTable pt = ptr_child->p_table;
-            // update the msg by multiplying the current factor with f
-            // the current factor is the initial potential, or
-            // the product of the initial potential and factors received from other downstream neighbors
-//            UpdateUseMessage2(pt);  // Update itself.
-//            ConstructMessage2();
+            // update the msg by multiplying the current table with pt
             UpdateMessage(pt);
         }
     }
 #pragma omp taskwait
-    // Prepare message for the upstream.
-//    ConstructMessage2();
 }
 
 /*!
@@ -276,27 +262,6 @@ void Clique::Collect2() {
  * @param cliques: all cliques (separators) in the junction tree, ordered by levels
  * @param max_level: the max level of the junction tree (cliques and separators are all included)
  */
-void Clique::Collect2(vector<vector<Clique*>> &cliques, int max_level) {
-    for (int i = max_level - 2; i >= 0 ; --i) { // for each level
-        for (int j = 0; j < cliques[i].size(); ++j) { // for each clique of this level
-#pragma omp task shared(cliques)
-            {
-                for (auto &ptr_separator : cliques[i][j]->set_neighbours_ptr) {
-                    // all neighbor cliques of "clique" contain the upstream clique and downstream clique(s)
-                    // if the current neighbor "ptr_separator" is the upstream clique, not collect from it
-                    // otherwise, collect from the msg to "ptr_separator"
-                    if (ptr_separator == cliques[i][j]->ptr_upstream_clique) {
-                        continue;
-                    }
-                    cliques[i][j]->UpdateUseMessage2(ptr_separator->p_table);
-                }
-                cliques[i][j]->ConstructMessage2();
-            }
-        }
-#pragma omp taskwait
-    }
-}
-
 /**
  * 1. omp task
  */
@@ -388,8 +353,6 @@ void Clique::Distribute2() {
 }
 
 void Clique::Distribute2(PotentialTable &pt) {
-//    UpdateUseMessage2(pt);  // Update itself.
-//    ConstructMessage2();
     UpdateMessage(pt);
 
     for (auto &ptr_child : ptr_downstream_cliques) {
@@ -410,30 +373,6 @@ void Clique::Distribute2(PotentialTable &pt) {
  * because the handling order of the cliques in the same level does not matter
  * in the handling process, first update the msg; then construct the msg and push the clique to the queue
  */
-void Clique::Distribute2(vector<vector<Clique*>> &cliques, int max_level) {
-    for (int i = 0; i < max_level - 1; ++i) {
-        for (int j = 0; j < cliques[i].size(); ++j) {
-            Clique *clique = cliques[i][j];
-            for (auto &ptr_separator : clique->set_neighbours_ptr) {
-                // all neighbor cliques of "clique" contain the upstream clique and downstream clique(s)
-                // if the current neighbor "ptr_separator" is the upstream clique, not distribute to it
-                // otherwise, distribute the msg to "ptr_separator"
-                if (ptr_separator == clique->ptr_upstream_clique) {
-                    continue;
-                }
-#pragma omp task shared(ptr_separator)
-                {
-                    // update the msg of "ptr_separator" by multiplying the current table with "clique"'s table
-                    ptr_separator->UpdateUseMessage2(clique->p_table);  // Update itself.
-                    // Prepare message for the downstream.
-                    ptr_separator->ConstructMessage2();
-                }
-            }
-        }
-#pragma omp taskwait
-    }
-}
-
 /**
  * 1. omp task
  */
@@ -444,10 +383,7 @@ void Clique::Distribute3(vector<vector<Clique*>> &cliques, int max_level) {
             for (auto &ptr_child : clique->ptr_downstream_cliques) {
 #pragma omp task shared(ptr_child)
                 {
-//                    // update the msg of "ptr_separator" by multiplying the current table with "clique"'s table
-//                    ptr_child->UpdateUseMessage2(clique->p_table);  // Update itself.
-//                    // Prepare message for the downstream.
-//                    ptr_child->ConstructMessage2();
+                    // Prepare message for the downstream.
                     ptr_child->UpdateMessage(clique->p_table);
                 }
             }
@@ -529,7 +465,7 @@ void Clique::MarkLevel(vector<vector<Clique*>> &cliques, int &max_level) {
 /**
  * @brief: sum over external variables which are the results of factor multiplication.
  */
-void Clique::SumOutExternalVars(PotentialTable &pt) {
+//void Clique::SumOutExternalVars(PotentialTable &pt) {
 //    // get the variables that in "f" but not in "factor_of_this_clique"
 //    set<int> set_external_vars;
 //    set_difference(pt.related_variables.begin(), pt.related_variables.end(),
@@ -540,7 +476,7 @@ void Clique::SumOutExternalVars(PotentialTable &pt) {
 //    for (auto &ex_vars : set_external_vars) {
 //        pt.TableMarginalization(ex_vars);
 //    }
-}
+//}
 
 ///************************* use factor ******************************/
 ///**
@@ -565,14 +501,7 @@ void Clique::SumOutExternalVars(PotentialTable &pt) {
 //    Factor tmp_f = f;
 //    MultiplyWithFactorSumOverExternalVars(tmp_f, timer);
 //}
-///************************* use factor ******************************/
-
-void Clique::UpdateUseMessage2(const PotentialTable &pt) {
-    PotentialTable tmp_pt = pt;
-    p_table.TableMultiplication(tmp_pt); // multiply two factors
-}
-
-///************************* use factor ******************************/
+//
 ///**
 // * @brief: construct a factor of this clique and return
 // */
@@ -582,14 +511,22 @@ void Clique::UpdateUseMessage2(const PotentialTable &pt) {
 //}
 ///************************* use factor ******************************/
 
-/**
- * @brief: construct a factor of this clique and return
- */
-void Clique::ConstructMessage2() {
-    // do nothing
-    return;
-}
+//void Clique::UpdateUseMessage2(const PotentialTable &pt) {
+//    PotentialTable tmp_pt = pt;
+//    p_table.TableMultiplication(tmp_pt); // multiply two factors
+//}
+//
+///**
+// * @brief: construct a factor of this clique and return
+// */
+//void Clique::ConstructMessage2() {
+//    // do nothing
+//    return;
+//}
 
+/**
+ * merging the above two methods
+ */
 void Clique::UpdateMessage(const PotentialTable &pt) {
     PotentialTable tmp_pt = pt;
     p_table.TableMultiplication(tmp_pt); // multiply two factors
