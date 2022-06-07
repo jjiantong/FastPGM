@@ -377,33 +377,44 @@ void Clique::Distribute2(PotentialTable &pt) {
  * 1. omp task
  */
 void Clique::Distribute3(vector<vector<Clique*>> &cliques, int max_level) {
-    for (int i = 0; i < max_level - 1; ++i) {
-        for (int j = 0; j < cliques[i].size(); ++j) {
-            Clique *clique = cliques[i][j];
-            for (auto &ptr_child : clique->ptr_downstream_cliques) {
-#pragma omp task shared(ptr_child)
-                {
-                    // Prepare message for the downstream.
-                    ptr_child->UpdateMessage(clique->p_table);
-                }
+    for (int i = 1; i < max_level; ++i) { // for each level
+        for (int j = 0; j < cliques[i].size(); ++j) { // for each clique in this level
+#pragma omp task // TODO: need test
+            {
+                auto clique = cliques[i][j];
+                auto par = clique->ptr_upstream_clique;
+                clique->UpdateMessage(par->p_table);
             }
         }
 #pragma omp taskwait
     }
+
+//    for (int i = 0; i < max_level - 1; ++i) {
+//        for (int j = 0; j < cliques[i].size(); ++j) {
+//            Clique *clique = cliques[i][j];
+//            for (auto &ptr_child : clique->ptr_downstream_cliques) {
+//#pragma omp task shared(ptr_child)
+//                {
+//                    // Prepare message for the downstream.
+//                    ptr_child->UpdateMessage(clique->p_table);
+//                }
+//            }
+//        }
+//#pragma omp taskwait
+//    }
 }
 
 /**
  * 2. omp parallel for
  */
 void Clique::Distribute3(vector<vector<Clique*>> &cliques, int max_level, int num_threads) {
-    for (int i = 0; i < max_level - 1; ++i) {
+    for (int i = 1; i < max_level; ++i) { // for each level
         omp_set_num_threads(num_threads);
 #pragma omp parallel for
-        for (int j = 0; j < cliques[i].size(); ++j) {
-            Clique *clique = cliques[i][j];
-            for (auto &ptr_child : clique->ptr_downstream_cliques) {
-                ptr_child->UpdateMessage(clique->p_table);
-            }
+        for (int j = 0; j < cliques[i].size(); ++j) { // for each clique in this level
+            auto clique = cliques[i][j];
+            auto par = clique->ptr_upstream_clique;
+            clique->UpdateMessage(par->p_table);
         }
     }
 }
