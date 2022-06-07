@@ -379,10 +379,10 @@ void Clique::Distribute2(PotentialTable &pt) {
 void Clique::Distribute3(vector<vector<Clique*>> &cliques, int max_level) {
     for (int i = 1; i < max_level; ++i) { // for each level
         for (int j = 0; j < cliques[i].size(); ++j) { // for each clique in this level
-#pragma omp task // TODO: need test
-            {
                 auto clique = cliques[i][j];
                 auto par = clique->ptr_upstream_clique;
+#pragma omp task // TODO: need test
+            {
                 clique->UpdateMessage(par->p_table);
             }
         }
