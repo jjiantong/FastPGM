@@ -124,8 +124,8 @@ JunctionTree::JunctionTree(Network *net) {
     // Arbitrarily select a clique as the root.
     auto iter = vector_clique_ptr_container.begin();
     arb_root = *iter;
-    arb_root->MarkLevel(cliques_by_level, max_level);
-    cout << "finish MarkLevel" << endl;
+    MarkLevel(nodes_by_level, max_level, cliques_by_level, separators_by_level);
+//    cout << "finish MarkLevel" << endl;
 
     BackUpJunctionTree();
 //  cout << "finish BackUpJunctionTree" << endl;
@@ -298,7 +298,7 @@ JunctionTree::JunctionTree(Network *net) {
 //    // Arbitrarily select a clique as the root.
 //    auto iter = vector_clique_ptr_container.begin();
 //    arb_root = *iter;
-//    arb_root->MarkLevel(cliques_by_level, max_level);
+//    MarkLevel(nodes_by_level, max_level, cliques_by_level, separators_by_level);
 //
 //  BackUpJunctionTree();
 ////  cout << "finish BackUpJunctionTree" << endl;
@@ -1156,6 +1156,66 @@ void JunctionTree::AssignPotentials() { //checked
 }
 
 /**
+ * @brief: do level traverse of the tree, at the same time:
+ *      1 add all the cliques & separators in "nodes" by level
+ *      2 add all the cliques in "clqs" by level
+ *      3 add all the separators in "seps" by level
+ *      4 mark both "ptr_upstream_clique" and "ptr_downstream_cliques"
+ * @param nodes: storing all the cliques & separators by level; e.g. nodes[i][j] contains one clique or separator in level i
+ * @param max_level: total number of levels
+ * @param clqs: storing all the cliques by level; e.g. clqs[i][j] contains one clique in level i * 2
+ * @param seps: storing all the separators by level; e.g. seps[i][j] contains one separator in level i * 2 + 1
+ */
+void JunctionTree::MarkLevel(vector<vector<Clique*>> &nodes, int &max_level,
+                             vector<vector<Clique*>> &clqs, vector<vector<Separator*>> &seps) {
+    vector<Clique*> vec; // a set of cliques/seps in one level
+    vec.push_back(arb_root); // push the root into vec
+    nodes.push_back(vec); // the first level only has the root clique
+    clqs.push_back(vec);
+
+    while (!vec.empty()) {
+        vector<Clique*> vec2;
+        vector<Separator*> vsep2;
+        /*
+         * think of nodes...: clq, sep, clq, sep, ... clq
+         * if nodes.size % 2 == 0, "vec" is sep, then vec's downstream neighbors are clqs
+         */
+        bool is_sep = nodes.size() % 2 == 0 ? false : true;
+
+        for (int i = 0; i < vec.size(); ++i) { // for each clique/sep in the current level
+            Clique *clique = vec[i];
+            for (auto &ptr_neighbor : clique->set_neighbours_ptr) {
+                // all neighbor cliques of "clique" contain the upstream clique and downstream clique(s)
+                // if the current neighbor "ptr_separator" is the upstream clique, do nothing
+                if (ptr_neighbor == clique->ptr_upstream_clique) {
+                    continue;
+                }
+                // the current neighbor "ptr_separator" is a downstream clique of "clique"
+                clique->ptr_downstream_cliques.push_back(ptr_neighbor);
+                ptr_neighbor->ptr_upstream_clique = clique;  // Let the callee know the caller.
+                vec2.push_back(ptr_neighbor);
+                if (is_sep) { // cast and push to the separator vector
+                    Separator* ptr_sep = dynamic_cast<Separator*>(ptr_neighbor);
+                    vsep2.push_back(ptr_sep);
+                }
+            }
+        }
+
+        nodes.push_back(vec2);
+        if (is_sep) {
+            seps.push_back(vsep2);
+        } else {
+            clqs.push_back(vec2);
+        }
+        vec = vec2;
+    }
+
+    nodes.pop_back();
+    seps.pop_back();
+    max_level = nodes.size();
+}
+
+/**
  * The inference process will modify the junction tree itself.
  * So, we need to backup the tree and restore it after an inference.
  * Otherwise, we need to re-construct the tree each time we want to make inference.
@@ -1378,7 +1438,7 @@ void JunctionTree::MessagePassingUpdateJT(int num_threads, Timer *timer) {
 //#pragma omp single
 //        {
 //            arb_root->Collect2();
-////            arb_root->Collect3(cliques_by_level, max_level);
+////            arb_root->Collect3(nodes_by_level, max_level);
 //        }
 //    }
 //    timer->Stop("upstream");
@@ -1389,7 +1449,7 @@ void JunctionTree::MessagePassingUpdateJT(int num_threads, Timer *timer) {
 //#pragma omp single
 //        {
 //            arb_root->Distribute2();
-////            arb_root->Distribute3(cliques_by_level, max_level);
+////            arb_root->Distribute3(nodes_by_level, max_level);
 //        }
 //    }
 //    timer->Stop("downstream");
@@ -1398,11 +1458,11 @@ void JunctionTree::MessagePassingUpdateJT(int num_threads, Timer *timer) {
      * 2. omp parallel for
      */
     timer->Start("upstream");
-    Collect(cliques_by_level, max_level, num_threads);
+    Collect(nodes_by_level, max_level, num_threads);
     timer->Stop("upstream");
 
     timer->Start("downstream");
-    Distribute(cliques_by_level, max_level, num_threads);
+    Distribute(nodes_by_level, max_level, num_threads);
     timer->Stop("downstream");
     /************************* use potential table ******************************/
 }

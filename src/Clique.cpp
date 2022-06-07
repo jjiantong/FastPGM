@@ -389,41 +389,41 @@ void Clique::Distribute3(vector<vector<Clique*>> &cliques, int max_level) {
 //    }
 }
 
-/**
- * @brief: do level traverse of the tree, add all the cliques in "cliques" by level at the same time
- * @param cliques: storing all the cliques by level; e.g. cliques[i][j] contains one clique in level i
- * @param max_level: total number of levels
- * @note1: separators also included
- * @note2: mark both "ptr_upstream_clique" and "ptr_downstream_cliques" at the same time
- */
-void Clique::MarkLevel(vector<vector<Clique*>> &cliques, int &max_level) {
-    vector<Clique*> vec; // a set of cliques in one level
-    vec.push_back(this); // push the root into vec
-    cliques.push_back(vec); // the first level only has the root clique
-
-    while (!vec.empty()) {
-        vector<Clique*> vec2;
-        for (int i = 0; i < vec.size(); ++i) { // for each clique in the current level
-            Clique *clique = vec[i];
-            for (auto &ptr_separator : clique->set_neighbours_ptr) {
-                // all neighbor cliques of "clique" contain the upstream clique and downstream clique(s)
-                // if the current neighbor "ptr_separator" is the upstream clique, do nothing
-                if (ptr_separator == clique->ptr_upstream_clique) {
-                    continue;
-                }
-                // the current neighbor "ptr_separator" is a downstream clique of "clique"
-                clique->ptr_downstream_cliques.push_back(ptr_separator);
-                ptr_separator->ptr_upstream_clique = clique;  // Let the callee know the caller.
-                vec2.push_back(ptr_separator);
-            }
-        }
-        cliques.push_back(vec2);
-        vec = vec2;
-    }
-
-    cliques.pop_back();
-    max_level = cliques.size();
-}
+///**
+// * @brief: do level traverse of the tree, add all the cliques in "cliques" by level at the same time
+// * @param cliques: storing all the cliques by level; e.g. cliques[i][j] contains one clique in level i
+// * @param max_level: total number of levels
+// * @note1: separators also included
+// * @note2: mark both "ptr_upstream_clique" and "ptr_downstream_cliques" at the same time
+// */
+//void Clique::MarkLevel(vector<vector<Clique*>> &cliques, int &max_level) {
+//    vector<Clique*> vec; // a set of cliques in one level
+//    vec.push_back(this); // push the root into vec
+//    cliques.push_back(vec); // the first level only has the root clique
+//
+//    while (!vec.empty()) {
+//        vector<Clique*> vec2;
+//        for (int i = 0; i < vec.size(); ++i) { // for each clique in the current level
+//            Clique *clique = vec[i];
+//            for (auto &ptr_separator : clique->set_neighbours_ptr) {
+//                // all neighbor cliques of "clique" contain the upstream clique and downstream clique(s)
+//                // if the current neighbor "ptr_separator" is the upstream clique, do nothing
+//                if (ptr_separator == clique->ptr_upstream_clique) {
+//                    continue;
+//                }
+//                // the current neighbor "ptr_separator" is a downstream clique of "clique"
+//                clique->ptr_downstream_cliques.push_back(ptr_separator);
+//                ptr_separator->ptr_upstream_clique = clique;  // Let the callee know the caller.
+//                vec2.push_back(ptr_separator);
+//            }
+//        }
+//        cliques.push_back(vec2);
+//        vec = vec2;
+//    }
+//
+//    cliques.pop_back();
+//    max_level = cliques.size();
+//}
 
 ///************************* use factor ******************************/
 ///**

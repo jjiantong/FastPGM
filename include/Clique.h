@@ -74,7 +74,7 @@ class Clique {
 //  virtual void ConstructMessage(Timer *timer);
 //    /************************* use factor ******************************/
 
-    void MarkLevel(vector<vector<Clique*>> &cliques, int &max_level);
+//    void MarkLevel(vector<vector<Clique*>> &cliques, int &max_level);
 
     void Collect2();
     void Collect3(vector<vector<Clique*>> &cliques, int max_level);

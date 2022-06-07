@@ -25,7 +25,9 @@ class JunctionTree: public Inference {
 //  map<int, Clique*> map_elim_var_to_clique; //key: main variable of a clique; value: the clique
 
     Clique *arb_root;
+    vector<vector<Clique*>> nodes_by_level;
     vector<vector<Clique*>> cliques_by_level;
+    vector<vector<Separator*>> separators_by_level;
     int max_level;
 
   JunctionTree() = default;
@@ -62,6 +64,8 @@ class JunctionTree: public Inference {
 //  void CliqueMerging(int low, int high);
   void NumberTheCliquesAndSeparators();
   void AssignPotentials();
+    void MarkLevel(vector<vector<Clique*>> &nodes, int &max_level,
+                   vector<vector<Clique*>> &clqs, vector<vector<Separator*>> &seps);
   void BackUpJunctionTree();
 
   virtual void MessagePassingUpdateJT(int num_threads, Timer *timer);
