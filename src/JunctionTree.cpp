@@ -1426,7 +1426,23 @@ void JunctionTree::Distribute(vector<vector<Clique*>> &cliques, int max_level, i
         for (int j = 0; j < cliques[i].size(); ++j) { // for each clique in this level
             auto clique = cliques[i][j];
             auto par = clique->ptr_upstream_clique;
-            clique->UpdateMessage(par->p_table);
+
+//            clique->UpdateMessage(par->p_table);
+            if (clique->is_separator) {
+                auto separator = dynamic_cast<Separator*>(clique);
+                separator->old_ptable = separator->p_table;
+                PotentialTable tmp_pt = par->p_table;
+                set<int> set_external_vars;
+                set_difference(tmp_pt.related_variables.begin(), tmp_pt.related_variables.end(),
+                               separator->clique_variables.begin(), separator->clique_variables.end(),
+                               inserter(set_external_vars, set_external_vars.begin()));
+
+                tmp_pt.TableMarginalizationAndDivision(set_external_vars, separator->old_ptable);
+                separator->p_table = tmp_pt;
+            } else {
+                PotentialTable tmp_pt = par->p_table;
+                clique->p_table.TableMultiplication(tmp_pt); // multiply two factors
+            }
         }
     }
 }
