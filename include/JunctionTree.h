@@ -26,7 +26,6 @@ class JunctionTree: public Inference {
 
     Clique *arb_root;
     vector<vector<Clique*>> nodes_by_level;
-    vector<vector<Clique*>> cliques_by_level;
     vector<vector<Separator*>> separators_by_level;
     int max_level;
 
@@ -64,13 +63,12 @@ class JunctionTree: public Inference {
 //  void CliqueMerging(int low, int high);
   void NumberTheCliquesAndSeparators();
   void AssignPotentials();
-    void MarkLevel(vector<vector<Clique*>> &nodes, int &max_level,
-                   vector<vector<Clique*>> &clqs, vector<vector<Separator*>> &seps);
+    void MarkLevel();
   void BackUpJunctionTree();
 
   virtual void MessagePassingUpdateJT(int num_threads, Timer *timer);
-    void Collect(vector<vector<Clique*>> &cliques, int max_level, int num_threads);
-    void Distribute(vector<vector<Clique*>> &cliques, int max_level, int num_threads);
+    void Collect(int num_threads);
+    void Distribute(int num_threads);
 
 //  static vector<int> MinNeighbourElimOrd(int **adjac_matrix, int &num_nodes);
   static void Moralize(int **direc_adjac_matrix, int &num_nodes);
