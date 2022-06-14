@@ -1472,19 +1472,18 @@ void JunctionTree::Collect(int num_threads) {
 
 void JunctionTree::Distribute(int num_threads) {
     for (int i = 1; i < max_level; ++i) { // for each level
-        // pre-computing
-        for (int j = 0; j < nodes_by_level[i].size(); ++j) {
-            if (i) {}
-        }
+//        // pre-computing
+//        for (int j = 0; j < nodes_by_level[i].size(); ++j) {
+//            if (i % 2) { // separators
+//
+//            }
+//        }
         omp_set_num_threads(num_threads);
 #pragma omp parallel for
         for (int j = 0; j < nodes_by_level[i].size(); ++j) { // for each clique in this level
-            auto clique = nodes_by_level[i][j];
-            auto par = clique->ptr_upstream_clique;
-
-//            clique->UpdateMessage(par->p_table);
-            if (clique->is_separator) {
-                auto separator = dynamic_cast<Separator*>(clique);
+            if (i % 2) { // separators
+                auto separator = separators_by_level[i/2][j];
+                auto par = separator->ptr_upstream_clique;
                 separator->old_ptable = separator->p_table;
                 PotentialTable tmp_pt = par->p_table;
                 set<int> set_external_vars;
@@ -1494,10 +1493,32 @@ void JunctionTree::Distribute(int num_threads) {
 
                 tmp_pt.TableMarginalizationAndDivision(set_external_vars, separator->old_ptable);
                 separator->p_table = tmp_pt;
-            } else {
+            } else { // cliques
+                auto clique = nodes_by_level[i][j];
+                auto par = clique->ptr_upstream_clique;
                 PotentialTable tmp_pt = par->p_table;
                 clique->p_table.TableMultiplication(tmp_pt); // multiply two factors
             }
+
+//            auto clique = nodes_by_level[i][j];
+//            auto par = clique->ptr_upstream_clique;
+//
+////            clique->UpdateMessage(par->p_table);
+//            if (clique->is_separator) {
+//                auto separator = dynamic_cast<Separator*>(clique);
+//                separator->old_ptable = separator->p_table;
+//                PotentialTable tmp_pt = par->p_table;
+//                set<int> set_external_vars;
+//                set_difference(tmp_pt.related_variables.begin(), tmp_pt.related_variables.end(),
+//                               separator->clique_variables.begin(), separator->clique_variables.end(),
+//                               inserter(set_external_vars, set_external_vars.begin()));
+//
+//                tmp_pt.TableMarginalizationAndDivision(set_external_vars, separator->old_ptable);
+//                separator->p_table = tmp_pt;
+//            } else {
+//                PotentialTable tmp_pt = par->p_table;
+//                clique->p_table.TableMultiplication(tmp_pt); // multiply two factors
+//            }
         }
     }
 }
