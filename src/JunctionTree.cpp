@@ -1449,10 +1449,12 @@ void JunctionTree::MessagePassingUpdateJT(int num_threads, Timer *timer) {
      * 2. omp parallel for
      */
     timer->Start("upstream");
+//    arb_root->Collect3(nodes_by_level, max_level, num_threads);
     Collect(num_threads);
     timer->Stop("upstream");
 
     timer->Start("downstream");
+//    arb_root->Distribute3(nodes_by_level, max_level, num_threads);
     Distribute(num_threads);
     timer->Stop("downstream");
     /************************* use potential table ******************************/

@@ -281,6 +281,21 @@ void Clique::Collect3(vector<vector<Clique*>> &cliques, int max_level) {
     }
 }
 
+/**
+ * 2. omp parallel for
+ */
+void Clique::Collect3(vector<vector<Clique*>> &cliques, int max_level, int num_threads) {
+    for (int i = max_level - 2; i >= 0 ; --i) { // for each level
+        omp_set_num_threads(num_threads);
+#pragma omp parallel for
+        for (int j = 0; j < cliques[i].size(); ++j) { // for each clique of this level
+            for (auto &ptr_child : cliques[i][j]->ptr_downstream_cliques) {
+                cliques[i][j]->UpdateMessage(ptr_child->p_table);
+            }
+        }
+    }
+}
+
 ///************************* use factor ******************************/
 ///**
 // * Distribute the information it knows to the downstream cliques.
@@ -387,6 +402,18 @@ void Clique::Distribute3(vector<vector<Clique*>> &cliques, int max_level) {
 //        }
 //#pragma omp taskwait
 //    }
+}
+
+void Clique::Distribute3(vector<vector<Clique*>> &cliques, int max_level, int num_threads) {
+    for (int i = 1; i < max_level; ++i) { // for each level
+        omp_set_num_threads(num_threads);
+#pragma omp parallel for
+        for (int j = 0; j < cliques[i].size(); ++j) { // for each clique in this level
+            auto clique = cliques[i][j];
+            auto par = clique->ptr_upstream_clique;
+            clique->UpdateMessage(par->p_table);
+        }
+    }
 }
 
 ///**
