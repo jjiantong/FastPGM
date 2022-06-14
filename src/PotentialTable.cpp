@@ -74,6 +74,15 @@ void PotentialTable::ConstructEmptyPotentialTable(const set<int> &set_node_index
     }
 }
 
+void PotentialTable::CopyPotentialTable(const PotentialTable & ptable) {
+    this->related_variables = ptable.related_variables; // the variables involved in this factor/potential table
+    this->potentials = ptable.potentials; // the potential table
+    this->var_dims = ptable.var_dims; // the dimension of each related variable
+    this->cum_levels = ptable.cum_levels; // the helper array used to transfer between table index and the config (in array format)
+    this->num_variables = ptable.num_variables; // i.e., clique size
+    this->table_size = ptable.table_size; // number of entries
+}
+
 /**
  * @brief: construct: 1. var_dims; 2. cum_levels; 3. table size
  * it is used in the constructor of PotentialTable

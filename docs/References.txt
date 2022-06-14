@@ -1,5 +1,0 @@
-﻿Gaussian Bayesian networks:
-https://www.coursera.org/lecture/probabilistic-graphical-models/continuous-variables-wkNvM
-
-Inference by Variable Elimination:
-https://www.youtube.com/watch?v=7oRReD_ayWo

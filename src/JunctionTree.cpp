@@ -1472,40 +1472,64 @@ void JunctionTree::Collect(int num_threads) {
 
 void JunctionTree::Distribute(int num_threads) {
     for (int i = 1; i < max_level; ++i) { // for each level
-//        // pre-computing
-//        for (int j = 0; j < nodes_by_level[i].size(); ++j) {
-//            if (i % 2) { // separators
-//
-//            }
-//        }
-        omp_set_num_threads(num_threads);
-#pragma omp parallel for
-        for (int j = 0; j < nodes_by_level[i].size(); ++j) { // for each clique in this level
-            if (i % 2) { // separators
+        // pre-computing
+        if (i % 2) { // separators
+            int size = separators_by_level[i/2].size();
+            vector<PotentialTable> tmp_pt; // store all tmp pt used for table marginalization
+            tmp_pt.resize(size);
+//            vector<set<int>> vec_set_external_vars; // store all sets of external vars
+//            vec_set_external_vars.resize(size);
+            for (int j = 0; j < size; ++j) { // for each separator in this level
                 auto separator = separators_by_level[i/2][j];
                 auto par = separator->ptr_upstream_clique;
                 separator->old_ptable = separator->p_table;
-                PotentialTable tmp_pt = par->p_table;
+                PotentialTable tmp_pt1 = par->p_table;
+                tmp_pt[i].CopyPotentialTable(tmp_pt1);
+//                set<int> set_external_vars;
+//                set_difference(tmp_pt[i].related_variables.begin(), tmp_pt[i].related_variables.end(),
+//                               separator->clique_variables.begin(), separator->clique_variables.end(),
+//                               inserter(set_external_vars, set_external_vars.begin()));
+//                vec_set_external_vars[i] = set_external_vars;
+            }
+            cout << "1" << endl;
+
+            omp_set_num_threads(num_threads);
+#pragma omp parallel for
+            for (int j = 0; j < size; ++j) { // for each separator in this level
+                cout << "2" << endl;
+                auto separator = separators_by_level[i/2][j];
+                auto par = separator->ptr_upstream_clique;
+//                separator->old_ptable = separator->p_table;
+//                PotentialTable tmp_pt = par->p_table;
                 set<int> set_external_vars;
-                set_difference(tmp_pt.related_variables.begin(), tmp_pt.related_variables.end(),
+                set_difference(tmp_pt[i].related_variables.begin(), tmp_pt[i].related_variables.end(),
                                separator->clique_variables.begin(), separator->clique_variables.end(),
                                inserter(set_external_vars, set_external_vars.begin()));
+                cout << "3" << endl;
 
-                tmp_pt.TableMarginalizationAndDivision(set_external_vars, separator->old_ptable);
-                separator->p_table = tmp_pt;
-            } else { // cliques
+                tmp_pt[i].TableMarginalizationAndDivision(set_external_vars, separators_by_level[i/2][j]->old_ptable);
+                cout << "4" << endl;
+                separators_by_level[i/2][j]->p_table = tmp_pt[i];
+                cout << "5" << endl;
+            }
+
+        } else {
+            omp_set_num_threads(num_threads);
+#pragma omp parallel for
+            for (int j = 0; j < nodes_by_level[i].size(); ++j) { // for each clique in this level
                 auto clique = nodes_by_level[i][j];
                 auto par = clique->ptr_upstream_clique;
                 PotentialTable tmp_pt = par->p_table;
                 clique->p_table.TableMultiplication(tmp_pt); // multiply two factors
             }
+        }
 
-//            auto clique = nodes_by_level[i][j];
-//            auto par = clique->ptr_upstream_clique;
-//
-////            clique->UpdateMessage(par->p_table);
-//            if (clique->is_separator) {
-//                auto separator = dynamic_cast<Separator*>(clique);
+//        omp_set_num_threads(num_threads);
+//#pragma omp parallel for
+//        for (int j = 0; j < nodes_by_level[i].size(); ++j) { // for each clique in this level
+//            if (i % 2) { // separators
+//                auto separator = separators_by_level[i/2][j];
+//                auto par = separator->ptr_upstream_clique;
 //                separator->old_ptable = separator->p_table;
 //                PotentialTable tmp_pt = par->p_table;
 //                set<int> set_external_vars;
@@ -1515,11 +1539,13 @@ void JunctionTree::Distribute(int num_threads) {
 //
 //                tmp_pt.TableMarginalizationAndDivision(set_external_vars, separator->old_ptable);
 //                separator->p_table = tmp_pt;
-//            } else {
+//            } else { // cliques
+//                auto clique = nodes_by_level[i][j];
+//                auto par = clique->ptr_upstream_clique;
 //                PotentialTable tmp_pt = par->p_table;
 //                clique->p_table.TableMultiplication(tmp_pt); // multiply two factors
 //            }
-        }
+//        }
     }
 }
 

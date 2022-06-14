@@ -42,6 +42,7 @@ public:
     PotentialTable() = default;
     PotentialTable(DiscreteNode *disc_node, Network *net);
     void ConstructEmptyPotentialTable(const set<int> &set_node_index, Network *net);
+    void CopyPotentialTable(const PotentialTable &ptable);
 
     void TableExtension(const set<int> &variables, const vector<int> &dims);
     void TableMarginalization(const set<int> &ext_variables);
