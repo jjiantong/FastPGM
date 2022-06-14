@@ -87,7 +87,7 @@ void PotentialTable::CopyPotentialTable(const PotentialTable & ptable) {
  * @brief: construct: 1. var_dims; 2. cum_levels; 3. table size
  * it is used in the constructor of PotentialTable
  */
-inline void PotentialTable::ConstructVarDimsAndCumLevels(Network *net){
+void PotentialTable::ConstructVarDimsAndCumLevels(Network *net){
     var_dims.reserve(num_variables);
     for (auto &node_idx: related_variables) { // for each node
         var_dims.push_back(dynamic_cast<DiscreteNode*>(net->FindNodePtrByIndex(node_idx))->GetDomainSize());
@@ -101,7 +101,7 @@ inline void PotentialTable::ConstructVarDimsAndCumLevels(Network *net){
 /**
  * construct "cum_levels" according to "var_dims"
  */
-inline void PotentialTable::ConstructCumLevels() {
+void PotentialTable::ConstructCumLevels() {
     cum_levels.resize(num_variables);
     // set the right-most one ...
     cum_levels[num_variables - 1] = 1;
@@ -116,7 +116,7 @@ inline void PotentialTable::ConstructCumLevels() {
  * note: DiscreteConfig: set< pair<int, int> >,
  *       the second int of pair is the value itself, not the index of the value!!
  */
-inline void PotentialTable::GetConfigByTableIndex(const int &table_index, Network *net, DiscreteConfig &config) {
+void PotentialTable::GetConfigByTableIndex(const int &table_index, Network *net, DiscreteConfig &config) {
     int *config_value = new int[num_variables];
     GetConfigValueByTableIndex(table_index, config_value);
     int i = 0;
@@ -137,7 +137,7 @@ inline void PotentialTable::GetConfigByTableIndex(const int &table_index, Networ
  *          b -- cum_levels[i]
  *          c -- save in config_value
  */
-inline void PotentialTable::GetConfigValueByTableIndex(const int &table_index, int *config_value) {
+void PotentialTable::GetConfigValueByTableIndex(const int &table_index, int *config_value) {
     int a = table_index;
     for (int i = 0; i < num_variables; ++i) {
         int c = a / cum_levels[i];
@@ -150,7 +150,7 @@ inline void PotentialTable::GetConfigValueByTableIndex(const int &table_index, i
 /*!
  * @brief: get table index given each value (index) of the configuration
  */
-inline int PotentialTable::GetTableIndexByConfigValue(int *config_value) {
+int PotentialTable::GetTableIndexByConfigValue(int *config_value) {
     int table_index = 0;
     for (int i = 0; i < num_variables; ++i) {
         table_index += config_value[i] * cum_levels[i];
@@ -163,7 +163,7 @@ inline int PotentialTable::GetTableIndexByConfigValue(int *config_value) {
  * @param variable: one variable in the "related_variables"
  * @return the location of the variable in the "related_variables"
  */
-inline int PotentialTable::GetVariableIndex(const int &variable) {
+int PotentialTable::GetVariableIndex(const int &variable) {
     int index = 0;
     for (auto &v: related_variables) {
         if (v == variable) {

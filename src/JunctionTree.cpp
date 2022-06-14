@@ -1477,40 +1477,29 @@ void JunctionTree::Distribute(int num_threads) {
             int size = separators_by_level[i/2].size();
             vector<PotentialTable> tmp_pt; // store all tmp pt used for table marginalization
             tmp_pt.resize(size);
-//            vector<set<int>> vec_set_external_vars; // store all sets of external vars
-//            vec_set_external_vars.resize(size);
+            vector<set<int>> vec_set_external_vars; // store all sets of external vars
+            vec_set_external_vars.resize(size);
             for (int j = 0; j < size; ++j) { // for each separator in this level
                 auto separator = separators_by_level[i/2][j];
                 auto par = separator->ptr_upstream_clique;
                 separator->old_ptable = separator->p_table;
-                PotentialTable tmp_pt1 = par->p_table;
-                tmp_pt[i].CopyPotentialTable(tmp_pt1);
-//                set<int> set_external_vars;
-//                set_difference(tmp_pt[i].related_variables.begin(), tmp_pt[i].related_variables.end(),
-//                               separator->clique_variables.begin(), separator->clique_variables.end(),
-//                               inserter(set_external_vars, set_external_vars.begin()));
-//                vec_set_external_vars[i] = set_external_vars;
+                tmp_pt[j] = par->p_table;
+                set<int> set_external_vars;
+                set_difference(tmp_pt[j].related_variables.begin(), tmp_pt[j].related_variables.end(),
+                               separator->clique_variables.begin(), separator->clique_variables.end(),
+                               inserter(set_external_vars, set_external_vars.begin()));
+                vec_set_external_vars[j] = set_external_vars;
             }
-            cout << "1" << endl;
 
             omp_set_num_threads(num_threads);
 #pragma omp parallel for
             for (int j = 0; j < size; ++j) { // for each separator in this level
-                cout << "2" << endl;
-                auto separator = separators_by_level[i/2][j];
-                auto par = separator->ptr_upstream_clique;
-//                separator->old_ptable = separator->p_table;
-//                PotentialTable tmp_pt = par->p_table;
-                set<int> set_external_vars;
-                set_difference(tmp_pt[i].related_variables.begin(), tmp_pt[i].related_variables.end(),
-                               separator->clique_variables.begin(), separator->clique_variables.end(),
-                               inserter(set_external_vars, set_external_vars.begin()));
-                cout << "3" << endl;
+                tmp_pt[j].TableMarginalizationAndDivision(vec_set_external_vars[j], separators_by_level[i/2][j]->old_ptable);
+            }
 
-                tmp_pt[i].TableMarginalizationAndDivision(set_external_vars, separators_by_level[i/2][j]->old_ptable);
-                cout << "4" << endl;
-                separators_by_level[i/2][j]->p_table = tmp_pt[i];
-                cout << "5" << endl;
+            // post-computing
+            for (int j = 0; j < size; ++j) { // for each separator in this level
+                separators_by_level[i/2][j]->p_table = tmp_pt[j];
             }
 
         } else {
