@@ -1474,15 +1474,21 @@ void JunctionTree::Collect(int num_threads) {
 
 void JunctionTree::Distribute(int num_threads) {
     for (int i = 1; i < max_level; ++i) { // for each level
-        // pre-computing
+
         if (i % 2) { // separators
             int size = separators_by_level[i/2].size();
             vector<PotentialTable> tmp_pt1; // store all tmp pt used for table marginalization
-            tmp_pt1.resize(size);
+            tmp_pt1.reserve(size);
             vector<PotentialTable> tmp_pt2; // store all tmp pt used for table marginalization
-            tmp_pt2.resize(size);
+            tmp_pt2.reserve(size);
             vector<set<int>> vec_set_external_vars; // store all sets of external vars
             vec_set_external_vars.reserve(size);
+
+            // not all separators need to do the marginalization
+            // there are "size" separators in total but maybe <"size" separators require to do marginalization
+            // use a vector to show which separators need to do
+            vector<int> vector_marginalization;
+            vector_marginalization.reserve(size);
 
             // set of arrays, showing the locations of the variables of the new table in the old table
             int **loc_in_old = new int*[size];
@@ -1490,62 +1496,70 @@ void JunctionTree::Distribute(int num_threads) {
             int **partial_config = new int*[size];
             int **table_index = new int*[size];
 
+            // pre computing
             for (int j = 0; j < size; ++j) { // for each separator in this level
                 auto separator = separators_by_level[i/2][j];
                 auto par = separator->ptr_upstream_clique;
 
                 separator->old_ptable = separator->p_table; // used for division
 
-                tmp_pt1[j] = par->p_table;
+
                 set<int> set_external_vars;
-                set_difference(tmp_pt1[j].related_variables.begin(), tmp_pt1[j].related_variables.end(),
+                set_difference(par->p_table.related_variables.begin(), par->p_table.related_variables.end(),
                                separator->clique_variables.begin(), separator->clique_variables.end(),
                                inserter(set_external_vars, set_external_vars.begin()));
 
-                // if "set_external_vars" is empty, there is no need for table marginalization
+//                // if "set_external_vars" is empty, there is no need for table marginalization
 //                if (set_external_vars.empty()) {
-//                    cout << "1";
+//                    // do nothing
+//                } else {
+//                    vector_marginalization.push_back(j);
+//
 //                }
 
-                vec_set_external_vars.push_back(set_external_vars); // TODO: check the case of "set_external_vars" is empty
+                vec_set_external_vars.push_back(set_external_vars);
+                tmp_pt1.push_back(par->p_table);
 
-                tmp_pt2[j].related_variables = tmp_pt1[j].related_variables;
+                PotentialTable tmp_pt;
+                tmp_pt.related_variables = tmp_pt1[j].related_variables;
                 for (auto &ext_var: vec_set_external_vars[j]) {
-                    tmp_pt2[j].related_variables.erase(ext_var);
+                    tmp_pt.related_variables.erase(ext_var);
                 }
-                tmp_pt2[j].num_variables = tmp_pt1[j].num_variables - vec_set_external_vars[j].size();
+                tmp_pt.num_variables = tmp_pt1[j].num_variables - vec_set_external_vars[j].size();
 
-                if (tmp_pt2[j].num_variables > 0) {
-                    tmp_pt2[j].var_dims.reserve(tmp_pt2[j].num_variables);
+                if (tmp_pt.num_variables > 0) {
+                    tmp_pt.var_dims.reserve(tmp_pt.num_variables);
                     int k = 0;
                     for (auto &v: tmp_pt1[j].related_variables) {
                         if (vec_set_external_vars[j].find(v) == vec_set_external_vars[j].end()) { // v is not in ext_variables
-                            tmp_pt2[j].var_dims.push_back(tmp_pt1[j].var_dims[k]);
+                            tmp_pt.var_dims.push_back(tmp_pt1[j].var_dims[k]);
                         }
                         k++;
                     }
 
-                    tmp_pt2[j].ConstructCumLevels();
+                    tmp_pt.ConstructCumLevels();
                     // compute the table size -- number of possible configurations
-                    tmp_pt2[j].table_size = tmp_pt2[j].cum_levels[0] * tmp_pt2[j].var_dims[0];
+                    tmp_pt.table_size = tmp_pt.cum_levels[0] * tmp_pt.var_dims[0];
                 } else {
-                    tmp_pt2[j].var_dims = vector<int>();
-                    tmp_pt2[j].cum_levels = vector<int>();
-                    tmp_pt2[j].table_size = 1;
+                    tmp_pt.var_dims = vector<int>();
+                    tmp_pt.cum_levels = vector<int>();
+                    tmp_pt.table_size = 1;
                 }
 
                 // generate an array showing the locations of the variables of the new table in the old table
-                loc_in_old[j] = new int[tmp_pt2[j].num_variables];
+                loc_in_old[j] = new int[tmp_pt.num_variables];
                 int k = 0;
-                for (auto &v: tmp_pt2[j].related_variables) {
+                for (auto &v: tmp_pt.related_variables) {
                     loc_in_old[j][k++] = tmp_pt1[j].GetVariableIndex(v);
                 }
 
-                tmp_pt2[j].potentials.resize(tmp_pt2[j].table_size);
+                tmp_pt.potentials.resize(tmp_pt.table_size);
 
                 full_config[j] = new int[tmp_pt1[j].table_size * tmp_pt1[j].num_variables];
-                partial_config[j] = new int[tmp_pt1[j].table_size * tmp_pt2[j].num_variables];
+                partial_config[j] = new int[tmp_pt1[j].table_size * tmp_pt.num_variables];
                 table_index[j] = new int[tmp_pt1[j].table_size];
+
+                tmp_pt2.push_back(tmp_pt);
             }
 
             omp_set_num_threads(num_threads);
