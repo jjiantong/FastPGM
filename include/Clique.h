@@ -76,14 +76,12 @@ class Clique {
 
 //    void MarkLevel(vector<vector<Clique*>> &cliques, int &max_level);
 
-    void Collect2(); // recursive, using omp task
-    void Collect3(vector<vector<Clique*>> &cliques, int max_level); // for, using omp task
-    void Collect3(vector<vector<Clique*>> &cliques, int max_level, int num_threads); // for, using omp parallel for
+    void Collect2();
+    void Collect3(vector<vector<Clique*>> &cliques, int max_level);
 
     void Distribute2();
     void Distribute2(PotentialTable &pt);
     void Distribute3(vector<vector<Clique*>> &cliques, int max_level);
-    void Distribute3(vector<vector<Clique*>> &cliques, int max_level, int num_thread);
 
 //    virtual void UpdateUseMessage2(const PotentialTable &pt);
 //    virtual void ConstructMessage2();

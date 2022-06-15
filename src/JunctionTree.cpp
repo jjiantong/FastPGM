@@ -1477,32 +1477,126 @@ void JunctionTree::Distribute(int num_threads) {
         // pre-computing
         if (i % 2) { // separators
             int size = separators_by_level[i/2].size();
-            vector<PotentialTable> tmp_pt; // store all tmp pt used for table marginalization
-            tmp_pt.resize(size);
+            vector<PotentialTable> tmp_pt1; // store all tmp pt used for table marginalization
+            tmp_pt1.resize(size);
+            vector<PotentialTable> tmp_pt2; // store all tmp pt used for table marginalization
+            tmp_pt2.resize(size);
             vector<set<int>> vec_set_external_vars; // store all sets of external vars
-            vec_set_external_vars.resize(size);
+            vec_set_external_vars.reserve(size);
+
+            // set of arrays, showing the locations of the variables of the new table in the old table
+            int **loc_in_old = new int*[size];
+            int **full_config = new int*[size];
+            int **partial_config = new int*[size];
+            int **table_index = new int*[size];
+
             for (int j = 0; j < size; ++j) { // for each separator in this level
                 auto separator = separators_by_level[i/2][j];
                 auto par = separator->ptr_upstream_clique;
-                separator->old_ptable = separator->p_table;
-                tmp_pt[j] = par->p_table;
+
+                separator->old_ptable = separator->p_table; // used for division
+
+                tmp_pt1[j] = par->p_table;
                 set<int> set_external_vars;
-                set_difference(tmp_pt[j].related_variables.begin(), tmp_pt[j].related_variables.end(),
+                set_difference(tmp_pt1[j].related_variables.begin(), tmp_pt1[j].related_variables.end(),
                                separator->clique_variables.begin(), separator->clique_variables.end(),
                                inserter(set_external_vars, set_external_vars.begin()));
-                vec_set_external_vars[j] = set_external_vars;
+
+                // if "set_external_vars" is empty, there is no need for table marginalization
+//                if (set_external_vars.empty()) {
+//                    cout << "1";
+//                }
+
+                vec_set_external_vars.push_back(set_external_vars); // TODO: check the case of "set_external_vars" is empty
+
+                tmp_pt2[j].related_variables = tmp_pt1[j].related_variables;
+                for (auto &ext_var: vec_set_external_vars[j]) {
+                    tmp_pt2[j].related_variables.erase(ext_var);
+                }
+                tmp_pt2[j].num_variables = tmp_pt1[j].num_variables - vec_set_external_vars[j].size();
+
+                if (tmp_pt2[j].num_variables > 0) {
+                    tmp_pt2[j].var_dims.reserve(tmp_pt2[j].num_variables);
+                    int k = 0;
+                    for (auto &v: tmp_pt1[j].related_variables) {
+                        if (vec_set_external_vars[j].find(v) == vec_set_external_vars[j].end()) { // v is not in ext_variables
+                            tmp_pt2[j].var_dims.push_back(tmp_pt1[j].var_dims[k]);
+                        }
+                        k++;
+                    }
+
+                    tmp_pt2[j].ConstructCumLevels();
+                    // compute the table size -- number of possible configurations
+                    tmp_pt2[j].table_size = tmp_pt2[j].cum_levels[0] * tmp_pt2[j].var_dims[0];
+                } else {
+                    tmp_pt2[j].var_dims = vector<int>();
+                    tmp_pt2[j].cum_levels = vector<int>();
+                    tmp_pt2[j].table_size = 1;
+                }
+
+                // generate an array showing the locations of the variables of the new table in the old table
+                loc_in_old[j] = new int[tmp_pt2[j].num_variables];
+                int k = 0;
+                for (auto &v: tmp_pt2[j].related_variables) {
+                    loc_in_old[j][k++] = tmp_pt1[j].GetVariableIndex(v);
+                }
+
+                tmp_pt2[j].potentials.resize(tmp_pt2[j].table_size);
+
+                full_config[j] = new int[tmp_pt1[j].table_size * tmp_pt1[j].num_variables];
+                partial_config[j] = new int[tmp_pt1[j].table_size * tmp_pt2[j].num_variables];
+                table_index[j] = new int[tmp_pt1[j].table_size];
             }
 
             omp_set_num_threads(num_threads);
 #pragma omp parallel for
             for (int j = 0; j < size; ++j) { // for each separator in this level
-                tmp_pt[j].TableMarginalizationAndDivision(vec_set_external_vars[j], separators_by_level[i/2][j]->old_ptable);
+//                tmp_pt1[j].TableMarginalizationAndDivisionCore(tmp_pt2[j], loc_in_old[j], full_config[j], partial_config[j], table_index[j]);
+                // TODO: optimize this part
+                for (int k = 0; k < tmp_pt1[j].table_size; ++k) {
+                    // 1. get the full config value of old table
+                    tmp_pt1[j].GetConfigValueByTableIndex(k, full_config[j] + k * tmp_pt1[j].num_variables);
+                    // 2. get the partial config value from the old table
+                    for (int l = 0; l < tmp_pt2[j].num_variables; ++l) {
+                        partial_config[j][k * tmp_pt2[j].num_variables + l] = full_config[j][k * tmp_pt1[j].num_variables + loc_in_old[j][l]];
+                    }
+                    // 3. obtain the potential index
+                    table_index[j][k] = tmp_pt2[j].GetTableIndexByConfigValue(partial_config[j] + k * tmp_pt2[j].num_variables);
+                }
+
             }
 
             // post-computing
             for (int j = 0; j < size; ++j) { // for each separator in this level
-                separators_by_level[i/2][j]->p_table = tmp_pt[j];
+                delete[] loc_in_old[j];
+                delete[] full_config[j];
+                delete[] partial_config[j];
+
+                for (int k = 0; k < tmp_pt1[j].table_size; ++k) {
+                    // 4. potential[table_index]
+                    tmp_pt2[j].potentials[table_index[j][k]] += tmp_pt1[j].potentials[k];
+                }
+
+                delete[] table_index[j];
+
+                tmp_pt1[j] = tmp_pt2[j];
+
+                if (!tmp_pt2[j].related_variables.empty()) {
+                    for (int k = 0; k < tmp_pt2[j].table_size; ++k) {
+                        if (separators_by_level[i/2][j]->old_ptable.potentials[k] == 0) {
+                            tmp_pt2[j].potentials[k] = 0;
+                        } else {
+                            tmp_pt2[j].potentials[k] /= separators_by_level[i/2][j]->old_ptable.potentials[k];
+                        }
+                    }
+                }
+
+                separators_by_level[i/2][j]->p_table = tmp_pt2[j];
             }
+            delete[] loc_in_old;
+            delete[] full_config;
+            delete[] partial_config;
+            delete[] table_index;
 
         } else {
             omp_set_num_threads(num_threads);
@@ -1511,32 +1605,9 @@ void JunctionTree::Distribute(int num_threads) {
                 auto clique = nodes_by_level[i][j];
                 auto par = clique->ptr_upstream_clique;
                 PotentialTable tmp_pt = par->p_table;
-                clique->p_table.TableMultiplication(tmp_pt); // multiply two factors
+                clique->p_table.TableMultiplicationCore(tmp_pt); // multiply two factors
             }
         }
-
-//        omp_set_num_threads(num_threads);
-//#pragma omp parallel for
-//        for (int j = 0; j < nodes_by_level[i].size(); ++j) { // for each clique in this level
-//            if (i % 2) { // separators
-//                auto separator = separators_by_level[i/2][j];
-//                auto par = separator->ptr_upstream_clique;
-//                separator->old_ptable = separator->p_table;
-//                PotentialTable tmp_pt = par->p_table;
-//                set<int> set_external_vars;
-//                set_difference(tmp_pt.related_variables.begin(), tmp_pt.related_variables.end(),
-//                               separator->clique_variables.begin(), separator->clique_variables.end(),
-//                               inserter(set_external_vars, set_external_vars.begin()));
-//
-//                tmp_pt.TableMarginalizationAndDivision(set_external_vars, separator->old_ptable);
-//                separator->p_table = tmp_pt;
-//            } else { // cliques
-//                auto clique = nodes_by_level[i][j];
-//                auto par = clique->ptr_upstream_clique;
-//                PotentialTable tmp_pt = par->p_table;
-//                clique->p_table.TableMultiplication(tmp_pt); // multiply two factors
-//            }
-//        }
     }
 }
 

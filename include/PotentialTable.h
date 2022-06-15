@@ -47,7 +47,8 @@ public:
     void TableExtension(const set<int> &variables, const vector<int> &dims);
     void TableMarginalization(const set<int> &ext_variables);
     void TableMarginalizationAndDivision(const set<int> &ext_variables, const PotentialTable &second_table);
-    void TableMarginalizationAndDivisionCore(const set<int> &ext_variables, const PotentialTable &second_table);
+    void TableMarginalizationAndDivisionCore(PotentialTable &new_table, int *loc_in_old,
+                                             int *full_config, int *partial_config, int *table_index);
 
     void TableMultiplication(PotentialTable &second_table);
     void TableMultiplicationCore(PotentialTable &second_table);
@@ -56,7 +57,7 @@ public:
     void TableReduction(int e_index, int e_value_index, int num_threads);
     void Normalize();
 
-private:
+//private:
     void ConstructVarDimsAndCumLevels(Network *net);
     void ConstructCumLevels();
     void GetConfigByTableIndex(const int &table_index, Network *net, DiscreteConfig &config);
