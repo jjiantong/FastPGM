@@ -1481,8 +1481,8 @@ void JunctionTree::Distribute(int num_threads) {
             tmp_pt1.reserve(size);
             vector<PotentialTable> tmp_pt2; // store all tmp pt used for table marginalization
             tmp_pt2.reserve(size);
-            vector<set<int>> vec_set_external_vars; // store all sets of external vars
-            vec_set_external_vars.reserve(size);
+//            vector<set<int>> vec_set_external_vars; // store all sets of external vars todo
+//            vec_set_external_vars.reserve(size); todo
 
             // not all separators need to do the marginalization
             // there are "size" separators in total but maybe <"size" separators require to do marginalization
@@ -1517,21 +1517,21 @@ void JunctionTree::Distribute(int num_threads) {
 //
 //                }
 
-                vec_set_external_vars.push_back(set_external_vars);
+//                vec_set_external_vars.push_back(set_external_vars); todo
                 tmp_pt1.push_back(par->p_table);
 
                 PotentialTable tmp_pt;
                 tmp_pt.related_variables = tmp_pt1[j].related_variables;
-                for (auto &ext_var: vec_set_external_vars[j]) {
+                for (auto &ext_var: set_external_vars) { // todo: all below: vec_set_external_vars[j]->set_external_vars
                     tmp_pt.related_variables.erase(ext_var);
                 }
-                tmp_pt.num_variables = tmp_pt1[j].num_variables - vec_set_external_vars[j].size();
+                tmp_pt.num_variables = tmp_pt1[j].num_variables - set_external_vars.size(); // todo
 
                 if (tmp_pt.num_variables > 0) {
                     tmp_pt.var_dims.reserve(tmp_pt.num_variables);
                     int k = 0;
                     for (auto &v: tmp_pt1[j].related_variables) {
-                        if (vec_set_external_vars[j].find(v) == vec_set_external_vars[j].end()) { // v is not in ext_variables
+                        if (set_external_vars.find(v) == set_external_vars.end()) { // v is not in ext_variables todo
                             tmp_pt.var_dims.push_back(tmp_pt1[j].var_dims[k]);
                         }
                         k++;
@@ -1568,16 +1568,26 @@ void JunctionTree::Distribute(int num_threads) {
 //                tmp_pt1[j].TableMarginalizationAndDivisionCore(tmp_pt2[j], loc_in_old[j], full_config[j], partial_config[j], table_index[j]);
                 // TODO: optimize this part
                 for (int k = 0; k < tmp_pt1[j].table_size; ++k) {
+//                    // 1. get the full config value of old table
+//                    tmp_pt1[j].GetConfigValueByTableIndex(k, full_config[j] + k * tmp_pt1[j].num_variables);
+//                    // 2. get the partial config value from the old table
+//                    for (int l = 0; l < tmp_pt2[j].num_variables; ++l) {
+//                        partial_config[j][k * tmp_pt2[j].num_variables + l] = full_config[j][k * tmp_pt1[j].num_variables + loc_in_old[j][l]];
+//                    }
+//                    // 3. obtain the potential index
+//                    table_index[j][k] = tmp_pt2[j].GetTableIndexByConfigValue(partial_config[j] + k * tmp_pt2[j].num_variables);
+
+                    int *full_config2 = new int[tmp_pt1[j].num_variables];
+                    int *partial_config2 = new int[tmp_pt2[j].num_variables];
                     // 1. get the full config value of old table
-                    tmp_pt1[j].GetConfigValueByTableIndex(k, full_config[j] + k * tmp_pt1[j].num_variables);
+                    tmp_pt1[j].GetConfigValueByTableIndex(k, full_config2);
                     // 2. get the partial config value from the old table
                     for (int l = 0; l < tmp_pt2[j].num_variables; ++l) {
-                        partial_config[j][k * tmp_pt2[j].num_variables + l] = full_config[j][k * tmp_pt1[j].num_variables + loc_in_old[j][l]];
+                        partial_config2[l] = full_config2[loc_in_old[j][l]];
                     }
                     // 3. obtain the potential index
-                    table_index[j][k] = tmp_pt2[j].GetTableIndexByConfigValue(partial_config[j] + k * tmp_pt2[j].num_variables);
+                    table_index[j][k] = tmp_pt2[j].GetTableIndexByConfigValue(partial_config2);
                 }
-
             }
 
             // post-computing
@@ -1592,8 +1602,6 @@ void JunctionTree::Distribute(int num_threads) {
                 }
 
                 delete[] table_index[j];
-
-                tmp_pt1[j] = tmp_pt2[j];
 
                 if (!tmp_pt2[j].related_variables.empty()) {
                     for (int k = 0; k < tmp_pt2[j].table_size; ++k) {
