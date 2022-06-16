@@ -15,6 +15,9 @@
 #include "Inference.h"
 #include "JunctionTree.h"
 
+string path = "/Users/jjt/work/research_project/BN/inference/dataset/BN/";
+//string path = "/home/zeyiwen/jiantong/BN/dataset/";
+
 class InferenceAlarm: public ::testing::Test {
 protected:
 
@@ -22,8 +25,8 @@ protected:
         tester = new Dataset();
         network = new CustomNetwork(true);
 
-        string net_file_path = "/home/zeyiwen/jiantong/BN/dataset/alarm/alarm.xml";
-        string test_set_file_path = "/home/zeyiwen/jiantong/BN/dataset/alarm/alarm_2w_p20";
+        string net_file_path = path + "alarm/alarm.xml";
+        string test_set_file_path = path + "alarm/alarm_2w_p20";
 
         network->GetNetFromXMLBIFFile(net_file_path);
         tester->LoadLIBSVMDataKnownNetwork(test_set_file_path, network->num_nodes);
@@ -42,22 +45,22 @@ TEST_F(InferenceAlarm, junction_tree_partial1) {
 }
 
 TEST_F(InferenceAlarm, junction_tree_partial2) {
-Inference *inference = new JunctionTree(network);
-double accuracy = inference->EvaluateAccuracy(tester, 2, -1, "jt", false);
-delete inference;
-delete network;
-delete tester;
+    Inference *inference = new JunctionTree(network);
+    double accuracy = inference->EvaluateAccuracy(tester, 2, -1, "jt", false);
+    delete inference;
+    delete network;
+    delete tester;
     EXPECT_EQ(accuracy, 0.5024);
 }
 
-TEST_F(InferenceAlarm, junction_tree_partial4) {
-Inference *inference = new JunctionTree(network);
-double accuracy = inference->EvaluateAccuracy(tester, 4, -1, "jt", false);
-delete inference;
-delete network;
-delete tester;
-    EXPECT_EQ(accuracy, 0.5024);
-}
+//TEST_F(InferenceAlarm, junction_tree_partial4) {
+//Inference *inference = new JunctionTree(network);
+//double accuracy = inference->EvaluateAccuracy(tester, 4, -1, "jt", false);
+//delete inference;
+//delete network;
+//delete tester;
+//    EXPECT_EQ(accuracy, 0.5024);
+//}
 
 //TEST_F(InferenceAlarm, junction_tree_partial6) {
 //Inference *inference = new JunctionTree(network);
@@ -96,8 +99,8 @@ delete tester;
 //        tester = new Dataset();
 //        network = new CustomNetwork(true);
 //
-//        string net_file_path = "/home/zeyiwen/jiantong/BN/dataset/hailfinder/hailfinder.xml";
-//        string test_set_file_path = "/home/zeyiwen/jiantong/BN/dataset/hailfinder/hailfinder_2w_p20";
+//        string net_file_path = path + "hailfinder/hailfinder.xml";
+//        string test_set_file_path = path + "hailfinder/hailfinder_2w_p20";
 //
 //        network->GetNetFromXMLBIFFile(net_file_path);
 //        tester->LoadLIBSVMDataKnownNetwork(test_set_file_path, network->num_nodes);
@@ -170,8 +173,8 @@ delete tester;
 //        tester = new Dataset();
 //        network = new CustomNetwork(true);
 //
-//        string net_file_path = "/home/zeyiwen/jiantong/BN/dataset/hepar2/hepar2.xml";
-//        string test_set_file_path = "/home/zeyiwen/jiantong/BN/dataset/hepar2/hepar2_2w_p20";
+//        string net_file_path = path + "hepar2/hepar2.xml";
+//        string test_set_file_path = path + "hepar2/hepar2_2w_p20";
 //
 //        network->GetNetFromXMLBIFFile(net_file_path);
 //        tester->LoadLIBSVMDataKnownNetwork(test_set_file_path, network->num_nodes);
@@ -242,8 +245,8 @@ delete tester;
 //        tester = new Dataset();
 //        network = new CustomNetwork(true);
 //
-//        string net_file_path = "/home/zeyiwen/jiantong/BN/dataset/win95pts/win95pts.xml";
-//        string test_set_file_path = "/home/zeyiwen/jiantong/BN/dataset/win95pts/win95pts_2w_p20";
+//        string net_file_path = path + "win95pts/win95pts.xml";
+//        string test_set_file_path = path + "win95pts/win95pts_2w_p20";
 //
 //        network->GetNetFromXMLBIFFile(net_file_path);
 //        tester->LoadLIBSVMDataKnownNetwork(test_set_file_path, network->num_nodes);
@@ -315,8 +318,8 @@ protected:
         tester = new Dataset();
         network = new CustomNetwork(true);
 
-        string net_file_path = "/home/zeyiwen/jiantong/BN/dataset/pathfinder/pathfinder.xml";
-        string test_set_file_path = "/home/zeyiwen/jiantong/BN/dataset/pathfinder/pathfinder_2w_p20";
+        string net_file_path = path + "pathfinder/pathfinder.xml";
+        string test_set_file_path = path + "pathfinder/pathfinder_2w_p20";
 
         network->GetNetFromXMLBIFFile(net_file_path);
         tester->LoadLIBSVMDataKnownNetwork(test_set_file_path, network->num_nodes);
@@ -389,8 +392,8 @@ delete tester;
 //        tester = new Dataset();
 //        network = new CustomNetwork(true);
 //
-//        string net_file_path = "/home/zeyiwen/jiantong/BN/dataset/andes/andes.xml";
-//        string test_set_file_path = "/home/zeyiwen/jiantong/BN/dataset/andes/andes_2w_p20";
+//        string net_file_path = path + "andes/andes.xml";
+//        string test_set_file_path = path + "andes/andes_2w_p20";
 //
 //        network->GetNetFromXMLBIFFile(net_file_path);
 //        tester->LoadLIBSVMDataKnownNetwork(test_set_file_path, network->num_nodes);
@@ -415,8 +418,8 @@ protected:
         tester = new Dataset();
         network = new CustomNetwork(true);
 
-        string net_file_path = "/home/zeyiwen/jiantong/BN/dataset/diabetes/diabetes.xml";
-        string test_set_file_path = "/home/zeyiwen/jiantong/BN/dataset/diabetes/diabetes_2w_p20";
+        string net_file_path = path + "diabetes/diabetes.xml";
+        string test_set_file_path = path + "diabetes/diabetes_2w_p20";
 
         network->GetNetFromXMLBIFFile(net_file_path);
         tester->LoadLIBSVMDataKnownNetwork(test_set_file_path, network->num_nodes);
@@ -488,8 +491,8 @@ protected:
         tester = new Dataset();
         network = new CustomNetwork(true);
 
-        string net_file_path = "/home/zeyiwen/jiantong/BN/dataset/pigs/pigs.xml";
-        string test_set_file_path = "/home/zeyiwen/jiantong/BN/dataset/pigs/pigs_2w_p20";
+        string net_file_path = path + "pigs/pigs.xml";
+        string test_set_file_path = path + "pigs/pigs_2w_p20";
 
         network->GetNetFromXMLBIFFile(net_file_path);
         tester->LoadLIBSVMDataKnownNetwork(test_set_file_path, network->num_nodes);
