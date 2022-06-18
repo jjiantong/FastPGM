@@ -1455,7 +1455,7 @@ void JunctionTree::MessagePassingUpdateJT(int num_threads, Timer *timer) {
 
     timer->Start("downstream");
 //    arb_root->Distribute3(nodes_by_level, max_level, num_threads);
-    Distribute(num_threads);
+    Distribute(num_threads, timer);
     timer->Stop("downstream");
     /************************* use potential table ******************************/
 }
@@ -1472,10 +1472,11 @@ void JunctionTree::Collect(int num_threads) {
     }
 }
 
-void JunctionTree::Distribute(int num_threads) {
+void JunctionTree::Distribute(int num_threads, Timer *timer) {
     for (int i = 1; i < max_level; ++i) { // for each level
 
         if (i % 2) { // separators
+            timer->Start("pre");
             int size = separators_by_level[i/2].size();
             vector<PotentialTable> tmp_pt1; // store all tmp pt used for table marginalization
             tmp_pt1.reserve(size);
@@ -1511,60 +1512,73 @@ void JunctionTree::Distribute(int num_threads) {
 
                 // if "set_external_vars" is empty, there is no need for table marginalization
                 if (set_external_vars.empty()) {
-                    // do nothing for marginalization: equals its parent's table
-                    separators_by_level[i/2][j]->p_table = separators_by_level[i/2][j]->ptr_upstream_clique->p_table;
+                    /**
+                     * case 1: no external variables
+                     * do nothing for marginalization: just equals its parent's table
+                     */
+                    separator->p_table = par->p_table;
+                } else if (par->p_table.num_variables - set_external_vars.size() == 0) {
+                    /**
+                     * case 2: no left variables
+                     * all variables should be marginalized: the table becomes empty
+                     */
+                    separator->p_table.var_dims = vector<int>();
+                    separator->p_table.cum_levels = vector<int>();
+                    separator->p_table.table_size = 1;
+                    separator->p_table.potentials.resize(1);
+//                    separator->p_table.potentials[0] = 1;
+                    separator->p_table.potentials[0] = 0;
+                    for (int k = 0; k < par->p_table.table_size; ++k) {
+                        separator->p_table.potentials[0] += par->p_table.potentials[k];
+                    }
                 } else {
+                    /**
+                     * case 3: other case: need to do the marginalization
+                     */
                     // record the index (that requires to do the marginalization)
                     vector_marginalization.push_back(j);
                     // store the parent's table, used for update the child's table
                     tmp_pt1.push_back(par->p_table);
 
-                    // update the new table's related variables and num variables
                     PotentialTable tmp_pt;
+                    // update the new table's related variables and num variables
                     tmp_pt.related_variables = par->p_table.related_variables;
                     for (auto &ext_var: set_external_vars) {
                         tmp_pt.related_variables.erase(ext_var);
                     }
                     tmp_pt.num_variables = par->p_table.num_variables - set_external_vars.size();
 
-                    // update the new table's var_dims, cum_levels and table size
-                    if (tmp_pt.num_variables > 0) {
-                        tmp_pt.var_dims.reserve(tmp_pt.num_variables);
-                        int k = 0;
-                        for (auto &v: par->p_table.related_variables) {
-                            if (set_external_vars.find(v) == set_external_vars.end()) { // v is not in ext_variables
-                                tmp_pt.var_dims.push_back(par->p_table.var_dims[k]);
-                            }
-                            k++;
+                    // update the new table's var dims, cum levels and table size
+                    tmp_pt.var_dims.reserve(tmp_pt.num_variables);
+                    int k = 0;
+                    for (auto &v: par->p_table.related_variables) {
+                        if (set_external_vars.find(v) == set_external_vars.end()) { // v is not in ext_variables
+                            tmp_pt.var_dims.push_back(par->p_table.var_dims[k]);
                         }
-
-                        tmp_pt.ConstructCumLevels();
-                        // compute the table size -- number of possible configurations
-                        tmp_pt.table_size = tmp_pt.cum_levels[0] * tmp_pt.var_dims[0];
-                    } else {
-                        tmp_pt.var_dims = vector<int>();
-                        tmp_pt.cum_levels = vector<int>();
-                        tmp_pt.table_size = 1;
+                        k++;
                     }
+                    tmp_pt.ConstructCumLevels();
+                    tmp_pt.table_size = tmp_pt.cum_levels[0] * tmp_pt.var_dims[0];
+                    tmp_pt.potentials.resize(tmp_pt.table_size);
 
+                    // get this table's location -- it is currently the last one
                     int last = vector_marginalization.size() - 1;
 
                     // generate an array showing the locations of the variables of the new table in the old table
                     loc_in_old[last] = new int[tmp_pt.num_variables];
-                    int k = 0;
+                    k = 0;
                     for (auto &v: tmp_pt.related_variables) {
                         loc_in_old[last][k++] = par->p_table.GetVariableIndex(v);
                     }
-
-                    tmp_pt.potentials.resize(tmp_pt.table_size);
-
                     table_index[last] = new int[par->p_table.table_size];
 
                     tmp_pt2.push_back(tmp_pt);
                 }
             }
+            timer->Stop("pre");
 
-            int size_m = vector_marginalization.size();
+            timer->Start("main");
+            int size_m = vector_marginalization.size(); // the number of variables to be marginalized
             // the main loop
             omp_set_num_threads(num_threads);
 #pragma omp parallel for
@@ -1596,7 +1610,9 @@ void JunctionTree::Distribute(int num_threads) {
                     delete[] partial_config2;
                 }
             }
+            timer->Stop("main");
 
+            timer->Start("post");
             // post-computing
             int l = 0;
             for (int j = 0; j < size; ++j) { // for each separator in this level
@@ -1630,6 +1646,7 @@ void JunctionTree::Distribute(int num_threads) {
 //            delete[] full_config;
 //            delete[] partial_config;
             delete[] table_index;
+            timer->Stop("post");
 
         } else {
             omp_set_num_threads(num_threads);
@@ -1902,6 +1919,9 @@ double JunctionTree::EvaluateAccuracy(Dataset *dts, int num_threads, int num_sam
     timer->Print("downstream");
     timer->Print("predict"); cout << " (" << timer->time["predict"] / timer->time["jt"] * 100 << "%)";
     timer->Print("reset"); cout << " (" << timer->time["reset"] / timer->time["jt"] * 100 << "%)" << endl;
+    timer->Print("pre");
+    timer->Print("main");
+    timer->Print("post"); cout << endl;
 
     delete timer;
     timer = nullptr;

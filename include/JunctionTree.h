@@ -68,7 +68,7 @@ class JunctionTree: public Inference {
 
   virtual void MessagePassingUpdateJT(int num_threads, Timer *timer);
     void Collect(int num_threads);
-    void Distribute(int num_threads);
+    void Distribute(int num_threads, Timer *timer);
 
 //  static vector<int> MinNeighbourElimOrd(int **adjac_matrix, int &num_nodes);
   static void Moralize(int **direc_adjac_matrix, int &num_nodes);
