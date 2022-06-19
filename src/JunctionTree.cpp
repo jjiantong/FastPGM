@@ -1476,12 +1476,16 @@ void JunctionTree::Distribute(int num_threads, Timer *timer) {
     for (int i = 1; i < max_level; ++i) { // for each level
 
         if (i % 2) { // separators
-            timer->Start("pre");
+            timer->Start("pre-down-sep");
             int size = separators_by_level[i/2].size();
             vector<PotentialTable> tmp_pt1; // store all tmp pt used for table marginalization
             tmp_pt1.reserve(size);
             vector<PotentialTable> tmp_pt2; // store all tmp pt used for table marginalization
             tmp_pt2.reserve(size);
+
+            vector<int> cum_sum;
+            cum_sum.reserve(size);
+            int final_sum;
 
             // not all separators need to do the marginalization
             // there are "size" separators in total but maybe <"size" separators require to do marginalization
@@ -1491,7 +1495,7 @@ void JunctionTree::Distribute(int num_threads, Timer *timer) {
 
             // set of arrays, showing the locations of the variables of the new table in the old table
             int **loc_in_old = new int*[size];
-//            int **full_config = new int*[size]; todo: maybe using this big array is better, remember to check this
+//            int **full_config = new int*[size];
 //            int **partial_config = new int*[size];
             int **table_index = new int*[size];
 
@@ -1526,11 +1530,7 @@ void JunctionTree::Distribute(int num_threads, Timer *timer) {
                     separator->p_table.cum_levels = vector<int>();
                     separator->p_table.table_size = 1;
                     separator->p_table.potentials.resize(1);
-//                    separator->p_table.potentials[0] = 1;
-                    separator->p_table.potentials[0] = 0;
-                    for (int k = 0; k < par->p_table.table_size; ++k) {
-                        separator->p_table.potentials[0] += par->p_table.potentials[k];
-                    }
+                    separator->p_table.potentials[0] = 1;
                 } else {
                     /**
                      * case 3: other case: need to do the marginalization
@@ -1573,11 +1573,15 @@ void JunctionTree::Distribute(int num_threads, Timer *timer) {
                     table_index[last] = new int[par->p_table.table_size];
 
                     tmp_pt2.push_back(tmp_pt);
+
+//                    // malloc in pre-, not to parallelize
+//                    full_config[last] = new int[par->p_table.table_size * par->p_table.num_variables];
+//                    partial_config[last] = new int[par->p_table.table_size * tmp_pt.num_variables];
                 }
             }
-            timer->Stop("pre");
+            timer->Stop("pre-down-sep");
 
-            timer->Start("main");
+            timer->Start("main-down-sep");
             int size_m = vector_marginalization.size(); // the number of variables to be marginalized
             // the main loop
             omp_set_num_threads(num_threads);
@@ -1600,6 +1604,7 @@ void JunctionTree::Distribute(int num_threads, Timer *timer) {
                     // 1. get the full config value of old table
                     tmp_pt1[j].GetConfigValueByTableIndex(k, full_config2);
                     // 2. get the partial config value from the old table
+
                     for (int l = 0; l < tmp_pt2[j].num_variables; ++l) {
                         partial_config2[l] = full_config2[loc_in_old[j][l]];
                     }
@@ -1610,16 +1615,16 @@ void JunctionTree::Distribute(int num_threads, Timer *timer) {
                     delete[] partial_config2;
                 }
             }
-            timer->Stop("main");
+            timer->Stop("main-down-sep");
 
-            timer->Start("post");
+            timer->Start("post-down-sep");
             // post-computing
             int l = 0;
             for (int j = 0; j < size; ++j) { // for each separator in this level
                 if (l < size_m && j == vector_marginalization[l]) { // index j have done the marginalization
                     delete[] loc_in_old[l];
-//                delete[] full_config[j];
-//                delete[] partial_config[j];
+//                    delete[] full_config[l];
+//                    delete[] partial_config[l];
 
                     for (int k = 0; k < tmp_pt1[l].table_size; ++k) {
                         // 4. potential[table_index]
@@ -1646,7 +1651,7 @@ void JunctionTree::Distribute(int num_threads, Timer *timer) {
 //            delete[] full_config;
 //            delete[] partial_config;
             delete[] table_index;
-            timer->Stop("post");
+            timer->Stop("post-down-sep");
 
         } else {
             omp_set_num_threads(num_threads);
@@ -1919,9 +1924,9 @@ double JunctionTree::EvaluateAccuracy(Dataset *dts, int num_threads, int num_sam
     timer->Print("downstream");
     timer->Print("predict"); cout << " (" << timer->time["predict"] / timer->time["jt"] * 100 << "%)";
     timer->Print("reset"); cout << " (" << timer->time["reset"] / timer->time["jt"] * 100 << "%)" << endl;
-    timer->Print("pre");
-    timer->Print("main");
-    timer->Print("post"); cout << endl;
+    timer->Print("pre-down-sep");
+    timer->Print("main-down-sep");
+    timer->Print("post-down-sep"); cout << endl;
 
     delete timer;
     timer = nullptr;

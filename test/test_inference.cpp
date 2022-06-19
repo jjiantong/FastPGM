@@ -15,8 +15,9 @@
 #include "Inference.h"
 #include "JunctionTree.h"
 
-string path = "/Users/jjt/work/research_project/BN/inference/dataset/BN/";
+//string path = "/Users/jjt/work/research_project/BN/inference/dataset/BN/";
 //string path = "/home/zeyiwen/jiantong/BN/dataset/";
+string path = "/home/ubuntu/BN/dataset/";
 
 class InferenceAlarm: public ::testing::Test {
 protected:
@@ -53,41 +54,41 @@ TEST_F(InferenceAlarm, junction_tree_partial2) {
     EXPECT_EQ(accuracy, 0.5024);
 }
 
-//TEST_F(InferenceAlarm, junction_tree_partial4) {
-//Inference *inference = new JunctionTree(network);
-//double accuracy = inference->EvaluateAccuracy(tester, 4, -1, "jt", false);
-//delete inference;
-//delete network;
-//delete tester;
-//    EXPECT_EQ(accuracy, 0.5024);
-//}
+TEST_F(InferenceAlarm, junction_tree_partial4) {
+Inference *inference = new JunctionTree(network);
+double accuracy = inference->EvaluateAccuracy(tester, 4, -1, "jt", false);
+delete inference;
+delete network;
+delete tester;
+    EXPECT_EQ(accuracy, 0.5024);
+}
 
-//TEST_F(InferenceAlarm, junction_tree_partial6) {
-//Inference *inference = new JunctionTree(network);
-//double accuracy = inference->EvaluateAccuracy(tester, 6, -1, "jt", false);
-//delete inference;
-//delete network;
-//delete tester;
-//EXPECT_EQ(accuracy, 0.5024);
-//}
-//
-//TEST_F(InferenceAlarm, junction_tree_partial8) {
-//Inference *inference = new JunctionTree(network);
-//double accuracy = inference->EvaluateAccuracy(tester, 8, -1, "jt", false);
-//delete inference;
-//delete network;
-//delete tester;
-//EXPECT_EQ(accuracy, 0.5024);
-//}
-//
-//TEST_F(InferenceAlarm, junction_tree_partial10) {
-//Inference *inference = new JunctionTree(network);
-//double accuracy = inference->EvaluateAccuracy(tester, 10, -1, "jt", false);
-//delete inference;
-//delete network;
-//delete tester;
-//EXPECT_EQ(accuracy, 0.5024);
-//}
+TEST_F(InferenceAlarm, junction_tree_partial6) {
+Inference *inference = new JunctionTree(network);
+double accuracy = inference->EvaluateAccuracy(tester, 6, -1, "jt", false);
+delete inference;
+delete network;
+delete tester;
+EXPECT_EQ(accuracy, 0.5024);
+}
+
+TEST_F(InferenceAlarm, junction_tree_partial8) {
+Inference *inference = new JunctionTree(network);
+double accuracy = inference->EvaluateAccuracy(tester, 8, -1, "jt", false);
+delete inference;
+delete network;
+delete tester;
+EXPECT_EQ(accuracy, 0.5024);
+}
+
+TEST_F(InferenceAlarm, junction_tree_partial10) {
+Inference *inference = new JunctionTree(network);
+double accuracy = inference->EvaluateAccuracy(tester, 10, -1, "jt", false);
+delete inference;
+delete network;
+delete tester;
+EXPECT_EQ(accuracy, 0.5024);
+}
 
 
 
@@ -346,41 +347,41 @@ delete tester;
     EXPECT_EQ(accuracy, 0.01605);
 }
 
-//TEST_F(InferencePathfinder, junction_tree_partial4) {
-//Inference *inference = new JunctionTree(network);
-//double accuracy = inference->EvaluateAccuracy(tester, 4, -1, "jt", false);
-//delete inference;
-//delete network;
-//delete tester;
-//EXPECT_EQ(accuracy, 0.01605);
-//}
+TEST_F(InferencePathfinder, junction_tree_partial4) {
+Inference *inference = new JunctionTree(network);
+double accuracy = inference->EvaluateAccuracy(tester, 4, -1, "jt", false);
+delete inference;
+delete network;
+delete tester;
+EXPECT_EQ(accuracy, 0.01605);
+}
 
-//TEST_F(InferencePathfinder, junction_tree_partial6) {
-//Inference *inference = new JunctionTree(network);
-//double accuracy = inference->EvaluateAccuracy(tester, 6, -1, "jt", false);
-//delete inference;
-//delete network;
-//delete tester;
-//EXPECT_EQ(accuracy, 0.01605);
-//}
-//
-//TEST_F(InferencePathfinder, junction_tree_partial8) {
-//Inference *inference = new JunctionTree(network);
-//double accuracy = inference->EvaluateAccuracy(tester, 8, -1, "jt", false);
-//delete inference;
-//delete network;
-//delete tester;
-//EXPECT_EQ(accuracy, 0.01605);
-//}
-//
-//TEST_F(InferencePathfinder, junction_tree_partial10) {
-//Inference *inference = new JunctionTree(network);
-//double accuracy = inference->EvaluateAccuracy(tester, 10, -1, "jt", false);
-//delete inference;
-//delete network;
-//delete tester;
-//EXPECT_EQ(accuracy, 0.01605);
-//}
+TEST_F(InferencePathfinder, junction_tree_partial6) {
+Inference *inference = new JunctionTree(network);
+double accuracy = inference->EvaluateAccuracy(tester, 6, -1, "jt", false);
+delete inference;
+delete network;
+delete tester;
+EXPECT_EQ(accuracy, 0.01605);
+}
+
+TEST_F(InferencePathfinder, junction_tree_partial8) {
+Inference *inference = new JunctionTree(network);
+double accuracy = inference->EvaluateAccuracy(tester, 8, -1, "jt", false);
+delete inference;
+delete network;
+delete tester;
+EXPECT_EQ(accuracy, 0.01605);
+}
+
+TEST_F(InferencePathfinder, junction_tree_partial10) {
+Inference *inference = new JunctionTree(network);
+double accuracy = inference->EvaluateAccuracy(tester, 10, -1, "jt", false);
+delete inference;
+delete network;
+delete tester;
+EXPECT_EQ(accuracy, 0.01605);
+}
 
 
 
