@@ -406,8 +406,8 @@ void PotentialTable::TableMarginalizationAndDivision(const set<int> &ext_variabl
 //    timer->Stop("div1");
 }
 
-void PotentialTable::TableMarginalizationAndDivisionCore(PotentialTable &new_table, int *loc_in_old,
-                                                         int *full_config, int *partial_config, int *table_index) {
+void PotentialTable::TableMarginalizationCore(PotentialTable &new_table, int *loc_in_old,
+                                              int *full_config, int *partial_config, int *table_index) {
 
     for (int i = 0; i < this->table_size; ++i) {
         // 1. get the full config value of old table
