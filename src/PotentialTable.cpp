@@ -175,6 +175,10 @@ int PotentialTable::GetVariableIndex(const int &variable) {
 }
 
 void PotentialTable::TableExtension(const set<int> &variables, const vector<int> &dims) {
+    if (variables.empty()) {
+        return;
+    }
+
 //    timer->Start("extension2");
     PotentialTable new_table;
 
@@ -430,15 +434,15 @@ void PotentialTable::TableMarginalizationCore(PotentialTable &new_table, int *lo
  * @output: this table
  */
 void PotentialTable::TableMultiplication(PotentialTable &second_table) {
-//    timer->Start("multi2");
-    if (this->related_variables.empty()) {
-        (*this) = second_table; // directly return "second_table"
-//        return second_table;
-    }
-    if (second_table.related_variables.empty()) {
-        return; // directly return this table
-//        return (*this);
-    }
+////    timer->Start("multi2");
+//    if (this->related_variables.empty()) {
+//        (*this) = second_table; // directly return "second_table"
+////        return second_table;
+//    }
+//    if (second_table.related_variables.empty()) {
+//        return; // directly return this table
+////        return (*this);
+//    }
 
     set<int> all_related_variables;
     all_related_variables.insert(this->related_variables.begin(), this->related_variables.end());
@@ -487,15 +491,6 @@ void PotentialTable::TableMultiplication(PotentialTable &second_table) {
 }
 
 void PotentialTable::TableMultiplicationCore(PotentialTable &second_table) {
-//    timer->Start("multi2");
-    if (this->related_variables.empty()) {
-        (*this) = second_table; // directly return "second_table"
-//        return second_table;
-    }
-    if (second_table.related_variables.empty()) {
-        return; // directly return this table
-//        return (*this);
-    }
 
     set<int> all_related_variables;
     all_related_variables.insert(this->related_variables.begin(), this->related_variables.end());
