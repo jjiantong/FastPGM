@@ -175,10 +175,6 @@ int PotentialTable::GetVariableIndex(const int &variable) {
 }
 
 void PotentialTable::TableExtension(const set<int> &variables, const vector<int> &dims) {
-    if (variables.empty()) {
-        return;
-    }
-
 //    timer->Start("extension2");
     PotentialTable new_table;
 
@@ -530,12 +526,6 @@ void PotentialTable::TableMultiplicationCore(PotentialTable &second_table) {
         second_table.TableExtension(all_related_variables, dims);
     }
 
-//    timer->Start("multi1");
-//#pragma omp taskloop
-    for (int i = 0; i < this->table_size; ++i) {
-        this->potentials[i] *= second_table.potentials[i];
-    }
-//    timer->Stop("multi1");
 }
 
 void PotentialTable::TableDivision(const PotentialTable &second_table) {
