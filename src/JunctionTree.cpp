@@ -1932,7 +1932,6 @@ void JunctionTree::Distribute(int num_threads, Timer *timer) {
                     // update sum
                     cum_sum.push_back(final_sum);
                     final_sum += tmp_pt.table_size;
-//                    this->TableExtension(all_related_variables, second_table.var_dims);
                 } else if (diff1.empty() && !diff2.empty()) { // if table2 should be extended and table1 not
                     // record the index (that requires to do the extension)
                     vector_extension.push_back(j * 2 + 1);
@@ -1966,7 +1965,6 @@ void JunctionTree::Distribute(int num_threads, Timer *timer) {
                     // update sum
                     cum_sum.push_back(final_sum);
                     final_sum += tmp_pt.table_size;
-//                    second_table.TableExtension(all_related_variables, this->var_dims);
                 } else { // if both table1 and table2 should be extended
                     // record the index (that requires to do the extension)
                     vector_extension.push_back(j * 2 + 0);
@@ -2036,8 +2034,6 @@ void JunctionTree::Distribute(int num_threads, Timer *timer) {
                     final_sum += tmp_pta.table_size;
                     cum_sum.push_back(final_sum);
                     final_sum += tmp_ptb.table_size;
-//                    this->TableExtension(all_related_variables, dims);
-//                    second_table.TableExtension(all_related_variables, dims);
                 }
 
             }
@@ -2048,19 +2044,26 @@ void JunctionTree::Distribute(int num_threads, Timer *timer) {
             // the main loop
             omp_set_num_threads(num_threads);
 #pragma omp parallel for
-            for (int j = 0; j < size_e; ++j) { // for each clique required to be extended in this level
-                for (int k = 0; k < tmp_pt2[j].table_size; ++k) {
-                    // 1. get the full config value of new table
-                    tmp_pt2[j].GetConfigValueByTableIndex(k, full_config[j] + k * tmp_pt2[j].num_variables);
-                    // 2. get the partial config value from the new table
-                    for (int l = 0; l < tmp_pt1[j].num_variables; ++l) {
-                        partial_config[j][k * tmp_pt1[j].num_variables + l] = full_config[j][k * tmp_pt2[j].num_variables + loc_in_new[j][l]];
+            for (int s = 0; s < final_sum; ++s) {
+                // compute j and k
+                int j = -1;
+                for (int m = size_e - 1; m >= 0; --m) {
+                    if (s >= cum_sum[m]) {
+                        j = m;
+                        break;
                     }
-                    // 3. obtain the potential index
-                    table_index[j][k] = tmp_pt1[j].GetTableIndexByConfigValue(partial_config[j] + k * tmp_pt1[j].num_variables);
                 }
-            }
+                int k = s - cum_sum[j];
 
+                // 1. get the full config value of new table
+                tmp_pt2[j].GetConfigValueByTableIndex(k, full_config[j] + k * tmp_pt2[j].num_variables);
+                // 2. get the partial config value from the new table
+                for (int l = 0; l < tmp_pt1[j].num_variables; ++l) {
+                    partial_config[j][k * tmp_pt1[j].num_variables + l] = full_config[j][k * tmp_pt2[j].num_variables + loc_in_new[j][l]];
+                }
+                // 3. obtain the potential index
+                table_index[j][k] = tmp_pt1[j].GetTableIndexByConfigValue(partial_config[j] + k * tmp_pt1[j].num_variables);
+            }
             timer->Stop("main-down-clq");
 
             timer->Start("post-down-clq");
