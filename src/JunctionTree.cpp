@@ -1856,12 +1856,18 @@ void JunctionTree::Distribute(int num_threads, Timer *timer) {
             timer->Start("pre-down-clq");
             int size = nodes_by_level[i].size();
 
+            vector<PotentialTable> tmp_pt;
+            tmp_pt.reserve(2 * size);
+
             vector<PotentialTable> multi_pt;
-            multi_pt.resize(2 * size);
-            vector<PotentialTable> tmp_pt1;
-            tmp_pt1.reserve(2 * size);
-            vector<PotentialTable> tmp_pt2;
-            tmp_pt2.reserve(2 * size);
+            multi_pt.resize(size);
+
+            // store number_variables and cum_levels of the original table
+            // rather than storing the whole potential table
+            vector<int> nv_old;
+            nv_old.reserve(2 * size);
+            vector<vector<int>> cl_old;
+            cl_old.reserve(2 * size);
 
             vector<int> cum_sum;
             cum_sum.reserve(2 * size);
@@ -1887,8 +1893,7 @@ void JunctionTree::Distribute(int num_threads, Timer *timer) {
                 auto par = clique->ptr_upstream_clique;
 
                 // both two pt are used in multiplication
-                multi_pt[j * 2 + 0] = clique->p_table;
-                multi_pt[j * 2 + 1] = par->p_table;
+                multi_pt[j] = par->p_table;
 
                 // pre processing for extension
                 set<int> all_related_variables;
@@ -1909,16 +1914,17 @@ void JunctionTree::Distribute(int num_threads, Timer *timer) {
                 } else if (!diff1.empty() && diff2.empty()) { // if table1 should be extended and table2 not
                     // record the index (that requires to do the extension)
                     vector_extension.push_back(j * 2 + 0);
-                    tmp_pt1.push_back(clique->p_table);
+                    nv_old.push_back(clique->p_table.num_variables);
+                    cl_old.push_back(clique->p_table.cum_levels);
 
-                    PotentialTable tmp_pt;
-                    tmp_pt.related_variables = all_related_variables;
-                    tmp_pt.num_variables = all_related_variables.size();
+                    PotentialTable pt;
+                    pt.related_variables = all_related_variables;
+                    pt.num_variables = all_related_variables.size();
 
-                    tmp_pt.var_dims = par->p_table.var_dims;
-                    tmp_pt.ConstructCumLevels();
-                    tmp_pt.table_size = tmp_pt.cum_levels[0] * tmp_pt.var_dims[0];
-                    tmp_pt.potentials.resize(tmp_pt.table_size);
+                    pt.var_dims = par->p_table.var_dims;
+                    pt.ConstructCumLevels();
+                    pt.table_size = pt.cum_levels[0] * pt.var_dims[0];
+                    pt.potentials.resize(pt.table_size);
 
                     // get this table's location -- it is currently the last one
                     int last = vector_extension.size() - 1;
@@ -1926,32 +1932,33 @@ void JunctionTree::Distribute(int num_threads, Timer *timer) {
                     loc_in_new[last] = new int[clique->p_table.num_variables];
                     int k = 0;
                     for (auto &v: clique->p_table.related_variables) {
-                        loc_in_new[last][k++] = tmp_pt.GetVariableIndex(v);
+                        loc_in_new[last][k++] = pt.GetVariableIndex(v);
                     }
-                    table_index[last] = new int[tmp_pt.table_size];
+                    table_index[last] = new int[pt.table_size];
 
-                    tmp_pt2.push_back(tmp_pt);
+                    tmp_pt.push_back(pt);
 
                     // malloc in pre-, not to parallelize
-                    full_config[last] = new int[tmp_pt.table_size * tmp_pt.num_variables];
-                    partial_config[last] = new int[tmp_pt.table_size * clique->p_table.num_variables];
+                    full_config[last] = new int[pt.table_size * pt.num_variables];
+                    partial_config[last] = new int[pt.table_size * clique->p_table.num_variables];
 
                     // update sum
                     cum_sum.push_back(final_sum);
-                    final_sum += tmp_pt.table_size;
+                    final_sum += pt.table_size;
                 } else if (diff1.empty() && !diff2.empty()) { // if table2 should be extended and table1 not
                     // record the index (that requires to do the extension)
                     vector_extension.push_back(j * 2 + 1);
-                    tmp_pt1.push_back(par->p_table);
+                    nv_old.push_back(par->p_table.num_variables);
+                    cl_old.push_back(par->p_table.cum_levels);
 
-                    PotentialTable tmp_pt;
-                    tmp_pt.related_variables = all_related_variables;
-                    tmp_pt.num_variables = all_related_variables.size();
+                    PotentialTable pt;
+                    pt.related_variables = all_related_variables;
+                    pt.num_variables = all_related_variables.size();
 
-                    tmp_pt.var_dims = clique->p_table.var_dims;
-                    tmp_pt.ConstructCumLevels();
-                    tmp_pt.table_size = tmp_pt.cum_levels[0] * tmp_pt.var_dims[0];
-                    tmp_pt.potentials.resize(tmp_pt.table_size);
+                    pt.var_dims = clique->p_table.var_dims;
+                    pt.ConstructCumLevels();
+                    pt.table_size = pt.cum_levels[0] * pt.var_dims[0];
+                    pt.potentials.resize(pt.table_size);
 
                     // get this table's location -- it is currently the last one
                     int last = vector_extension.size() - 1;
@@ -1959,25 +1966,27 @@ void JunctionTree::Distribute(int num_threads, Timer *timer) {
                     loc_in_new[last] = new int[par->p_table.num_variables];
                     int k = 0;
                     for (auto &v: par->p_table.related_variables) {
-                        loc_in_new[last][k++] = tmp_pt.GetVariableIndex(v);
+                        loc_in_new[last][k++] = pt.GetVariableIndex(v);
                     }
-                    table_index[last] = new int[tmp_pt.table_size];
+                    table_index[last] = new int[pt.table_size];
 
-                    tmp_pt2.push_back(tmp_pt);
+                    tmp_pt.push_back(pt);
 
                     // malloc in pre-, not to parallelize
-                    full_config[last] = new int[tmp_pt.table_size * tmp_pt.num_variables];
-                    partial_config[last] = new int[tmp_pt.table_size * par->p_table.num_variables];
+                    full_config[last] = new int[pt.table_size * pt.num_variables];
+                    partial_config[last] = new int[pt.table_size * par->p_table.num_variables];
 
                     // update sum
                     cum_sum.push_back(final_sum);
-                    final_sum += tmp_pt.table_size;
+                    final_sum += pt.table_size;
                 } else { // if both table1 and table2 should be extended
                     // record the index (that requires to do the extension)
                     vector_extension.push_back(j * 2 + 0);
                     vector_extension.push_back(j * 2 + 1);
-                    tmp_pt1.push_back(clique->p_table);
-                    tmp_pt1.push_back(par->p_table);
+                    nv_old.push_back(clique->p_table.num_variables);
+                    cl_old.push_back(clique->p_table.cum_levels);
+                    nv_old.push_back(par->p_table.num_variables);
+                    cl_old.push_back(par->p_table.cum_levels);
 
                     PotentialTable tmp_pta, tmp_ptb;
                     tmp_pta.related_variables = all_related_variables;
@@ -2016,7 +2025,7 @@ void JunctionTree::Distribute(int num_threads, Timer *timer) {
                     }
                     table_index[last] = new int[tmp_pta.table_size];
 
-                    tmp_pt2.push_back(tmp_pta);
+                    tmp_pt.push_back(tmp_pta);
 
                     // malloc in pre-, not to parallelize
                     full_config[last - 1] = new int[tmp_pta.table_size * tmp_pta.num_variables];
@@ -2030,7 +2039,7 @@ void JunctionTree::Distribute(int num_threads, Timer *timer) {
                     }
                     table_index[last] = new int[tmp_ptb.table_size];
 
-                    tmp_pt2.push_back(tmp_ptb);
+                    tmp_pt.push_back(tmp_ptb);
 
                     // malloc in pre-, not to parallelize
                     full_config[last] = new int[tmp_ptb.table_size * tmp_ptb.num_variables];
@@ -2042,7 +2051,6 @@ void JunctionTree::Distribute(int num_threads, Timer *timer) {
                     cum_sum.push_back(final_sum);
                     final_sum += tmp_ptb.table_size;
                 }
-
             }
             timer->Stop("pre-down-clq");
 
@@ -2063,36 +2071,59 @@ void JunctionTree::Distribute(int num_threads, Timer *timer) {
                 int k = s - cum_sum[j];
 
                 // 1. get the full config value of new table
-                tmp_pt2[j].GetConfigValueByTableIndex(k, full_config[j] + k * tmp_pt2[j].num_variables);
+                tmp_pt[j].GetConfigValueByTableIndex(k, full_config[j] + k * tmp_pt[j].num_variables);
                 // 2. get the partial config value from the new table
-                for (int l = 0; l < tmp_pt1[j].num_variables; ++l) {
-                    partial_config[j][k * tmp_pt1[j].num_variables + l] = full_config[j][k * tmp_pt2[j].num_variables + loc_in_new[j][l]];
+                for (int l = 0; l < nv_old[j]; ++l) {
+                    partial_config[j][k * nv_old[j] + l] = full_config[j][k * tmp_pt[j].num_variables + loc_in_new[j][l]];
                 }
                 // 3. obtain the potential index
-                table_index[j][k] = tmp_pt1[j].GetTableIndexByConfigValue(partial_config[j] + k * tmp_pt1[j].num_variables);
+//                table_index[j][k] = tmp_pt1[j].GetTableIndexByConfigValue(partial_config[j] + k * tmp_pt1[j].num_variables);
+                table_index[j][k] = tmp_pt[j].GetTableIndexByConfigValue(partial_config[j] + k * nv_old[j], nv_old[j], cl_old[j]);
             }
             timer->Stop("main-down-clq");
 
             timer->Start("post-down-clq");
             // post-computing
             int l = 0;
-            for (int j = 0; j < 2 * size; ++j) { // for each clique for multiplication in this level
-                if (l < size_e && j == vector_extension[l]) { // index j have done the extension
+            for (int j = 0; j < size; ++j) {
+                auto clique = nodes_by_level[i][j];
+                auto par = clique->ptr_upstream_clique;
+
+                int m = j * 2 + 0;
+                if (l < size_e && m == vector_extension[l]) { // index k have done the extension
                     delete[] loc_in_new[l];
                     delete[] full_config[l];
                     delete[] partial_config[l];
 
-                    for (int k = 0; k < tmp_pt2[l].table_size; ++k) {
+                    for (int k = 0; k < tmp_pt[l].table_size; ++k) {
                         // 4. potential[table_index]
-                        tmp_pt2[l].potentials[k] = tmp_pt1[l].potentials[table_index[l][k]];
+                        tmp_pt[l].potentials[k] = clique->p_table.potentials[table_index[l][k]];
                     }
                     delete[] table_index[l];
 
-                    multi_pt[j] = tmp_pt2[l];
+                    clique->p_table = tmp_pt[l];
+
+                    l++;
+                }
+
+                m = j * 2 + 1;
+                if (l < size_e && m == vector_extension[l]) { // index j have done the extension
+                    delete[] loc_in_new[l];
+                    delete[] full_config[l];
+                    delete[] partial_config[l];
+
+                    for (int k = 0; k < tmp_pt[l].table_size; ++k) {
+                        // 4. potential[table_index]
+                        tmp_pt[l].potentials[k] = par->p_table.potentials[table_index[l][k]];
+                    }
+                    delete[] table_index[l];
+
+                    multi_pt[j] = tmp_pt[l];
 
                     l++;
                 }
             }
+
             delete[] loc_in_new;
             delete[] full_config;
             delete[] partial_config;
@@ -2102,10 +2133,9 @@ void JunctionTree::Distribute(int num_threads, Timer *timer) {
 //            omp_set_num_threads(num_threads);
 //#pragma omp parallel for
             for (int j = 0; j < size; ++j) {
-                for (int k = 0; k < multi_pt[j * 2 + 0].table_size; ++k) {
-                    multi_pt[j * 2 + 0].potentials[k] *= multi_pt[j * 2 + 1].potentials[k];
+                for (int k = 0; k < multi_pt[j].table_size; ++k) {
+                    nodes_by_level[i][j]->p_table.potentials[k] *= multi_pt[j].potentials[k];
                 }
-                nodes_by_level[i][j]->p_table = multi_pt[j * 2 + 0];
             }
         }
     }
