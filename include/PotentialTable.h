@@ -53,6 +53,9 @@ public:
     void TableReduction(int e_index, int e_value_index, int num_threads);
     void Normalize();
 
+    void GetConfigValueByTableIndex(const int &table_index, int *config_value, int num_variables, const vector<int> &cum_levels);
+    int GetTableIndexByConfigValue(int *config_value, int num_variables, const vector<int> &cum_levels);
+
 //private:
     void ConstructVarDimsAndCumLevels(Network *net);
     void ConstructCumLevels();

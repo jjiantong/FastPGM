@@ -147,10 +147,28 @@ void PotentialTable::GetConfigValueByTableIndex(const int &table_index, int *con
     }
 }
 
+void PotentialTable::GetConfigValueByTableIndex(const int &table_index, int *config_value, int num_variables, const vector<int> &cum_levels) {
+    int a = table_index;
+    for (int i = 0; i < num_variables; ++i) {
+        int c = a / cum_levels[i];
+        int d = a % cum_levels[i];
+        config_value[i] = c;
+        a = d;
+    }
+}
+
 /*!
  * @brief: get table index given each value (index) of the configuration
  */
 int PotentialTable::GetTableIndexByConfigValue(int *config_value) {
+    int table_index = 0;
+    for (int i = 0; i < num_variables; ++i) {
+        table_index += config_value[i] * cum_levels[i];
+    }
+    return table_index;
+}
+
+int PotentialTable::GetTableIndexByConfigValue(int *config_value, int num_variables, const vector<int> &cum_levels) {
     int table_index = 0;
     for (int i = 0; i < num_variables; ++i) {
         table_index += config_value[i] * cum_levels[i];
