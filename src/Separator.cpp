@@ -76,7 +76,8 @@ void Separator::UpdateMessage(const PotentialTable &pt) {
                    this->clique_variables.begin(), this->clique_variables.end(),
                    inserter(set_external_vars, set_external_vars.begin()));
 
-    tmp_pt.TableMarginalizationAndDivision(set_external_vars, old_ptable);
+    tmp_pt.TableMarginalization(set_external_vars);
+    tmp_pt.TableDivision(old_ptable);
 
     p_table = tmp_pt;
 }
