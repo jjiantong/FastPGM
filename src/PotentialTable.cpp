@@ -74,15 +74,6 @@ void PotentialTable::ConstructEmptyPotentialTable(const set<int> &set_node_index
     }
 }
 
-void PotentialTable::CopyPotentialTable(const PotentialTable & ptable) {
-    this->related_variables = ptable.related_variables; // the variables involved in this factor/potential table
-    this->potentials = ptable.potentials; // the potential table
-    this->var_dims = ptable.var_dims; // the dimension of each related variable
-    this->cum_levels = ptable.cum_levels; // the helper array used to transfer between table index and the config (in array format)
-    this->num_variables = ptable.num_variables; // i.e., clique size
-    this->table_size = ptable.table_size; // number of entries
-}
-
 /**
  * @brief: construct: 1. var_dims; 2. cum_levels; 3. table size
  * it is used in the constructor of PotentialTable
@@ -192,16 +183,20 @@ int PotentialTable::GetVariableIndex(const int &variable) {
     return index;
 }
 
+void PotentialTable::ExtensionPre(const set<int> &variables, const vector<int> &dims) {
+    related_variables = variables;
+    num_variables = variables.size();
+
+    var_dims = dims;
+    ConstructCumLevels();
+    table_size = cum_levels[0] * var_dims[0];
+    potentials.resize(table_size);
+}
+
 void PotentialTable::TableExtension(const set<int> &variables, const vector<int> &dims) {
     PotentialTable new_table;
 
-    new_table.related_variables = variables;
-    new_table.num_variables = variables.size();
-    new_table.var_dims = dims;
-
-    new_table.ConstructCumLevels();
-    // compute the table size -- number of possible configurations
-    new_table.table_size = new_table.cum_levels[0] * new_table.var_dims[0];
+    new_table.ExtensionPre(variables, dims);
 
     // generate an array showing the locations of the variables of the old table in the new table
     int *loc_in_new = new int[this->num_variables];
@@ -209,8 +204,6 @@ void PotentialTable::TableExtension(const set<int> &variables, const vector<int>
     for (auto &v: this->related_variables) {
         loc_in_new[i++] = new_table.GetVariableIndex(v);
     }
-
-    new_table.potentials.resize(new_table.table_size);
 
     int *full_config = new int[new_table.table_size * new_table.num_variables];
     int *partial_config = new int[new_table.table_size * this->num_variables];
@@ -241,37 +234,42 @@ void PotentialTable::TableExtension(const set<int> &variables, const vector<int>
     (*this) = new_table;
 }
 
-/**
- * @brief: factor out a node by id; i.e., factor marginalization
- * eliminate variable "id" by summation of the factor over "id"
- */
-void PotentialTable::TableMarginalization(const set<int> &ext_variables) {
-    PotentialTable new_table;
-
+void PotentialTable::MarginalizationPre(const set<int> &ext_variables, PotentialTable &new_table) {
+    // update the new table's related variables and num variables
     new_table.related_variables = this->related_variables;
     for (auto &ext_var: ext_variables) {
         new_table.related_variables.erase(ext_var);
     }
     new_table.num_variables = this->num_variables - ext_variables.size();
 
-    if (new_table.num_variables > 0) {
-        new_table.var_dims.reserve(new_table.num_variables);
-        int i = 0;
-        for (auto &v: this->related_variables) {
-            if (ext_variables.find(v) == ext_variables.end()) { // v is not in ext_variables
-                new_table.var_dims.push_back(this->var_dims[i]);
-            }
-            i++;
-        }
-
-        new_table.ConstructCumLevels();
-        // compute the table size -- number of possible configurations
-        new_table.table_size = new_table.cum_levels[0] * new_table.var_dims[0];
-    } else {
+    // update the new table's var dims, cum levels and table size
+    if (new_table.num_variables == 0) {
         new_table.var_dims = vector<int>();
         new_table.cum_levels = vector<int>();
         new_table.table_size = 1;
+    } else {
+        new_table.var_dims.reserve(new_table.num_variables);
+        int k = 0;
+        for (auto &v: this->related_variables) {
+            if (ext_variables.find(v) == ext_variables.end()) { // v is not in ext_variables
+                new_table.var_dims.push_back(this->var_dims[k]);
+            }
+            k++;
+        }
+        new_table.ConstructCumLevels();
+        new_table.table_size = new_table.cum_levels[0] * new_table.var_dims[0];
     }
+
+    new_table.potentials.resize(new_table.table_size);
+}
+
+/**
+ * @brief: factor out a node by id; i.e., factor marginalization
+ * eliminate variable "id" by summation of the factor over "id"
+ */
+void PotentialTable::TableMarginalization(const set<int> &ext_variables) {
+    PotentialTable new_table;
+    this->MarginalizationPre(ext_variables, new_table);
 
     // generate an array showing the locations of the variables of the new table in the old table
     int *loc_in_old = new int[new_table.num_variables];
@@ -279,9 +277,6 @@ void PotentialTable::TableMarginalization(const set<int> &ext_variables) {
     for (auto &v: new_table.related_variables) {
         loc_in_old[i++] = this->GetVariableIndex(v);
     }
-
-    // initialize potentials
-    new_table.potentials.resize(new_table.table_size);
 
     int *full_config = new int[this->table_size * this->num_variables];
     int *partial_config = new int[this->table_size * new_table.num_variables];
@@ -311,6 +306,21 @@ void PotentialTable::TableMarginalization(const set<int> &ext_variables) {
     (*this) = new_table;
 }
 
+void PotentialTable::MultiplicationPre(PotentialTable &second_table, set<int> &all_related_variables, set<int> &diff1, set<int> &diff2) {
+    all_related_variables.insert(this->related_variables.begin(), this->related_variables.end());
+    all_related_variables.insert(second_table.related_variables.begin(), second_table.related_variables.end());
+
+    // before multiplication, we first extend the two tables to the same size if required
+    // get the variables that in the new table but not in the old tables
+    set_difference(all_related_variables.begin(), all_related_variables.end(),
+                   this->related_variables.begin(), this->related_variables.end(),
+                   inserter(diff1, diff1.begin()));
+    set_difference(all_related_variables.begin(), all_related_variables.end(),
+                   second_table.related_variables.begin(), second_table.related_variables.end(),
+                   inserter(diff2, diff2.begin()));
+}
+
+
 /**
  * @brief: cartesian product on two factors (product of factors)
  * if two factors have shared variables, the conflict ones (i.e. one variable has more than one value) in the results need to be removed.
@@ -330,18 +340,9 @@ void PotentialTable::TableMultiplication(PotentialTable &second_table) {
 //    }
 
     set<int> all_related_variables;
-    all_related_variables.insert(this->related_variables.begin(), this->related_variables.end());
-    all_related_variables.insert(second_table.related_variables.begin(), second_table.related_variables.end());
-
-    // before multiplication, we first extend the two tables to the same size if required
-    // get the variables that in the new table but not in the old tables
     set<int> diff1, diff2;
-    set_difference(all_related_variables.begin(), all_related_variables.end(),
-                   this->related_variables.begin(), this->related_variables.end(),
-                   inserter(diff1, diff1.begin()));
-    set_difference(all_related_variables.begin(), all_related_variables.end(),
-                   second_table.related_variables.begin(), second_table.related_variables.end(),
-                   inserter(diff2, diff2.begin()));
+
+    this->MultiplicationPre(second_table, all_related_variables, diff1, diff2);
 
     if (diff1.empty() && diff2.empty()) { // if both table1 and table2 should not be extended
         // do nothing

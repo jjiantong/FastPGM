@@ -42,11 +42,13 @@ public:
     PotentialTable() = default;
     PotentialTable(DiscreteNode *disc_node, Network *net);
     void ConstructEmptyPotentialTable(const set<int> &set_node_index, Network *net);
-    void CopyPotentialTable(const PotentialTable &ptable);
 
+    void ExtensionPre(const set<int> &variables, const vector<int> &dims);
     void TableExtension(const set<int> &variables, const vector<int> &dims);
+    void MarginalizationPre(const set<int> &ext_variables, PotentialTable &new_table);
     void TableMarginalization(const set<int> &ext_variables);
 
+    void MultiplicationPre(PotentialTable &second_table, set<int> &all_related_variables, set<int> &diff1, set<int> &diff2);
     void TableMultiplication(PotentialTable &second_table);
     void TableDivision(const PotentialTable &second_table);
 
@@ -55,13 +57,13 @@ public:
 
     void GetConfigValueByTableIndex(const int &table_index, int *config_value, int num_variables, const vector<int> &cum_levels);
     int GetTableIndexByConfigValue(int *config_value, int num_variables, const vector<int> &cum_levels);
+    void GetConfigValueByTableIndex(const int &table_index, int *config_value);
+    int GetTableIndexByConfigValue(int *config_value);
 
 //private:
     void ConstructVarDimsAndCumLevels(Network *net);
     void ConstructCumLevels();
     void GetConfigByTableIndex(const int &table_index, Network *net, DiscreteConfig &config);
-    void GetConfigValueByTableIndex(const int &table_index, int *config_value);
-    int GetTableIndexByConfigValue(int *config_value);
     int GetVariableIndex(const int &variable);
 };
 
