@@ -1462,11 +1462,37 @@ void JunctionTree::MessagePassingUpdateJT(int num_threads, Timer *timer) {
 
 void JunctionTree::Collect(int num_threads) {
     for (int i = max_level - 2; i >= 0 ; --i) { // for each level
-        omp_set_num_threads(num_threads);
+
+        if (i % 2) {
+            /**
+             * case 1: levels 1, 3, 5, ... are separator levels
+             * collect msg from its child (a clique) to it (a separator)
+             * do marginalization + division for separator levels
+             */
+            int size = separators_by_level[i/2].size();
+
+            omp_set_num_threads(num_threads);
 #pragma omp parallel for
-        for (int j = 0; j < nodes_by_level[i].size(); ++j) { // for each clique of this level
-            for (auto &ptr_child : nodes_by_level[i][j]->ptr_downstream_cliques) {
-                nodes_by_level[i][j]->UpdateMessage(ptr_child->p_table);
+            for (int j = 0; j < size; ++j) { // for each separator in this level
+                auto separator = separators_by_level[i/2][j];
+                auto child = separator->ptr_downstream_cliques[0]; // there is only one child for each separator
+
+                separator->UpdateMessage(child->p_table);
+            }
+        }
+        else {
+            /**
+             * case 2: levels 0, 2, 4, ... are clique levels
+             * collect msg from its children (separators) to it (a clique)
+             * do extension + multiplication for clique levels
+             */
+            int size = nodes_by_level[i].size();
+            omp_set_num_threads(num_threads);
+#pragma omp parallel for
+            for (int j = 0; j < size; ++j) { // for each clique of this level
+                for (auto &ptr_child : nodes_by_level[i][j]->ptr_downstream_cliques) {
+                    nodes_by_level[i][j]->UpdateMessage(ptr_child->p_table);
+                }
             }
         }
     }
@@ -1475,7 +1501,12 @@ void JunctionTree::Collect(int num_threads) {
 void JunctionTree::Distribute(int num_threads, Timer *timer) {
     for (int i = 1; i < max_level; ++i) { // for each level
 
-        if (i % 2) { // separators
+        if (i % 2) {
+            /**
+             * case 1: levels 1, 3, 5, ... are separator levels
+             * distribute msg from its parent (a clique) to it (a separator)
+             * do marginalization + division for separator levels
+             */
             timer->Start("pre-down-sep");
             int size = separators_by_level[i/2].size();
             vector<PotentialTable> tmp_pt; // store all tmp pt used for table marginalization
@@ -1483,13 +1514,11 @@ void JunctionTree::Distribute(int num_threads, Timer *timer) {
 
             // store number_variables and cum_levels of the original table
             // rather than storing the whole potential table
-            vector<int> nv_old;
-            nv_old.resize(size);
+            int *nv_old = new int[size];
             vector<vector<int>> cl_old;
             cl_old.resize(size);
 
-            vector<int> cum_sum;
-            cum_sum.resize(size);
+            int *cum_sum = new int[size];
             int final_sum = 0;
 
             // set of arrays, showing the locations of the variables of the new table in the old table
@@ -1596,9 +1625,16 @@ void JunctionTree::Distribute(int num_threads, Timer *timer) {
             delete[] full_config;
             delete[] partial_config;
             delete[] table_index;
+            delete[] cum_sum;
+            delete[] nv_old;
             timer->Stop("post-down-sep");
-
-        } else { // cliques
+        }
+        else {
+            /**
+             * case 2: levels 0, 2, 4,... are clique levels
+             * distribute msg from its parent (a separator) to it (a clique)
+             * do extension + multiplication for clique levels
+             */
             timer->Start("pre-down-clq");
             int size = nodes_by_level[i].size();
 
@@ -1610,14 +1646,13 @@ void JunctionTree::Distribute(int num_threads, Timer *timer) {
 
             // store number_variables and cum_levels of the original table
             // rather than storing the whole potential table
-            vector<int> nv_old;
-            nv_old.reserve(2 * size);
+            int *nv_old = new int[2 * size];
             vector<vector<int>> cl_old;
             cl_old.reserve(2 * size);
 
-            vector<int> cum_sum;
-            cum_sum.reserve(2 * size);
+            int *cum_sum = new int[2 * size];
             int final_sum = 0;
+            int sum_index = 0;
 
             // not all tables need to do the extension
             // there are "2 * size" tables in total
@@ -1651,7 +1686,7 @@ void JunctionTree::Distribute(int num_threads, Timer *timer) {
                 } else if (!diff1.empty() && diff2.empty()) { // if table1 should be extended and table2 not
                     // record the index (that requires to do the extension)
                     vector_extension.push_back(j * 2 + 0);
-                    nv_old.push_back(clique->p_table.num_variables);
+                    nv_old[sum_index] = clique->p_table.num_variables;
                     cl_old.push_back(clique->p_table.cum_levels);
 
                     PotentialTable pt;
@@ -1674,12 +1709,12 @@ void JunctionTree::Distribute(int num_threads, Timer *timer) {
                     partial_config[last] = new int[pt.table_size * clique->p_table.num_variables];
 
                     // update sum
-                    cum_sum.push_back(final_sum);
+                    cum_sum[sum_index++] = final_sum;
                     final_sum += pt.table_size;
                 } else if (diff1.empty() && !diff2.empty()) { // if table2 should be extended and table1 not
                     // record the index (that requires to do the extension)
                     vector_extension.push_back(j * 2 + 1);
-                    nv_old.push_back(par->p_table.num_variables);
+                    nv_old[sum_index] = par->p_table.num_variables;
                     cl_old.push_back(par->p_table.cum_levels);
 
                     PotentialTable pt;
@@ -1702,15 +1737,15 @@ void JunctionTree::Distribute(int num_threads, Timer *timer) {
                     partial_config[last] = new int[pt.table_size * par->p_table.num_variables];
 
                     // update sum
-                    cum_sum.push_back(final_sum);
+                    cum_sum[sum_index++] = final_sum;
                     final_sum += pt.table_size;
                 } else { // if both table1 and table2 should be extended
                     // record the index (that requires to do the extension)
                     vector_extension.push_back(j * 2 + 0);
                     vector_extension.push_back(j * 2 + 1);
-                    nv_old.push_back(clique->p_table.num_variables);
+                    nv_old[sum_index] = clique->p_table.num_variables;
                     cl_old.push_back(clique->p_table.cum_levels);
-                    nv_old.push_back(par->p_table.num_variables);
+                    nv_old[sum_index + 1] = par->p_table.num_variables;
                     cl_old.push_back(par->p_table.cum_levels);
 
                     PotentialTable tmp_pta, tmp_ptb;
@@ -1762,9 +1797,9 @@ void JunctionTree::Distribute(int num_threads, Timer *timer) {
                     partial_config[last] = new int[tmp_ptb.table_size * par->p_table.num_variables];
 
                     // update sum
-                    cum_sum.push_back(final_sum);
+                    cum_sum[sum_index++] = final_sum;
                     final_sum += tmp_pta.table_size;
-                    cum_sum.push_back(final_sum);
+                    cum_sum[sum_index++] = final_sum;
                     final_sum += tmp_ptb.table_size;
                 }
             }
@@ -1843,6 +1878,8 @@ void JunctionTree::Distribute(int num_threads, Timer *timer) {
             delete[] full_config;
             delete[] partial_config;
             delete[] table_index;
+            delete[] cum_sum;
+            delete[] nv_old;
             timer->Stop("post-down-clq");
 
 //            omp_set_num_threads(num_threads);
