@@ -1487,11 +1487,33 @@ void JunctionTree::Collect(int num_threads) {
              * do extension + multiplication for clique levels
              */
             int size = nodes_by_level[i].size();
-            omp_set_num_threads(num_threads);
-#pragma omp parallel for
+
+            int max_num_children = 0;
             for (int j = 0; j < size; ++j) { // for each clique of this level
-                for (auto &ptr_child : nodes_by_level[i][j]->ptr_downstream_cliques) {
-                    nodes_by_level[i][j]->UpdateMessage(ptr_child->p_table);
+                /**
+                 * there may be multiple children for a clique
+                 * first process the first child of each clique in this level,
+                 * then the second child of each clique (if has), ...
+                 * until all the children of all the cliques in this level have been processed
+                 */
+                auto clique = nodes_by_level[i][j];
+                // first, find the max number of children for this level
+                if (clique->ptr_downstream_cliques.size() > max_num_children) {
+                    max_num_children = clique->ptr_downstream_cliques.size();
+                }
+            }
+
+            for (int k = 0; k < max_num_children; ++k) { // process the k-th child
+                omp_set_num_threads(num_threads);
+#pragma omp parallel for
+                for (int j = 0; j < size; ++j) { // of each clique
+                    auto clique = nodes_by_level[i][j];
+                    if (clique->ptr_downstream_cliques.size() > k) {
+                        // ensure this clique has the k-th child
+                        auto child = clique->ptr_downstream_cliques[k];
+
+                        clique->UpdateMessage(child->p_table);
+                    }
                 }
             }
         }
