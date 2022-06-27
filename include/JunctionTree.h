@@ -67,7 +67,7 @@ class JunctionTree: public Inference {
   void BackUpJunctionTree();
 
   virtual void MessagePassingUpdateJT(int num_threads, Timer *timer);
-    void Collect(int num_threads);
+    void Collect(int num_threads, Timer *timer);
     void Distribute(int num_threads, Timer *timer);
 
 //  static vector<int> MinNeighbourElimOrd(int **adjac_matrix, int &num_nodes);
