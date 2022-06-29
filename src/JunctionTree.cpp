@@ -1368,15 +1368,20 @@ void JunctionTree::LoadDiscreteEvidence(const DiscreteConfig &E, int num_threads
             }
         }
 
-        /**
-         * 1. handling cliques
-         */
+        vector<Clique*> vector_all_node_ptr;
+        for (auto n: vector_clique_ptr_container) {
+            vector_all_node_ptr.push_back(n);
+        }
+        for (auto n: vector_separator_ptr_container) {
+            vector_all_node_ptr.push_back(n);
+        }
+
         // find all cliques that related to the observation and push them to "vector_red_clq"
-        int size = vector_clique_ptr_container.size();
+        int size = vector_all_node_ptr.size();
         vector<int> vector_red_clq;
         vector_red_clq.reserve(size);
         for (int i = 0; i < size; ++i) {
-            auto clique_ptr = vector_clique_ptr_container[i];
+            auto clique_ptr = vector_all_node_ptr[i];
             if (clique_ptr->p_table.related_variables.find(index) != clique_ptr->p_table.related_variables.end()) {
                 vector_red_clq.push_back(i);
             }
@@ -1385,11 +1390,6 @@ void JunctionTree::LoadDiscreteEvidence(const DiscreteConfig &E, int num_threads
         int red_size = vector_red_clq.size();
 
         int *e_loc = new int[red_size];
-        int *new_size = new int[red_size];
-
-        vector<vector<double>> new_potentials;
-        new_potentials.resize(red_size);
-
         int **full_config = new int*[red_size];
         int **v_index = new int*[red_size];
 
@@ -1399,19 +1399,19 @@ void JunctionTree::LoadDiscreteEvidence(const DiscreteConfig &E, int num_threads
         /**
          * pre-computing
          */
+        omp_set_num_threads(num_threads);
+#pragma omp parallel for
         for (int k = 0; k < red_size; ++k) {
-            auto clique_ptr = vector_clique_ptr_container[vector_red_clq[k]];
+            auto clique_ptr = vector_all_node_ptr[vector_red_clq[k]];
 
             e_loc[k] = clique_ptr->p_table.GetVariableIndex(index);
-            new_size[k] = clique_ptr->p_table.table_size / clique_ptr->p_table.var_dims[e_loc[k]];
-            new_potentials[k].resize(new_size[k]);
-
             full_config[k] = new int[clique_ptr->p_table.table_size * clique_ptr->p_table.num_variables];
             v_index[k] = new int[clique_ptr->p_table.table_size];
         }
 
         for (int k = 0; k < red_size; ++k) {
-            auto clique_ptr = vector_clique_ptr_container[vector_red_clq[k]];
+            auto clique_ptr = vector_all_node_ptr[vector_red_clq[k]];
+
             // update sum
             cum_sum[k] = final_sum;
             final_sum += clique_ptr->p_table.table_size;
@@ -1431,37 +1431,34 @@ void JunctionTree::LoadDiscreteEvidence(const DiscreteConfig &E, int num_threads
             }
             int i = s - cum_sum[k];
 
-            auto clique_ptr = vector_clique_ptr_container[vector_red_clq[k]];
+            auto clique_ptr = vector_all_node_ptr[vector_red_clq[k]];
             // 1. get the full config value of old table
             clique_ptr->p_table.GetConfigValueByTableIndex(i, full_config[k] + i * clique_ptr->p_table.num_variables);
             // 2. get the value of the evidence variable from the new table
             v_index[k][i] = full_config[k][i * clique_ptr->p_table.num_variables + e_loc[k]];
         }
 
-//        for (int k = 0; k < red_size; ++k) {
-//            auto clique_ptr = vector_clique_ptr_container[vector_red_clq[k]];
-//            omp_set_num_threads(num_threads);
-//#pragma omp parallel for
-//            for (int i = 0; i < clique_ptr->p_table.table_size; ++i) {
-//                // 1. get the full config value of old table
-//                clique_ptr->p_table.GetConfigValueByTableIndex(i,
-//                                                               full_config[k] + i * clique_ptr->p_table.num_variables);
-//                // 2. get the value of the evidence variable from the new table
-//                v_index[k][i] = full_config[k][i * clique_ptr->p_table.num_variables + e_loc[k]];
-//            }
-//        }
-
+        /**
+         * post-computing
+         */
+        omp_set_num_threads(num_threads);
+#pragma omp parallel for
         for (int k = 0; k < red_size; ++k) {
-            auto clique_ptr = vector_clique_ptr_container[vector_red_clq[k]];
+            auto clique_ptr = vector_all_node_ptr[vector_red_clq[k]];
+
+            int new_size = clique_ptr->p_table.table_size / clique_ptr->p_table.var_dims[e_loc[k]];
+            vector<double> new_potentials;
+            new_potentials.resize(new_size);
+
             delete[] full_config[k];
 
             for (int i = 0, j = 0; i < clique_ptr->p_table.table_size; ++i) {
                 // 3. whether it is consistent with the evidence
                 if (v_index[k][i] == value_index) {
-                    new_potentials[k][j++] = clique_ptr->p_table.potentials[i];
+                    new_potentials[j++] = clique_ptr->p_table.potentials[i];
                 }
             }
-            clique_ptr->p_table.potentials = new_potentials[k];
+            clique_ptr->p_table.potentials = new_potentials;
             delete[] v_index[k];
 
             clique_ptr->p_table.related_variables.erase(index);
@@ -1479,7 +1476,7 @@ void JunctionTree::LoadDiscreteEvidence(const DiscreteConfig &E, int num_threads
 
                 clique_ptr->p_table.ConstructCumLevels();
                 // table size -- number of possible configurations
-                clique_ptr->p_table.table_size = new_size[k];
+                clique_ptr->p_table.table_size = new_size;
             } else {
                 clique_ptr->p_table.var_dims = vector<int>();
                 clique_ptr->p_table.cum_levels = vector<int>();
@@ -1488,31 +1485,9 @@ void JunctionTree::LoadDiscreteEvidence(const DiscreteConfig &E, int num_threads
         }
 
         delete[] e_loc;
-        delete[] new_size;
         delete[] full_config;
         delete[] v_index;
         delete[] cum_sum;
-
-        /**
-         * 2. handling separators
-         */
-        // find all separators that related to the observation and push them to "vector_red_sep"
-        size = vector_separator_ptr_container.size();
-        vector<int> vector_red_sep;
-        vector_red_sep.reserve(size);
-        for (int i = 0; i < size; ++i) {
-            auto sep_ptr = vector_separator_ptr_container[i];
-            if (sep_ptr->p_table.related_variables.find(index) != sep_ptr->p_table.related_variables.end()) {
-                // if this factor is related to the observation
-                vector_red_sep.push_back(i);
-            }
-        }
-
-        red_size = vector_red_sep.size();
-        for (int i = 0; i < red_size; ++i) {
-            auto sep_ptr = vector_separator_ptr_container[vector_red_sep[i]];
-            sep_ptr->p_table.TableReduction(index, value_index, num_threads);
-        }
     }
     /************************* use potential table ******************************/
 }
