@@ -37,7 +37,7 @@ class JunctionTree: public Inference {
     ~JunctionTree();
 
   void ResetJunctionTree();
-  virtual void LoadDiscreteEvidence(const DiscreteConfig &E, int num_threads);
+  virtual void LoadDiscreteEvidence(const DiscreteConfig &E, int num_threads, Timer *timer);
 
     Factor BeliefPropagationCalcuDiscreteVarMarginal(int query_index);
     PotentialTable BeliefPropagationCalcuDiscreteVarMarginal2(int query_index);
