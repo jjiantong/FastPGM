@@ -1392,7 +1392,7 @@ void JunctionTree::LoadDiscreteEvidence(const DiscreteConfig &E, int num_threads
 
         int *e_loc = new int[red_size];
         int **full_config = new int*[red_size];
-//        int **v_index = new int*[red_size];
+        int **v_index = new int*[red_size];
 
         int *cum_sum = new int[size];
         int final_sum = 0;
@@ -1407,7 +1407,7 @@ void JunctionTree::LoadDiscreteEvidence(const DiscreteConfig &E, int num_threads
 
             e_loc[k] = clique_ptr->p_table.GetVariableIndex(index);
             full_config[k] = new int[clique_ptr->p_table.table_size * clique_ptr->p_table.num_variables];
-//            v_index[k] = new int[clique_ptr->p_table.table_size];
+            v_index[k] = new int[clique_ptr->p_table.table_size];
         }
 
         for (int k = 0; k < red_size; ++k) {
@@ -1418,7 +1418,6 @@ void JunctionTree::LoadDiscreteEvidence(const DiscreteConfig &E, int num_threads
             final_sum += clique_ptr->p_table.table_size;
         }
 
-        int *v_index2 = new int[final_sum];
         timer->Stop("pre-evi");
 
         timer->Start("main-evi");
@@ -1440,8 +1439,7 @@ void JunctionTree::LoadDiscreteEvidence(const DiscreteConfig &E, int num_threads
             // 1. get the full config value of old table
             clique_ptr->p_table.GetConfigValueByTableIndex(i, full_config[k] + i * clique_ptr->p_table.num_variables);
             // 2. get the value of the evidence variable from the new table
-//            v_index[k][i] = full_config[k][i * clique_ptr->p_table.num_variables + e_loc[k]];
-            v_index2[s] = full_config[k][i * clique_ptr->p_table.num_variables + e_loc[k]];
+            v_index[k][i] = full_config[k][i * clique_ptr->p_table.num_variables + e_loc[k]];
         }
         timer->Stop("main-evi");
 
@@ -1462,12 +1460,12 @@ void JunctionTree::LoadDiscreteEvidence(const DiscreteConfig &E, int num_threads
 
             for (int i = 0, j = 0; i < clique_ptr->p_table.table_size; ++i) {
                 // 3. whether it is consistent with the evidence
-                if (v_index2[cum_sum[k] + i] == value_index) {
+                if (v_index[k][i] == value_index) {
                     new_potentials[j++] = clique_ptr->p_table.potentials[i];
                 }
             }
             clique_ptr->p_table.potentials = new_potentials;
-//            delete[] v_index[k];
+            delete[] v_index[k];
 
             clique_ptr->p_table.related_variables.erase(index);
             clique_ptr->p_table.num_variables -= 1;
@@ -1494,7 +1492,7 @@ void JunctionTree::LoadDiscreteEvidence(const DiscreteConfig &E, int num_threads
 
         delete[] e_loc;
         delete[] full_config;
-        delete[] v_index2;
+        delete[] v_index;
         delete[] cum_sum;
         timer->Stop("post-evi");
     }
@@ -1604,7 +1602,7 @@ void JunctionTree::Collect(int num_threads, Timer *timer) {
             int **loc_in_old = new int*[size];
             int **full_config = new int*[size];
             int **partial_config = new int*[size];
-//            int **table_index = new int*[size];
+            int **table_index = new int*[size];
 
             /**
              * pre computing
@@ -1635,7 +1633,7 @@ void JunctionTree::Collect(int num_threads, Timer *timer) {
                 for (auto &v: tmp_pt[j].related_variables) {
                     loc_in_old[j][k++] = child->p_table.GetVariableIndex(v);
                 }
-//                table_index[j] = new int[child->p_table.table_size];
+                table_index[j] = new int[child->p_table.table_size];
 
                 // malloc in pre-, not to parallelize
                 full_config[j] = new int[child->p_table.table_size * child->p_table.num_variables];
@@ -1650,7 +1648,6 @@ void JunctionTree::Collect(int num_threads, Timer *timer) {
                 final_sum += child->p_table.table_size;
             }
 
-            int *table_index2 = new int[final_sum];
             timer->Stop("pre-up-sep");
 
             timer->Start("main-up-sep");
@@ -1675,7 +1672,7 @@ void JunctionTree::Collect(int num_threads, Timer *timer) {
                     partial_config[j][k * tmp_pt[j].num_variables + l] = full_config[j][k * nv_old[j] + loc_in_old[j][l]];
                 }
                 // 3. obtain the potential index
-                table_index2[s] = tmp_pt[j].GetTableIndexByConfigValue(partial_config[j] + k * tmp_pt[j].num_variables);
+                table_index[j][k] = tmp_pt[j].GetTableIndexByConfigValue(partial_config[j] + k * tmp_pt[j].num_variables);
             }
 
             timer->Stop("main-up-sep");
@@ -1694,10 +1691,9 @@ void JunctionTree::Collect(int num_threads, Timer *timer) {
 
                 for (int k = 0; k < child->p_table.table_size; ++k) {
                     // 4. potential[table_index]
-//                    tmp_pt[j].potentials[table_index[j][k]] += child->p_table.potentials[k];
-                    tmp_pt[j].potentials[table_index2[cum_sum[j] + k]] += child->p_table.potentials[k];
+                    tmp_pt[j].potentials[table_index[j][k]] += child->p_table.potentials[k];
                 }
-//                delete[] table_index[j];
+                delete[] table_index[j];
 
                 tmp_pt[j].TableDivision(separator->old_ptable);
 
@@ -1706,7 +1702,7 @@ void JunctionTree::Collect(int num_threads, Timer *timer) {
             delete[] loc_in_old;
             delete[] full_config;
             delete[] partial_config;
-            delete[] table_index2;
+            delete[] table_index;
             delete[] cum_sum;
             delete[] nv_old;
             timer->Stop("post-up-sep");
@@ -2036,7 +2032,7 @@ void JunctionTree::Distribute(int num_threads, Timer *timer) {
             int **loc_in_old = new int*[size];
             int **full_config = new int*[size];
             int **partial_config = new int*[size];
-//            int **table_index = new int*[size];
+            int **table_index = new int*[size];
 
             /**
              * pre computing
@@ -2067,7 +2063,7 @@ void JunctionTree::Distribute(int num_threads, Timer *timer) {
                 for (auto &v: tmp_pt[j].related_variables) {
                     loc_in_old[j][k++] = par->p_table.GetVariableIndex(v);
                 }
-//                table_index[j] = new int[par->p_table.table_size];
+                table_index[j] = new int[par->p_table.table_size];
 
                 // malloc in pre-, not to parallelize
                 full_config[j] = new int[par->p_table.table_size * par->p_table.num_variables];
@@ -2082,7 +2078,6 @@ void JunctionTree::Distribute(int num_threads, Timer *timer) {
                 final_sum += par->p_table.table_size;
             }
 
-            int *table_index2 = new int[final_sum];
             timer->Stop("pre-down-sep");
 
             timer->Start("main-down-sep");
@@ -2107,8 +2102,7 @@ void JunctionTree::Distribute(int num_threads, Timer *timer) {
                     partial_config[j][k * tmp_pt[j].num_variables + l] = full_config[j][k * nv_old[j] + loc_in_old[j][l]];
                 }
                 // 3. obtain the potential index
-//                table_index[j][k] = tmp_pt[j].GetTableIndexByConfigValue(partial_config[j] + k * tmp_pt[j].num_variables);
-                table_index2[s] = tmp_pt[j].GetTableIndexByConfigValue(partial_config[j] + k * tmp_pt[j].num_variables);
+                table_index[j][k] = tmp_pt[j].GetTableIndexByConfigValue(partial_config[j] + k * tmp_pt[j].num_variables);
             }
 
             timer->Stop("main-down-sep");
@@ -2118,30 +2112,36 @@ void JunctionTree::Distribute(int num_threads, Timer *timer) {
             omp_set_num_threads(num_threads);
 #pragma omp parallel for
             for (int j = 0; j < size; ++j) { // for each separator in this level
-                delete[] loc_in_old[j];
-                delete[] full_config[j];
-                delete[] partial_config[j];
-
+                timer->Start("post-down-sep-mem");
                 auto separator = separators_by_level[i/2][j];
                 auto par = separator->ptr_upstream_clique;
 
                 for (int k = 0; k < par->p_table.table_size; ++k) {
                     // 4. potential[table_index]
-//                    tmp_pt[j].potentials[table_index[j][k]] += par->p_table.potentials[k];
-                    tmp_pt[j].potentials[table_index2[cum_sum[j] + k]] += par->p_table.potentials[k];
+                    tmp_pt[j].potentials[table_index[j][k]] += par->p_table.potentials[k];
                 }
-//                delete[] table_index[j];
+                timer->Stop("post-down-sep-mem");
 
+                timer->Start("post-down-sep-del");
+                delete[] loc_in_old[j];
+                delete[] full_config[j];
+                delete[] partial_config[j];
+                delete[] table_index[j];
+                timer->Stop("post-down-sep-del");
+
+                timer->Start("post-down-sep-div");
                 tmp_pt[j].TableDivision(separator->old_ptable);
-
                 separator->p_table = tmp_pt[j];
+                timer->Stop("post-down-sep-div");
             }
+            timer->Start("post-down-sep-del");
             delete[] loc_in_old;
             delete[] full_config;
             delete[] partial_config;
-            delete[] table_index2;
+            delete[] table_index;
             delete[] cum_sum;
             delete[] nv_old;
+            timer->Stop("post-down-sep-del");
             timer->Stop("post-down-sep");
         }
         else {
@@ -2348,6 +2348,7 @@ void JunctionTree::Distribute(int num_threads, Timer *timer) {
 
             timer->Start("post-down-clq");
             // post-computing
+            timer->Start("post-down-clq-mem");
             int l = 0;
             for (int j = 0; j < size; ++j) {
                 auto clique = nodes_by_level[i][j];
@@ -2355,37 +2356,32 @@ void JunctionTree::Distribute(int num_threads, Timer *timer) {
 
                 int m = j * 2 + 0;
                 if (l < size_e && m == vector_extension[l]) { // index k have done the extension
-                    delete[] loc_in_new[l];
-                    delete[] full_config[l];
-                    delete[] partial_config[l];
-
                     for (int k = 0; k < tmp_pt[l].table_size; ++k) {
                         // 4. potential[table_index]
                         tmp_pt[l].potentials[k] = clique->p_table.potentials[table_index[l][k]];
                     }
-                    delete[] table_index[l];
-
                     clique->p_table = tmp_pt[l];
-
                     l++;
                 }
 
                 m = j * 2 + 1;
                 if (l < size_e && m == vector_extension[l]) { // index j have done the extension
-                    delete[] loc_in_new[l];
-                    delete[] full_config[l];
-                    delete[] partial_config[l];
-
                     for (int k = 0; k < tmp_pt[l].table_size; ++k) {
                         // 4. potential[table_index]
                         tmp_pt[l].potentials[k] = par->p_table.potentials[table_index[l][k]];
                     }
-                    delete[] table_index[l];
-
                     multi_pt[j] = tmp_pt[l];
-
                     l++;
                 }
+            }
+            timer->Stop("post-down-clq-mem");
+
+            timer->Start("post-down-clq-del");
+            for (int l = 0; l < size_e; ++l) {
+                delete[] loc_in_new[l];
+                delete[] full_config[l];
+                delete[] partial_config[l];
+                delete[] table_index[l];
             }
 
             delete[] loc_in_new;
@@ -2394,7 +2390,9 @@ void JunctionTree::Distribute(int num_threads, Timer *timer) {
             delete[] table_index;
             delete[] cum_sum;
             delete[] nv_old;
+            timer->Stop("post-down-clq-del");
 
+            timer->Start("post-down-clq-mul");
 //            omp_set_num_threads(num_threads);
 //#pragma omp parallel for
             for (int j = 0; j < size; ++j) {
@@ -2402,6 +2400,8 @@ void JunctionTree::Distribute(int num_threads, Timer *timer) {
                     nodes_by_level[i][j]->p_table.potentials[k] *= multi_pt[j].potentials[k];
                 }
             }
+            timer->Stop("post-down-clq-mul");
+
             timer->Stop("post-down-clq");
         }
     }
@@ -2680,6 +2680,12 @@ double JunctionTree::EvaluateAccuracy(Dataset *dts, int num_threads, int num_sam
     timer->Print("pre-up-clq");
     timer->Print("main-up-clq");
     timer->Print("post-up-clq"); cout << endl;
+    timer->Print("post-down-clq-mem");
+    timer->Print("post-down-clq-del");
+    timer->Print("post-down-clq-mul");
+    timer->Print("post-down-sep-mem");
+    timer->Print("post-down-sep-del");
+    timer->Print("post-down-sep-div"); cout << endl;
 
     delete timer;
     timer = nullptr;
