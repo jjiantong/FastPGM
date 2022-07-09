@@ -1947,6 +1947,9 @@ void JunctionTree::Collect(int num_threads, Timer *timer) {
 
                 timer->Start("post-up-clq");
                 // post-computing
+                int *cum_sum2 = new int[process_size];
+                int final_sum2 = 0;
+
                 int l = 0;
                 for (int j = 0; j < process_size; ++j) {
                     auto clique = nodes_by_level[i][has_kth_child[j]];
@@ -1985,6 +1988,9 @@ void JunctionTree::Collect(int num_threads, Timer *timer) {
 
                         l++;
                     }
+
+                    cum_sum2[j] = final_sum2;
+                    final_sum2 += multi_pt[j].table_size;
                 }
 
                 delete[] loc_in_new;
@@ -1994,11 +2000,29 @@ void JunctionTree::Collect(int num_threads, Timer *timer) {
                 delete[] cum_sum;
                 delete[] nv_old;
 
-                for (int j = 0; j < process_size; ++j) {
-                    for (int k = 0; k < multi_pt[j].table_size; ++k) {
-                        nodes_by_level[i][has_kth_child[j]]->p_table.potentials[k] *= multi_pt[j].potentials[k];
+//                for (int j = 0; j < process_size; ++j) {
+//                    for (int k = 0; k < multi_pt[j].table_size; ++k) {
+//                        nodes_by_level[i][has_kth_child[j]]->p_table.potentials[k] *= multi_pt[j].potentials[k];
+//                    }
+//                }
+
+                omp_set_num_threads(num_threads);
+#pragma omp parallel for
+                for (int s = 0; s < final_sum2; ++s) {
+                    // compute j and k
+                    int j = -1;
+                    for (int m = process_size - 1; m >= 0; --m) {
+                        if (s >= cum_sum2[m]) {
+                            j = m;
+                            break;
+                        }
                     }
+                    int k = s - cum_sum2[j];
+
+                    nodes_by_level[i][has_kth_child[j]]->p_table.potentials[k] *= multi_pt[j].potentials[k];
                 }
+                delete[] cum_sum2;
+
                 timer->Stop("post-up-clq");
             }
         }
@@ -2349,6 +2373,9 @@ void JunctionTree::Distribute(int num_threads, Timer *timer) {
             timer->Start("post-down-clq");
             // post-computing
             timer->Start("post-down-clq-mem");
+            int *cum_sum2 = new int[size];
+            int final_sum2 = 0;
+
             int l = 0;
             for (int j = 0; j < size; ++j) {
                 auto clique = nodes_by_level[i][j];
@@ -2373,6 +2400,9 @@ void JunctionTree::Distribute(int num_threads, Timer *timer) {
                     multi_pt[j] = tmp_pt[l];
                     l++;
                 }
+
+                cum_sum2[j] = final_sum2;
+                final_sum2 += multi_pt[j].table_size;
             }
             timer->Stop("post-down-clq-mem");
 
@@ -2393,13 +2423,28 @@ void JunctionTree::Distribute(int num_threads, Timer *timer) {
             timer->Stop("post-down-clq-del");
 
             timer->Start("post-down-clq-mul");
-//            omp_set_num_threads(num_threads);
-//#pragma omp parallel for
-            for (int j = 0; j < size; ++j) {
-                for (int k = 0; k < multi_pt[j].table_size; ++k) {
-                    nodes_by_level[i][j]->p_table.potentials[k] *= multi_pt[j].potentials[k];
+            omp_set_num_threads(num_threads);
+#pragma omp parallel for
+            for (int s = 0; s < final_sum2; ++s) {
+                // compute j and k
+                int j = -1;
+                for (int m = size - 1; m >= 0; --m) {
+                    if (s >= cum_sum2[m]) {
+                        j = m;
+                        break;
+                    }
                 }
+                int k = s - cum_sum2[j];
+
+                nodes_by_level[i][j]->p_table.potentials[k] *= multi_pt[j].potentials[k];
             }
+            delete[] cum_sum2;
+
+//            for (int j = 0; j < size; ++j) {
+//                for (int k = 0; k < multi_pt[j].table_size; ++k) {
+//                    nodes_by_level[i][j]->p_table.potentials[k] *= multi_pt[j].potentials[k];
+//                }
+//            }
             timer->Stop("post-down-clq-mul");
 
             timer->Stop("post-down-clq");
