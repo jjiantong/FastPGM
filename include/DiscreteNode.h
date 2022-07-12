@@ -29,7 +29,7 @@ class DiscreteNode : public Node {//the parent nodes of DiscreteNode must be dis
   // If the node has no parent, then the second dimension, DiscreteConfig (i.e., parents_config) is empty.
   map<int, map<DiscreteConfig, int> > map_cond_prob_table_statistics;
     // Key: query variable (child) value; Value: (parents config, conditional probability).
-    map<int, map<DiscreteConfig, double> > map_cond_prob;
+//    map<int, map<DiscreteConfig, double> > map_cond_prob;
 
   //Key: parents config. Value: total count.
   map<DiscreteConfig, int> map_total_count_under_parents_config;
@@ -60,7 +60,6 @@ class DiscreteNode : public Node {//the parent nodes of DiscreteNode must be dis
   void SetDomainSize(int size);
   void AddParent(Node *node_ptr) override;
   int GetNumParams() override;
-//  void ClearParams() override;
   void PrintProbabilityTable();
   int SampleNodeGivenParents(DiscreteConfig &evidence);
 

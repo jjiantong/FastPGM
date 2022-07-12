@@ -78,19 +78,6 @@ int DiscreteNode::GetNumParams() {
   return this->GetDomainSize() * scale;
 }
 
-/**
- * @brief: clear the cells of the conditional probability table
- */
-//void DiscreteNode::ClearParams() {
-//    map_cond_prob_table_statistics.clear();
-//    map_cond_prob.clear();
-//    map_total_count_under_parents_config.clear();
-//
-//    //TODO: potential bugs; may need to add the following line
-//    //cpt_initialized = false;
-//}
-
-
 void DiscreteNode::PrintProbabilityTable() {//checked
   cout << GetNodeIndex() << ":\t";
 
@@ -188,15 +175,13 @@ void DiscreteNode::InitializeCPT() {
         DiscreteConfig par_config;
         map_total_count_under_parents_config[par_config] = 0;
         for (int i = 0; i < GetDomainSize(); ++i) {
-            map_cond_prob_table_statistics[vec_potential_vals[i]][par_config] = 0;
-            map_cond_prob[vec_potential_vals[i]][par_config] = -1;
+            map_cond_prob_table_statistics[vec_potential_vals[i]][par_config] = 0; // todo
         }
     } else {
         for (const auto &par_config : set_discrete_parents_combinations) {
-            map_total_count_under_parents_config[par_config] = 0;
+            map_total_count_under_parents_config[par_config] = 0; // todo
             for (int i = 0; i < GetDomainSize(); ++i) {
-                map_cond_prob_table_statistics[vec_potential_vals[i]][par_config] = 0;
-                map_cond_prob[vec_potential_vals[i]][par_config] = -1;
+                map_cond_prob_table_statistics[vec_potential_vals[i]][par_config] = 0; //todo
             }
         }
     }
@@ -230,11 +215,7 @@ void DiscreteNode::AddCount(int query_val, DiscreteConfig &parents_config, int c
  */
 // TODO: check the algorithm for the case of unseen values (based on a forgotten paper of weka)
 double DiscreteNode:: GetProbability(int query_val, DiscreteConfig &parents_config) {
-//    if (map_cond_prob[query_val][parents_config] < 0) {
-        return GetConditionalProbability(query_val, parents_config);
-//    } else {
-//        return map_cond_prob[query_val][parents_config];
-//    }
+    return GetConditionalProbability(query_val, parents_config);
 }
 
 /**
@@ -262,14 +243,14 @@ double DiscreteNode:: GetConditionalProbability(int query_val, DiscreteConfig &p
 //                }
 //            }
 //        }
-//        map_cond_prob[query_val][parents_config] = min_prob / (GetDomainSize() * GetNumParentsConfig());
-//        return map_cond_prob[query_val][parents_config];
+//        double prob = min_prob / (GetDomainSize() * GetNumParentsConfig());
+//        return prob;
 //    }
 
     int frequency_count =  map_cond_prob_table_statistics[query_val][parents_config]; // P(AB)
     int total = map_total_count_under_parents_config[parents_config]; // P(B)
-    map_cond_prob[query_val][parents_config] = (frequency_count + laplace_smooth) / (total + laplace_smooth * GetDomainSize()); // P(A|B) = P(AB) / P(B)
-    return map_cond_prob[query_val][parents_config];
+    double prob = (frequency_count + laplace_smooth) / (total + laplace_smooth * GetDomainSize()); // P(A|B) = P(AB) / P(B)
+    return prob;
 }
 
 //int DiscreteNode::GetIndexOfValue(int val) {
