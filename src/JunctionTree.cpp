@@ -71,7 +71,7 @@ JunctionTree::JunctionTree(Network *net) {
 
     cout << "==================================================";
     timer->Stop("construct jt");
-    timer->Print("construct jt"); cout << endl;
+    cout << endl; timer->Print("construct jt"); cout << endl;
     delete timer;
     timer = nullptr;
 }
@@ -918,6 +918,15 @@ void JunctionTree::LoadDiscreteEvidence(const DiscreteConfig &E, int num_threads
         /**
          * pre-computing
          */
+        for (int k = 0; k < red_size; ++k) {
+            auto clique_ptr = vector_all_node_ptr[vector_red_clq[k]];
+
+            // update sum
+            cum_sum[k] = final_sum;
+            final_sum += clique_ptr->p_table.table_size;
+        }
+
+        timer->Start("parallel");
         omp_set_num_threads(num_threads);
 #pragma omp parallel for
         for (int k = 0; k < red_size; ++k) {
@@ -926,14 +935,6 @@ void JunctionTree::LoadDiscreteEvidence(const DiscreteConfig &E, int num_threads
             e_loc[k] = clique_ptr->p_table.GetVariableIndex(index);
             full_config[k] = new int[clique_ptr->p_table.table_size * clique_ptr->p_table.num_variables];
             v_index[k] = new int[clique_ptr->p_table.table_size];
-        }
-
-        for (int k = 0; k < red_size; ++k) {
-            auto clique_ptr = vector_all_node_ptr[vector_red_clq[k]];
-
-            // update sum
-            cum_sum[k] = final_sum;
-            final_sum += clique_ptr->p_table.table_size;
         }
 
         timer->Stop("pre-evi");
@@ -1007,6 +1008,7 @@ void JunctionTree::LoadDiscreteEvidence(const DiscreteConfig &E, int num_threads
                 clique_ptr->p_table.table_size = 1;
             }
         }
+        timer->Stop("parallel");
 
         delete[] e_loc;
         delete[] full_config;
@@ -1125,6 +1127,7 @@ void JunctionTree::Collect(int num_threads, Timer *timer) {
             /**
              * pre computing
              */
+            timer->Start("parallel");
             omp_set_num_threads(num_threads);
 #pragma omp parallel for
             for (int j = 0; j < size; ++j) { // for each separator in this level
@@ -1157,6 +1160,7 @@ void JunctionTree::Collect(int num_threads, Timer *timer) {
                 full_config[j] = new int[child->p_table.table_size * child->p_table.num_variables];
                 partial_config[j] = new int[child->p_table.table_size * tmp_pt[j].num_variables];
             }
+            timer->Stop("parallel");
 
             for (int j = 0; j < size; ++j) {
                 auto separator = separators_by_level[i/2][j];
@@ -1169,6 +1173,7 @@ void JunctionTree::Collect(int num_threads, Timer *timer) {
             timer->Stop("pre-up-sep");
 
             timer->Start("main-up-sep");
+            timer->Start("parallel");
             // the main loop
             omp_set_num_threads(num_threads);
 #pragma omp parallel for
@@ -1217,6 +1222,8 @@ void JunctionTree::Collect(int num_threads, Timer *timer) {
 
                 separator->p_table = tmp_pt[j];
             }
+            timer->Stop("parallel");
+
             delete[] loc_in_old;
             delete[] full_config;
             delete[] partial_config;
@@ -1438,6 +1445,8 @@ void JunctionTree::Collect(int num_threads, Timer *timer) {
 
                 timer->Start("main-up-clq");
                 int size_e = vector_extension.size(); // the number of variables to be extended
+
+                timer->Start("parallel");
                 // the main loop
                 omp_set_num_threads(num_threads);
 #pragma omp parallel for
@@ -1461,6 +1470,7 @@ void JunctionTree::Collect(int num_threads, Timer *timer) {
                     // 3. obtain the potential index
                     table_index[j][k] = tmp_pt[j].GetTableIndexByConfigValue(partial_config[j] + k * nv_old[j], nv_old[j], cl_old[j]);
                 }
+                timer->Stop("parallel");
                 timer->Stop("main-up-clq");
 
                 timer->Start("post-up-clq");
@@ -1524,6 +1534,7 @@ void JunctionTree::Collect(int num_threads, Timer *timer) {
 //                    }
 //                }
 
+                timer->Start("parallel");
                 omp_set_num_threads(num_threads);
 #pragma omp parallel for
                 for (int s = 0; s < final_sum2; ++s) {
@@ -1539,6 +1550,8 @@ void JunctionTree::Collect(int num_threads, Timer *timer) {
 
                     nodes_by_level[i][has_kth_child[j]]->p_table.potentials[k] *= multi_pt[j].potentials[k];
                 }
+                timer->Stop("parallel");
+
                 delete[] cum_sum2;
 
                 timer->Stop("post-up-clq");
@@ -1579,6 +1592,15 @@ void JunctionTree::Distribute(int num_threads, Timer *timer) {
             /**
              * pre computing
              */
+            for (int j = 0; j < size; ++j) {
+                auto separator = separators_by_level[i/2][j];
+                auto par = separator->ptr_upstream_clique;
+                // update sum
+                cum_sum[j] = final_sum;
+                final_sum += par->p_table.table_size;
+            }
+
+            timer->Start("parallel");
             omp_set_num_threads(num_threads);
 #pragma omp parallel for
             for (int j = 0; j < size; ++j) { // for each separator in this level
@@ -1611,15 +1633,6 @@ void JunctionTree::Distribute(int num_threads, Timer *timer) {
                 full_config[j] = new int[par->p_table.table_size * par->p_table.num_variables];
                 partial_config[j] = new int[par->p_table.table_size * tmp_pt[j].num_variables];
             }
-
-            for (int j = 0; j < size; ++j) {
-                auto separator = separators_by_level[i/2][j];
-                auto par = separator->ptr_upstream_clique;
-                // update sum
-                cum_sum[j] = final_sum;
-                final_sum += par->p_table.table_size;
-            }
-
             timer->Stop("pre-down-sep");
 
             timer->Start("main-down-sep");
@@ -1646,7 +1659,6 @@ void JunctionTree::Distribute(int num_threads, Timer *timer) {
                 // 3. obtain the potential index
                 table_index[j][k] = tmp_pt[j].GetTableIndexByConfigValue(partial_config[j] + k * tmp_pt[j].num_variables);
             }
-
             timer->Stop("main-down-sep");
 
             timer->Start("post-down-sep");
@@ -1676,6 +1688,8 @@ void JunctionTree::Distribute(int num_threads, Timer *timer) {
                 separator->p_table = tmp_pt[j];
                 timer->Stop("post-down-sep-div");
             }
+            timer->Stop("parallel");
+
             timer->Start("post-down-sep-del");
             delete[] loc_in_old;
             delete[] full_config;
@@ -1863,6 +1877,8 @@ void JunctionTree::Distribute(int num_threads, Timer *timer) {
 
             timer->Start("main-down-clq");
             int size_e = vector_extension.size(); // the number of variables to be extended
+
+            timer->Start("parallel");
             // the main loop
             omp_set_num_threads(num_threads);
 #pragma omp parallel for
@@ -1886,6 +1902,7 @@ void JunctionTree::Distribute(int num_threads, Timer *timer) {
                 // 3. obtain the potential index
                 table_index[j][k] = tmp_pt[j].GetTableIndexByConfigValue(partial_config[j] + k * nv_old[j], nv_old[j], cl_old[j]);
             }
+            timer->Stop("parallel");
             timer->Stop("main-down-clq");
 
             timer->Start("post-down-clq");
@@ -1941,6 +1958,7 @@ void JunctionTree::Distribute(int num_threads, Timer *timer) {
             timer->Stop("post-down-clq-del");
 
             timer->Start("post-down-clq-mul");
+            timer->Start("parallel");
             omp_set_num_threads(num_threads);
 #pragma omp parallel for
             for (int s = 0; s < final_sum2; ++s) {
@@ -1956,6 +1974,8 @@ void JunctionTree::Distribute(int num_threads, Timer *timer) {
 
                 nodes_by_level[i][j]->p_table.potentials[k] *= multi_pt[j].potentials[k];
             }
+            timer->Stop("parallel");
+
             delete[] cum_sum2;
 
 //            for (int j = 0; j < size; ++j) {
@@ -2166,35 +2186,27 @@ double JunctionTree::EvaluateAccuracy(Dataset *dts, int num_threads, int num_sam
 
 //    double accuracy = num_of_correct / (double)(num_of_correct+num_of_wrong);
     cout << '\n' << "Accuracy: " << accuracy << endl;
-    cout << "==================================================";
-    timer->Print("jt");
-    timer->Print("load evidence"); cout << " (" << timer->time["load evidence"] / timer->time["jt"] * 100 << "%)";
-    timer->Print("msg passing"); cout << " (" << timer->time["msg passing"] / timer->time["jt"] * 100 << "%)";
-    timer->Print("upstream");
-    timer->Print("downstream");
-    timer->Print("predict"); cout << " (" << timer->time["predict"] / timer->time["jt"] * 100 << "%)";
-    timer->Print("reset"); cout << " (" << timer->time["reset"] / timer->time["jt"] * 100 << "%)" << endl;
-    timer->Print("pre-evi");
-    timer->Print("main-evi");
-    timer->Print("post-evi"); cout << endl;
-    timer->Print("pre-down-sep");
-    timer->Print("main-down-sep");
-    timer->Print("post-down-sep");
-    timer->Print("pre-down-clq");
-    timer->Print("main-down-clq");
-    timer->Print("post-down-clq"); cout << endl;
-    timer->Print("pre-up-sep");
-    timer->Print("main-up-sep");
-    timer->Print("post-up-sep");
-    timer->Print("pre-up-clq");
-    timer->Print("main-up-clq");
-    timer->Print("post-up-clq"); cout << endl;
-    timer->Print("post-down-clq-mem");
-    timer->Print("post-down-clq-del");
-    timer->Print("post-down-clq-mul");
-    timer->Print("post-down-sep-mem");
-    timer->Print("post-down-sep-del");
-    timer->Print("post-down-sep-div"); cout << endl;
+    cout << "==================================================" << endl;
+    timer->Print("jt"); cout << "after removing reset time: " << timer->time["jt"] - timer->time["reset"] << " s"<< endl;
+    timer->Print("load evidence"); cout << "(" << timer->time["load evidence"] / timer->time["jt"] * 100 << "%)" << endl;
+    timer->Print("msg passing"); cout << "(" << timer->time["msg passing"] / timer->time["jt"] * 100 << "%)" << endl;
+    timer->Print("upstream"); cout << endl;
+    timer->Print("downstream"); cout << endl;
+    timer->Print("predict"); cout << "(" << timer->time["predict"] / timer->time["jt"] * 100 << "%)" << endl;
+    timer->Print("reset"); cout << "(" << timer->time["reset"] / timer->time["jt"] * 100 << "%)" << endl << endl;
+
+    timer->Print("pre-evi"); timer->Print("main-evi"); timer->Print("post-evi"); cout << endl << endl;
+    timer->Print("pre-down-sep"); timer->Print("main-down-sep"); timer->Print("post-down-sep"); cout << endl;
+    timer->Print("pre-down-clq"); timer->Print("main-down-clq"); timer->Print("post-down-clq"); cout << endl;
+    timer->Print("pre-up-sep"); timer->Print("main-up-sep"); timer->Print("post-up-sep"); cout << endl;
+    timer->Print("pre-up-clq"); timer->Print("main-up-clq"); timer->Print("post-up-clq"); cout << endl;
+
+    timer->Print("post-down-clq-mem"); timer->Print("post-down-clq-del"); timer->Print("post-down-clq-mul"); cout << endl;
+    timer->Print("post-down-sep-mem"); timer->Print("post-down-sep-del"); timer->Print("post-down-sep-div"); cout << endl;
+
+    timer->Print("parallel");
+    cout << "(" << timer->time["parallel"] / timer->time["jt"] * 100 << "%)";
+    cout << "(" << timer->time["parallel"] / (timer->time["jt"] - timer->time["reset"]) * 100 << "%)" << endl;
 
     delete timer;
     timer = nullptr;

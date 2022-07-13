@@ -48,8 +48,8 @@ public:
     }
 
     void Print (string name) {
-//        cout << endl << name << ": " << time[name] / CLOCKS_PER_SEC << " s";
-        cout << endl << name << ": " << time[name] << " s";
+//        cout << name << ": " << time[name] / CLOCKS_PER_SEC << " s";
+        cout << name << ": " << time[name] << " s ";
     }
 
     double GetTime (string name) {
