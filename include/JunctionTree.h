@@ -13,15 +13,13 @@
  * @brief: this class is for exact inference. The other two methods include brute force and variable elimination.
  */
 class JunctionTree: public Inference {
-  //==================================================
- public:
-  Network *network;//the learned network which can be used for inference
-//  set<Clique*> set_clique_ptr_container;//store all the cliques in this Junction Tree
-//  set<Separator*> set_separator_ptr_container;//all the separators in the Junction tree
+    //==================================================
+public:
+    Network *network;//the learned network which can be used for inference
     vector<Clique*> vector_clique_ptr_container;//store all the cliques in this Junction Tree
     vector<Separator*> vector_separator_ptr_container;//all the separators in the Junction tree
 
-  vector<int> elimination_ordering;
+    vector<int> elimination_ordering;
 //  map<int, Clique*> map_elim_var_to_clique; //key: main variable of a clique; value: the clique
 
     Clique *arb_root;
@@ -29,15 +27,12 @@ class JunctionTree: public Inference {
     vector<vector<Separator*>> separators_by_level;
     int max_level;
 
-  JunctionTree() = default;
-  JunctionTree(Network *net);
-//  JunctionTree(Network *net, string elim_ord_strategy);
-//  JunctionTree(Network *net, string elim_ord_strategy, vector<int> custom_elim_ord);
-//  JunctionTree(JunctionTree*);
+    JunctionTree() = default;
+    JunctionTree(Network *net);
     ~JunctionTree();
 
-  void ResetJunctionTree();
-  virtual void LoadDiscreteEvidence(const DiscreteConfig &E, int num_threads, Timer *timer);
+    void ResetJunctionTree();
+    virtual void LoadDiscreteEvidence(const DiscreteConfig &E, int num_threads, Timer *timer);
 
     Factor BeliefPropagationCalcuDiscreteVarMarginal(int query_index);
     PotentialTable BeliefPropagationCalcuDiscreteVarMarginal2(int query_index);
@@ -49,8 +44,8 @@ class JunctionTree: public Inference {
 
     int GetIndexByCliquePtr(Clique* clq);
 
-  //==================================================
- protected:
+    //==================================================
+protected:
     Clique* clique_backup; // use an array to backup cliques
     Separator* separator_backup; // use an array to backup separators
 //  map<Clique*,Clique> map_cliques_backup;
@@ -59,19 +54,19 @@ class JunctionTree: public Inference {
 //  void Triangulate(Network *net, int **adjac_matrix, vector<int> elim_ord);
     void Triangulate(Network *net, int **adjac_matrix, vector<bool> &has_processed);
 //  void FormListShapeJunctionTree(set<Clique*> &cliques);
-  void FormJunctionTree();
+    void FormJunctionTree();
 //  void CliqueMerging(int low, int high);
-  void NumberTheCliquesAndSeparators();
-  void AssignPotentials();
+    void NumberTheCliquesAndSeparators();
+    void AssignPotentials();
     void MarkLevel();
-  void BackUpJunctionTree();
+    void BackUpJunctionTree();
 
-  virtual void MessagePassingUpdateJT(int num_threads, Timer *timer);
+    virtual void MessagePassingUpdateJT(int num_threads, Timer *timer);
     void Collect(int num_threads, Timer *timer);
     void Distribute(int num_threads, Timer *timer);
 
 //  static vector<int> MinNeighbourElimOrd(int **adjac_matrix, int &num_nodes);
-  static void Moralize(int **direc_adjac_matrix, int &num_nodes);
+    static void Moralize(int **direc_adjac_matrix, int &num_nodes);
 //  void GenMapElimVarToClique();
 };
 
