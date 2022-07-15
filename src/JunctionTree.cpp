@@ -881,7 +881,7 @@ void JunctionTree::LoadDiscreteEvidence(const DiscreteConfig &E, int num_threads
         int value_index;
         auto dn = dynamic_cast<DiscreteNode*>(network->FindNodePtrByIndex(index));
         for (int i = 0; i < dn->GetDomainSize(); ++i) {
-            if (value == dn->vec_potential_vals.at(i)) {
+            if (value == dn->vec_potential_vals[i]) {
                 value_index = i;
                 break;
             }
@@ -2124,7 +2124,7 @@ int JunctionTree::InferenceUsingBeliefPropagation(int &query_index) {
     // "pt" has only one related variable, which is exactly the query variable,
     // so the "max_index" exactly means which value of the query variable gets the max probability
     auto dn = dynamic_cast<DiscreteNode*>(network->FindNodePtrByIndex(query_index));
-    int label_predict = dn->vec_potential_vals.at(max_index);
+    int label_predict = dn->vec_potential_vals[max_index];
     /************************* use potential table ******************************/
 
   return label_predict;

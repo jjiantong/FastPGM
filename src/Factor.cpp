@@ -20,7 +20,7 @@ Factor::Factor(DiscreteNode *disc_node, Network *net) { // TODO: net is no use
   for (int i = 0; i < disc_node->GetDomainSize(); ++i) {
     pair<int, int> pair_temp;
     pair_temp.first = node_index;
-    pair_temp.second = disc_node->vec_potential_vals.at(i);
+    pair_temp.second = disc_node->vec_potential_vals[i];
     set_pair_temp.insert(pair_temp);
   }
 

@@ -71,7 +71,7 @@ double ScoreFunction::LogLikelihoodForNode(Node *node_ptr) {
 
       // For every "k"
       for (int k=0; k<r_i; ++k){
-        int val = d_node_ptr->vec_potential_vals.at(k);
+        int val = d_node_ptr->vec_potential_vals[k];
 
         int n_ijk = 0;
 
@@ -94,7 +94,7 @@ double ScoreFunction::LogLikelihoodForNode(Node *node_ptr) {
     int n_ij = dataset->num_instance;
 
     for (int k=0; k<r_i; ++k){
-      int val = d_node_ptr->vec_potential_vals.at(k);
+      int val = d_node_ptr->vec_potential_vals[k];
 
       int n_ijk = 0;
 
@@ -160,7 +160,7 @@ double ScoreFunction::LogK2ForNode(Node *node_ptr) {
       for (int k = 0; k < r_i; ++k) {
         int n_ijk = 0;
         for (const auto &s : set_instances_parent_compatible) {
-          int val = d_node_ptr->vec_potential_vals.at(k);
+          int val = d_node_ptr->vec_potential_vals[k];
           // Check this node.
           if (dataset->dataset_all_vars[s][node_index] == val) { ++n_ijk; }
         }
@@ -185,7 +185,7 @@ double ScoreFunction::LogK2ForNode(Node *node_ptr) {
     for (int k = 0; k < r_i; ++k) {
       int n_ijk = 0;
       for (int s=0; s < dataset->num_instance; ++s) {
-        int val = d_node_ptr->vec_potential_vals.at(k);
+        int val = d_node_ptr->vec_potential_vals[k];
         // Check this node.
         if (dataset->dataset_all_vars[s][node_index] == val) { ++n_ijk; }
       }
@@ -265,7 +265,7 @@ double ScoreFunction::LogBDeuForNode(Node *node_ptr, int equi_sample_size) {
       for (int k = 0; k < r_i; ++k) {
         int n_ijk = 0;
         for (const auto &s : set_instances_parent_compatible) {
-          int val = d_node_ptr->vec_potential_vals.at(k);
+          int val = d_node_ptr->vec_potential_vals[k];
           // Check this node.
           n_ijk += (dataset->dataset_all_vars[s][node_index] == val) ? 1 : 0;
         }
@@ -296,7 +296,7 @@ double ScoreFunction::LogBDeuForNode(Node *node_ptr, int equi_sample_size) {
     for (int k = 0; k < r_i; ++k) {
       int n_ijk = 0;
       for (int s = 0; s < dataset->num_instance; ++s) {
-        int val = d_node_ptr->vec_potential_vals.at(k);
+        int val = d_node_ptr->vec_potential_vals[k];
         // Check this node.
         n_ijk += (dataset->dataset_all_vars[s][node_index] == val) ? 1 : 0;
       }

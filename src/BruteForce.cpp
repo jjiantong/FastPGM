@@ -81,7 +81,7 @@ int BruteForce::PredictDirectly(DiscreteConfig E, int Y_index) {
 
     // convert index of the target value to label
     DiscreteNode* tempNode = ((DiscreteNode*)network->FindNodePtrByIndex(Y_index));
-    int label_predict = tempNode->vec_potential_vals.at(label_index);
+    int label_predict = tempNode->vec_potential_vals[label_index];
     return label_predict;
 }
 
@@ -142,7 +142,7 @@ map<int, double> BruteForce::GetMarginalProbabilitiesDirectly(int target_var_ind
     // compute the probability of each possible value of the target node
     for (int i = 0; i < target_node->GetDomainSize(); ++i) { // for each possible value of the target node (e.g. X=0)
         // add the ith value of the target node into "vec_complete_instance_values"
-        vec_complete_instance_values.at(target_var_index) = target_node->vec_potential_vals.at(i);
+        vec_complete_instance_values.at(target_var_index) = target_node->vec_potential_vals[i];
 
         // use chain rule to get the joint distribution (multiply "num_nodes" factors)
         result[i] = 0;

@@ -54,7 +54,7 @@ vector<Node*> XMLBIFParser::GetUnconnectedNodes() const {
             }
             n_p->SetDomainSize(n_p->vec_str_potential_vals.size());
 
-            n_p->vec_potential_vals.resize(n_p->GetDomainSize());
+            n_p->vec_potential_vals.resize(n_p->GetDomainSize()); //todo
             for (int i = 0; i < n_p->GetDomainSize(); ++i) {
                 n_p->vec_potential_vals[i] = i;
             }
@@ -168,7 +168,7 @@ void XMLBIFParser::AssignProbsToNodes(vector<Node*> vec_nodes_ptr) {
                 comb.insert(
                         pair<int,int>(
                                 vec_given_vars_ptrs[j-1]->GetNodeIndex(),
-                                dynamic_cast<DiscreteNode*>(vec_given_vars_ptrs[j-1])->vec_potential_vals.at(digits[j])));
+                                dynamic_cast<DiscreteNode*>(vec_given_vars_ptrs[j-1])->vec_potential_vals[digits[j]]));
             }
 
             // directly set probability based on the input file causes a problem when testing,

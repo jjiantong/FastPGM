@@ -28,7 +28,7 @@ PotentialTable::PotentialTable(DiscreteNode *disc_node, Network *net) {
         DiscreteConfig empty_par_config;
         for (int i = 0; i < table_size; ++i) {
             // potentials[i]
-            potentials.push_back(disc_node->GetProbability(disc_node->vec_potential_vals.at(i), empty_par_config));
+            potentials.push_back(disc_node->GetProbability(disc_node->vec_potential_vals[i], empty_par_config));
         }
     } else { // if this disc_node has parents
         related_variables.insert(disc_node->set_parent_indexes.begin(), disc_node->set_parent_indexes.end());
@@ -115,7 +115,7 @@ void PotentialTable::GetConfigByTableIndex(const int &table_index, Network *net,
         DiscreteNode *node = dynamic_cast<DiscreteNode*>(net->FindNodePtrByIndex(v));
         pair<int, int> tmp_pair;
         tmp_pair.first = v;
-        tmp_pair.second = node->vec_potential_vals.at(config_value[i++]);
+        tmp_pair.second = node->vec_potential_vals[config_value[i++]];
         config.insert(tmp_pair);
     }
     delete[] config_value;

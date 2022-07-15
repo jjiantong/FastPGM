@@ -44,8 +44,8 @@ double ChowLiuTree::ComputeMutualInformation(Node *Xi, Node *Xj, const Dataset *
   for (a=0; a<ri; a++) { // for each possible value of Xi
     for (b=0; b<rj; b++) { // for each possible value of Xj
       for (s=0; s<m; s++) { // for each instance
-        if (dts->dataset_all_vars[s][xi] == dXi->vec_potential_vals.at(a) &&
-            dts->dataset_all_vars[s][xj] == dXj->vec_potential_vals.at(b)) {
+        if (dts->dataset_all_vars[s][xi] == dXi->vec_potential_vals[a] &&
+            dts->dataset_all_vars[s][xj] == dXj->vec_potential_vals[b]) {
           Pij[a][b] += 1;
         }
       }
@@ -58,7 +58,7 @@ double ChowLiuTree::ComputeMutualInformation(Node *Xi, Node *Xj, const Dataset *
   // Update Pi.
   for (a=0; a<ri; a++) {
     for (s=0; s<m; s++) {
-      if (dts->dataset_all_vars[s][xi] == dXi->vec_potential_vals.at(a)) {
+      if (dts->dataset_all_vars[s][xi] == dXi->vec_potential_vals[a]) {
         Pi[a] += 1;
       }
     }
@@ -69,7 +69,7 @@ double ChowLiuTree::ComputeMutualInformation(Node *Xi, Node *Xj, const Dataset *
   // Update Pj.
   for (b=0; b<rj; b++) {
     for (s=0; s<m; s++) {
-      if (dts->dataset_all_vars[s][xj] == dXj->vec_potential_vals.at(b)) {
+      if (dts->dataset_all_vars[s][xj] == dXj->vec_potential_vals[b]) {
         Pj[b] += 1;
       }
     }
