@@ -30,6 +30,28 @@ JunctionTree::JunctionTree(Network *net) {
     Moralize(direc_adjac_matrix, network->num_nodes);
     int **moral_graph_adjac_matrix = direc_adjac_matrix;
 
+    /*
+     * I found there are some nodes that have no neighbors in datasets "andes" and "link"
+     * it leads to more than one junction tree in the junction tree construction
+     * so "segmentation fault" happened when using Prim's algorithm to generate junction tree
+     */
+//    int *tmp = new int[network->num_nodes];
+//    for (int i = 0; i < network->num_nodes; ++i) {
+//        tmp[i] = 0;
+//    }
+//    for (int i = 0; i < network->num_nodes; ++i) {
+//        for (int j = 0; j < network->num_nodes; ++j) {
+//            if (moral_graph_adjac_matrix[i][j] == 1) {
+//                tmp[i]++;
+//            }
+//        }
+//    }
+//    for (int i = 0; i < network->num_nodes; ++i) {
+//        cout << tmp[i] << "  ";
+//    }
+//    cout << endl;
+//    delete[] tmp;
+
     vector<bool> has_processed(network->num_nodes);
     //construct a clique for each node in the network
     Triangulate(network, moral_graph_adjac_matrix, has_processed);
@@ -363,6 +385,11 @@ int JunctionTree::GetIndexByCliquePtr(Clique* clq) {
  * use Prim algorithm; the weights of edges is represented by the weights of the separators
  */
 void JunctionTree::FormJunctionTree() {
+//    int *tmp = new int[vector_clique_ptr_container.size()];
+//    for (int i = 0; i < vector_clique_ptr_container.size(); ++i) {
+//        tmp[i] = 0;
+//    }
+
     // First, generate all possible separators.
     set<Separator*> all_possible_seps;
     for (int i = 0; i < vector_clique_ptr_container.size(); ++i) {
@@ -380,6 +407,7 @@ void JunctionTree::FormJunctionTree() {
                 continue;
             }
 
+//            tmp[i]++; tmp[j]++;
             Separator *sep = new Separator(common_variables, network);
             // Let separator know the two cliques that it connects to.
             sep->set_neighbours_ptr.insert(clique_ptr);
@@ -389,38 +417,46 @@ void JunctionTree::FormJunctionTree() {
         }
     }
 
+//    cout << "output tmp" << endl;
+//    for (int i = 0; i < vector_clique_ptr_container.size(); ++i) {
+//        cout << tmp[i] << "  ";
+//    }
+//    cout << endl;
+//
+//    delete[] tmp;
+
   // Second, use Prim's algorithm to form a maximum spanning tree.
   // If we construct a maximum spanning tree by the weights of the separators,
   // then the tree will satisfy running intersection property.
   set<Clique*> tree_so_far;
   tree_so_far.insert(vector_clique_ptr_container[0]); // randomly insert a clique in tree, as the start of the Prim algorithm
 
-  while (tree_so_far.size() < vector_clique_ptr_container.size()) {
-    Separator* max_weight_sep = nullptr;
-    for (auto &sep_ptr : all_possible_seps) { // traverse all separators
-      // find the two cliques the separator connected
-      auto iter = sep_ptr->set_neighbours_ptr.begin();
-      Clique *clq1 = *iter, *clq2 = *(++iter);
+    while (tree_so_far.size() < vector_clique_ptr_container.size()) {
+        Separator* max_weight_sep = nullptr;
+        for (auto &sep_ptr : all_possible_seps) { // traverse all separators
+            // find the two cliques the separator connected
+            auto iter = sep_ptr->set_neighbours_ptr.begin();
+            Clique *clq1 = *iter, *clq2 = *(++iter);
 
-      // if one of the cliques is in the "tree_so_far", and the other is not
-      if ((tree_so_far.find(clq1) != tree_so_far.end() && tree_so_far.find(clq2) == tree_so_far.end())
-          ||
-          (tree_so_far.find(clq1) == tree_so_far.end() && tree_so_far.find(clq2) != tree_so_far.end())) {
-        // And if the weight of this separator is the largest.
-        if (max_weight_sep==nullptr || max_weight_sep->weight < sep_ptr->weight) {
-          max_weight_sep = sep_ptr;
+            // if one of the cliques is in the "tree_so_far", and the other is not
+            if ((tree_so_far.find(clq1) != tree_so_far.end() && tree_so_far.find(clq2) == tree_so_far.end())
+                ||
+                (tree_so_far.find(clq1) == tree_so_far.end() && tree_so_far.find(clq2) != tree_so_far.end())) {
+                // And if the weight of this separator is the largest.
+                if (max_weight_sep==nullptr || max_weight_sep->weight < sep_ptr->weight) {
+                    max_weight_sep = sep_ptr;
+                }
+            }
         }
-      }
-    }
 
-      max_weight_sep->is_in_jt = true;
-    vector_separator_ptr_container.push_back(max_weight_sep);
+        max_weight_sep->is_in_jt = true;
+        vector_separator_ptr_container.push_back(max_weight_sep);
 
-    auto iter = max_weight_sep->set_neighbours_ptr.begin();
-    Clique *clq1 = *iter, *clq2 = *(++iter);
-    tree_so_far.insert(clq1);
-    tree_so_far.insert(clq2);
-  }   // end of: while. Until all cliques are in "tree_so_far"
+        auto iter = max_weight_sep->set_neighbours_ptr.begin();
+        Clique *clq1 = *iter, *clq2 = *(++iter);
+        tree_so_far.insert(clq1);
+        tree_so_far.insert(clq2);
+    }   // end of: while. Until all cliques are in "tree_so_far"
 
   // Now let the cliques to know the separators that they connect to.
   for (auto &sep_ptr : vector_separator_ptr_container) {
@@ -2246,7 +2282,6 @@ int JunctionTree::PredictUseJTInfer(const DiscreteConfig &E, int Y_index, int nu
 /**
  * @brief: predict the labels given different evidences
  * it just repeats the function above multiple times, and print the progress at the meantime
- * @param elim_orders: elimination order which may be different given different evidences due to the simplification of elimination order
  */
 vector<int> JunctionTree::PredictUseJTInfer(const vector<DiscreteConfig> &evidences, int target_node_idx,
                                             int num_threads, Timer *timer) {

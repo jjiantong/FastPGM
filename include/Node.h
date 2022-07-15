@@ -58,6 +58,9 @@ class Node {
   Node() = default;
   explicit Node(int index);
   Node(int index, string name);
+  ~Node() {
+      cout << ".";
+  }
 
   int GetNodeIndex() const;
   void SetNodeIndex(int index);

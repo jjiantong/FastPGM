@@ -4,14 +4,10 @@
 
 DiscreteNode::DiscreteNode(): DiscreteNode(-1) {}
 
-DiscreteNode::DiscreteNode(int index): DiscreteNode(index, to_string(index)) {}
-
-DiscreteNode::DiscreteNode(int index, string name) {
-  is_discrete = true;
-  SetNodeIndex(index);
-  node_name = std::move(name);
-
-  num_potential_vals = -1;//may be 0 is better?
+DiscreteNode::DiscreteNode(int index) {
+    is_discrete = true;
+    SetNodeIndex(index);
+    num_potential_vals = -1;//may be 0 is better?
 }
 
 /**
