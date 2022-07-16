@@ -724,7 +724,8 @@ void JunctionTree::MarkLevel() {
         vector<Clique*> vec2;
         vector<Separator*> vsep2;
         /*
-         * think of nodes...: clq, sep, clq, sep, ... clq
+         * think of nodes...:       clq, sep, clq, sep, ... clq
+         * size of node by levels:  1,   2,   3,   4,   ...
          * if nodes.size % 2 == 0, "vec" is sep, then vec's downstream neighbors are clqs
          */
         bool is_sep = nodes_by_level.size() % 2 == 0 ? false : true;
@@ -1584,6 +1585,7 @@ void JunctionTree::Collect(int num_threads, Timer *timer) {
                     }
                     int k = s - cum_sum2[j];
 
+//                    nodes_by_level[i][has_kth_child[j]]->p_table.Normalize();
                     nodes_by_level[i][has_kth_child[j]]->p_table.potentials[k] *= multi_pt[j].potentials[k];
                 }
                 timer->Stop("parallel");
@@ -1593,6 +1595,25 @@ void JunctionTree::Collect(int num_threads, Timer *timer) {
                 timer->Stop("post-up-clq");
             }
         }
+
+        /**
+         * there are some issues with datasets munin2, munin3, munin4
+         * after debugging -- caused by table multiplication
+         * don't have enough precision so it may cause 0 prob after multiplication
+         * therefore, I add a normalization after collection of each level
+         * we can remove this part for other datasets
+         */
+        timer->Start("norm");
+        omp_set_num_threads(num_threads);
+#pragma omp parallel for
+        for (int i = 0; i < vector_clique_ptr_container.size(); ++i) {
+            vector_clique_ptr_container[i]->p_table.Normalize();
+        }
+#pragma omp parallel for
+        for (int i = 0; i < vector_separator_ptr_container.size(); ++i) {
+            vector_separator_ptr_container[i]->p_table.Normalize();
+        }
+        timer->Stop("norm");
     }
 }
 
@@ -1607,6 +1628,7 @@ void JunctionTree::Distribute(int num_threads, Timer *timer) {
              */
             timer->Start("pre-down-sep");
             int size = separators_by_level[i/2].size();
+
             vector<PotentialTable> tmp_pt; // store all tmp pt used for table marginalization
             tmp_pt.resize(size);
 
@@ -2095,6 +2117,7 @@ PotentialTable JunctionTree::BeliefPropagationCalcuDiscreteVarMarginal2(int quer
     // which can reduce the number of sum operation.
     // TODO: find from separator
     for (auto &c : vector_clique_ptr_container) {
+
         if (!c->pure_discrete) {
             continue;
         }
@@ -2235,10 +2258,12 @@ double JunctionTree::EvaluateAccuracy(Dataset *dts, int num_threads, int num_sam
     timer->Print("pre-down-sep"); timer->Print("main-down-sep"); timer->Print("post-down-sep"); cout << endl;
     timer->Print("pre-down-clq"); timer->Print("main-down-clq"); timer->Print("post-down-clq"); cout << endl;
     timer->Print("pre-up-sep"); timer->Print("main-up-sep"); timer->Print("post-up-sep"); cout << endl;
-    timer->Print("pre-up-clq"); timer->Print("main-up-clq"); timer->Print("post-up-clq"); cout << endl;
+    timer->Print("pre-up-clq"); timer->Print("main-up-clq"); timer->Print("post-up-clq"); cout << endl << endl;
 
     timer->Print("post-down-clq-mem"); timer->Print("post-down-clq-del"); timer->Print("post-down-clq-mul"); cout << endl;
-    timer->Print("post-down-sep-mem"); timer->Print("post-down-sep-del"); timer->Print("post-down-sep-div"); cout << endl;
+    timer->Print("post-down-sep-mem"); timer->Print("post-down-sep-del"); timer->Print("post-down-sep-div"); cout << endl << endl;
+
+    timer->Print("norm"); cout << endl << endl;
 
     timer->Print("parallel");
     cout << "(" << timer->time["parallel"] / timer->time["jt"] * 100 << "%)";

@@ -52,9 +52,6 @@ class DiscreteNode : public Node {//the parent nodes of DiscreteNode must be dis
   explicit DiscreteNode(int index);
   DiscreteNode(const DiscreteNode &n) = default;
   DiscreteNode(DiscreteNode &n) = default;
-  ~DiscreteNode() {
-      cout << "x";
-  }
 
   void SetDomain(vector<string> str_domain);
   void SetDomain(vector<int> int_domain);
