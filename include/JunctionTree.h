@@ -70,4 +70,7 @@ protected:
 //  void GenMapElimVarToClique();
 };
 
+void LoadEvidenceToAllNodes(vector<Clique*> &vector_all_node_ptr, const vector<int> &vector_red_clq,
+                            int index, int value_index, int num_threads, Timer *timer);
+
 #endif //BAYESIANNETWORK_JUNCTIONTREE_H

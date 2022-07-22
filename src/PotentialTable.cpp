@@ -458,6 +458,47 @@ void PotentialTable::TableReduction(int e_index, int e_value_index, int num_thre
     }
 }
 
+int PotentialTable::TableReductionMain(int i, int k, int **full_config, int loc) {
+    // 1. get the full config value of old table
+    this->GetConfigValueByTableIndex(i, full_config[k] + i * this->num_variables);
+    // 2. get the value of the evidence variable from the new table
+    return full_config[k][i * this->num_variables + loc];
+}
+
+void PotentialTable::TableReductionPost(int index, int value_index, int *v_index,
+                                        vector<double> &new_potentials, int loc) {
+    int new_size = this->table_size / this->var_dims[loc];
+
+    for (int i = 0, j = 0; i < this->table_size; ++i) {
+        // 3. whether it is consistent with the evidence
+        if (v_index[i] == value_index) {
+            new_potentials[j++] = this->potentials[i];
+        }
+    }
+    this->potentials = new_potentials;
+    this->related_variables.erase(index);
+    this->num_variables -= 1;
+
+    if (this->num_variables > 0) {
+        vector<int> dims;
+        dims.reserve(this->num_variables);
+        for (int i = 0; i < this->num_variables + 1; ++i) {
+            if (i != loc) {
+                dims.push_back(this->var_dims[i]);
+            }
+        }
+        this->var_dims = dims;
+
+        this->ConstructCumLevels();
+        // table size -- number of possible configurations
+        this->table_size = new_size;
+    } else {
+        this->var_dims = vector<int>();
+        this->cum_levels = vector<int>();
+        this->table_size = 1;
+    }
+}
+
 void PotentialTable::Normalize() {
     double denominator = 0;
 

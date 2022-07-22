@@ -924,6 +924,7 @@ void JunctionTree::LoadDiscreteEvidence(const DiscreteConfig &E, int num_threads
             }
         }
 
+        // find all cliques and separators that contain the evidence, and put them into "vector_all_node_ptr"
         vector<Clique*> vector_all_node_ptr;
         for (auto n: vector_clique_ptr_container) {
             vector_all_node_ptr.push_back(n);
@@ -943,118 +944,94 @@ void JunctionTree::LoadDiscreteEvidence(const DiscreteConfig &E, int num_threads
             }
         }
 
-        int red_size = vector_red_clq.size();
-
-        int *e_loc = new int[red_size];
-        int **full_config = new int*[red_size];
-        int **v_index = new int*[red_size];
-
-        int *cum_sum = new int[size];
-        int final_sum = 0;
-
-        /**
-         * pre-computing
-         */
-        for (int k = 0; k < red_size; ++k) {
-            auto clique_ptr = vector_all_node_ptr[vector_red_clq[k]];
-
-            // update sum
-            cum_sum[k] = final_sum;
-            final_sum += clique_ptr->p_table.table_size;
-        }
-
-        timer->Start("parallel");
-        omp_set_num_threads(num_threads);
-#pragma omp parallel for
-        for (int k = 0; k < red_size; ++k) {
-            auto clique_ptr = vector_all_node_ptr[vector_red_clq[k]];
-
-            e_loc[k] = clique_ptr->p_table.GetVariableIndex(index);
-            full_config[k] = new int[clique_ptr->p_table.table_size * clique_ptr->p_table.num_variables];
-            v_index[k] = new int[clique_ptr->p_table.table_size];
-        }
-
-        timer->Stop("pre-evi");
-
-        timer->Start("main-evi");
-        // the main loop
-        omp_set_num_threads(num_threads);
-#pragma omp parallel for
-        for (int s = 0; s < final_sum; ++s) {
-            // compute k and i
-            int k = -1;
-            for (int m = red_size - 1; m >= 0; --m) {
-                if (s >= cum_sum[m]) {
-                    k = m;
-                    break;
-                }
-            }
-            int i = s - cum_sum[k];
-
-            auto clique_ptr = vector_all_node_ptr[vector_red_clq[k]];
-            // 1. get the full config value of old table
-            clique_ptr->p_table.GetConfigValueByTableIndex(i, full_config[k] + i * clique_ptr->p_table.num_variables);
-            // 2. get the value of the evidence variable from the new table
-            v_index[k][i] = full_config[k][i * clique_ptr->p_table.num_variables + e_loc[k]];
-        }
-        timer->Stop("main-evi");
-
-        timer->Start("post-evi");
-        /**
-         * post-computing
-         */
-        omp_set_num_threads(num_threads);
-#pragma omp parallel for
-        for (int k = 0; k < red_size; ++k) {
-            auto clique_ptr = vector_all_node_ptr[vector_red_clq[k]];
-
-            int new_size = clique_ptr->p_table.table_size / clique_ptr->p_table.var_dims[e_loc[k]];
-            vector<double> new_potentials;
-            new_potentials.resize(new_size);
-
-            delete[] full_config[k];
-
-            for (int i = 0, j = 0; i < clique_ptr->p_table.table_size; ++i) {
-                // 3. whether it is consistent with the evidence
-                if (v_index[k][i] == value_index) {
-                    new_potentials[j++] = clique_ptr->p_table.potentials[i];
-                }
-            }
-            clique_ptr->p_table.potentials = new_potentials;
-            delete[] v_index[k];
-
-            clique_ptr->p_table.related_variables.erase(index);
-            clique_ptr->p_table.num_variables -= 1;
-
-            if (clique_ptr->p_table.num_variables > 0) {
-                vector<int> dims;
-                dims.reserve(clique_ptr->p_table.num_variables);
-                for (int i = 0; i < clique_ptr->p_table.num_variables + 1; ++i) {
-                    if (i != e_loc[k]) {
-                        dims.push_back(clique_ptr->p_table.var_dims[i]);
-                    }
-                }
-                clique_ptr->p_table.var_dims = dims;
-
-                clique_ptr->p_table.ConstructCumLevels();
-                // table size -- number of possible configurations
-                clique_ptr->p_table.table_size = new_size;
-            } else {
-                clique_ptr->p_table.var_dims = vector<int>();
-                clique_ptr->p_table.cum_levels = vector<int>();
-                clique_ptr->p_table.table_size = 1;
-            }
-        }
-        timer->Stop("parallel");
-
-        delete[] e_loc;
-        delete[] full_config;
-        delete[] v_index;
-        delete[] cum_sum;
-        timer->Stop("post-evi");
+        LoadEvidenceToAllNodes(vector_all_node_ptr, vector_red_clq, index, value_index, num_threads, timer);
     }
     /************************* use potential table ******************************/
 }
+
+
+void LoadEvidenceToAllNodes(vector<Clique*> &vector_all_node_ptr, const vector<int> &vector_red_clq,
+                            int index, int value_index, int num_threads, Timer *timer) {
+
+    int size = vector_all_node_ptr.size();
+    int red_size = vector_red_clq.size();
+
+    int *e_loc = new int[red_size];
+    int **full_config = new int*[red_size];
+    int **v_index = new int*[red_size];
+
+    int *cum_sum = new int[size];
+    int final_sum = 0;
+
+    /**
+     * pre-computing
+     */
+    for (int k = 0; k < red_size; ++k) {
+        auto clique_ptr = vector_all_node_ptr[vector_red_clq[k]];
+
+        // update sum
+        cum_sum[k] = final_sum;
+        final_sum += clique_ptr->p_table.table_size;
+    }
+
+    timer->Start("parallel");
+    omp_set_num_threads(num_threads);
+#pragma omp parallel for
+    for (int k = 0; k < red_size; ++k) {
+        auto clique_ptr = vector_all_node_ptr[vector_red_clq[k]];
+
+        e_loc[k] = clique_ptr->p_table.GetVariableIndex(index);
+        full_config[k] = new int[clique_ptr->p_table.table_size * clique_ptr->p_table.num_variables];
+        v_index[k] = new int[clique_ptr->p_table.table_size];
+    }
+
+    timer->Stop("pre-evi");
+
+    timer->Start("main-evi");
+    // the main loop
+    omp_set_num_threads(num_threads);
+#pragma omp parallel for
+    for (int s = 0; s < final_sum; ++s) {
+        // compute k and i
+        int k = -1;
+        for (int m = red_size - 1; m >= 0; --m) {
+            if (s >= cum_sum[m]) {
+                k = m;
+                break;
+            }
+        }
+        int i = s - cum_sum[k];
+
+        v_index[k][i] = vector_all_node_ptr[vector_red_clq[k]]->p_table.TableReductionMain(i, k, full_config, e_loc[k]);
+    }
+    timer->Stop("main-evi");
+
+    timer->Start("post-evi");
+    /**
+     * post-computing
+     */
+    omp_set_num_threads(num_threads);
+#pragma omp parallel for
+    for (int k = 0; k < red_size; ++k) {
+        auto clique_ptr = vector_all_node_ptr[vector_red_clq[k]];
+
+        int new_size = clique_ptr->p_table.table_size / clique_ptr->p_table.var_dims[e_loc[k]];
+        vector<double> new_potentials;
+        new_potentials.resize(new_size);
+        clique_ptr->p_table.TableReductionPost(index, value_index, v_index[k], new_potentials, e_loc[k]);
+
+        delete[] full_config[k];
+        delete[] v_index[k];
+    }
+    timer->Stop("parallel");
+
+    delete[] e_loc;
+    delete[] full_config;
+    delete[] v_index;
+    delete[] cum_sum;
+    timer->Stop("post-evi");
+}
+
 
 ///**
 // * @brief: when inferring, an evidence is given. The evidence needs to be loaded and propagate in the network.
@@ -1596,24 +1573,24 @@ void JunctionTree::Collect(int num_threads, Timer *timer) {
             }
         }
 
-        /**
-         * there are some issues with datasets munin2, munin3, munin4
-         * after debugging -- caused by table multiplication
-         * don't have enough precision so it may cause 0 prob after multiplication
-         * therefore, I add a normalization after collection of each level
-         * we can remove this part for other datasets
-         */
-        timer->Start("norm");
-        omp_set_num_threads(num_threads);
-#pragma omp parallel for
-        for (int i = 0; i < vector_clique_ptr_container.size(); ++i) {
-            vector_clique_ptr_container[i]->p_table.Normalize();
-        }
-#pragma omp parallel for
-        for (int i = 0; i < vector_separator_ptr_container.size(); ++i) {
-            vector_separator_ptr_container[i]->p_table.Normalize();
-        }
-        timer->Stop("norm");
+//        /**
+//         * there are some issues with datasets munin2, munin3, munin4
+//         * after debugging -- caused by table multiplication
+//         * don't have enough precision so it may cause 0 prob after multiplication
+//         * therefore, I add a normalization after collection of each level
+//         * we can remove this part for other datasets
+//         */
+//        timer->Start("norm");
+//        omp_set_num_threads(num_threads);
+//#pragma omp parallel for
+//        for (int i = 0; i < vector_clique_ptr_container.size(); ++i) {
+//            vector_clique_ptr_container[i]->p_table.Normalize();
+//        }
+//#pragma omp parallel for
+//        for (int i = 0; i < vector_separator_ptr_container.size(); ++i) {
+//            vector_separator_ptr_container[i]->p_table.Normalize();
+//        }
+//        timer->Stop("norm");
     }
 }
 
@@ -2247,6 +2224,7 @@ double JunctionTree::EvaluateAccuracy(Dataset *dts, int num_threads, int num_sam
     cout << '\n' << "Accuracy: " << accuracy << endl;
     cout << "==================================================" << endl;
     timer->Print("jt"); cout << "after removing reset time: " << timer->time["jt"] - timer->time["reset"] << " s"<< endl;
+    double total = timer->time["jt"] - timer->time["reset"] - timer->time["norm"]; cout << "after removing norm time: " << total << " s"<< endl;
     timer->Print("load evidence"); cout << "(" << timer->time["load evidence"] / timer->time["jt"] * 100 << "%)" << endl;
     timer->Print("msg passing"); cout << "(" << timer->time["msg passing"] / timer->time["jt"] * 100 << "%)" << endl;
     timer->Print("upstream"); cout << endl;
@@ -2266,8 +2244,8 @@ double JunctionTree::EvaluateAccuracy(Dataset *dts, int num_threads, int num_sam
     timer->Print("norm"); cout << endl << endl;
 
     timer->Print("parallel");
-    cout << "(" << timer->time["parallel"] / timer->time["jt"] * 100 << "%)";
-    cout << "(" << timer->time["parallel"] / (timer->time["jt"] - timer->time["reset"]) * 100 << "%)" << endl;
+    cout << "(" << timer->time["parallel"] / (timer->time["jt"] - timer->time["norm"])* 100 << "%)";
+    cout << "(" << timer->time["parallel"] / total * 100 << "%)" << endl;
 
     delete timer;
     timer = nullptr;
