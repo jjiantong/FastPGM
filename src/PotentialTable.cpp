@@ -234,42 +234,13 @@ void PotentialTable::TableExtension(const set<int> &variables, const vector<int>
     (*this) = new_table;
 }
 
-void PotentialTable::MarginalizationPre(const set<int> &ext_variables, PotentialTable &new_table) {
-    // update the new table's related variables and num variables
-    new_table.related_variables = this->related_variables;
-    for (auto &ext_var: ext_variables) {
-        new_table.related_variables.erase(ext_var);
-    }
-    new_table.num_variables = this->num_variables - ext_variables.size();
-
-    // update the new table's var dims, cum levels and table size
-    if (new_table.num_variables == 0) {
-        new_table.var_dims = vector<int>();
-        new_table.cum_levels = vector<int>();
-        new_table.table_size = 1;
-    } else {
-        new_table.var_dims.reserve(new_table.num_variables);
-        int k = 0;
-        for (auto &v: this->related_variables) {
-            if (ext_variables.find(v) == ext_variables.end()) { // v is not in ext_variables
-                new_table.var_dims.push_back(this->var_dims[k]);
-            }
-            k++;
-        }
-        new_table.ConstructCumLevels();
-        new_table.table_size = new_table.cum_levels[0] * new_table.var_dims[0];
-    }
-
-    new_table.potentials.resize(new_table.table_size);
-}
-
 /**
  * @brief: factor out a node by id; i.e., factor marginalization
  * eliminate variable "id" by summation of the factor over "id"
  */
 void PotentialTable::TableMarginalization(const set<int> &ext_variables) {
     PotentialTable new_table;
-    this->MarginalizationPre(ext_variables, new_table);
+    this->TableMarginalizationPre(ext_variables, new_table);
 
     // generate an array showing the locations of the variables of the new table in the old table
     int *loc_in_old = new int[new_table.num_variables];
@@ -304,6 +275,35 @@ void PotentialTable::TableMarginalization(const set<int> &ext_variables) {
     delete[] table_index;
 
     (*this) = new_table;
+}
+
+void PotentialTable::TableMarginalizationPre(const set<int> &ext_variables, PotentialTable &new_table) {
+    // update the new table's related variables and num variables
+    new_table.related_variables = this->related_variables;
+    for (auto &ext_var: ext_variables) {
+        new_table.related_variables.erase(ext_var);
+    }
+    new_table.num_variables = this->num_variables - ext_variables.size();
+
+    // update the new table's var dims, cum levels and table size
+    if (new_table.num_variables == 0) {
+        new_table.var_dims = vector<int>();
+        new_table.cum_levels = vector<int>();
+        new_table.table_size = 1;
+    } else {
+        new_table.var_dims.reserve(new_table.num_variables);
+        int k = 0;
+        for (auto &v: this->related_variables) {
+            if (ext_variables.find(v) == ext_variables.end()) { // v is not in ext_variables
+                new_table.var_dims.push_back(this->var_dims[k]);
+            }
+            k++;
+        }
+        new_table.ConstructCumLevels();
+        new_table.table_size = new_table.cum_levels[0] * new_table.var_dims[0];
+    }
+
+    new_table.potentials.resize(new_table.table_size);
 }
 
 void PotentialTable::MultiplicationPre(PotentialTable &second_table, set<int> &all_related_variables, set<int> &diff1, set<int> &diff2) {
@@ -419,50 +419,19 @@ void PotentialTable::TableReduction(int e_index, int e_value_index, int num_thre
     omp_set_num_threads(num_threads);
 #pragma omp parallel for //schedule(dynamic, 1)
     for (int i = 0; i < this->table_size; ++i) {
-        // 1. get the full config value of old table
-        this->GetConfigValueByTableIndex(i, full_config + i * this->num_variables);
-        // 2. get the value of the evidence variable from the new table
-        value_index[i] = full_config[i * this->num_variables + e_loc];
+        value_index[i] = this->TableReductionMain(i, full_config, e_loc);
     }
     delete[] full_config;
 
-    for (int i = 0, j = 0; i < this->table_size; ++i) {
-        // 3. whether it is consistent with the evidence
-        if (value_index[i] == e_value_index) {
-            new_potentials[j++] = this->potentials[i];
-        }
-    }
-    this->potentials = new_potentials;
+    this->TableReductionPost(e_index, e_value_index, value_index, new_potentials, e_loc);
     delete[] value_index;
-
-    this->related_variables.erase(e_index);
-    this->num_variables -= 1;
-
-    if (this->num_variables > 0) {
-        vector<int> dims;
-        dims.reserve(this->num_variables);
-        for (int i = 0; i < this->num_variables + 1; ++i) {
-            if (i != e_loc) {
-                dims.push_back(this->var_dims[i]);
-            }
-        }
-        this->var_dims = dims;
-
-        this->ConstructCumLevels();
-        // table size -- number of possible configurations
-        this->table_size = new_size;
-    } else {
-        this->var_dims = vector<int>();
-        this->cum_levels = vector<int>();
-        this->table_size = 1;
-    }
 }
 
-int PotentialTable::TableReductionMain(int i, int k, int **full_config, int loc) {
+int PotentialTable::TableReductionMain(int i, int *full_config, int loc) {
     // 1. get the full config value of old table
-    this->GetConfigValueByTableIndex(i, full_config[k] + i * this->num_variables);
+    this->GetConfigValueByTableIndex(i, full_config + i * this->num_variables);
     // 2. get the value of the evidence variable from the new table
-    return full_config[k][i * this->num_variables + loc];
+    return full_config[i * this->num_variables + loc];
 }
 
 void PotentialTable::TableReductionPost(int index, int value_index, int *v_index,

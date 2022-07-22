@@ -33,6 +33,8 @@ public:
 
     void ResetJunctionTree();
     virtual void LoadDiscreteEvidence(const DiscreteConfig &E, int num_threads, Timer *timer);
+    void LoadEvidenceToAllNodes(vector<Clique*> &vector_reduced_node_ptr,
+                                int index, int value_index, int num_threads, Timer *timer);
 
     Factor BeliefPropagationCalcuDiscreteVarMarginal(int query_index);
     PotentialTable BeliefPropagationCalcuDiscreteVarMarginal2(int query_index);
@@ -69,8 +71,5 @@ protected:
     static void Moralize(int **direc_adjac_matrix, int &num_nodes);
 //  void GenMapElimVarToClique();
 };
-
-void LoadEvidenceToAllNodes(vector<Clique*> &vector_all_node_ptr, const vector<int> &vector_red_clq,
-                            int index, int value_index, int num_threads, Timer *timer);
 
 #endif //BAYESIANNETWORK_JUNCTIONTREE_H

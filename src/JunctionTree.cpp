@@ -924,50 +924,60 @@ void JunctionTree::LoadDiscreteEvidence(const DiscreteConfig &E, int num_threads
             }
         }
 
-        // find all cliques and separators that contain the evidence, and put them into "vector_all_node_ptr"
-        vector<Clique*> vector_all_node_ptr;
-        for (auto n: vector_clique_ptr_container) {
-            vector_all_node_ptr.push_back(n);
-        }
-        for (auto n: vector_separator_ptr_container) {
-            vector_all_node_ptr.push_back(n);
-        }
+//        /**
+//         * 1. nested version, without flattening
+//         */
+//        for (auto &c: vector_clique_ptr_container) {
+//            if (c->p_table.related_variables.find(index) != c->p_table.related_variables.end()) {
+//                c->p_table.TableReduction(index, value_index, num_threads);
+//            }
+//        }
+//        for (auto &c: vector_separator_ptr_container) {
+//            if (c->p_table.related_variables.find(index) != c->p_table.related_variables.end()) {
+//                c->p_table.TableReduction(index, value_index, num_threads);
+//            }
+//        }
 
-        // find all cliques that related to the observation and push them to "vector_red_clq"
-        int size = vector_all_node_ptr.size();
-        vector<int> vector_red_clq;
-        vector_red_clq.reserve(size);
-        for (int i = 0; i < size; ++i) {
-            auto clique_ptr = vector_all_node_ptr[i];
-            if (clique_ptr->p_table.related_variables.find(index) != clique_ptr->p_table.related_variables.end()) {
-                vector_red_clq.push_back(i);
+        /**
+         * 2. flatten version
+         */
+        vector<Clique*> vector_reduced_clique_ptr;
+        for (auto &c: vector_clique_ptr_container) {
+            if (c->p_table.related_variables.find(index) != c->p_table.related_variables.end()) {
+                vector_reduced_clique_ptr.push_back(c);
             }
         }
+        LoadEvidenceToAllNodes(vector_reduced_clique_ptr, index, value_index, num_threads, timer);
 
-        LoadEvidenceToAllNodes(vector_all_node_ptr, vector_red_clq, index, value_index, num_threads, timer);
+        vector<Clique*> vector_reduced_separator_ptr;
+        for (auto &c: vector_separator_ptr_container) {
+            if (c->p_table.related_variables.find(index) != c->p_table.related_variables.end()) {
+                vector_reduced_separator_ptr.push_back(c);
+            }
+        }
+        LoadEvidenceToAllNodes(vector_reduced_separator_ptr, index, value_index, num_threads, timer);
     }
     /************************* use potential table ******************************/
 }
 
 
-void LoadEvidenceToAllNodes(vector<Clique*> &vector_all_node_ptr, const vector<int> &vector_red_clq,
+void JunctionTree::LoadEvidenceToAllNodes(vector<Clique*> &vector_reduced_node_ptr,
                             int index, int value_index, int num_threads, Timer *timer) {
 
-    int size = vector_all_node_ptr.size();
-    int red_size = vector_red_clq.size();
+    int red_size = vector_reduced_node_ptr.size();
 
     int *e_loc = new int[red_size];
     int **full_config = new int*[red_size];
     int **v_index = new int*[red_size];
 
-    int *cum_sum = new int[size];
+    int *cum_sum = new int[red_size];
     int final_sum = 0;
 
     /**
      * pre-computing
      */
     for (int k = 0; k < red_size; ++k) {
-        auto clique_ptr = vector_all_node_ptr[vector_red_clq[k]];
+        auto clique_ptr = vector_reduced_node_ptr[k];
 
         // update sum
         cum_sum[k] = final_sum;
@@ -978,7 +988,7 @@ void LoadEvidenceToAllNodes(vector<Clique*> &vector_all_node_ptr, const vector<i
     omp_set_num_threads(num_threads);
 #pragma omp parallel for
     for (int k = 0; k < red_size; ++k) {
-        auto clique_ptr = vector_all_node_ptr[vector_red_clq[k]];
+        auto clique_ptr = vector_reduced_node_ptr[k];
 
         e_loc[k] = clique_ptr->p_table.GetVariableIndex(index);
         full_config[k] = new int[clique_ptr->p_table.table_size * clique_ptr->p_table.num_variables];
@@ -1002,7 +1012,7 @@ void LoadEvidenceToAllNodes(vector<Clique*> &vector_all_node_ptr, const vector<i
         }
         int i = s - cum_sum[k];
 
-        v_index[k][i] = vector_all_node_ptr[vector_red_clq[k]]->p_table.TableReductionMain(i, k, full_config, e_loc[k]);
+        v_index[k][i] = vector_reduced_node_ptr[k]->p_table.TableReductionMain(i, full_config[k], e_loc[k]);
     }
     timer->Stop("main-evi");
 
@@ -1013,7 +1023,7 @@ void LoadEvidenceToAllNodes(vector<Clique*> &vector_all_node_ptr, const vector<i
     omp_set_num_threads(num_threads);
 #pragma omp parallel for
     for (int k = 0; k < red_size; ++k) {
-        auto clique_ptr = vector_all_node_ptr[vector_red_clq[k]];
+        auto clique_ptr = vector_reduced_node_ptr[k];
 
         int new_size = clique_ptr->p_table.table_size / clique_ptr->p_table.var_dims[e_loc[k]];
         vector<double> new_potentials;
@@ -1160,7 +1170,7 @@ void JunctionTree::Collect(int num_threads, Timer *timer) {
                 nv_old[j] = child->p_table.num_variables;
                 cl_old[j] = child->p_table.cum_levels;
 
-                child->p_table.MarginalizationPre(set_external_vars, tmp_pt[j]);
+                child->p_table.TableMarginalizationPre(set_external_vars, tmp_pt[j]);
 
                 // generate an array showing the locations of the variables of the new table in the old table
                 loc_in_old[j] = new int[tmp_pt[j].num_variables];
@@ -1654,7 +1664,7 @@ void JunctionTree::Distribute(int num_threads, Timer *timer) {
                 nv_old[j] = par->p_table.num_variables;
                 cl_old[j] = par->p_table.cum_levels;
 
-                par->p_table.MarginalizationPre(set_external_vars, tmp_pt[j]);
+                par->p_table.TableMarginalizationPre(set_external_vars, tmp_pt[j]);
 
                 // generate an array showing the locations of the variables of the new table in the old table
                 loc_in_old[j] = new int[tmp_pt[j].num_variables];
