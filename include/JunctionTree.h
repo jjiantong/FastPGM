@@ -33,8 +33,8 @@ public:
 
     void ResetJunctionTree();
     virtual void LoadDiscreteEvidence(const DiscreteConfig &E, int num_threads, Timer *timer);
-    void LoadEvidenceToAllNodes(vector<Clique*> &vector_reduced_node_ptr,
-                                int index, int value_index, int num_threads, Timer *timer);
+    void LoadEvidenceToNodes(vector<Clique*> &vector_reduced_node_ptr,
+                             int index, int value_index, int num_threads, Timer *timer);
 
     Factor BeliefPropagationCalcuDiscreteVarMarginal(int query_index);
     PotentialTable BeliefPropagationCalcuDiscreteVarMarginal2(int query_index);

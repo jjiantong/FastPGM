@@ -937,6 +937,7 @@ void JunctionTree::LoadDiscreteEvidence(const DiscreteConfig &E, int num_threads
 //                c->p_table.TableReduction(index, value_index, num_threads);
 //            }
 //        }
+//        timer->Stop("pre-evi");
 
         /**
          * 2. flatten version
@@ -947,23 +948,25 @@ void JunctionTree::LoadDiscreteEvidence(const DiscreteConfig &E, int num_threads
                 vector_reduced_clique_ptr.push_back(c);
             }
         }
-        LoadEvidenceToAllNodes(vector_reduced_clique_ptr, index, value_index, num_threads, timer);
-
         vector<Clique*> vector_reduced_separator_ptr;
         for (auto &c: vector_separator_ptr_container) {
             if (c->p_table.related_variables.find(index) != c->p_table.related_variables.end()) {
                 vector_reduced_separator_ptr.push_back(c);
             }
         }
-        LoadEvidenceToAllNodes(vector_reduced_separator_ptr, index, value_index, num_threads, timer);
+        timer->Stop("pre-evi");
+
+        LoadEvidenceToNodes(vector_reduced_clique_ptr, index, value_index, num_threads, timer);
+        LoadEvidenceToNodes(vector_reduced_separator_ptr, index, value_index, num_threads, timer);
     }
     /************************* use potential table ******************************/
 }
 
 
-void JunctionTree::LoadEvidenceToAllNodes(vector<Clique*> &vector_reduced_node_ptr,
-                            int index, int value_index, int num_threads, Timer *timer) {
+void JunctionTree::LoadEvidenceToNodes(vector<Clique*> &vector_reduced_node_ptr,
+                                       int index, int value_index, int num_threads, Timer *timer) {
 
+    timer->Start("pre-evi");
     int red_size = vector_reduced_node_ptr.size();
 
     int *e_loc = new int[red_size];
@@ -1118,6 +1121,8 @@ void JunctionTree::MessagePassingUpdateJT(int num_threads, Timer *timer) {
     timer->Stop("downstream");
     /************************* use potential table ******************************/
 }
+
+void JunctionTree::SeparatorLevelOperation() {}
 
 void JunctionTree::Collect(int num_threads, Timer *timer) {
     for (int i = max_level - 2; i >= 0 ; --i) { // for each level
