@@ -66,6 +66,7 @@ protected:
     virtual void MessagePassingUpdateJT(int num_threads, Timer *timer);
     void Collect(int num_threads, Timer *timer);
     void Distribute(int num_threads, Timer *timer);
+    void SeparatorLevelOperation(bool is_collect, int i, int num_threads, Timer *timer);
 
 //  static vector<int> MinNeighbourElimOrd(int **adjac_matrix, int &num_nodes);
     static void Moralize(int **direc_adjac_matrix, int &num_nodes);

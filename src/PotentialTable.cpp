@@ -113,9 +113,9 @@ void PotentialTable::GetConfigByTableIndex(const int &table_index, Network *net,
     int i = 0;
     for (auto &v: related_variables) {
         DiscreteNode *node = dynamic_cast<DiscreteNode*>(net->FindNodePtrByIndex(v));
-        pair<int, int> tmp_pair;
-        tmp_pair.first = v;
-        tmp_pair.second = node->vec_potential_vals[config_value[i++]];
+        pair<int, int> tmp_pair(v, node->vec_potential_vals[config_value[i++]]);
+//        tmp_pair.first = v;
+//        tmp_pair.second = node->vec_potential_vals[config_value[i++]];
         config.insert(tmp_pair);
     }
     delete[] config_value;
@@ -304,6 +304,18 @@ void PotentialTable::TableMarginalizationPre(const set<int> &ext_variables, Pote
     }
 
     new_table.potentials.resize(new_table.table_size);
+}
+
+int PotentialTable::TableMarginalizationMain(int k, int *full_config, int *partial_config,
+                                             int nv, const vector<int> &cl, int *loc) {
+    // 1. get the full config value of old table
+    this->GetConfigValueByTableIndex(k, full_config + k * nv, nv, cl);
+    // 2. get the partial config value from the old table
+    for (int l = 0; l < this->num_variables; ++l) {
+        partial_config[k * this->num_variables + l] = full_config[k * nv + loc[l]];
+    }
+    // 3. obtain the potential index
+    return this->GetTableIndexByConfigValue(partial_config + k * this->num_variables);
 }
 
 void PotentialTable::MultiplicationPre(PotentialTable &second_table, set<int> &all_related_variables, set<int> &diff1, set<int> &diff2) {

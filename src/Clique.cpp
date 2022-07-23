@@ -11,103 +11,15 @@ Clique::Clique() {
 }
 
 /*!
- * @brief: constructor, given node ptrs of the clique
- * @bug: the node ptrs in the set ("set_node_ptr") is not ordered by the index of the nodes
- *       so the order of "var_dims" is not right using this constructor (TODO)
- *       at the beginning, we used data set "a1a" where every feature and label has the same number of possible values
- *       so we did not find the bug at the beginning...
- * use the next constructor, given node indexes of the clique
- */
-Clique::Clique(set<Node*> set_node_ptr) {
-//Clique::Clique(set<Node*> set_node_ptr, int elim_var_index) {
-  is_separator = false;
-//  elimination_variable_index = elim_var_index;
-  clique_size = set_node_ptr.size();
-
-  pure_discrete = true;
-  for (const auto &n_p : set_node_ptr) {
-    if (!n_p->is_discrete) {
-      pure_discrete = false;
-      break;
-    }
-  }
-
-  // In the paper, all continuous cliques' activeflags are initially set to true.
-  activeflag = !pure_discrete;
-
-//    /************************* use factor ******************************/
-//  // set_of_sets: set< set< pair<int, int> > >:
-//  //    one set is all possible values of one node(variable),
-//  //    set of sets is all possible values of all nodes.
-//  // c: set< pair<int, int> >
-//  set<DiscreteConfig> set_of_sets;
-//  for (auto &n : set_node_ptr) { // for each node
-//    //initialize related variables
-//      clique_variables.insert(n->GetNodeIndex()); // insert into related_variables
-//    if (n->is_discrete) {
-//      auto dn = dynamic_cast<DiscreteNode*>(n);
-//      DiscreteConfig c; // multiple groups: [node id, all possible values of this node]
-//      for (int i = 0; i < dn->GetDomainSize(); ++i) {
-//        c.insert(pair<int, int>(n->GetNodeIndex(), dn->vec_potential_vals.at(i)));
-//      }
-//      set_of_sets.insert(c);
-//    }
-//  }
-//
-//    table.related_variables = clique_variables;
-//    table.set_disc_configs = GenAllCombinationsFromSets(&set_of_sets);
-//    PreInitializePotentials();
-//    /************************* use factor ******************************/
-
-    /************************* use potential table ******************************/
-    // potential table
-    p_table.num_variables = clique_size;
-    p_table.var_dims.reserve(clique_size);
-    for (auto &n : set_node_ptr) { // for each node
-        cout << "operate " << n << ", ";
-        //initialize related variables
-        clique_variables.insert(n->GetNodeIndex());
-        cout << "insert to clique variables - " << n->GetNodeIndex() << ", ";
-        if (n->is_discrete) {
-            auto dn = dynamic_cast<DiscreteNode*>(n);
-            p_table.var_dims.push_back(dn->GetDomainSize());
-            cout << "insert to dims - " << dn->GetDomainSize() << endl;
-        }
-    }
-    cout << "finally dims = ";
-    for (int i = 0; i < p_table.var_dims.size(); ++i) {
-        cout << p_table.var_dims[i] << " ";
-    }
-    cout << endl;
-
-    p_table.cum_levels.resize(clique_size);
-    // set the right-most one ...
-    p_table.cum_levels[clique_size - 1] = 1;
-    // ... then compute the left ones
-    for (int i = clique_size - 2; i >= 0; --i) {
-        p_table.cum_levels[i] = p_table.cum_levels[i + 1] * p_table.var_dims[i + 1];
-    }
-    // compute the table size -- number of possible configurations
-    p_table.table_size = p_table.cum_levels[0] * p_table.var_dims[0];
-
-    p_table.potentials.reserve(p_table.table_size);
-    for (int i = 0; i < p_table.table_size; ++i) {
-        p_table.potentials.push_back(1);
-    }
-
-    p_table.related_variables = clique_variables;
-    /************************* use potential table ******************************/
-
-    ptr_upstream_clique = nullptr;
-}
-
-/*!
  * @brief: constructor, given node indexes of the clique
- * use this constructor, the reason is shown in the last constructor
- * we still need the node ptr, so we add parameter "net" to find node ptr by index
+ * in the original implementation, the order of "var_dims" is not right
+ * because the node ptrs in the set ("set_node_ptr") is not ordered by the index of the nodes
+ * at the beginning, we used data set "a1a" where every feature and label has the same number of possible values
+ * so we did not find the bug at the beginning...
+ * @current: we still need the node ptr, so we add parameter "net" to find node ptr by index
  * TODO: only support (pure) discrete cases now
  */
-Clique::Clique(set<int> set_node_index, Network *net) {
+Clique::Clique(set<int> set_node_index, Network *net) : clique_variables(set_node_index) {
     is_separator = false;
     clique_size = set_node_index.size();
     pure_discrete = true;
@@ -135,7 +47,7 @@ Clique::Clique(set<int> set_node_index, Network *net) {
 //    /************************* use factor ******************************/
 
     /************************* use potential table ******************************/
-    clique_variables = set_node_index;
+//    clique_variables = set_node_index;
 
     /**
      * potential table

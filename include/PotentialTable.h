@@ -46,6 +46,8 @@ public:
 
     void TableMarginalization(const set<int> &ext_variables);
     void TableMarginalizationPre(const set<int> &ext_variables, PotentialTable &new_table);
+    int TableMarginalizationMain(int k, int *full_config, int *partial_config,
+                                 int nv, const vector<int> &cl, int *loc);
 
     void MultiplicationPre(PotentialTable &second_table, set<int> &all_related_variables, set<int> &diff1, set<int> &diff2);
     void TableMultiplication(PotentialTable &second_table);
