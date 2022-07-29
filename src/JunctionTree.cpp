@@ -82,6 +82,12 @@ JunctionTree::JunctionTree(Network *net) {
     AssignPotentials();
     cout << "finish AssignPotentials" << endl;
 
+    /**
+     * it is used to compute mean of clique size
+     */
+    float mean_size = GetMeanCliqueSize();
+    cout << "finish GetMeanCliqueSize, mean clique size = " << mean_size << endl;
+
     // Arbitrarily select a clique as the root.
     auto iter = vector_clique_ptr_container.begin();
     arb_root = *iter;
@@ -707,6 +713,20 @@ void JunctionTree::AssignPotentials() { //checked
 //      //   I don't know what will happen.
 //    }
 //  }
+}
+
+/**
+ * @brief: get the mean of clique size
+ * by traversing all cliques and get the their clique sizes
+ */
+float JunctionTree::GetMeanCliqueSize() {
+    int total_size = 0;
+    int num_clique = vector_clique_ptr_container.size();
+    for (int i = 0; i < num_clique; ++i) {
+        // for each clique
+        total_size += vector_clique_ptr_container[i]->p_table.table_size;
+    }
+    return ((float)total_size/(float)num_clique);
 }
 
 /**
