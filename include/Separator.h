@@ -19,7 +19,6 @@ class Separator : public Clique {
     PotentialTable old_ptable;
 
   Separator();
-  explicit Separator(set<Node*>);
     explicit Separator(set<int>, Network*);
     ~Separator() {};
 

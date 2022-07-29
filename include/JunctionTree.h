@@ -33,6 +33,8 @@ public:
 
     void ResetJunctionTree();
     virtual void LoadDiscreteEvidence(const DiscreteConfig &E, int num_threads, Timer *timer);
+    void LoadEvidenceToNodes(vector<Clique*> &vector_reduced_node_ptr,
+                             int index, int value_index, int num_threads, Timer *timer);
 
     Factor BeliefPropagationCalcuDiscreteVarMarginal(int query_index);
     PotentialTable BeliefPropagationCalcuDiscreteVarMarginal2(int query_index);
@@ -65,6 +67,7 @@ protected:
     virtual void MessagePassingUpdateJT(int num_threads, Timer *timer);
     void Collect(int num_threads, Timer *timer);
     void Distribute(int num_threads, Timer *timer);
+    void SeparatorLevelOperation(bool is_collect, int i, int num_threads, Timer *timer);
 
 //  static vector<int> MinNeighbourElimOrd(int **adjac_matrix, int &num_nodes);
     static void Moralize(int **direc_adjac_matrix, int &num_nodes);

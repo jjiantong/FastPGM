@@ -17,8 +17,6 @@
 #include "Network.h"
 #include "Timer.h"
 
-//#define N_T 1
-
 using namespace std;
 
 //typedef set< pair<int, int> > DiscreteConfig; // set of [variable id, variable value]
@@ -45,14 +43,21 @@ public:
 
     void ExtensionPre(const set<int> &variables, const vector<int> &dims);
     void TableExtension(const set<int> &variables, const vector<int> &dims);
-    void MarginalizationPre(const set<int> &ext_variables, PotentialTable &new_table);
+
     void TableMarginalization(const set<int> &ext_variables);
+    void TableMarginalizationPre(const set<int> &ext_variables, PotentialTable &new_table);
+    int TableMarginalizationMain(int k, int *full_config, int *partial_config,
+                                 int nv, const vector<int> &cl, int *loc);
 
     void MultiplicationPre(PotentialTable &second_table, set<int> &all_related_variables, set<int> &diff1, set<int> &diff2);
     void TableMultiplication(PotentialTable &second_table);
     void TableDivision(const PotentialTable &second_table);
 
     void TableReduction(int e_index, int e_value_index, int num_threads);
+    int TableReductionMain(int i, int *full_config, int loc);
+    void TableReductionPost(int index, int value_index, int *v_index,
+                            vector<double> &new_potentials, int loc);
+
     void Normalize();
 
     void GetConfigValueByTableIndex(const int &table_index, int *config_value, int num_variables, const vector<int> &cum_levels);

@@ -6,12 +6,6 @@ Separator::Separator() {
   weight = -1;
 }
 
-Separator::Separator(set<Node*> set_node_ptr): Clique(set_node_ptr) {
-    is_in_jt = false;
-  is_separator = true;
-  weight = clique_size;
-}
-
 Separator::Separator(set<int> set_node_index, Network *net): Clique(set_node_index, net) {
     is_in_jt = false;
     is_separator = true;
