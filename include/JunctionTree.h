@@ -60,7 +60,7 @@ protected:
 //  void CliqueMerging(int low, int high);
     void NumberTheCliquesAndSeparators();
     void AssignPotentials();
-    float GetMeanCliqueSize();
+    float GetAveAndMaxCliqueSize(int &max_size);
     void MarkLevel();
     void BackUpJunctionTree();
 
