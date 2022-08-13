@@ -4,6 +4,8 @@
 
 #include "PotentialTable.h"
 
+//int num_threads = 1;
+
 /**
  * @brief: construct a potential table given a node;
  * the table consists of the node and all the existing related_variables, i.e., all its parents.
@@ -210,6 +212,8 @@ void PotentialTable::TableExtension(const set<int> &variables, const vector<int>
     int *table_index = new int[new_table.table_size];
 
 #pragma omp taskloop
+//    omp_set_num_threads(num_threads);
+//#pragma omp parallel for
     for (int i = 0; i < new_table.table_size; ++i) {
         // obtain the config value according to loc_in_new
         // 1. get the full config value of new table
@@ -254,6 +258,8 @@ void PotentialTable::TableMarginalization(const set<int> &ext_variables) {
     int *table_index = new int[this->table_size];
 
 #pragma omp taskloop
+//    omp_set_num_threads(num_threads);
+//#pragma omp parallel for
     for (int i = 0; i < this->table_size; ++i) {
         // 1. get the full config value of old table
         this->GetConfigValueByTableIndex(i, full_config + i * this->num_variables);

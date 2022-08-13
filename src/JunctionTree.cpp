@@ -1135,7 +1135,7 @@ void JunctionTree::MessagePassingUpdateJT(int num_threads, Timer *timer) {
      * 2. omp parallel for
      */
     timer->Start("upstream");
-//    arb_root->Collect3(nodes_by_level, max_level, num_threads);
+//    arb_root->Collect3(nodes_by_level, max_level, num_threads, timer);
     Collect(num_threads, timer);
     timer->Stop("upstream");
 
