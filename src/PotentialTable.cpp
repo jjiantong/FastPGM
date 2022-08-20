@@ -116,8 +116,6 @@ void PotentialTable::GetConfigByTableIndex(const int &table_index, Network *net,
     for (auto &v: related_variables) {
         DiscreteNode *node = dynamic_cast<DiscreteNode*>(net->FindNodePtrByIndex(v));
         pair<int, int> tmp_pair(v, node->vec_potential_vals[config_value[i++]]);
-//        tmp_pair.first = v;
-//        tmp_pair.second = node->vec_potential_vals[config_value[i++]];
         config.insert(tmp_pair);
     }
     delete[] config_value;

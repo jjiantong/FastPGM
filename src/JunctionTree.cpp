@@ -19,8 +19,6 @@ JunctionTree::JunctionTree(Network *net) : network(net) {
     // record time
     timer->Start("construct jt");
 
-//    network = net;
-
     vector_clique_ptr_container.reserve(network->num_nodes);
     vector_separator_ptr_container.reserve(network->num_nodes - 1);
 
@@ -29,28 +27,7 @@ JunctionTree::JunctionTree(Network *net) : network(net) {
 
     Moralize(direc_adjac_matrix, network->num_nodes);
     int **moral_graph_adjac_matrix = direc_adjac_matrix;
-
-    /*
-     * I found there are some nodes that have no neighbors in datasets "andes" and "link"
-     * it leads to more than one junction tree in the junction tree construction
-     * so "segmentation fault" happened when using Prim's algorithm to generate junction tree
-     */
-//    int *tmp = new int[network->num_nodes];
-//    for (int i = 0; i < network->num_nodes; ++i) {
-//        tmp[i] = 0;
-//    }
-//    for (int i = 0; i < network->num_nodes; ++i) {
-//        for (int j = 0; j < network->num_nodes; ++j) {
-//            if (moral_graph_adjac_matrix[i][j] == 1) {
-//                tmp[i]++;
-//            }
-//        }
-//    }
-//    for (int i = 0; i < network->num_nodes; ++i) {
-//        cout << tmp[i] << "  ";
-//    }
-//    cout << endl;
-//    delete[] tmp;
+    cout << "finish Moralize" << endl;
 
     vector<bool> has_processed(network->num_nodes);
     //construct a clique for each node in the network
@@ -77,7 +54,7 @@ JunctionTree::JunctionTree(Network *net) : network(net) {
 
     //assign id to each clique
     NumberTheCliquesAndSeparators();
-//  cout << "finish NumberTheCliquesAndSeparators" << endl;
+    cout << "finish NumberTheCliquesAndSeparators" << endl;
 
     AssignPotentials();
     cout << "finish AssignPotentials" << endl;
@@ -90,13 +67,14 @@ JunctionTree::JunctionTree(Network *net) : network(net) {
     cout << "finish GetAveAndMaxCliqueSize, ave clique size = " << mean_size << ", max size = " << max_size << endl;
 
     // Arbitrarily select a clique as the root.
+    // TODO: find a better root that generate a more balanced tree structure
     auto iter = vector_clique_ptr_container.begin();
     arb_root = *iter;
     MarkLevel();
-//    cout << "finish MarkLevel" << endl;
+    cout << "finish MarkLevel" << endl;
 
     BackUpJunctionTree();
-//  cout << "finish BackUpJunctionTree" << endl;
+    cout << "finish BackUpJunctionTree" << endl;
 
     cout << "==================================================";
     timer->Stop("construct jt");
@@ -392,10 +370,6 @@ int JunctionTree::GetIndexByCliquePtr(Clique* clq) {
  * use Prim algorithm; the weights of edges is represented by the weights of the separators
  */
 void JunctionTree::FormJunctionTree() {
-//    int *tmp = new int[vector_clique_ptr_container.size()];
-//    for (int i = 0; i < vector_clique_ptr_container.size(); ++i) {
-//        tmp[i] = 0;
-//    }
 
     // First, generate all possible separators.
     set<Separator*> all_possible_seps;
@@ -414,7 +388,6 @@ void JunctionTree::FormJunctionTree() {
                 continue;
             }
 
-//            tmp[i]++; tmp[j]++;
             Separator *sep = new Separator(common_variables, network);
             // Let separator know the two cliques that it connects to.
             sep->set_neighbours_ptr.insert(clique_ptr);
@@ -423,14 +396,6 @@ void JunctionTree::FormJunctionTree() {
             all_possible_seps.insert(sep);
         }
     }
-
-//    cout << "output tmp" << endl;
-//    for (int i = 0; i < vector_clique_ptr_container.size(); ++i) {
-//        cout << tmp[i] << "  ";
-//    }
-//    cout << endl;
-//
-//    delete[] tmp;
 
   // Second, use Prim's algorithm to form a maximum spanning tree.
   // If we construct a maximum spanning tree by the weights of the separators,
@@ -629,37 +594,6 @@ void JunctionTree::AssignPotentials() { //checked
   //    2.1 assign each factors and CG regressions to a clique
   //    each factor and CG regression should be use only once
 
-//    /************************* use factor ******************************/
-//  // For potentials from discrete nodes, they should be assigned to purely discrete cliques.
-//  for (auto &f : factors) { // for each factor of the network
-//    for (auto &clique_ptr : set_clique_ptr_container) { // for each clique of the graph
-//
-//      if (f.related_variables.empty() || clique_ptr->clique_variables.empty()) {
-//        break;
-//      }
-//      if (!clique_ptr->pure_discrete) {
-//        continue;
-//      }
-//
-//      // get the variables that in the factor but not in the clique
-//      set<int> diff;
-//      set_difference(f.related_variables.begin(), f.related_variables.end(),
-//                     clique_ptr->clique_variables.begin(), clique_ptr->clique_variables.end(),
-//                     inserter(diff, diff.begin()));
-//      // If "diff" is empty, i.e., all the variables in the factor are in the clique,
-//      // which means that the clique can accommodate the scope of the factor - satisfy the family preservation property of cluster graph
-//      // (clique tree is a special case of cluster graph)
-//      // so we can assign this factor to this clique
-//      if (diff.empty()) {
-//        // 2.2 construct the initial potential of this clique,
-//        // which is the product of factors that assigned to it
-//        clique_ptr->MultiplyWithFactorSumOverExternalVars(f, timer);
-//        break;  // Ensure that each factor is used only once.
-//      }
-//    }
-//  }
-//    /************************* use factor ******************************/
-
     /************************* use potential table ******************************/
     // For potentials from discrete nodes, they should be assigned to purely discrete cliques.
     for (auto &pt : potential_tables) { // for each potential table of the network
@@ -786,19 +720,11 @@ void JunctionTree::MarkLevel() {
 }
 
 /**
+ * backup & reset:
  * The inference process will modify the junction tree itself.
  * So, we need to backup the tree and restore it after an inference.
  * Otherwise, we need to re-construct the tree each time we want to make inference.
  */
-//void JunctionTree::BackUpJunctionTree() {
-//    for (const auto &c : vector_clique_ptr_container) {
-//        map_cliques_backup[c] = *c;
-//    }
-//    for (const auto &s : vector_separator_ptr_container) {
-//        map_separators_backup[s] = *s;
-//    }
-//}
-
 void JunctionTree::BackUpJunctionTree() {
     clique_backup = new Clique[vector_clique_ptr_container.size()];
     separator_backup = new Separator[vector_separator_ptr_container.size()];
@@ -811,20 +737,6 @@ void JunctionTree::BackUpJunctionTree() {
         separator_backup[i++] = *s;
     }
 }
-
-/**
- * The inference process will modify the junction tree itself.
- * So, we need to backup the tree and restore it after an inference.
- * Otherwise, we need to re-construct the tree each time we want to make inference.
- */
-//void JunctionTree::ResetJunctionTree() {
-//  for (auto &c : vector_clique_ptr_container) {
-//    *c = map_cliques_backup[c];
-//  }
-//  for (auto &s : vector_separator_ptr_container) {
-//    *s = map_separators_backup[s];
-//  }
-//}
 
 void JunctionTree::ResetJunctionTree() {
     int i = 0;
@@ -841,95 +753,7 @@ void JunctionTree::ResetJunctionTree() {
  * @brief: when inferring, an evidence is given. The evidence needs to be loaded and propagate in the network.
  */
 void JunctionTree::LoadDiscreteEvidence(const DiscreteConfig &E, int num_threads, Timer *timer) {
-//    /*********************** load evidence on all cliques and seps **************************/
-//    // cannot just erase "comb" inside the inner most loop,
-//    // because it will cause problem in factor division...
-//    for (auto &e: E) { // for each observation of variable
-//        for (auto &clique_ptr : set_clique_ptr_container) { // for each clique
-//            // if this factor is related to the observation
-//            if (clique_ptr->table.related_variables.find(e.first) != clique_ptr->table.related_variables.end()) {
-//                clique_ptr->table.related_variables.erase(e.first);
-//
-//                set <DiscreteConfig> set_reduced_disc_configs;
-//                map<DiscreteConfig, double> map_reduced_potentials;
-//                // for each discrete config of this factor
-//                for (auto &comb: clique_ptr->table.set_disc_configs) {
-//                    // if this config and the evidence have different values on common variables,
-//                    // which means that they conflict, then this config will be removed
-//                    // so otherwise, it will be kept
-//                    if (comb.find(e) != comb.end()) {
-//                        DiscreteConfig reduced_config; // we need to reduce the config, remove the unrelated variables
-//                        for (auto &p: comb) { // for all pairs in the config (we select all related variables from them)
-//                            if (p.first != e.first) {
-//                                // this variable is not unrelated, so this pair should be kept
-//                                reduced_config.insert(p);
-//                            }
-//                        }
-//                        // add new
-//                        set_reduced_disc_configs.insert(reduced_config);
-//                        map_reduced_potentials[reduced_config] = clique_ptr->table.map_potentials[comb];
-//                    }
-//                }
-//                clique_ptr->table.set_disc_configs = set_reduced_disc_configs;
-//                clique_ptr->table.map_potentials = map_reduced_potentials;
-//            }
-//        }
-//    }
-//
-//    for (auto &e: E) { // for each observation of variable
-//        for (auto &sep_ptr : set_separator_ptr_container) { // for each sep
-//            // if this factor is related to the observation
-//            if (sep_ptr->table.related_variables.find(e.first) != sep_ptr->table.related_variables.end()) {
-//                sep_ptr->table.related_variables.erase(e.first);
-//
-//                set<DiscreteConfig> set_reduced_disc_configs;
-//                map<DiscreteConfig, double> map_reduced_potentials;
-//                // for each discrete config of this factor
-//                for (auto &comb: sep_ptr->table.set_disc_configs) {
-//                    // if this config and the evidence have different values on common variables,
-//                    // which means that they conflict, then this config will be removed
-//                    // so otherwise, it will be kept
-//                    if (comb.find(e) != comb.end()) {
-//                        auto tmp_potential = sep_ptr->table.map_potentials[comb]; // save the potential of this config
-//
-//                        DiscreteConfig reduced_config; // we need to reduce the config, remove the unrelated variables
-//                        for (auto &p: comb) { // for all pairs in the config (we select all related variables from them)
-//                            if (p.first != e.first) {
-//                                // this variable is not unrelated, so this pair should be kept
-//                                reduced_config.insert(p);
-//                            }
-//                        }
-//
-//                        // add new
-//                        set_reduced_disc_configs.insert(reduced_config);
-//                        map_reduced_potentials[reduced_config] = tmp_potential;
-//                    }
-//                }
-//
-//                sep_ptr->table.set_disc_configs = set_reduced_disc_configs;
-//                sep_ptr->table.map_potentials = map_reduced_potentials;
-//            }
-//        }
-//    }
-//    /*********************** load evidence on all cliques and seps **************************/
 
-//    /*********************** load evidence on only one clique **************************/
-//    for (auto &e : E) {  // For each node's observation in E
-//        for (auto &clique_ptr : set_clique_ptr_container) { // for each clique
-//            // If this clique is related to this node
-//            if (clique_ptr->table.related_variables.find(e.first) != clique_ptr->table.related_variables.end()) {
-//                for (auto &comb : clique_ptr->table.set_disc_configs) {
-//                    if (comb.find(e) == comb.end()) {
-//                        clique_ptr->table.map_potentials[comb] = 0;
-//                    }
-//                }
-//                break;
-//            }
-//        }
-//    }
-//    /*********************** load evidence on only one clique **************************/
-
-    /************************* use potential table ******************************/
     for (auto &e: E) { // for each observation of variable
         timer->Start("pre-evi");
         // we need the index of the the evidence and the value index
@@ -983,7 +807,6 @@ void JunctionTree::LoadDiscreteEvidence(const DiscreteConfig &E, int num_threads
         LoadEvidenceToNodes(vector_reduced_clique_ptr, index, value_index, num_threads, timer);
         LoadEvidenceToNodes(vector_reduced_separator_ptr, index, value_index, num_threads, timer);
     }
-    /************************* use potential table ******************************/
 }
 
 
@@ -1069,30 +892,6 @@ void JunctionTree::LoadEvidenceToNodes(vector<Clique*> &vector_reduced_node_ptr,
     timer->Stop("post-evi");
 }
 
-
-///**
-// * @brief: when inferring, an evidence is given. The evidence needs to be loaded and propagate in the network.
-// */
-//void JunctionTree::LoadDiscreteEvidence(const DiscreteConfig &E) {
-//  if (E.empty()) {
-//    return;
-//  }
-//  for (auto &e : E) {  // For each node's observation in E
-//    if (network->FindNodePtrByIndex(e.first)->is_discrete) {
-//      Clique *clique_ptr = map_elim_var_to_clique[e.first];
-//      for (auto &comb : clique_ptr->table.set_disc_configs) {  // Update each row of map_potentials
-//        if (comb.find(e) == comb.end()) {
-//          clique_ptr->table.map_potentials[comb] = 0;//conflict with the evidence; set the potential to 0.
-//        }
-//      }
-//    }
-//    else {
-//      fprintf(stderr, "Error in Function [%s]", __FUNCTION__);
-//      exit(1);
-//    }
-//  }
-//}
-
 /**
  *
  * Message passing is just COLLECT and DISTRIBUTE (these two words is used by paper and text book).
@@ -1100,12 +899,7 @@ void JunctionTree::LoadEvidenceToNodes(vector<Clique*> &vector_reduced_node_ptr,
  * After message passing, any clique (junction tree node) contains the right distribution of the related variables.
  */
 void JunctionTree::MessagePassingUpdateJT(int num_threads, Timer *timer) {
-//    /************************* use factor ******************************/
-//  arb_root->Collect(timer);
-//  arb_root->Distribute(timer);
-//    /************************* use factor ******************************/
 
-    /************************* use potential table ******************************/
     /**
      * 1. omp task
      */
@@ -1143,7 +937,6 @@ void JunctionTree::MessagePassingUpdateJT(int num_threads, Timer *timer) {
 //    arb_root->Distribute3(nodes_by_level, max_level, num_threads);
     Distribute(num_threads, timer);
     timer->Stop("downstream");
-    /************************* use potential table ******************************/
 }
 
 /**
@@ -1152,7 +945,6 @@ void JunctionTree::MessagePassingUpdateJT(int num_threads, Timer *timer) {
  * @param i  corresponds to level
  */
 void JunctionTree::SeparatorLevelOperation(bool is_collect, int i, int num_threads, Timer *timer) {
-//    timer->Start("pre-sep");
     int size = separators_by_level[i/2].size();
     vector<PotentialTable> tmp_pt; // store all tmp pt used for table marginalization
     tmp_pt.resize(size);
@@ -1171,7 +963,6 @@ void JunctionTree::SeparatorLevelOperation(bool is_collect, int i, int num_threa
     int **full_config = new int*[size];
     int **partial_config = new int*[size];
     int **table_index = new int*[size];
-//    timer->Stop("pre-sep");
 
     if (is_collect) {
         timer->Start("pre-up-sep");
@@ -2039,57 +1830,6 @@ void JunctionTree::Distribute(int num_threads, Timer *timer) {
 /**
  * @brief: compute the marginal distribution for a query variable
  **/
-Factor JunctionTree::BeliefPropagationCalcuDiscreteVarMarginal(int query_index) {
-
-  // The input is a set of query_indexes of variables.
-  // The output is a factor representing the joint marginal of these variables.
-  // TODO: here only support one query variable
-
-  int min_size = INT32_MAX;
-  Clique *selected_clique = nullptr;
-
-  // The case where the query variables are all appear in one clique.
-  // Find the clique that contains this variable,
-  // whose size of potentials table is the smallest,
-  // which can reduce the number of sum operation.
-  // TODO: find from separator
-  for (auto &c : vector_clique_ptr_container) {
-    if (!c->pure_discrete) {
-        continue;
-    }
-    if (c->table.related_variables.find(query_index) == c->table.related_variables.end()) { // cannot find the query variable
-        continue;
-    }
-    if (c->table.related_variables.size() >= min_size) {
-        continue;
-    }
-    min_size = c->table.related_variables.size();
-    selected_clique = c;
-  }
-
-  if (selected_clique == nullptr) {
-    fprintf(stderr, "Error in function [%s]\n"
-                    "Variable [%d] does not appear in any clique!", __FUNCTION__, query_index);
-    exit(1);
-  }
-
-  set<int> other_vars = selected_clique->table.related_variables;
-  other_vars.erase(query_index);
-
-  Factor f(selected_clique->table.related_variables, selected_clique->table.set_disc_configs, selected_clique->table.map_potentials);
-
-  for (auto &index : other_vars) {
-    f = f.SumOverVar(index);
-  }
-
-  f.Normalize(); // todo: no need to do normalization
-  return f;
-
-}
-
-/**
- * @brief: compute the marginal distribution for a query variable
- **/
 PotentialTable JunctionTree::BeliefPropagationCalcuDiscreteVarMarginal2(int query_index) {
 
     // The input is a set of query_indexes of variables.
@@ -2130,9 +1870,6 @@ PotentialTable JunctionTree::BeliefPropagationCalcuDiscreteVarMarginal2(int quer
 
     PotentialTable pt = selected_clique->p_table;
 
-//    for (auto &index : other_vars) {
-//        pt.TableMarginalization(index);
-//    }
     pt.TableMarginalization(other_vars);
 
     pt.Normalize(); // todo: no need to do normalization
@@ -2144,20 +1881,7 @@ PotentialTable JunctionTree::BeliefPropagationCalcuDiscreteVarMarginal2(int quer
  * @brief: predict the label for a given variable.
  */
 int JunctionTree::InferenceUsingBeliefPropagation(int &query_index) {
-//    /************************* use factor ******************************/
-//  Factor f = BeliefPropagationCalcuDiscreteVarMarginal(query_index);
-//  double max_prob = 0;
-//  DiscreteConfig comb_predict; // set< pair<int, int> >
-//  for (auto &comb : f.set_disc_configs) {
-//    if (f.map_potentials[comb] > max_prob) {
-//      max_prob = f.map_potentials[comb];
-//      comb_predict = comb;
-//    }
-//  }
-//  int label_predict = comb_predict.begin()->second; // TODO: use "query_index"
-//    /************************* use factor ******************************/
 
-    /************************* use potential table ******************************/
     PotentialTable pt = BeliefPropagationCalcuDiscreteVarMarginal2(query_index);
     double max_prob = 0;
     int max_index;
@@ -2172,7 +1896,6 @@ int JunctionTree::InferenceUsingBeliefPropagation(int &query_index) {
     // so the "max_index" exactly means which value of the query variable gets the max probability
     auto dn = dynamic_cast<DiscreteNode*>(network->FindNodePtrByIndex(query_index));
     int label_predict = dn->vec_potential_vals[max_index];
-    /************************* use potential table ******************************/
 
   return label_predict;
 }

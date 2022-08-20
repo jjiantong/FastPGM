@@ -36,7 +36,6 @@ public:
     void LoadEvidenceToNodes(vector<Clique*> &vector_reduced_node_ptr,
                              int index, int value_index, int num_threads, Timer *timer);
 
-    Factor BeliefPropagationCalcuDiscreteVarMarginal(int query_index);
     PotentialTable BeliefPropagationCalcuDiscreteVarMarginal2(int query_index);
     int InferenceUsingBeliefPropagation(int &query_index);
 

@@ -20,7 +20,6 @@
 using namespace std;
 
 //typedef set< pair<int, int> > DiscreteConfig; // set of [variable id, variable value]
-
 class Network;  // Forward declaration.
 
 /**
