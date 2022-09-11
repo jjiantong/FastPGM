@@ -18,7 +18,7 @@ include_directories(${PROJECT_SOURCE_DIR}/lib/gcem/include)
 
 add_subdirectory(lib)
 add_subdirectory(src)
-add_subdirectory(test)
+#add_subdirectory(test)
 
 file(GLOB SRC src/*.cpp)
 file(GLOB HEAD include/*.h)
