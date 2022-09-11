@@ -19,34 +19,6 @@ Separator* Separator::CopyWithoutPtr() {
   return s;
 }
 
-///************************* use factor ******************************/
-//void Separator::UpdateUseMessage(const Factor &f, Timer *timer) {
-//    old_table = table;
-//    Factor tmp_f = f;
-//    SumOutExternalVars(tmp_f, timer);
-//    table = tmp_f;
-//}
-//
-///**
-// * @brief: this is a standard process for constructing the message of the separator cliques.
-// */
-//void Separator::ConstructMessage(Timer *timer) {
-//    // if related variable of both new and old are empty
-//    if (table.related_variables.empty()) {
-//        // do nothing, just return, because "table" is a constant
-//        return;
-//    }
-//
-//    for (auto &comb : table.set_disc_configs) {
-//        if (old_table.map_potentials[comb] == 0) {
-//            table.map_potentials[comb] = 0;
-//        } else {
-//            table.map_potentials[comb] /= old_table.map_potentials[comb];
-//        }
-//    }
-//}
-///************************* use factor ******************************/
-
 //void Separator::UpdateUseMessage2(const PotentialTable &pt) {
 //    old_ptable = p_table;
 //    PotentialTable tmp_pt = pt;

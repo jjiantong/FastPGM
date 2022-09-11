@@ -50,12 +50,6 @@ class Clique {
    * Proposed in [Local Propagation in Conditional Gaussian Bayesian Networks (Cowell, 2005)]
    * Note that, separators between continuous cliques only retain post_bag but not lp_potential.
    */
-//  int elimination_variable_index; //a clique is associated to a main variable (cf. Cowell, 2005);
-//                                  // the main variable can be eliminated using its neighbours?
-  //the following three variables are only used in regression problems.
-  bool activeflag;
-//  vector<CGRegression> lp_potential;
-//  vector<CGRegression> post_bag;
 
   Clique();
 //  Clique(set<Node*> set_node_ptrs, int elim_var_index);
@@ -63,17 +57,8 @@ class Clique {
     Clique(set<int> set_node_index, Network *net);
     virtual ~Clique() {};
 
-//  Clique* CopyWithoutPtr();
-  void MultiplyWithFactorSumOverExternalVars(Factor &f, Timer *timer);
 //  void Collect(Timer *timer);
 //  void Distribute(Timer *timer);
-
-//    /************************* use factor ******************************/
-//  virtual void UpdateUseMessage(const Factor &f, Timer *timer);
-//  virtual void ConstructMessage(Timer *timer);
-//    /************************* use factor ******************************/
-
-//    void MarkLevel(vector<vector<Clique*>> &cliques, int &max_level);
 
     void Collect2();
     void Collect3(vector<vector<Clique*>> &cliques, int max_level);
@@ -88,21 +73,14 @@ class Clique {
 //    virtual void ConstructMessage2();
     virtual void UpdateMessage(const PotentialTable &pt);
 
-//    virtual bool Equals(const Clique &c);
-
 //  void PrintPotentials() const;
 //  void PrintRelatedVars() const;
 
  protected:
 //  Clique(const Clique&) = default;
-//    /************************* use factor ******************************/
-//  void SumOutExternalVars(Factor &f, Timer *timer);
-//  void Distribute(Factor &f, Timer *timer);
-//    /************************* use factor ******************************/
 
     void PreInitializePotentials();
 
-//    void SumOutExternalVars(PotentialTable &pt);
 //    void Distribute2(PotentialTable &pt, Timer *timer);
 };
 

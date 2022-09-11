@@ -1,11 +1,5 @@
 #include "JunctionTree.h"
 
-//JunctionTree::JunctionTree(Network *net)
-//  : JunctionTree(net, "min-nei") {}
-//
-//JunctionTree::JunctionTree(Network *net, string elim_ord_strategy)
-//  : JunctionTree(net, elim_ord_strategy, vector<int>()) {}
-
 /**
  * the optimized constructor; the original implementation is removed
  * because we optimize triangulation, some parameters, thus some functions, are unnecessary,
@@ -155,48 +149,6 @@ void JunctionTree::Moralize(int **direc_adjac_matrix, int &num_nodes) {
     }
 }
 
-///**
-// * @brief: construct a map for ease of look up the clique
-// */
-//void JunctionTree::GenMapElimVarToClique() { //checked
-//  for (const auto &c : set_clique_ptr_container) {
-//    map_elim_var_to_clique[c->elimination_variable_index] = c;
-//  }
-//}
-
-///**
-// * @brief: Generate the elimination order by the number of neighbours.
-// * The node with the minimum number of neighbours is eliminated first.
-// */
-//vector<int> JunctionTree::MinNeighbourElimOrd(int **adjac_matrix, int &num_nodes) { //checked
-//    vector< pair<int,int> > to_be_sorted;
-//
-//    // get the number of neighbors for each node
-//    for (int i = 0; i < num_nodes; ++i) { // for each node
-//        pair<int,int> p; // key: node id; value: number of neighbors
-//        p.first = i;
-//        p.second = 0;
-//        for (int j = 0; j < num_nodes; ++j) {
-//            if (adjac_matrix[i][j]==1) { // j is i's neighbor
-//                ++p.second;
-//            }
-//        }
-//        to_be_sorted.push_back(p);
-//    }
-//
-//    // sort by the number of neighbors from smallest to largest
-//    sort(to_be_sorted.begin(), to_be_sorted.end(), [](pair<int,int> a, pair<int,int> b){return a.second < b.second;});  // Using lambda expression.
-//    vector< pair<int,int> > &sorted = to_be_sorted;
-//
-//    vector<int> result;
-//    result.reserve(sorted.size());
-//    for (auto &p : sorted) {
-//        result.push_back(p.first);
-//    }
-//    return result;
-//}
-
-
 /**
  * @brief: triangulation -> induced graph
  * definition: no loops of length > 3 without a "bridge"/"chord"
@@ -303,58 +255,6 @@ void JunctionTree::Triangulate(Network *net, int **adjac_matrix, vector<bool> &h
 
     Triangulate(net, adjac_matrix, has_processed);
 }
-
-///**
-// * @brief: the Junction Tree here looks like a linked list.
-// * This is used for continuous variables, based on a tutorial or some unpublished work.
-// */
-//void JunctionTree::FormListShapeJunctionTree(set<Clique*> &cliques) { //checked
-//  //TODO: double-check correctness (continuous)
-//  // This method is described in
-//  // [Local Propagation in Conditional Gaussian Bayesian Networks (Cowell, 2005)]
-//  // section 3.2.
-//  // The last sentence.
-//
-//  // todo: test correctness
-//  for (int i=0; i<elimination_ordering.size()-1; ++i) {
-//    Clique *this_clq = map_elim_var_to_clique[elimination_ordering.at(i)];
-//    Clique *next_clq = nullptr;
-//    for (int j=i+1; j<elimination_ordering.size(); ++j) {
-//      if (this_clq->table.related_variables.find(elimination_ordering.at(j))!=this_clq->table.related_variables.end()) {
-//        next_clq = map_elim_var_to_clique[elimination_ordering.at(j)];
-//        break;
-//      }
-//    }
-//    set<int> common_related_variables;
-//    set_intersection(this_clq->table.related_variables.begin(),this_clq->table.related_variables.end(),
-//                     next_clq->table.related_variables.begin(),next_clq->table.related_variables.end(),
-//                     std::inserter(common_related_variables,common_related_variables.begin()));
-//
-//    // If they have no common variables, then they will not be connected by separator.
-//    if (common_related_variables.empty()) {continue;}
-//
-//    set<Node*> common_related_node_ptrs;
-//    for (auto &v : common_related_variables) {
-//      common_related_node_ptrs.insert(network->FindNodePtrByIndex(v));
-//    }
-//
-//    Separator *sep = new Separator(common_related_node_ptrs);
-//
-//    // Let separator know the two cliques that it connects to.
-//    sep->set_neighbours_ptr.insert(this_clq);
-//    sep->set_neighbours_ptr.insert(next_clq);
-//
-//    set_separator_ptr_container.insert(sep);
-//  }
-//
-//  // Now let the cliques to know the separators that they connect to.
-//  for (auto &sep_ptr : set_separator_ptr_container) {
-//    auto iter = sep_ptr->set_neighbours_ptr.begin();
-//    Clique *clq1 = *iter, *clq2 = *(++iter);
-//    clq1->set_neighbours_ptr.insert(sep_ptr);
-//    clq2->set_neighbours_ptr.insert(sep_ptr);
-//  }
-//}
 
 int JunctionTree::GetIndexByCliquePtr(Clique* clq) {
     for (int i = 0; i < vector_clique_ptr_container.size(); ++i) {
@@ -554,47 +454,21 @@ void JunctionTree::NumberTheCliquesAndSeparators() {//checked
  * the potentials of continuous and discrete cliques are computed differently
  */
 void JunctionTree::AssignPotentials() { //checked
-  // todo: test the correctness of the continuous part (discrete part works correctly)
 
-  // For purely discrete cliques, the potentials have been initialized to 1 on creation,
-  // so we need to assign the probabilities of the network nodes to these cliques.
-  // For continuous cliques, the lp_potentials and post_bags are set to empty list,
-  // so we need to assign the CG regressions to these cliques. The method is described in
-  // [Local Propagation in Conditional Gaussian Bayesian Networks (Cowell, 2005)], section 5.2.
-
-  // 1, extract the information of nodes.
-  // generate all the factors of the network, which are the probabilities of discrete nodes given their parents
-  // Extract the CG regressions of continuous nodes.
-//    /************************* use factor ******************************/
-//  vector<Factor> factors; // Can not use std::set, because Factor does not have definition on operator "<".
-//    /************************* use factor ******************************/
-//  vector<CGRegression> cgrs;
-    /************************* use potential table ******************************/
   vector<PotentialTable> potential_tables;
-    /************************* use potential table ******************************/
 
   for (auto &id_node_ptr : network->map_idx_node_ptr) { // for each node of the network
     auto node_ptr = id_node_ptr.second;
     if (node_ptr->is_discrete) {
       // add the factor that consists of this node and its parents
-//        /************************* use factor ******************************/
-//        factors.push_back(Factor(dynamic_cast<DiscreteNode*>(node_ptr), this->network)); // each node has one factor
-//        /************************* use factor ******************************/
-
-        /************************* use potential table ******************************/
         potential_tables.push_back(PotentialTable(dynamic_cast<DiscreteNode*>(node_ptr), this->network));
-        /************************* use potential table ******************************/
     }
-//    else {  // If the node is continuous.
-//      cgrs.push_back(CGRegression(node_ptr, network->GetParentPtrsOfNode(node_ptr->GetNodeIndex())));
-//    }
   }
 
   // 2, (part of) BP algorithm
   //    2.1 assign each factors and CG regressions to a clique
   //    each factor and CG regression should be use only once
 
-    /************************* use potential table ******************************/
     // For potentials from discrete nodes, they should be assigned to purely discrete cliques.
     for (auto &pt : potential_tables) { // for each potential table of the network
         for (auto &clique_ptr : vector_clique_ptr_container) { // for each clique of the graph
@@ -622,32 +496,6 @@ void JunctionTree::AssignPotentials() { //checked
             }
         }
     }
-    /************************* use potential table ******************************/
-//  for (auto &cgr : cgrs) {
-//    for (auto &clique_ptr : set_clique_ptr_container) {
-//
-//      if (clique_ptr->pure_discrete) { continue; }
-//
-//      set<int> cgr_related_vars = cgr.set_all_tail_index;
-//      cgr_related_vars.insert(cgr.head_var_index);
-//      set<int> diff;
-//      set_difference(cgr_related_vars.begin(), cgr_related_vars.end(),
-//                     clique_ptr->table.related_variables.begin(), clique_ptr->table.related_variables.end(),
-//                     inserter(diff, diff.begin()));
-//      // If diff.empty(), that means that the set of related variables of the clique is a superset of the CG regression's.
-//      if (diff.empty()) {
-//        if (clique_ptr->elimination_variable_index == cgr.head_var_index) {
-//          clique_ptr->lp_potential.push_back(cgr);
-//        } else {
-//          clique_ptr->post_bag.push_back(cgr);
-//        }
-//        break;  // Ensure that each CG regression is used only once.
-//      }
-//      // todo: fix it
-//      //   There is a problem when the discrete variables of cgr and clique_ptr is not the same.
-//      //   I don't know what will happen.
-//    }
-//  }
 }
 
 /**

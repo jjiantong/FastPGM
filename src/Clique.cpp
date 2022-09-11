@@ -3,11 +3,9 @@
 Clique::Clique() {
   is_separator = false;
   clique_id = -1;
-//  elimination_variable_index = -1;
   clique_size = -1;
   pure_discrete = true;
   ptr_upstream_clique = nullptr;
-  activeflag = false;
 }
 
 /*!
@@ -24,31 +22,6 @@ Clique::Clique(set<int> set_node_index, Network *net) : clique_variables(set_nod
     clique_size = set_node_index.size();
     pure_discrete = true;
 
-//    /************************* use factor ******************************/
-//  // set_of_sets: set< set< pair<int, int> > >:
-//  //    one set is all possible values of one node(variable),
-//  //    set of sets is all possible values of all nodes.
-//  // c: set< pair<int, int> >
-//  set<DiscreteConfig> set_of_sets;
-//  clique_variables = set_node_index;
-//  for (auto &n : set_node_index) { // for each node
-//      Node *node_ptr = net->FindNodePtrByIndex(n);
-//      auto dn = dynamic_cast<DiscreteNode*>(node_ptr);
-//      DiscreteConfig c; // multiple groups: [node id, all possible values of this node]
-//      for (int i = 0; i < dn->GetDomainSize(); ++i) {
-//        c.insert(pair<int, int>(n, dn->vec_potential_vals.at(i)));
-//      set_of_sets.insert(c);
-//    }
-//  }
-//
-//    table.related_variables = set_node_index;
-//    table.set_disc_configs = GenAllCombinationsFromSets(&set_of_sets);
-//    PreInitializePotentials();
-//    /************************* use factor ******************************/
-
-    /************************* use potential table ******************************/
-//    clique_variables = set_node_index;
-
     /**
      * potential table
      * an object of class PotentialTable is a class variable of class Clique ("p_table")
@@ -58,7 +31,6 @@ Clique::Clique(set<int> set_node_index, Network *net) : clique_variables(set_nod
      * TODO: maybe consider to use a pointer instead of an object?
      */
     p_table.ConstructEmptyPotentialTable(set_node_index, net);
-    /************************* use potential table ******************************/
 
     ptr_upstream_clique = nullptr;
 }
@@ -76,70 +48,6 @@ void Clique::PreInitializePotentials() {
     // Initialize lp_potential and post_bag to be empty. That is, do NOTHING.
   }
 }
-
-///**
-// * @brief: copy the clique by ignoring the pointer members
-// */
-//Clique* Clique::CopyWithoutPtr() {
-//  auto c = new Clique(*this);
-//  c->set_neighbours_ptr.clear();
-//  c->ptr_upstream_clique = nullptr;
-//  return c;
-//}
-
-
-///************************* use factor ******************************/
-///*!
-// * @brief: a step of msg passing
-// * msg passes from downstream to upstream
-// * first collect the msgs from its downstream neighbors;
-// * then update the msg by multiplying its initial potential with all msgs received from its downstream neighbors
-// * (initial potential of a cluster/node is constructed via the product of factors that assigned to it)
-// * @return a msg, which is a factor
-// */
-//void Clique::Collect(Timer *timer) {
-//
-//  for (auto &ptr_separator : set_neighbours_ptr) {
-//
-//    /** when it reaches a leaf, the only neighbour is the upstream,
-//     * which can be viewed as the base case of recursive function.
-//     */
-//    // all neighbor cliques contain the upstream clique and downstream clique(s)
-//    // if the current neighbor "ptr_separator" is the upstream clique, not collect from it
-//    // otherwise, collect the msg from "ptr_separator" and update the msg
-//    if (ptr_separator == ptr_upstream_clique) {
-//      continue;
-//    }
-//
-//    // the current neighbor "ptr_separator" is a downstream clique
-//    ptr_separator->ptr_upstream_clique = this;  // Let the callee know the caller.
-//
-////    /** This is for continuous nodes TODO: double-check
-////     * If the next clique connected by this separator is a continuous clique,
-////     * then the program should not collect from it. All information needed from
-////     * the continuous clique has been pushed to the boundary when entering the evidence.
-////     */
-////    bool reach_boundary = false;
-////    for (const auto &next_clq_ptr : ptr_separator->set_neighbours_ptr) {
-////        reach_boundary = (next_clq_ptr->ptr_upstream_clique!=ptr_separator && !next_clq_ptr->pure_discrete);
-////    }
-////    if (reach_boundary) { continue; }
-//
-//    // collect the msg f from downstream
-//      ptr_separator->Collect(timer);
-//      Factor f = ptr_separator->table;
-//    // update the msg by multiplying the current factor with f
-//    // the current factor is the initial potential, or
-//    // the product of the initial potential and factors received from other downstream neighbors
-//
-//    UpdateUseMessage(f, timer);  // Update itself.
-//  }
-//
-//  // Prepare message for the upstream.
-//  ConstructMessage(timer);
-//}
-///************************* use factor ******************************/
-
 
 /*!
  * @brief: a step of msg passing (alg1, use recursive functions)
@@ -225,50 +133,6 @@ void Clique::Collect3(vector<vector<Clique*>> &cliques, int max_level, int num_t
     }
 }
 
-///************************* use factor ******************************/
-///**
-// * Distribute the information it knows to the downstream cliques.
-// * The reload version without parameter. Called on the selected root.
-// */
-//void Clique::Distribute(Timer *timer) {
-//    ConstructMessage(timer);
-//    for (auto &sep : set_neighbours_ptr) {
-//        sep->Distribute(table, timer);
-//    }
-//}
-
-//void Clique::Distribute(Factor &f, Timer *timer) {
-//  // If the next clique connected by this separator is a continuous clique,
-//  // then the program should not distribute information to it.// TODO: double-check
-////  bool reach_boundary = false;
-////  for (const auto &next_clq_ptr : set_neighbours_ptr) {
-////    reach_boundary = !next_clq_ptr->pure_discrete;
-////  }
-////  if (reach_boundary) { return; }
-//
-//  // update the msg by multiplying the current factor with f
-//  UpdateUseMessage(f, timer);  // Update itself.
-//
-//  // Prepare message for the downstream.
-//  ConstructMessage(timer);
-//
-//  for (auto &ptr_separator : set_neighbours_ptr) {
-//
-//    // all neighbor cliques contain the upstream clique and downstream clique(s)
-//    // if the current neighbor "ptr_separator" is the upstream clique, not distribute to it
-//    // otherwise, distribute the msg to "ptr_separator"
-//    if (ptr_separator == ptr_upstream_clique) {
-//      continue;
-//    }
-//
-//    // the current neighbor "ptr_separator" is a downstream clique
-//    ptr_separator->ptr_upstream_clique = this;  // Let the callee know the caller.
-//    // distribute the msg to downstream
-//    ptr_separator->Distribute(table, timer); // Distribute to downstream.
-//  }
-//}
-///************************* use factor ******************************/
-
 /**
  * @brief: a step of msg passing in clique trees (alg1, use recursive functions)
  * distribute the information it knows to the downstream cliques; the msg passes from upstream to downstream
@@ -347,109 +211,6 @@ void Clique::Distribute3(vector<vector<Clique*>> &cliques, int max_level, int nu
         }
     }
 }
-
-///**
-// * @brief: do level traverse of the tree, add all the cliques in "cliques" by level at the same time
-// * @param cliques: storing all the cliques by level; e.g. cliques[i][j] contains one clique in level i
-// * @param max_level: total number of levels
-// * @note1: separators also included
-// * @note2: mark both "ptr_upstream_clique" and "ptr_downstream_cliques" at the same time
-// */
-//void Clique::MarkLevel(vector<vector<Clique*>> &cliques, int &max_level) {
-//    vector<Clique*> vec; // a set of cliques in one level
-//    vec.push_back(this); // push the root into vec
-//    cliques.push_back(vec); // the first level only has the root clique
-//
-//    while (!vec.empty()) {
-//        vector<Clique*> vec2;
-//        for (int i = 0; i < vec.size(); ++i) { // for each clique in the current level
-//            Clique *clique = vec[i];
-//            for (auto &ptr_separator : clique->set_neighbours_ptr) {
-//                // all neighbor cliques of "clique" contain the upstream clique and downstream clique(s)
-//                // if the current neighbor "ptr_separator" is the upstream clique, do nothing
-//                if (ptr_separator == clique->ptr_upstream_clique) {
-//                    continue;
-//                }
-//                // the current neighbor "ptr_separator" is a downstream clique of "clique"
-//                clique->ptr_downstream_cliques.push_back(ptr_separator);
-//                ptr_separator->ptr_upstream_clique = clique;  // Let the callee know the caller.
-//                vec2.push_back(ptr_separator);
-//            }
-//        }
-//        cliques.push_back(vec2);
-//        vec = vec2;
-//    }
-//
-//    cliques.pop_back();
-//    max_level = cliques.size();
-//}
-
-///************************* use factor ******************************/
-///**
-// * @brief: sum over external variables which are the results of factor multiplication.
-// */
-//void Clique::SumOutExternalVars(Factor &f, Timer *timer) {
-//    // get the variables that in "f" but not in "factor_of_this_clique"
-//    set<int> set_external_vars;
-//    set_difference(f.related_variables.begin(), f.related_variables.end(),
-//                   this->clique_variables.begin(), this->clique_variables.end(),
-//                   inserter(set_external_vars, set_external_vars.begin()));
-//
-//    // Sum over the variables that are not in the scope of this clique/separator, so as to eliminate them.
-//    for (auto &ex_vars : set_external_vars) {
-//        f = f.SumOverVar(ex_vars);
-//    }
-//}
-///************************* use factor ******************************/
-
-/**
- * @brief: sum over external variables which are the results of factor multiplication.
- */
-//void Clique::SumOutExternalVars(PotentialTable &pt) {
-//    // get the variables that in "f" but not in "factor_of_this_clique"
-//    set<int> set_external_vars;
-//    set_difference(pt.related_variables.begin(), pt.related_variables.end(),
-//                   this->clique_variables.begin(), this->clique_variables.end(),
-//                   inserter(set_external_vars, set_external_vars.begin()));
-//
-//    // Sum over the variables that are not in the scope of this clique/separator, so as to eliminate them.
-//    for (auto &ex_vars : set_external_vars) {
-//        pt.TableMarginalization(ex_vars);
-//    }
-//}
-
-///************************* use factor ******************************/
-///**
-// * @brief: multiply a clique with a factor
-// */
-//void Clique::MultiplyWithFactorSumOverExternalVars(Factor &f, Timer *timer) {
-//    // sum over the irrelevant variables of the clique todo: no need to do sum out
-//    SumOutExternalVars(f, timer);
-//
-//    // in the original implementation, "related_variables" is always all the variables in the clique,
-//    // "set_disc_configs" is always all the configurations of the variables in the clique,
-//    // so they are not required to be changed, the only thing changed is the "map_potentials".
-//    // for the current implementation, all "related_variables", "set_disc_configs" and "map_potentials" are reduced if possible,
-//    // so they all need to be changed here.
-//    // at the same time, the original implementation copy a new factor of the clique, use the copy to compute,
-//    // and then copy back the "map_potentials", which is not efficient...
-//    table = table.MultiplyWithFactor(f); // multiply two factors
-//}
-//
-//
-//void Clique::UpdateUseMessage(const Factor &f, Timer *timer) {
-//    Factor tmp_f = f;
-//    MultiplyWithFactorSumOverExternalVars(tmp_f, timer);
-//}
-//
-///**
-// * @brief: construct a factor of this clique and return
-// */
-//void Clique::ConstructMessage(Timer *timer) {
-//    // do nothing
-//    return;
-//}
-///************************* use factor ******************************/
 
 //void Clique::UpdateUseMessage2(const PotentialTable &pt) {
 //    PotentialTable tmp_pt = pt;

@@ -20,7 +20,6 @@ public:
     vector<Separator*> vector_separator_ptr_container;//all the separators in the Junction tree
 
     vector<int> elimination_ordering;
-//  map<int, Clique*> map_elim_var_to_clique; //key: main variable of a clique; value: the clique
 
     Clique *arb_root;
     vector<vector<Clique*>> nodes_by_level;
@@ -54,7 +53,6 @@ protected:
 
 //  void Triangulate(Network *net, int **adjac_matrix, vector<int> elim_ord);
     void Triangulate(Network *net, int **adjac_matrix, vector<bool> &has_processed);
-//  void FormListShapeJunctionTree(set<Clique*> &cliques);
     void FormJunctionTree();
 //  void CliqueMerging(int low, int high);
     void NumberTheCliquesAndSeparators();
@@ -68,9 +66,7 @@ protected:
     void Distribute(int num_threads, Timer *timer);
     void SeparatorLevelOperation(bool is_collect, int i, int num_threads, Timer *timer);
 
-//  static vector<int> MinNeighbourElimOrd(int **adjac_matrix, int &num_nodes);
     static void Moralize(int **direc_adjac_matrix, int &num_nodes);
-//  void GenMapElimVarToClique();
 };
 
 #endif //BAYESIANNETWORK_JUNCTIONTREE_H
