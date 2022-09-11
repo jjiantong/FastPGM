@@ -12,10 +12,6 @@
 #include <algorithm>
 #include <stack>
 
-bool CmpByValue(const pair<int, int> &left, const pair<int, int> &right) {
-    return left.second < right.second;
-}
-
 /**
  * @brief: Implementation the PC-stable (Peter & Clark) algorithm
  * PC: Chapter 6 of Spirtes, Glymour, and Scheines, "Causation, Prediction, and Search," 2nd edition,

@@ -1062,7 +1062,7 @@ string DATA_PATH = "/home/zeyiwen/jiantong/BN"; // NUS
 //    delete network;
 //    delete ref_net;
 //}
-
+//
 //TEST_F(ExperimentBNSLOnAlarm, pc_stable2) {
 //StructureLearning *bnsl = new PCStable(network, 0.05);
 //bnsl->StructLearnCompData(trainer, 1, 2, false, false);
