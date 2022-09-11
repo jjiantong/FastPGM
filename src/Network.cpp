@@ -2,7 +2,6 @@
 #pragma ide diagnostic ignored "openmp-use-default-none"
 
 #include "Network.h"
-#include "ScoreFunction.h"
 #include "DiscreteNode.h"
 #include "ContinuousNode.h"
 
@@ -467,62 +466,62 @@ bool Network::IsUndirectedFromTo(int node_idx1, int node_idx2) {
             !IsDirectedFromTo(node_idx2, node_idx1));
 }
 
-/**
- * @brief: calculate delta score when modified the arcs
- * this function is based on WEKA: calcScoreWithExtraParent(iAttribute, iAttribute2);
- * @param modification: includes "add", "delete", and "reverse".
- */
-double Network::CalcuExtraScoreWithModifiedEdge(int p_index, int c_index,
-                                               Dataset *dts,
-                                               const string &modification,
-                                               const string &score_metric) {
-  // todo: test correctness
-  Network new_net(*this); // modify on new_net rather than the original "this"
-
-  // Convert the string to lowercase
-//  transform(modification.begin(), modification.end(), modification.begin(), ::tolower);
-
-  Node *node = new_net.FindNodePtrByIndex(c_index);
-
-  // do the modification // todo: check the changes of num_edges
-  if (modification == "add") {
-    if (node->set_parent_indexes.find(p_index)!=node->set_parent_indexes.end()) {
-      return 0; // The parent already exists.
-    }
-    new_net.AddDirectedEdge(p_index, c_index);
-  }
-  else if (modification == "delete") {
-    if (node->set_parent_indexes.find(p_index)==node->set_parent_indexes.end()) {
-      return 0; // The parent does not exist.
-    }
-    new_net.DeleteDirectedEdge(p_index, c_index);
-  }
-  else if (modification == "reverse") {
-    if (node->set_parent_indexes.find(p_index)==node->set_parent_indexes.end()) {
-      return 0; // The parent does not exist.
-    }
-    new_net.ReverseDirectedEdge(p_index, c_index);
-  }
-  else {
-    fprintf(stderr, "Fucntion [%s]: Invalid modification string \"%s\"!",
-            __FUNCTION__, modification.c_str());
-    exit(1);
-  }
-
-  Node *old_c_node = this->FindNodePtrByIndex(c_index),
-       *new_c_node = new_net.FindNodePtrByIndex(c_index);
-
-  new_c_node->GenDiscParCombs(new_net.GetParentPtrsOfNode(c_index));
-
-  ScoreFunction old_sf(this, dts),
-                new_sf(&new_net, dts);
-
-  double old_score = old_sf.ScoreForNode(old_c_node, score_metric),
-         new_score = new_sf.ScoreForNode(new_c_node, score_metric);
-
-  double delta = new_score - old_score;
-  return delta;
-}
+///**
+// * @brief: calculate delta score when modified the arcs
+// * this function is based on WEKA: calcScoreWithExtraParent(iAttribute, iAttribute2);
+// * @param modification: includes "add", "delete", and "reverse".
+// */
+//double Network::CalcuExtraScoreWithModifiedEdge(int p_index, int c_index,
+//                                               Dataset *dts,
+//                                               const string &modification,
+//                                               const string &score_metric) {
+//  // todo: test correctness
+//  Network new_net(*this); // modify on new_net rather than the original "this"
+//
+//  // Convert the string to lowercase
+////  transform(modification.begin(), modification.end(), modification.begin(), ::tolower);
+//
+//  Node *node = new_net.FindNodePtrByIndex(c_index);
+//
+//  // do the modification // todo: check the changes of num_edges
+//  if (modification == "add") {
+//    if (node->set_parent_indexes.find(p_index)!=node->set_parent_indexes.end()) {
+//      return 0; // The parent already exists.
+//    }
+//    new_net.AddDirectedEdge(p_index, c_index);
+//  }
+//  else if (modification == "delete") {
+//    if (node->set_parent_indexes.find(p_index)==node->set_parent_indexes.end()) {
+//      return 0; // The parent does not exist.
+//    }
+//    new_net.DeleteDirectedEdge(p_index, c_index);
+//  }
+//  else if (modification == "reverse") {
+//    if (node->set_parent_indexes.find(p_index)==node->set_parent_indexes.end()) {
+//      return 0; // The parent does not exist.
+//    }
+//    new_net.ReverseDirectedEdge(p_index, c_index);
+//  }
+//  else {
+//    fprintf(stderr, "Fucntion [%s]: Invalid modification string \"%s\"!",
+//            __FUNCTION__, modification.c_str());
+//    exit(1);
+//  }
+//
+//  Node *old_c_node = this->FindNodePtrByIndex(c_index),
+//       *new_c_node = new_net.FindNodePtrByIndex(c_index);
+//
+//  new_c_node->GenDiscParCombs(new_net.GetParentPtrsOfNode(c_index));
+//
+//  ScoreFunction old_sf(this, dts),
+//                new_sf(&new_net, dts);
+//
+//  double old_score = old_sf.ScoreForNode(old_c_node, score_metric),
+//         new_score = new_sf.ScoreForNode(new_c_node, score_metric);
+//
+//  double delta = new_score - old_score;
+//  return delta;
+//}
 
 /**
  * @brief: set up the parent and child relationship
