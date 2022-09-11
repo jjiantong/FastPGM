@@ -8,7 +8,7 @@
 #include <queue>
 #include "gadget.h"
 #include "Node.h"
-#include "Factor.h"
+//#include "Factor.h"
 #include "Network.h"
 #include "PotentialTable.h"
 #include "Timer.h"
@@ -30,7 +30,7 @@ class Clique {
 //  set<int> related_variables; //the variables involved in this clique
 //  set<DiscreteConfig> set_disc_configs; //all the configurations of the related variables
 //  map<DiscreteConfig, double> map_potentials; //the potential of each discrete config
-    Factor table;
+//    Factor table;
     PotentialTable p_table;
 
   set<Clique*> set_neighbours_ptr; // neighbor cliques
@@ -78,8 +78,6 @@ class Clique {
 
  protected:
 //  Clique(const Clique&) = default;
-
-    void PreInitializePotentials();
 
 //    void Distribute2(PotentialTable &pt, Timer *timer);
 };

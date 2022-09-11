@@ -35,20 +35,6 @@ Clique::Clique(set<int> set_node_index, Network *net) : clique_variables(set_nod
     ptr_upstream_clique = nullptr;
 }
 
-
-/**
- * @brief: potential is similar to weight, and can be used to compute probability.
- */
-void Clique::PreInitializePotentials() {
-  if (pure_discrete) {
-    for (auto &c : table.set_disc_configs) {
-      table.map_potentials[c] = 1;  // Initialize clique potential to be 1.
-    }
-  } else {
-    // Initialize lp_potential and post_bag to be empty. That is, do NOTHING.
-  }
-}
-
 /*!
  * @brief: a step of msg passing (alg1, use recursive functions)
  * msg passes from downstream to upstream

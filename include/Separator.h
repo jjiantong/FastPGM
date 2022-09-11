@@ -15,7 +15,6 @@ class Separator : public Clique {
 
     bool is_in_jt;
 
-    Factor old_table;
     PotentialTable old_ptable;
 
   Separator();
@@ -23,10 +22,6 @@ class Separator : public Clique {
     ~Separator() {};
 
   Separator* CopyWithoutPtr();
-//    /************************* use factor ******************************/
-//  void UpdateUseMessage(const Factor &f, Timer *timer) override;
-//  void ConstructMessage(Timer *timer) override;
-//    /************************* use factor ******************************/
 
 //    void UpdateUseMessage2(const PotentialTable &pt) override;
 //    void ConstructMessage2() override;

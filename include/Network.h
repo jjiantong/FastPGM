@@ -121,12 +121,6 @@ class Network {//this class is used by both the customized networks and networks
 
   virtual vector<int> SimplifyDefaultElimOrd(DiscreteConfig evidence);
 
-  vector<Factor> ConstructFactors(const vector<int> &Z, Node *Y);
-  void LoadEvidenceIntoFactors(vector<Factor> *factors_list, DiscreteConfig E, set<int> all_related_vars);
-
-  Factor SumProductVarElim(vector<Factor> factors_list, vector<int> elim_order);
-  Factor VarElimInferReturnPossib(DiscreteConfig evid, Node *target_node, vector<int> elim_order=vector<int>{});
-
     /**
      * is used for Structural Hamming Distance (SHD)
      * we need to convert DAGs to CPDAGs before computing the SHD, including two steps:
