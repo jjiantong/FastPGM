@@ -11,7 +11,6 @@
 #include "Factor.h"
 #include "Network.h"
 #include "PotentialTable.h"
-#include "CGRegression.h"
 #include "Timer.h"
 #include "omp.h"
 
@@ -55,8 +54,8 @@ class Clique {
 //                                  // the main variable can be eliminated using its neighbours?
   //the following three variables are only used in regression problems.
   bool activeflag;
-  vector<CGRegression> lp_potential;
-  vector<CGRegression> post_bag;
+//  vector<CGRegression> lp_potential;
+//  vector<CGRegression> post_bag;
 
   Clique();
 //  Clique(set<Node*> set_node_ptrs, int elim_var_index);
