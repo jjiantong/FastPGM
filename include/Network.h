@@ -4,7 +4,6 @@
 #include "Dataset.h"
 #include "Node.h"
 #include "Edge.h"
-#include "Factor.h"
 #include "gadget.h"
 #include <string>
 #include <set>

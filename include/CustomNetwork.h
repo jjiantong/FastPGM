@@ -5,7 +5,6 @@
 #include "Network.h"
 #include "Edge.h"
 #include "DiscreteNode.h"
-#include "Factor.h"
 #include "XMLBIFParser.h"
 #include "gadget.h"
 #include <string>
