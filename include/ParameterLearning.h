@@ -7,6 +7,7 @@
 
 #include "Network.h"
 #include "Dataset.h"
+#include "DiscreteNode.h"
 
 
 class ParameterLearning {
