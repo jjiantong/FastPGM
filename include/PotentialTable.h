@@ -40,6 +40,15 @@ public:
     PotentialTable(DiscreteNode *disc_node, Network *net);
     void ConstructEmptyPotentialTable(const set<int> &set_node_index, Network *net);
 
+    /**
+     * table reduction, used in the evidence loading procedure
+     */
+    void TableReduction(int e_index, int e_value_index, int num_threads);
+    int TableReductionPre(int e_index);
+    int TableReductionMain(int i, int *full_config, int loc);
+    void TableReductionPost(int index, int value_index, int *v_index, int loc);
+
+
     void ExtensionPre(const set<int> &variables, const vector<int> &dims);
     void TableExtension(const set<int> &variables, const vector<int> &dims);
 
@@ -52,10 +61,7 @@ public:
     void TableMultiplication(PotentialTable &second_table);
     void TableDivision(const PotentialTable &second_table);
 
-    void TableReduction(int e_index, int e_value_index, int num_threads);
-    int TableReductionMain(int i, int *full_config, int loc);
-    void TableReductionPost(int index, int value_index, int *v_index,
-                            vector<double> &new_potentials, int loc);
+
 
     void Normalize();
 

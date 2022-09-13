@@ -183,6 +183,85 @@ int PotentialTable::GetVariableIndex(const int &variable) {
     return index;
 }
 
+/*!
+ * @brief: factor reduction given evidence
+ * @example:    a0 b0 c0    0.3             b0 c0    0.3
+ *              a0 b0 c1    0.7             b0 c1    0.7
+ *              a0 b1 c0    0.4     -->     b1 c0    0.4
+ *              a0 b1 c1    0.6             b1 c1    0.6
+ *              a1 b0 c0    0.1
+ *              a1 b0 c1    0.9         (if we get the evidence that a = 0,
+ *              a1 b1 c0    0.2         the line that conflict with this evidence will be removed,
+ *              a1 b1 c1    0.8         and the variable a is also removed from the table)
+ * in the example, the scope of the reduced factor becomes to be {b, c}
+ * @param e_index: the variable index of the evidence
+ * @param e_value_index: the value (index) of the evidence
+ */
+void PotentialTable::TableReduction(int e_index, int e_value_index, int num_threads) {
+    // in table reduction, we first update potentials, then consider the other things
+
+    // find the location of the evidence in the old table
+    int e_loc = this->TableReductionPre(e_index);
+
+    int *full_config = new int[this->table_size * this->num_variables];
+    int *value_index = new int[this->table_size];
+
+    omp_set_num_threads(num_threads);
+#pragma omp parallel for //schedule(dynamic, 1)
+    for (int i = 0; i < this->table_size; ++i) {
+        value_index[i] = this->TableReductionMain(i, full_config, e_loc);
+    }
+    delete[] full_config;
+
+    this->TableReductionPost(e_index, e_value_index, value_index, e_loc);
+    delete[] value_index;
+}
+
+int PotentialTable::TableReductionPre(int e_index) {
+    return this->GetVariableIndex(e_index);
+}
+
+int PotentialTable::TableReductionMain(int i, int *full_config, int loc) {
+    // 1. get the full config value of old table
+    this->GetConfigValueByTableIndex(i, full_config + i * this->num_variables);
+    // 2. get the value of the evidence variable from the new table
+    return full_config[i * this->num_variables + loc];
+}
+
+void PotentialTable::TableReductionPost(int index, int value_index, int *v_index, int loc) {
+    int new_size = this->table_size / this->var_dims[loc];
+    vector<double> new_potentials(new_size);
+
+    for (int i = 0, j = 0; i < this->table_size; ++i) {
+        // 3. whether it is consistent with the evidence
+        if (v_index[i] == value_index) {
+            new_potentials[j++] = this->potentials[i];
+        }
+    }
+    this->potentials = new_potentials;
+    this->related_variables.erase(index);
+    this->num_variables -= 1;
+
+    if (this->num_variables > 0) {
+        vector<int> dims;
+        dims.reserve(this->num_variables);
+        for (int i = 0; i < this->num_variables + 1; ++i) {
+            if (i != loc) {
+                dims.push_back(this->var_dims[i]);
+            }
+        }
+        this->var_dims = dims;
+
+        this->ConstructCumLevels();
+        // table size -- number of possible configurations
+        this->table_size = new_size;
+    } else {
+        this->var_dims = vector<int>();
+        this->cum_levels = vector<int>();
+        this->table_size = 1;
+    }
+}
+
 void PotentialTable::ExtensionPre(const set<int> &variables, const vector<int> &dims) {
     related_variables = variables;
     num_variables = variables.size();
@@ -406,83 +485,7 @@ void PotentialTable::TableDivision(const PotentialTable &second_table) {
     }
 }
 
-/*!
- * @brief: factor reduction given evidence
- * @example:    a0 b0 c0    0.3             b0 c0    0.3
- *              a0 b0 c1    0.7             b0 c1    0.7
- *              a0 b1 c0    0.4     -->     b1 c0    0.4
- *              a0 b1 c1    0.6             b1 c1    0.6
- *              a1 b0 c0    0.1
- *              a1 b0 c1    0.9         (if we get the evidence that a = 0,
- *              a1 b1 c0    0.2         the line that conflict with this evidence will be removed,
- *              a1 b1 c1    0.8         and the variable a is also removed from the table)
- * in the example, the scope of the reduced factor becomes to be {b, c}
- * @param e_index: the variable index of the evidence
- * @param e_value_index: the value (index) of the evidence
- */
-void PotentialTable::TableReduction(int e_index, int e_value_index, int num_threads) {
-    // in table reduction, we first update potentials, then consider the other things
 
-    // find the location of the evidence in the old table
-    int e_loc = this->GetVariableIndex(e_index);
-
-    int new_size = this->table_size / this->var_dims[e_loc];
-    vector<double> new_potentials(new_size);
-
-    int *full_config = new int[this->table_size * this->num_variables];
-    int *value_index = new int[this->table_size];
-
-    omp_set_num_threads(num_threads);
-#pragma omp parallel for //schedule(dynamic, 1)
-    for (int i = 0; i < this->table_size; ++i) {
-        value_index[i] = this->TableReductionMain(i, full_config, e_loc);
-    }
-    delete[] full_config;
-
-    this->TableReductionPost(e_index, e_value_index, value_index, new_potentials, e_loc);
-    delete[] value_index;
-}
-
-int PotentialTable::TableReductionMain(int i, int *full_config, int loc) {
-    // 1. get the full config value of old table
-    this->GetConfigValueByTableIndex(i, full_config + i * this->num_variables);
-    // 2. get the value of the evidence variable from the new table
-    return full_config[i * this->num_variables + loc];
-}
-
-void PotentialTable::TableReductionPost(int index, int value_index, int *v_index,
-                                        vector<double> &new_potentials, int loc) {
-    int new_size = this->table_size / this->var_dims[loc];
-
-    for (int i = 0, j = 0; i < this->table_size; ++i) {
-        // 3. whether it is consistent with the evidence
-        if (v_index[i] == value_index) {
-            new_potentials[j++] = this->potentials[i];
-        }
-    }
-    this->potentials = new_potentials;
-    this->related_variables.erase(index);
-    this->num_variables -= 1;
-
-    if (this->num_variables > 0) {
-        vector<int> dims;
-        dims.reserve(this->num_variables);
-        for (int i = 0; i < this->num_variables + 1; ++i) {
-            if (i != loc) {
-                dims.push_back(this->var_dims[i]);
-            }
-        }
-        this->var_dims = dims;
-
-        this->ConstructCumLevels();
-        // table size -- number of possible configurations
-        this->table_size = new_size;
-    } else {
-        this->var_dims = vector<int>();
-        this->cum_levels = vector<int>();
-        this->table_size = 1;
-    }
-}
 
 void PotentialTable::Normalize() {
     double denominator = 0;

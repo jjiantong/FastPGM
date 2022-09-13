@@ -144,12 +144,12 @@ void JunctionTree::LoadDiscreteEvidence(const DiscreteConfig &E, int num_threads
 //        /**
 //         * 1. nested version, without flattening
 //         */
-//        for (auto &c: vector_clique_ptr_container) {
+//        for (auto &c: tree->vector_clique_ptr_container) {
 //            if (c->p_table.related_variables.find(index) != c->p_table.related_variables.end()) {
 //                c->p_table.TableReduction(index, value_index, num_threads);
 //            }
 //        }
-//        for (auto &c: vector_separator_ptr_container) {
+//        for (auto &c: tree->vector_separator_ptr_container) {
 //            if (c->p_table.related_variables.find(index) != c->p_table.related_variables.end()) {
 //                c->p_table.TableReduction(index, value_index, num_threads);
 //            }
@@ -206,10 +206,10 @@ void JunctionTree::LoadEvidenceToNodes(vector<Clique*> &vector_reduced_node_ptr,
 #pragma omp parallel for
     for (int k = 0; k < red_size; ++k) {
         auto clique_ptr = vector_reduced_node_ptr[k];
-
-        e_loc[k] = clique_ptr->p_table.GetVariableIndex(index);
         full_config[k] = new int[clique_ptr->p_table.table_size * clique_ptr->p_table.num_variables];
         v_index[k] = new int[clique_ptr->p_table.table_size];
+
+        e_loc[k] = clique_ptr->p_table.TableReductionPre(index);
     }
 
     timer->Stop("pre-evi");
@@ -241,11 +241,7 @@ void JunctionTree::LoadEvidenceToNodes(vector<Clique*> &vector_reduced_node_ptr,
 #pragma omp parallel for
     for (int k = 0; k < red_size; ++k) {
         auto clique_ptr = vector_reduced_node_ptr[k];
-
-        int new_size = clique_ptr->p_table.table_size / clique_ptr->p_table.var_dims[e_loc[k]];
-        vector<double> new_potentials;
-        new_potentials.resize(new_size);
-        clique_ptr->p_table.TableReductionPost(index, value_index, v_index[k], new_potentials, e_loc[k]);
+        clique_ptr->p_table.TableReductionPost(index, value_index, v_index[k], e_loc[k]);
 
         delete[] full_config[k];
         delete[] v_index[k];
