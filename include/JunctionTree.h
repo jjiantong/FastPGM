@@ -19,8 +19,9 @@ class JunctionTree: public Inference {
     //==================================================
 public:
     Network *network;//the learned network which can be used for inference
-
     JunctionTreeStructure *tree;
+    Clique *arb_root;
+
     vector<vector<Clique*>> nodes_by_level;
     vector<vector<Separator*>> separators_by_level;
     int max_level;

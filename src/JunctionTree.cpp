@@ -9,6 +9,11 @@ JunctionTree::JunctionTree(Network *net) : network(net) {
 
     tree = new JunctionTreeStructure(net);
 
+    // Arbitrarily select a clique as the root.
+    // TODO: find a better root that generate a more balanced tree structure
+    auto iter = tree->vector_clique_ptr_container.begin();
+    arb_root = *iter;
+
     MarkLevel();
     cout << "finish MarkLevel" << endl;
 
@@ -37,7 +42,7 @@ JunctionTree::~JunctionTree() {
  */
 void JunctionTree::MarkLevel() {
     vector<Clique*> vec; // a set of cliques/seps in one level
-    vec.push_back(tree->arb_root); // push the root into vec
+    vec.push_back(arb_root); // push the root into vec
     nodes_by_level.push_back(vec); // the first level only has the root clique
 
     while (!vec.empty()) {

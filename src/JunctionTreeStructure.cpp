@@ -48,11 +48,6 @@ JunctionTreeStructure::JunctionTreeStructure(Network *net) : network(net) {
     int max_size = 0;
     float mean_size = GetAveAndMaxCliqueSize(max_size);
     cout << "finish GetAveAndMaxCliqueSize, ave clique size = " << mean_size << ", max size = " << max_size << endl;
-
-    // Arbitrarily select a clique as the root.
-    // TODO: find a better root that generate a more balanced tree structure
-    auto iter = vector_clique_ptr_container.begin();
-    arb_root = *iter;
 }
 
 JunctionTreeStructure::~JunctionTreeStructure() {

@@ -19,8 +19,6 @@ public:
     vector<Clique*> vector_clique_ptr_container;//store all the cliques in this Junction Tree
     vector<Separator*> vector_separator_ptr_container;//all the separators in the Junction tree
 
-    Clique *arb_root;
-
     JunctionTreeStructure() = default;
     JunctionTreeStructure(Network *net);
     ~JunctionTreeStructure();
