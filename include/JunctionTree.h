@@ -8,20 +8,19 @@
 #include "Separator.h"
 #include "Network.h"
 #include "Inference.h"
+#include "JunctionTreeStructure.h"
 
 /**
- * @brief: this class is for exact inference. The other two methods include brute force and variable elimination.
+ * @brief: this class is for exact inference algorithm junction tree algorithm (JT).
+ * JT first convert the BN into a junction tree structure,
+ * then performs message passing along the junction tree.
  */
 class JunctionTree: public Inference {
     //==================================================
 public:
     Network *network;//the learned network which can be used for inference
-    vector<Clique*> vector_clique_ptr_container;//store all the cliques in this Junction Tree
-    vector<Separator*> vector_separator_ptr_container;//all the separators in the Junction tree
 
-    vector<int> elimination_ordering;
-
-    Clique *arb_root;
+    JunctionTreeStructure *tree;
     vector<vector<Clique*>> nodes_by_level;
     vector<vector<Separator*>> separators_by_level;
     int max_level;
@@ -42,22 +41,11 @@ public:
     int PredictUseJTInfer(const DiscreteConfig &E, int Y_index, int num_threads, Timer *timer);
     vector<int> PredictUseJTInfer(const vector<DiscreteConfig> &evidences, int target_node_idx, int num_threads, Timer *timer);
 
-    int GetIndexByCliquePtr(Clique* clq);
-
     //==================================================
 protected:
     Clique* clique_backup; // use an array to backup cliques
     Separator* separator_backup; // use an array to backup separators
-//  map<Clique*,Clique> map_cliques_backup;
-//  map<Separator*,Separator> map_separators_backup;
 
-//  void Triangulate(Network *net, int **adjac_matrix, vector<int> elim_ord);
-    void Triangulate(Network *net, int **adjac_matrix, vector<bool> &has_processed);
-    void FormJunctionTree();
-//  void CliqueMerging(int low, int high);
-    void NumberTheCliquesAndSeparators();
-    void AssignPotentials();
-    float GetAveAndMaxCliqueSize(int &max_size);
     void MarkLevel();
     void BackUpJunctionTree();
 
@@ -65,8 +53,6 @@ protected:
     void Collect(int num_threads, Timer *timer);
     void Distribute(int num_threads, Timer *timer);
     void SeparatorLevelOperation(bool is_collect, int i, int num_threads, Timer *timer);
-
-    static void Moralize(int **direc_adjac_matrix, int &num_nodes);
 };
 
 #endif //BAYESIANNETWORK_JUNCTIONTREE_H
