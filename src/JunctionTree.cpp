@@ -306,6 +306,11 @@ void JunctionTree::MessagePassingUpdateJT(int num_threads, Timer *timer) {
  * operations for separators, including marginalization and division
  * @param is_collect  true for upstream passing, false for downstream passing
  * @param i  corresponds to level
+ *
+ * the only difference between collection and distribution is:
+ *      collection finds each separator and its child, marginalizes from child to it
+ *      distribution finds each separator and its parent, marginalizes from parent to it
+ * this difference affects three for loops
  */
 void JunctionTree::SeparatorLevelOperation(bool is_collect, int i, int num_threads, Timer *timer) {
     int size = separators_by_level[i/2].size();
@@ -327,12 +332,6 @@ void JunctionTree::SeparatorLevelOperation(bool is_collect, int i, int num_threa
     int **partial_config = new int*[size];
     int **table_index = new int*[size];
 
-    /**
-     * the only difference between collection and distribution is:
-     *      collection finds each separator and its child, marginalizes from child to it
-     *      distribution finds each separator and its parent, marginalizes from parent to it
-     * this difference affects three for loops
-     */
     timer->Start("pre-up-sep");
     for (int j = 0; j < size; ++j) {
         Separator *separator = separators_by_level[i/2][j];
@@ -442,6 +441,208 @@ void JunctionTree::SeparatorLevelOperation(bool is_collect, int i, int num_threa
     timer->Stop("post-sep-del");
 }
 
+/**
+ * operations for cliques, including extension and multiplication
+ * the multiplication is conducted on a clique and a separator,
+ * so the separator may be extended, but the clique is never extended. (!!!)
+ * the difference between collection and distribution:
+ *      distribution finds each clique and its parent, extends the parent, then multiplies them
+ *      collection finds each clique and its k-th child, extends the child, then multiplies them
+ * @param is_collect true for upstream passing, false for downstream passing
+ * @param i corresponds to level
+ * @param size number of clique-separator pairs to be processed
+ * @param has_kth_child an array containing all cliques in the current level that has the k-th child; only used for collection
+ * @param k we need "k"-th child; only used for collection
+ */
+void JunctionTree::CliqueLevelOperation(bool is_collect, int i, int size,
+                                        const vector<int> &has_kth_child, int k,
+                                        int num_threads, Timer *timer) {
+    timer->Start("pre-down-clq");
+
+    vector<PotentialTable> tmp_pt;
+    tmp_pt.reserve(2 * size);
+
+    vector<PotentialTable> multi_pt;
+    multi_pt.resize(size);
+
+    // store number_variables and cum_levels of the original table
+    // rather than storing the whole potential table
+    int *nv_old = new int[2 * size];
+    vector<vector<int>> cl_old;
+    cl_old.reserve(2 * size);
+
+    int *cum_sum = new int[2 * size];
+    int final_sum = 0;
+    int sum_index = 0;
+
+    // not all tables need to do the extension
+    // there are "2 * size" tables in total
+    // use a vector to show which tables need to do the extension
+    vector<int> vector_extension;
+    vector_extension.reserve(size);
+
+    // set of arrays, showing the locations of the variables of the new table in the old table
+    int **loc_in_new = new int*[2 * size];
+    int **full_config = new int*[2 * size];
+    int **partial_config = new int*[2 * size];
+    int **table_index = new int*[2 * size];
+
+    /**
+     * pre computing
+     */
+    for (int j = 0; j < size; ++j) { // for each clique in this level
+        Clique *clique, *separator;
+        if (is_collect) {
+            clique = nodes_by_level[i][has_kth_child[j]];
+            separator = clique->ptr_downstream_cliques[k];
+        } else {
+            clique = nodes_by_level[i][j];
+            separator = clique->ptr_upstream_clique;
+        }
+
+        multi_pt[j] = separator->p_table;
+
+        // pre processing for extension
+        set<int> all_related_variables;
+        bool to_be_extended = clique->p_table.TableMultiplicationPre(separator->p_table, all_related_variables);
+
+        /**
+         * we only need to decide whether the separator needs to be extended
+         */
+        if (to_be_extended) { // if the separator table should be extended
+            // record the index (that requires to do the extension)
+            vector_extension.push_back(j * 2 + 1);
+            nv_old[sum_index] = separator->p_table.num_variables;
+            cl_old.push_back(separator->p_table.cum_levels);
+
+            PotentialTable pt;
+            pt.ExtensionPre(all_related_variables, clique->p_table.var_dims);
+
+            // get this table's location -- it is currently the last one
+            int last = vector_extension.size() - 1;
+            // generate an array showing the locations of the variables of the new table in the old table
+            loc_in_new[last] = new int[separator->p_table.num_variables];
+            int k = 0;
+            for (auto &v: separator->p_table.related_variables) {
+                loc_in_new[last][k++] = pt.GetVariableIndex(v);
+            }
+            table_index[last] = new int[pt.table_size];
+
+            tmp_pt.push_back(pt);
+
+            // malloc in pre-, not to parallelize
+            full_config[last] = new int[pt.table_size * pt.num_variables];
+            partial_config[last] = new int[pt.table_size * separator->p_table.num_variables];
+
+            // update sum
+            cum_sum[sum_index++] = final_sum;
+            final_sum += pt.table_size;
+        }
+    }
+    timer->Stop("pre-down-clq");
+
+    timer->Start("main-down-clq");
+    int size_e = vector_extension.size(); // the number of variables to be extended
+
+    timer->Start("parallel");
+    // the main loop
+    omp_set_num_threads(num_threads);
+#pragma omp parallel for
+    for (int s = 0; s < final_sum; ++s) {
+        int j, k;
+        Compute2DIndex(j, k, s, size_e, cum_sum); // compute j and k
+        // 1. get the full config value of new table
+        tmp_pt[j].GetConfigValueByTableIndex(k, full_config[j] + k * tmp_pt[j].num_variables);
+        // 2. get the partial config value from the new table
+        for (int l = 0; l < nv_old[j]; ++l) {
+            partial_config[j][k * nv_old[j] + l] = full_config[j][k * tmp_pt[j].num_variables + loc_in_new[j][l]];
+        }
+        // 3. obtain the potential index
+        table_index[j][k] = tmp_pt[j].GetTableIndexByConfigValue(partial_config[j] + k * nv_old[j], nv_old[j], cl_old[j]);
+    }
+    timer->Stop("parallel");
+    timer->Stop("main-down-clq");
+
+    timer->Start("post-down-clq");
+    // post-computing
+    timer->Start("post-down-clq-mem");
+    int *cum_sum2 = new int[size];
+    int final_sum2 = 0;
+
+    int l = 0;
+    for (int j = 0; j < size; ++j) {
+        Clique *clique, *separator;
+        if (is_collect) {
+            clique = nodes_by_level[i][has_kth_child[j]];
+            separator = clique->ptr_downstream_cliques[k];
+        } else {
+            clique = nodes_by_level[i][j];
+            separator = clique->ptr_upstream_clique;
+        }
+
+        int m = j * 2 + 0;
+        if (l < size_e && m == vector_extension[l]) { // index k have done the extension
+            for (int k = 0; k < tmp_pt[l].table_size; ++k) {
+                // 4. potential[table_index]
+                tmp_pt[l].potentials[k] = clique->p_table.potentials[table_index[l][k]];
+            }
+            clique->p_table = tmp_pt[l];
+            l++;
+        }
+
+        m = j * 2 + 1;
+        if (l < size_e && m == vector_extension[l]) { // index j have done the extension
+            for (int k = 0; k < tmp_pt[l].table_size; ++k) {
+                // 4. potential[table_index]
+                tmp_pt[l].potentials[k] = separator->p_table.potentials[table_index[l][k]];
+            }
+            multi_pt[j] = tmp_pt[l];
+            l++;
+        }
+
+        cum_sum2[j] = final_sum2;
+        final_sum2 += multi_pt[j].table_size;
+    }
+    timer->Stop("post-down-clq-mem");
+
+    timer->Start("post-down-clq-del");
+    for (int l = 0; l < size_e; ++l) {
+        delete[] loc_in_new[l];
+        delete[] full_config[l];
+        delete[] partial_config[l];
+        delete[] table_index[l];
+    }
+
+    delete[] loc_in_new;
+    delete[] full_config;
+    delete[] partial_config;
+    delete[] table_index;
+    delete[] cum_sum;
+    delete[] nv_old;
+    timer->Stop("post-down-clq-del");
+
+    timer->Start("post-down-clq-mul");
+    timer->Start("parallel");
+    omp_set_num_threads(num_threads);
+#pragma omp parallel for
+    for (int s = 0; s < final_sum2; ++s) {
+        int j, k;
+        Compute2DIndex(j, k, s, size, cum_sum2); // compute j and k
+        if (is_collect) {
+            nodes_by_level[i][has_kth_child[j]]->p_table.potentials[k] *= multi_pt[j].potentials[k];
+        } else {
+            nodes_by_level[i][j]->p_table.potentials[k] *= multi_pt[j].potentials[k];
+        }
+
+    }
+    timer->Stop("parallel");
+
+    delete[] cum_sum2;
+    timer->Stop("post-down-clq-mul");
+
+    timer->Stop("post-down-clq");
+}
+
 void JunctionTree::Collect(int num_threads, Timer *timer) {
     for (int i = max_level - 2; i >= 0 ; --i) { // for each level
 
@@ -462,14 +663,9 @@ void JunctionTree::Collect(int num_threads, Timer *timer) {
             timer->Start("pre-up-clq");
             int size = nodes_by_level[i].size();
 
+            // get the maximum number of children for the cliques in the current level
             int max_num_children = 0;
             for (int j = 0; j < size; ++j) { // for each clique of this level
-                /**
-                 * there may be multiple children for a clique
-                 * first process the first child of each clique in this level,
-                 * then the second child of each clique (if has), ...
-                 * until all the children of all the cliques in this level have been processed
-                 */
                 auto clique = nodes_by_level[i][j];
                 // first, find the max number of children for this level
                 if (clique->ptr_downstream_cliques.size() > max_num_children) {
@@ -478,6 +674,13 @@ void JunctionTree::Collect(int num_threads, Timer *timer) {
             }
             timer->Stop("pre-up-clq");
 
+            /**
+             * there may be multiple children for a clique
+             * first process the first child of each clique in this level,
+             * then the second child of each clique (if has), ...
+             * until all the children of all the cliques in this level have been processed
+             *
+             */
             for (int k = 0; k < max_num_children; ++k) { // process the k-th child
                 timer->Start("pre-up-clq");
                 // use a vector to mark which clique(s) has the k-th children
@@ -497,270 +700,7 @@ void JunctionTree::Collect(int num_threads, Timer *timer) {
                  * now: process "process_size" cliques in parallel, each update once
                  */
                 int process_size = has_kth_child.size();
-
-                vector<PotentialTable> tmp_pt;
-                tmp_pt.reserve(2 * process_size);
-
-                vector<PotentialTable> multi_pt;
-                multi_pt.resize(process_size);
-
-                // store number_variables and cum_levels of the original table
-                // rather than storing the whole potential table
-                int *nv_old = new int[2 * process_size];
-                vector<vector<int>> cl_old;
-                cl_old.reserve(2 * process_size);
-
-                int *cum_sum = new int[2 * process_size];
-                int final_sum = 0;
-                int sum_index = 0;
-
-                // not all tables need to do the extension
-                // there are "2 * process_size" tables in total
-                // use a vector to show which tables need to do the extension
-                vector<int> vector_extension;
-                vector_extension.reserve(process_size);
-
-                // set of arrays, showing the locations of the variables of the new table in the old table
-                int **loc_in_new = new int*[2 * process_size];
-                int **full_config = new int*[2 * process_size];
-                int **partial_config = new int*[2 * process_size];
-                int **table_index = new int*[2 * process_size];
-
-                /**
-                 * pre computing
-                 */
-                for (int j = 0; j < process_size; ++j) { // for each clique (has the k-th child) in this level
-                    auto clique = nodes_by_level[i][has_kth_child[j]];
-                    auto child = clique->ptr_downstream_cliques[k];
-
-                    multi_pt[j] = child->p_table;
-
-                    // pre processing for extension
-                    set<int> all_related_variables;
-                    set<int> diff1, diff2;
-                    clique->p_table.MultiplicationPre(child->p_table, all_related_variables, diff1, diff2);
-
-                    if (diff1.empty() && diff2.empty()) { // if both table1 and table2 should not be extended
-                        // do nothing
-                    } else if (!diff1.empty() && diff2.empty()) { // if table1 should be extended and table2 not
-                        // record the index (that requires to do the extension)
-                        vector_extension.push_back(j * 2 + 0);
-                        nv_old[sum_index] = clique->p_table.num_variables;
-                        cl_old.push_back(clique->p_table.cum_levels);
-
-                        PotentialTable pt;
-                        pt.ExtensionPre(all_related_variables, child->p_table.var_dims);
-
-                        // get this table's location -- it is currently the last one
-                        int last = vector_extension.size() - 1;
-                        // generate an array showing the locations of the variables of the new table in the old table
-                        loc_in_new[last] = new int[clique->p_table.num_variables];
-                        int k = 0;
-                        for (auto &v: clique->p_table.related_variables) {
-                            loc_in_new[last][k++] = pt.GetVariableIndex(v);
-                        }
-                        table_index[last] = new int[pt.table_size];
-
-                        tmp_pt.push_back(pt);
-
-                        // malloc in pre-, not to parallelize
-                        full_config[last] = new int[pt.table_size * pt.num_variables];
-                        partial_config[last] = new int[pt.table_size * clique->p_table.num_variables];
-
-                        // update sum
-                        cum_sum[sum_index++] = final_sum;
-                        final_sum += pt.table_size;
-                    } else if (diff1.empty() && !diff2.empty()) { // if table2 should be extended and table1 not
-                        // record the index (that requires to do the extension)
-                        vector_extension.push_back(j * 2 + 1);
-                        nv_old[sum_index] = child->p_table.num_variables;
-                        cl_old.push_back(child->p_table.cum_levels);
-
-                        PotentialTable pt;
-                        pt.ExtensionPre(all_related_variables, clique->p_table.var_dims);
-
-                        // get this table's location -- it is currently the last one
-                        int last = vector_extension.size() - 1;
-                        // generate an array showing the locations of the variables of the new table in the old table
-                        loc_in_new[last] = new int[child->p_table.num_variables];
-                        int k = 0;
-                        for (auto &v: child->p_table.related_variables) {
-                            loc_in_new[last][k++] = pt.GetVariableIndex(v);
-                        }
-                        table_index[last] = new int[pt.table_size];
-
-                        tmp_pt.push_back(pt);
-
-                        // malloc in pre-, not to parallelize
-                        full_config[last] = new int[pt.table_size * pt.num_variables];
-                        partial_config[last] = new int[pt.table_size * child->p_table.num_variables];
-
-                        // update sum
-                        cum_sum[sum_index++] = final_sum;
-                        final_sum += pt.table_size;
-                    } else { // if both table1 and table2 should be extended
-                        // record the index (that requires to do the extension)
-                        vector_extension.push_back(j * 2 + 0);
-                        vector_extension.push_back(j * 2 + 1);
-                        nv_old[sum_index] = clique->p_table.num_variables;
-                        cl_old.push_back(clique->p_table.cum_levels);
-                        nv_old[sum_index + 1] = child->p_table.num_variables;
-                        cl_old.push_back(child->p_table.cum_levels);
-
-                        PotentialTable tmp_pta, tmp_ptb;
-
-                        vector<int> dims; // to save dims of the new related variables
-                        dims.reserve(all_related_variables.size());
-                        // to find the location of each new related variable
-                        for (auto &v: all_related_variables) {
-                            int loc = clique->p_table.GetVariableIndex(v);
-                            if (loc < clique->p_table.related_variables.size()) { // find it in table1
-                                dims.push_back(clique->p_table.var_dims[loc]);
-                            } else { // cannot find in table1, we need to find it in table2
-                                loc = child->p_table.GetVariableIndex(v);
-                                dims.push_back(child->p_table.var_dims[loc]);
-                            }
-                        }
-
-                        tmp_pta.ExtensionPre(all_related_variables, dims);
-                        tmp_ptb.ExtensionPre(all_related_variables, dims);
-
-                        // get this table's location -- it is currently the last one
-                        int last = vector_extension.size() - 1;
-                        // generate an array showing the locations of the variables of the new table in the old table
-                        loc_in_new[last - 1] = new int[clique->p_table.num_variables];
-                        int k = 0;
-                        for (auto &v: clique->p_table.related_variables) {
-                            loc_in_new[last][k++] = tmp_pta.GetVariableIndex(v);
-                        }
-                        table_index[last] = new int[tmp_pta.table_size];
-
-                        tmp_pt.push_back(tmp_pta);
-
-                        // malloc in pre-, not to parallelize
-                        full_config[last - 1] = new int[tmp_pta.table_size * tmp_pta.num_variables];
-                        partial_config[last] = new int[tmp_pta.table_size * clique->p_table.num_variables];
-
-                        // generate an array showing the locations of the variables of the new table in the old table
-                        loc_in_new[last] = new int[child->p_table.num_variables];
-                        k = 0;
-                        for (auto &v: child->p_table.related_variables) {
-                            loc_in_new[last][k++] = tmp_ptb.GetVariableIndex(v);
-                        }
-                        table_index[last] = new int[tmp_ptb.table_size];
-
-                        tmp_pt.push_back(tmp_ptb);
-
-                        // malloc in pre-, not to parallelize
-                        full_config[last] = new int[tmp_ptb.table_size * tmp_ptb.num_variables];
-                        partial_config[last] = new int[tmp_ptb.table_size * child->p_table.num_variables];
-
-                        // update sum
-                        cum_sum[sum_index++] = final_sum;
-                        final_sum += tmp_pta.table_size;
-                        cum_sum[sum_index++] = final_sum;
-                        final_sum += tmp_ptb.table_size;
-                    }
-                }
-                timer->Stop("pre-up-clq");
-
-                timer->Start("main-up-clq");
-                int size_e = vector_extension.size(); // the number of variables to be extended
-
-                timer->Start("parallel");
-                // the main loop
-                omp_set_num_threads(num_threads);
-#pragma omp parallel for
-                for (int s = 0; s < final_sum; ++s) {
-                    int j, k;
-                    Compute2DIndex(j, k, s, size_e, cum_sum); // compute j and k
-                    // 1. get the full config value of new table
-                    tmp_pt[j].GetConfigValueByTableIndex(k, full_config[j] + k * tmp_pt[j].num_variables);
-                    // 2. get the partial config value from the new table
-                    for (int l = 0; l < nv_old[j]; ++l) {
-                        partial_config[j][k * nv_old[j] + l] = full_config[j][k * tmp_pt[j].num_variables + loc_in_new[j][l]];
-                    }
-                    // 3. obtain the potential index
-                    table_index[j][k] = tmp_pt[j].GetTableIndexByConfigValue(partial_config[j] + k * nv_old[j], nv_old[j], cl_old[j]);
-                }
-                timer->Stop("parallel");
-                timer->Stop("main-up-clq");
-
-                timer->Start("post-up-clq");
-                // post-computing
-                int *cum_sum2 = new int[process_size];
-                int final_sum2 = 0;
-
-                int l = 0;
-                for (int j = 0; j < process_size; ++j) {
-                    auto clique = nodes_by_level[i][has_kth_child[j]];
-                    auto child = clique->ptr_downstream_cliques[k];
-
-                    int m = j * 2 + 0;
-                    if (l < size_e && m == vector_extension[l]) { // index k have done the extension
-                        delete[] loc_in_new[l];
-                        delete[] full_config[l];
-                        delete[] partial_config[l];
-
-                        for (int k = 0; k < tmp_pt[l].table_size; ++k) {
-                            // 4. potential[table_index]
-                            tmp_pt[l].potentials[k] = clique->p_table.potentials[table_index[l][k]];
-                        }
-                        delete[] table_index[l];
-
-                        clique->p_table = tmp_pt[l];
-
-                        l++;
-                    }
-
-                    m = j * 2 + 1;
-                    if (l < size_e && m == vector_extension[l]) { // index j have done the extension
-                        delete[] loc_in_new[l];
-                        delete[] full_config[l];
-                        delete[] partial_config[l];
-
-                        for (int k = 0; k < tmp_pt[l].table_size; ++k) {
-                            // 4. potential[table_index]
-                            tmp_pt[l].potentials[k] = child->p_table.potentials[table_index[l][k]];
-                        }
-                        delete[] table_index[l];
-
-                        multi_pt[j] = tmp_pt[l];
-
-                        l++;
-                    }
-
-                    cum_sum2[j] = final_sum2;
-                    final_sum2 += multi_pt[j].table_size;
-                }
-
-                delete[] loc_in_new;
-                delete[] full_config;
-                delete[] partial_config;
-                delete[] table_index;
-                delete[] cum_sum;
-                delete[] nv_old;
-
-//                for (int j = 0; j < process_size; ++j) {
-//                    for (int k = 0; k < multi_pt[j].table_size; ++k) {
-//                        nodes_by_level[i][has_kth_child[j]]->p_table.potentials[k] *= multi_pt[j].potentials[k];
-//                    }
-//                }
-
-                timer->Start("parallel");
-                omp_set_num_threads(num_threads);
-#pragma omp parallel for
-                for (int s = 0; s < final_sum2; ++s) {
-                    int j, k;
-                    Compute2DIndex(j, k, s, process_size, cum_sum2); // compute j and k
-//                    nodes_by_level[i][has_kth_child[j]]->p_table.Normalize();
-                    nodes_by_level[i][has_kth_child[j]]->p_table.potentials[k] *= multi_pt[j].potentials[k];
-                }
-                timer->Stop("parallel");
-
-                delete[] cum_sum2;
-
-                timer->Stop("post-up-clq");
+                CliqueLevelOperation(true, i, process_size, has_kth_child, k, num_threads, timer);
             }
         }
 
@@ -802,270 +742,8 @@ void JunctionTree::Distribute(int num_threads, Timer *timer) {
              * distribute msg from its parent (a separator) to it (a clique)
              * do extension + multiplication for clique levels
              */
-            timer->Start("pre-down-clq");
             int size = nodes_by_level[i].size();
-
-            vector<PotentialTable> tmp_pt;
-            tmp_pt.reserve(2 * size);
-
-            vector<PotentialTable> multi_pt;
-            multi_pt.resize(size);
-
-            // store number_variables and cum_levels of the original table
-            // rather than storing the whole potential table
-            int *nv_old = new int[2 * size];
-            vector<vector<int>> cl_old;
-            cl_old.reserve(2 * size);
-
-            int *cum_sum = new int[2 * size];
-            int final_sum = 0;
-            int sum_index = 0;
-
-            // not all tables need to do the extension
-            // there are "2 * size" tables in total
-            // use a vector to show which tables need to do the extension
-            vector<int> vector_extension;
-            vector_extension.reserve(size);
-
-            // set of arrays, showing the locations of the variables of the new table in the old table
-            int **loc_in_new = new int*[2 * size];
-            int **full_config = new int*[2 * size];
-            int **partial_config = new int*[2 * size];
-            int **table_index = new int*[2 * size];
-
-            /**
-             * pre computing
-             */
-            for (int j = 0; j < size; ++j) { // for each clique in this level
-                auto clique = nodes_by_level[i][j];
-                auto par = clique->ptr_upstream_clique;
-
-                multi_pt[j] = par->p_table;
-
-                // pre processing for extension
-                set<int> all_related_variables;
-                set<int> diff1, diff2;
-                clique->p_table.MultiplicationPre(par->p_table, all_related_variables, diff1, diff2);
-
-                if (diff1.empty() && diff2.empty()) { // if both table1 and table2 should not be extended
-                    // do nothing
-                } else if (!diff1.empty() && diff2.empty()) { // if table1 should be extended and table2 not
-                    // record the index (that requires to do the extension)
-                    vector_extension.push_back(j * 2 + 0);
-                    nv_old[sum_index] = clique->p_table.num_variables;
-                    cl_old.push_back(clique->p_table.cum_levels);
-
-                    PotentialTable pt;
-                    pt.ExtensionPre(all_related_variables, par->p_table.var_dims);
-
-                    // get this table's location -- it is currently the last one
-                    int last = vector_extension.size() - 1;
-                    // generate an array showing the locations of the variables of the new table in the old table
-                    loc_in_new[last] = new int[clique->p_table.num_variables];
-                    int k = 0;
-                    for (auto &v: clique->p_table.related_variables) {
-                        loc_in_new[last][k++] = pt.GetVariableIndex(v);
-                    }
-                    table_index[last] = new int[pt.table_size];
-
-                    tmp_pt.push_back(pt);
-
-                    // malloc in pre-, not to parallelize
-                    full_config[last] = new int[pt.table_size * pt.num_variables];
-                    partial_config[last] = new int[pt.table_size * clique->p_table.num_variables];
-
-                    // update sum
-                    cum_sum[sum_index++] = final_sum;
-                    final_sum += pt.table_size;
-                } else if (diff1.empty() && !diff2.empty()) { // if table2 should be extended and table1 not
-                    // record the index (that requires to do the extension)
-                    vector_extension.push_back(j * 2 + 1);
-                    nv_old[sum_index] = par->p_table.num_variables;
-                    cl_old.push_back(par->p_table.cum_levels);
-
-                    PotentialTable pt;
-                    pt.ExtensionPre(all_related_variables, clique->p_table.var_dims);
-
-                    // get this table's location -- it is currently the last one
-                    int last = vector_extension.size() - 1;
-                    // generate an array showing the locations of the variables of the new table in the old table
-                    loc_in_new[last] = new int[par->p_table.num_variables];
-                    int k = 0;
-                    for (auto &v: par->p_table.related_variables) {
-                        loc_in_new[last][k++] = pt.GetVariableIndex(v);
-                    }
-                    table_index[last] = new int[pt.table_size];
-
-                    tmp_pt.push_back(pt);
-
-                    // malloc in pre-, not to parallelize
-                    full_config[last] = new int[pt.table_size * pt.num_variables];
-                    partial_config[last] = new int[pt.table_size * par->p_table.num_variables];
-
-                    // update sum
-                    cum_sum[sum_index++] = final_sum;
-                    final_sum += pt.table_size;
-                } else { // if both table1 and table2 should be extended
-                    // record the index (that requires to do the extension)
-                    vector_extension.push_back(j * 2 + 0);
-                    vector_extension.push_back(j * 2 + 1);
-                    nv_old[sum_index] = clique->p_table.num_variables;
-                    cl_old.push_back(clique->p_table.cum_levels);
-                    nv_old[sum_index + 1] = par->p_table.num_variables;
-                    cl_old.push_back(par->p_table.cum_levels);
-
-                    PotentialTable tmp_pta, tmp_ptb;
-
-                    vector<int> dims; // to save dims of the new related variables
-                    dims.reserve(all_related_variables.size());
-                    // to find the location of each new related variable
-                    for (auto &v: all_related_variables) {
-                        int loc = clique->p_table.GetVariableIndex(v);
-                        if (loc < clique->p_table.related_variables.size()) { // find it in table1
-                            dims.push_back(clique->p_table.var_dims[loc]);
-                        } else { // cannot find in table1, we need to find it in table2
-                            loc = par->p_table.GetVariableIndex(v);
-                            dims.push_back(par->p_table.var_dims[loc]);
-                        }
-                    }
-
-                    tmp_pta.ExtensionPre(all_related_variables, dims);
-                    tmp_ptb.ExtensionPre(all_related_variables, dims);
-
-                    // get this table's location -- it is currently the last one
-                    int last = vector_extension.size() - 1;
-                    // generate an array showing the locations of the variables of the new table in the old table
-                    loc_in_new[last - 1] = new int[clique->p_table.num_variables];
-                    int k = 0;
-                    for (auto &v: clique->p_table.related_variables) {
-                        loc_in_new[last][k++] = tmp_pta.GetVariableIndex(v);
-                    }
-                    table_index[last] = new int[tmp_pta.table_size];
-
-                    tmp_pt.push_back(tmp_pta);
-
-                    // malloc in pre-, not to parallelize
-                    full_config[last - 1] = new int[tmp_pta.table_size * tmp_pta.num_variables];
-                    partial_config[last] = new int[tmp_pta.table_size * clique->p_table.num_variables];
-
-                    // generate an array showing the locations of the variables of the new table in the old table
-                    loc_in_new[last] = new int[par->p_table.num_variables];
-                    k = 0;
-                    for (auto &v: par->p_table.related_variables) {
-                        loc_in_new[last][k++] = tmp_ptb.GetVariableIndex(v);
-                    }
-                    table_index[last] = new int[tmp_ptb.table_size];
-
-                    tmp_pt.push_back(tmp_ptb);
-
-                    // malloc in pre-, not to parallelize
-                    full_config[last] = new int[tmp_ptb.table_size * tmp_ptb.num_variables];
-                    partial_config[last] = new int[tmp_ptb.table_size * par->p_table.num_variables];
-
-                    // update sum
-                    cum_sum[sum_index++] = final_sum;
-                    final_sum += tmp_pta.table_size;
-                    cum_sum[sum_index++] = final_sum;
-                    final_sum += tmp_ptb.table_size;
-                }
-            }
-            timer->Stop("pre-down-clq");
-
-            timer->Start("main-down-clq");
-            int size_e = vector_extension.size(); // the number of variables to be extended
-
-            timer->Start("parallel");
-            // the main loop
-            omp_set_num_threads(num_threads);
-#pragma omp parallel for
-            for (int s = 0; s < final_sum; ++s) {
-                int j, k;
-                Compute2DIndex(j, k, s, size_e, cum_sum); // compute j and k
-                // 1. get the full config value of new table
-                tmp_pt[j].GetConfigValueByTableIndex(k, full_config[j] + k * tmp_pt[j].num_variables);
-                // 2. get the partial config value from the new table
-                for (int l = 0; l < nv_old[j]; ++l) {
-                    partial_config[j][k * nv_old[j] + l] = full_config[j][k * tmp_pt[j].num_variables + loc_in_new[j][l]];
-                }
-                // 3. obtain the potential index
-                table_index[j][k] = tmp_pt[j].GetTableIndexByConfigValue(partial_config[j] + k * nv_old[j], nv_old[j], cl_old[j]);
-            }
-            timer->Stop("parallel");
-            timer->Stop("main-down-clq");
-
-            timer->Start("post-down-clq");
-            // post-computing
-            timer->Start("post-down-clq-mem");
-            int *cum_sum2 = new int[size];
-            int final_sum2 = 0;
-
-            int l = 0;
-            for (int j = 0; j < size; ++j) {
-                auto clique = nodes_by_level[i][j];
-                auto par = clique->ptr_upstream_clique;
-
-                int m = j * 2 + 0;
-                if (l < size_e && m == vector_extension[l]) { // index k have done the extension
-                    for (int k = 0; k < tmp_pt[l].table_size; ++k) {
-                        // 4. potential[table_index]
-                        tmp_pt[l].potentials[k] = clique->p_table.potentials[table_index[l][k]];
-                    }
-                    clique->p_table = tmp_pt[l];
-                    l++;
-                }
-
-                m = j * 2 + 1;
-                if (l < size_e && m == vector_extension[l]) { // index j have done the extension
-                    for (int k = 0; k < tmp_pt[l].table_size; ++k) {
-                        // 4. potential[table_index]
-                        tmp_pt[l].potentials[k] = par->p_table.potentials[table_index[l][k]];
-                    }
-                    multi_pt[j] = tmp_pt[l];
-                    l++;
-                }
-
-                cum_sum2[j] = final_sum2;
-                final_sum2 += multi_pt[j].table_size;
-            }
-            timer->Stop("post-down-clq-mem");
-
-            timer->Start("post-down-clq-del");
-            for (int l = 0; l < size_e; ++l) {
-                delete[] loc_in_new[l];
-                delete[] full_config[l];
-                delete[] partial_config[l];
-                delete[] table_index[l];
-            }
-
-            delete[] loc_in_new;
-            delete[] full_config;
-            delete[] partial_config;
-            delete[] table_index;
-            delete[] cum_sum;
-            delete[] nv_old;
-            timer->Stop("post-down-clq-del");
-
-            timer->Start("post-down-clq-mul");
-            timer->Start("parallel");
-            omp_set_num_threads(num_threads);
-#pragma omp parallel for
-            for (int s = 0; s < final_sum2; ++s) {
-                int j, k;
-                Compute2DIndex(j, k, s, size, cum_sum2); // compute j and k
-                nodes_by_level[i][j]->p_table.potentials[k] *= multi_pt[j].potentials[k];
-            }
-            timer->Stop("parallel");
-
-            delete[] cum_sum2;
-
-//            for (int j = 0; j < size; ++j) {
-//                for (int k = 0; k < multi_pt[j].table_size; ++k) {
-//                    nodes_by_level[i][j]->p_table.potentials[k] *= multi_pt[j].potentials[k];
-//                }
-//            }
-            timer->Stop("post-down-clq-mul");
-
-            timer->Stop("post-down-clq");
+            CliqueLevelOperation(false, i, size, vector<int>(), -1, num_threads, timer);
         }
     }
 }

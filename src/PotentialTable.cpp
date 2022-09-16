@@ -262,59 +262,6 @@ void PotentialTable::TableReductionPost(int index, int value_index, int *v_index
     }
 }
 
-void PotentialTable::ExtensionPre(const set<int> &variables, const vector<int> &dims) {
-    related_variables = variables;
-    num_variables = variables.size();
-
-    var_dims = dims;
-    ConstructCumLevels();
-    table_size = cum_levels[0] * var_dims[0];
-    potentials.resize(table_size);
-}
-
-void PotentialTable::TableExtension(const set<int> &variables, const vector<int> &dims) {
-    PotentialTable new_table;
-
-    new_table.ExtensionPre(variables, dims);
-
-    // generate an array showing the locations of the variables of the old table in the new table
-    int *loc_in_new = new int[this->num_variables];
-    int i = 0;
-    for (auto &v: this->related_variables) {
-        loc_in_new[i++] = new_table.GetVariableIndex(v);
-    }
-
-    int *full_config = new int[new_table.table_size * new_table.num_variables];
-    int *partial_config = new int[new_table.table_size * this->num_variables];
-    int *table_index = new int[new_table.table_size];
-
-#pragma omp taskloop
-//    omp_set_num_threads(num_threads);
-//#pragma omp parallel for
-    for (int i = 0; i < new_table.table_size; ++i) {
-        // obtain the config value according to loc_in_new
-        // 1. get the full config value of new table
-        new_table.GetConfigValueByTableIndex(i, full_config + i * new_table.num_variables);
-        // 2. get the partial config value from the new table
-        for (int j = 0; j < this->num_variables; ++j) {
-            partial_config[i * this->num_variables + j] = full_config[i * new_table.num_variables + loc_in_new[j]];
-        }
-        // 3. obtain the potential index
-        table_index[i] = this->GetTableIndexByConfigValue(partial_config + i * this->num_variables);
-    }
-    delete[] full_config;
-    delete[] partial_config;
-    delete[] loc_in_new;
-
-    for (int i = 0; i < new_table.table_size; ++i) {
-        // 4. potentials[i]
-        new_table.potentials[i] = this->potentials[table_index[i]];
-    }
-    delete[] table_index;
-
-    (*this) = new_table;
-}
-
 /**
  * @brief: factor out a node by id; i.e., factor marginalization
  * eliminate variable "id" by summation of the factor over "id"
@@ -402,18 +349,75 @@ int PotentialTable::TableMarginalizationMain(int k, int *full_config, int *parti
     return this->GetTableIndexByConfigValue(partial_config + k * this->num_variables);
 }
 
-void PotentialTable::MultiplicationPre(PotentialTable &second_table, set<int> &all_related_variables, set<int> &diff1, set<int> &diff2) {
+void PotentialTable::TableExtension(const set<int> &variables, const vector<int> &dims) {
+    PotentialTable new_table;
+
+    new_table.ExtensionPre(variables, dims);
+
+    // generate an array showing the locations of the variables of the old table in the new table
+    int *loc_in_new = new int[this->num_variables];
+    int i = 0;
+    for (auto &v: this->related_variables) {
+        loc_in_new[i++] = new_table.GetVariableIndex(v);
+    }
+
+    int *full_config = new int[new_table.table_size * new_table.num_variables];
+    int *partial_config = new int[new_table.table_size * this->num_variables];
+    int *table_index = new int[new_table.table_size];
+
+#pragma omp taskloop
+//    omp_set_num_threads(num_threads);
+//#pragma omp parallel for
+    for (int i = 0; i < new_table.table_size; ++i) {
+        // obtain the config value according to loc_in_new
+        // 1. get the full config value of new table
+        new_table.GetConfigValueByTableIndex(i, full_config + i * new_table.num_variables);
+        // 2. get the partial config value from the new table
+        for (int j = 0; j < this->num_variables; ++j) {
+            partial_config[i * this->num_variables + j] = full_config[i * new_table.num_variables + loc_in_new[j]];
+        }
+        // 3. obtain the potential index
+        table_index[i] = this->GetTableIndexByConfigValue(partial_config + i * this->num_variables);
+    }
+    delete[] full_config;
+    delete[] partial_config;
+    delete[] loc_in_new;
+
+    for (int i = 0; i < new_table.table_size; ++i) {
+        // 4. potentials[i]
+        new_table.potentials[i] = this->potentials[table_index[i]];
+    }
+    delete[] table_index;
+
+    (*this) = new_table;
+}
+
+void PotentialTable::ExtensionPre(const set<int> &variables, const vector<int> &dims) {
+    related_variables = variables;
+    num_variables = variables.size();
+
+    var_dims = dims;
+    ConstructCumLevels();
+    table_size = cum_levels[0] * var_dims[0];
+    potentials.resize(table_size);
+}
+
+
+
+
+
+
+bool PotentialTable::TableMultiplicationPre(PotentialTable &second_table, set<int> &all_related_variables) {
+    set<int> diff;
     all_related_variables.insert(this->related_variables.begin(), this->related_variables.end());
     all_related_variables.insert(second_table.related_variables.begin(), second_table.related_variables.end());
 
-    // before multiplication, we first extend the two tables to the same size if required
-    // get the variables that in the new table but not in the old tables
-    set_difference(all_related_variables.begin(), all_related_variables.end(),
-                   this->related_variables.begin(), this->related_variables.end(),
-                   inserter(diff1, diff1.begin()));
+    // before multiplication, we first extend the separator table to the same size if required
+    // get the variables that in the clique table but not in the separator table
     set_difference(all_related_variables.begin(), all_related_variables.end(),
                    second_table.related_variables.begin(), second_table.related_variables.end(),
-                   inserter(diff2, diff2.begin()));
+                   inserter(diff, diff.begin()));
+    return !diff.empty();
 }
 
 
@@ -436,31 +440,10 @@ void PotentialTable::TableMultiplication(PotentialTable &second_table) {
 //    }
 
     set<int> all_related_variables;
-    set<int> diff1, diff2;
+    bool to_be_extended = this->TableMultiplicationPre(second_table, all_related_variables);
 
-    this->MultiplicationPre(second_table, all_related_variables, diff1, diff2);
-
-    if (diff1.empty() && diff2.empty()) { // if both table1 and table2 should not be extended
-        // do nothing
-    } else if (!diff1.empty() && diff2.empty()) { // if table1 should be extended and table2 not
-        this->TableExtension(all_related_variables, second_table.var_dims);
-    } else if (diff1.empty() && !diff2.empty()) { // if table2 should be extended and table1 not
+    if (to_be_extended) { // if table2 should be extended and table1 not
         second_table.TableExtension(all_related_variables, this->var_dims);
-    } else { // if both table1 and table2 should be extended
-        vector<int> dims; // to save dims of the new related variables
-        dims.reserve(all_related_variables.size());
-        // to find the location of each new related variable
-        for (auto &v: all_related_variables) {
-            int loc = this->GetVariableIndex(v);
-            if (loc < this->related_variables.size()) { // find it in table1
-                dims.push_back(this->var_dims[loc]);
-            } else { // cannot find in table1, we need to find it in table2
-                loc = second_table.GetVariableIndex(v);
-                dims.push_back(second_table.var_dims[loc]);
-            }
-        }
-        this->TableExtension(all_related_variables, dims);
-        second_table.TableExtension(all_related_variables, dims);
     }
 
 //#pragma omp taskloop

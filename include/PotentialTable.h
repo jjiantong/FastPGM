@@ -48,16 +48,24 @@ public:
     int TableReductionMain(int i, int *full_config, int loc);
     void TableReductionPost(int index, int value_index, int *v_index, int loc);
 
-
-    void ExtensionPre(const set<int> &variables, const vector<int> &dims);
-    void TableExtension(const set<int> &variables, const vector<int> &dims);
-
     void TableMarginalization(const set<int> &ext_variables);
     void TableMarginalizationPre(const set<int> &ext_variables, PotentialTable &new_table, int *location);
     int TableMarginalizationMain(int k, int *full_config, int *partial_config,
                                  int nv, const vector<int> &cl, int *loc);
 
-    void MultiplicationPre(PotentialTable &second_table, set<int> &all_related_variables, set<int> &diff1, set<int> &diff2);
+
+
+
+
+
+
+
+    void ExtensionPre(const set<int> &variables, const vector<int> &dims);
+    void TableExtension(const set<int> &variables, const vector<int> &dims);
+
+
+
+    bool TableMultiplicationPre(PotentialTable &second_table, set<int> &all_related_variables);
     void TableMultiplication(PotentialTable &second_table);
     void TableDivision(const PotentialTable &second_table);
 

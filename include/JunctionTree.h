@@ -54,6 +54,7 @@ protected:
     void Collect(int num_threads, Timer *timer);
     void Distribute(int num_threads, Timer *timer);
     void SeparatorLevelOperation(bool is_collect, int i, int num_threads, Timer *timer);
+    void CliqueLevelOperation(bool is_collect, int i, int size, const vector<int> &has_kth_child, int k, int num_threads, Timer *timer);
 
     /**
      * @brief: compute 2d index (j,k) according to 1d index s
