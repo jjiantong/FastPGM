@@ -321,7 +321,8 @@ void PotentialTable::TableExtension(const set<int> &variables, const vector<int>
  */
 void PotentialTable::TableMarginalization(const set<int> &ext_variables) {
     PotentialTable new_table;
-    this->TableMarginalizationPre(ext_variables, new_table);
+    int *loc;
+    this->TableMarginalizationPre(ext_variables, new_table, loc);
 
     // generate an array showing the locations of the variables of the new table in the old table
     int *loc_in_old = new int[new_table.num_variables];
@@ -360,7 +361,7 @@ void PotentialTable::TableMarginalization(const set<int> &ext_variables) {
     (*this) = new_table;
 }
 
-void PotentialTable::TableMarginalizationPre(const set<int> &ext_variables, PotentialTable &new_table) {
+void PotentialTable::TableMarginalizationPre(const set<int> &ext_variables, PotentialTable &new_table, int *location) {
     // update the new table's related variables and num variables
     new_table.related_variables = this->related_variables;
     for (auto &ext_var: ext_variables) {

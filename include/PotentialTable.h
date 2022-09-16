@@ -53,7 +53,7 @@ public:
     void TableExtension(const set<int> &variables, const vector<int> &dims);
 
     void TableMarginalization(const set<int> &ext_variables);
-    void TableMarginalizationPre(const set<int> &ext_variables, PotentialTable &new_table);
+    void TableMarginalizationPre(const set<int> &ext_variables, PotentialTable &new_table, int *location);
     int TableMarginalizationMain(int k, int *full_config, int *partial_config,
                                  int nv, const vector<int> &cl, int *loc);
 

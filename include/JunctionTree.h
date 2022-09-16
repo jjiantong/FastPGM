@@ -54,6 +54,19 @@ protected:
     void Collect(int num_threads, Timer *timer);
     void Distribute(int num_threads, Timer *timer);
     void SeparatorLevelOperation(bool is_collect, int i, int num_threads, Timer *timer);
+
+    /**
+     * @brief: compute 2d index (j,k) according to 1d index s
+     */
+    inline void Compute2DIndex(int &j, int &k, int &s, int &size, int *cum_sum) {
+        for (int m = size - 1; m >= 0; --m) {
+            if (s >= cum_sum[m]) {
+                j = m;
+                break;
+            }
+        }
+        k = s - cum_sum[j];
+    }
 };
 
 #endif //BAYESIANNETWORK_JUNCTIONTREE_H

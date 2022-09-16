@@ -327,199 +327,111 @@ void JunctionTree::SeparatorLevelOperation(bool is_collect, int i, int num_threa
     int **partial_config = new int*[size];
     int **table_index = new int*[size];
 
-    if (is_collect) {
-        timer->Start("pre-up-sep");
-
-        for (int j = 0; j < size; ++j) {
-            auto separator = separators_by_level[i/2][j];
-            auto child = separator->ptr_downstream_cliques[0]; // there is only one child for each separator
-            // update sum
-            cum_sum[j] = final_sum;
-            final_sum += child->p_table.table_size;
+    /**
+     * the only difference between collection and distribution is:
+     *      collection finds each separator and its child, marginalizes from child to it
+     *      distribution finds each separator and its parent, marginalizes from parent to it
+     * this difference affects three for loops
+     */
+    timer->Start("pre-up-sep");
+    for (int j = 0; j < size; ++j) {
+        Separator *separator = separators_by_level[i/2][j];
+        Clique *mar_clique;
+        if (is_collect) {
+            mar_clique = separator->ptr_downstream_cliques[0]; // there is only one child for each separator
+        } else {
+            mar_clique = separator->ptr_upstream_clique;
         }
-
-        /**
-         * pre computing
-         */
-        timer->Start("parallel");
-        omp_set_num_threads(num_threads);
-#pragma omp parallel for
-        for (int j = 0; j < size; ++j) { // for each separator in this level
-            auto separator = separators_by_level[i/2][j];
-            auto child = separator->ptr_downstream_cliques[0]; // there is only one child for each separator
-
-            separator->old_ptable = separator->p_table; // used for division
-
-            // find the variables to be marginalized
-            set<int> set_external_vars;
-            set_difference(child->p_table.related_variables.begin(), child->p_table.related_variables.end(),
-                           separator->clique_variables.begin(), separator->clique_variables.end(),
-                           inserter(set_external_vars, set_external_vars.begin()));
-
-            // store the parent's table, used for update the child's table
-            nv_old[j] = child->p_table.num_variables;
-            cl_old[j] = child->p_table.cum_levels;
-
-            child->p_table.TableMarginalizationPre(set_external_vars, tmp_pt[j]);
-
-            // generate an array showing the locations of the variables of the new table in the old table
-            loc_in_old[j] = new int[tmp_pt[j].num_variables];
-            int k = 0;
-            for (auto &v: tmp_pt[j].related_variables) {
-                loc_in_old[j][k++] = child->p_table.GetVariableIndex(v);
-            }
-            table_index[j] = new int[child->p_table.table_size];
-
-            // malloc in pre-, not to parallelize
-            full_config[j] = new int[child->p_table.table_size * child->p_table.num_variables];
-            partial_config[j] = new int[child->p_table.table_size * tmp_pt[j].num_variables];
-        }
-        timer->Stop("pre-up-sep");
-
-        timer->Start("main-up-sep");
-        // the main loop
-        omp_set_num_threads(num_threads);
-#pragma omp parallel for
-        for (int s = 0; s < final_sum; ++s) {
-            // compute j and k
-            int j = -1;
-            for (int m = size - 1; m >= 0; --m) {
-                if (s >= cum_sum[m]) {
-                    j = m;
-                    break;
-                }
-            }
-            int k = s - cum_sum[j];
-
-            table_index[j][k] = tmp_pt[j].TableMarginalizationMain(k, full_config[j], partial_config[j],
-                                                                   nv_old[j], cl_old[j], loc_in_old[j]);
-        }
-        timer->Stop("main-up-sep");
-
-        timer->Start("post-up-sep");
-        // post-computing
-        omp_set_num_threads(num_threads);
-#pragma omp parallel for
-        for (int j = 0; j < size; ++j) { // for each separator in this level
-            delete[] loc_in_old[j];
-            delete[] full_config[j];
-            delete[] partial_config[j];
-
-            auto separator = separators_by_level[i/2][j];
-            auto child = separator->ptr_downstream_cliques[0]; // there is only one child for each separator
-
-            for (int k = 0; k < child->p_table.table_size; ++k) {
-                // 4. potential[table_index]
-                tmp_pt[j].potentials[table_index[j][k]] += child->p_table.potentials[k];
-            }
-            delete[] table_index[j];
-
-            tmp_pt[j].TableDivision(separator->old_ptable);
-
-            separator->p_table = tmp_pt[j];
-        }
-        timer->Stop("parallel");
-        timer->Stop("post-up-sep");
-    } else {
-        timer->Start("pre-down-sep");
-        /**
-         * pre computing
-         */
-        for (int j = 0; j < size; ++j) {
-            auto separator = separators_by_level[i/2][j];
-            auto par = separator->ptr_upstream_clique;
-            // update sum
-            cum_sum[j] = final_sum;
-            final_sum += par->p_table.table_size;
-        }
-
-        timer->Start("parallel");
-        omp_set_num_threads(num_threads);
-#pragma omp parallel for
-        for (int j = 0; j < size; ++j) { // for each separator in this level
-            auto separator = separators_by_level[i/2][j];
-            auto par = separator->ptr_upstream_clique;
-
-            separator->old_ptable = separator->p_table; // used for division
-
-            // find the variables to be marginalized
-            set<int> set_external_vars;
-            set_difference(par->p_table.related_variables.begin(), par->p_table.related_variables.end(),
-                           separator->clique_variables.begin(), separator->clique_variables.end(),
-                           inserter(set_external_vars, set_external_vars.begin()));
-
-            // store the parent's table, used for update the child's table
-            nv_old[j] = par->p_table.num_variables;
-            cl_old[j] = par->p_table.cum_levels;
-
-            par->p_table.TableMarginalizationPre(set_external_vars, tmp_pt[j]);
-
-            // generate an array showing the locations of the variables of the new table in the old table
-            loc_in_old[j] = new int[tmp_pt[j].num_variables];
-            int k = 0;
-            for (auto &v: tmp_pt[j].related_variables) {
-                loc_in_old[j][k++] = par->p_table.GetVariableIndex(v);
-            }
-            table_index[j] = new int[par->p_table.table_size];
-
-            // malloc in pre-, not to parallelize
-            full_config[j] = new int[par->p_table.table_size * par->p_table.num_variables];
-            partial_config[j] = new int[par->p_table.table_size * tmp_pt[j].num_variables];
-        }
-        timer->Stop("pre-down-sep");
-
-        timer->Start("main-down-sep");
-        // the main loop
-        omp_set_num_threads(num_threads);
-#pragma omp parallel for
-        for (int s = 0; s < final_sum; ++s) {
-            // compute j and k
-            int j = -1;
-            for (int m = size - 1; m >= 0; --m) {
-                if (s >= cum_sum[m]) {
-                    j = m;
-                    break;
-                }
-            }
-            int k = s - cum_sum[j];
-
-            table_index[j][k] = tmp_pt[j].TableMarginalizationMain(k, full_config[j], partial_config[j],
-                                                                   nv_old[j], cl_old[j], loc_in_old[j]);
-        }
-        timer->Stop("main-down-sep");
-
-        timer->Start("post-down-sep");
-        // post-computing
-        omp_set_num_threads(num_threads);
-#pragma omp parallel for
-        for (int j = 0; j < size; ++j) { // for each separator in this level
-            timer->Start("post-down-sep-mem");
-            auto separator = separators_by_level[i/2][j];
-            auto par = separator->ptr_upstream_clique;
-
-            for (int k = 0; k < par->p_table.table_size; ++k) {
-                // 4. potential[table_index]
-                tmp_pt[j].potentials[table_index[j][k]] += par->p_table.potentials[k];
-            }
-            timer->Stop("post-down-sep-mem");
-
-            timer->Start("post-down-sep-del");
-            delete[] loc_in_old[j];
-            delete[] full_config[j];
-            delete[] partial_config[j];
-            delete[] table_index[j];
-            timer->Stop("post-down-sep-del");
-
-            timer->Start("post-down-sep-div");
-            tmp_pt[j].TableDivision(separator->old_ptable);
-            separator->p_table = tmp_pt[j];
-            timer->Stop("post-down-sep-div");
-        }
-        timer->Stop("parallel");
-
-        timer->Stop("post-down-sep");
+        // update sum
+        cum_sum[j] = final_sum;
+        final_sum += mar_clique->p_table.table_size;
     }
 
+    /**
+     * pre computing
+     */
+    timer->Start("parallel");
+    omp_set_num_threads(num_threads);
+#pragma omp parallel for
+    for (int j = 0; j < size; ++j) { // for each separator in this level
+        auto separator = separators_by_level[i/2][j];
+        Clique *mar_clique;
+        if (is_collect) {
+            mar_clique = separator->ptr_downstream_cliques[0]; // there is only one child for each separator
+        } else {
+            mar_clique = separator->ptr_upstream_clique;
+        }
+
+        // store the old table before marginalization, used for division
+        separator->old_ptable = separator->p_table;
+
+        // store the child's table, used for update the "its" table
+        nv_old[j] = mar_clique->p_table.num_variables;
+        cl_old[j] = mar_clique->p_table.cum_levels;
+
+        // find the variables to be marginalized
+        set<int> set_external_vars;
+        set_difference(mar_clique->p_table.related_variables.begin(), mar_clique->p_table.related_variables.end(),
+                       separator->clique_variables.begin(), separator->clique_variables.end(),
+                       inserter(set_external_vars, set_external_vars.begin()));
+
+        int num_vars = mar_clique->p_table.num_variables - set_external_vars.size();
+        // generate an array showing the locations of the variables of the new table in the old table
+        loc_in_old[j] = new int[num_vars];
+        table_index[j] = new int[mar_clique->p_table.table_size];
+        full_config[j] = new int[mar_clique->p_table.table_size * mar_clique->p_table.num_variables];
+        partial_config[j] = new int[mar_clique->p_table.table_size * num_vars];
+
+        mar_clique->p_table.TableMarginalizationPre(set_external_vars, tmp_pt[j], loc_in_old[j]);
+        int k = 0;
+        for (auto &v: tmp_pt[j].related_variables) {
+            // just to avoid using "GetVariableIndex"
+            loc_in_old[j][k++] = mar_clique->p_table.TableReductionPre(v);
+        }
+    }
+    timer->Stop("pre-up-sep");
+
+    timer->Start("main-up-sep");
+    // the main loop
+    omp_set_num_threads(num_threads);
+#pragma omp parallel for
+    for (int s = 0; s < final_sum; ++s) {
+        int j, k;
+        Compute2DIndex(j, k, s, size, cum_sum); // compute j and k
+        table_index[j][k] = tmp_pt[j].TableMarginalizationMain(k, full_config[j], partial_config[j],
+                                                               nv_old[j], cl_old[j], loc_in_old[j]);
+    }
+    timer->Stop("main-up-sep");
+
+    timer->Start("post-up-sep");
+    // post-computing
+    omp_set_num_threads(num_threads);
+#pragma omp parallel for
+    for (int j = 0; j < size; ++j) { // for each separator in this level
+        delete[] loc_in_old[j];
+        delete[] full_config[j];
+        delete[] partial_config[j];
+
+        auto separator = separators_by_level[i/2][j];
+        Clique *mar_clique;
+        if (is_collect) {
+            mar_clique = separator->ptr_downstream_cliques[0]; // there is only one child for each separator
+        } else {
+            mar_clique = separator->ptr_upstream_clique;
+        }
+
+        for (int k = 0; k < mar_clique->p_table.table_size; ++k) {
+            // 4. potential[table_index]
+            tmp_pt[j].potentials[table_index[j][k]] += mar_clique->p_table.potentials[k];
+        }
+        delete[] table_index[j];
+
+        tmp_pt[j].TableDivision(separator->old_ptable);
+
+        separator->p_table = tmp_pt[j];
+    }
+    timer->Stop("parallel");
+    timer->Stop("post-up-sep");
     timer->Start("post-sep-del");
     delete[] loc_in_old;
     delete[] full_config;
@@ -760,16 +672,8 @@ void JunctionTree::Collect(int num_threads, Timer *timer) {
                 omp_set_num_threads(num_threads);
 #pragma omp parallel for
                 for (int s = 0; s < final_sum; ++s) {
-                    // compute j and k
-                    int j = -1;
-                    for (int m = size_e - 1; m >= 0; --m) {
-                        if (s >= cum_sum[m]) {
-                            j = m;
-                            break;
-                        }
-                    }
-                    int k = s - cum_sum[j];
-
+                    int j, k;
+                    Compute2DIndex(j, k, s, size_e, cum_sum); // compute j and k
                     // 1. get the full config value of new table
                     tmp_pt[j].GetConfigValueByTableIndex(k, full_config[j] + k * tmp_pt[j].num_variables);
                     // 2. get the partial config value from the new table
@@ -847,16 +751,8 @@ void JunctionTree::Collect(int num_threads, Timer *timer) {
                 omp_set_num_threads(num_threads);
 #pragma omp parallel for
                 for (int s = 0; s < final_sum2; ++s) {
-                    // compute j and k
-                    int j = -1;
-                    for (int m = process_size - 1; m >= 0; --m) {
-                        if (s >= cum_sum2[m]) {
-                            j = m;
-                            break;
-                        }
-                    }
-                    int k = s - cum_sum2[j];
-
+                    int j, k;
+                    Compute2DIndex(j, k, s, process_size, cum_sum2); // compute j and k
 //                    nodes_by_level[i][has_kth_child[j]]->p_table.Normalize();
                     nodes_by_level[i][has_kth_child[j]]->p_table.potentials[k] *= multi_pt[j].potentials[k];
                 }
@@ -1083,16 +979,8 @@ void JunctionTree::Distribute(int num_threads, Timer *timer) {
             omp_set_num_threads(num_threads);
 #pragma omp parallel for
             for (int s = 0; s < final_sum; ++s) {
-                // compute j and k
-                int j = -1;
-                for (int m = size_e - 1; m >= 0; --m) {
-                    if (s >= cum_sum[m]) {
-                        j = m;
-                        break;
-                    }
-                }
-                int k = s - cum_sum[j];
-
+                int j, k;
+                Compute2DIndex(j, k, s, size_e, cum_sum); // compute j and k
                 // 1. get the full config value of new table
                 tmp_pt[j].GetConfigValueByTableIndex(k, full_config[j] + k * tmp_pt[j].num_variables);
                 // 2. get the partial config value from the new table
@@ -1162,16 +1050,8 @@ void JunctionTree::Distribute(int num_threads, Timer *timer) {
             omp_set_num_threads(num_threads);
 #pragma omp parallel for
             for (int s = 0; s < final_sum2; ++s) {
-                // compute j and k
-                int j = -1;
-                for (int m = size - 1; m >= 0; --m) {
-                    if (s >= cum_sum2[m]) {
-                        j = m;
-                        break;
-                    }
-                }
-                int k = s - cum_sum2[j];
-
+                int j, k;
+                Compute2DIndex(j, k, s, size, cum_sum2); // compute j and k
                 nodes_by_level[i][j]->p_table.potentials[k] *= multi_pt[j].potentials[k];
             }
             timer->Stop("parallel");
