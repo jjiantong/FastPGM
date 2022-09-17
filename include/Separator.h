@@ -7,24 +7,15 @@
  * @brief: Separator is used like an edge, and the other none separator cliques are nodes in a network.
  */
 class Separator : public Clique {
- protected:
-//  Separator(const Separator&) = default;
-
- public:
-  int weight;//the number of nodes in this separator
-
+public:
+    int weight;//the number of nodes in this separator
     bool is_in_jt;
-
     PotentialTable old_ptable;
 
-  Separator();
+    Separator();
     explicit Separator(set<int>, Network*);
     ~Separator() {};
 
-  Separator* CopyWithoutPtr();
-
-//    void UpdateUseMessage2(const PotentialTable &pt) override;
-//    void ConstructMessage2() override;
     void UpdateMessage(const PotentialTable &pt) override;
 };
 

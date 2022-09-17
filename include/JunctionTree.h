@@ -4,6 +4,7 @@
 #include <set>
 #include <vector>
 #include <algorithm>
+#include "common.h"
 #include "Clique.h"
 #include "Separator.h"
 #include "Network.h"
@@ -31,16 +32,9 @@ public:
     ~JunctionTree();
 
     void ResetJunctionTree();
-    virtual void LoadDiscreteEvidence(const DiscreteConfig &E, int num_threads, Timer *timer);
-    void LoadEvidenceToNodes(vector<Clique*> &vector_reduced_node_ptr,
-                             int index, int value_index, int num_threads, Timer *timer);
-
-    PotentialTable BeliefPropagationCalcuDiscreteVarMarginal2(int query_index);
-    int InferenceUsingBeliefPropagation(int &query_index);
 
     virtual double EvaluateAccuracy(Dataset *dts, int num_threads, int num_samp, string alg, bool is_dense);
-    int PredictUseJTInfer(const DiscreteConfig &E, int Y_index, int num_threads, Timer *timer);
-    vector<int> PredictUseJTInfer(const vector<DiscreteConfig> &evidences, int target_node_idx, int num_threads, Timer *timer);
+
 
     //==================================================
 protected:
@@ -50,11 +44,20 @@ protected:
     void MarkLevel();
     void BackUpJunctionTree();
 
-    virtual void MessagePassingUpdateJT(int num_threads, Timer *timer);
+    void LoadDiscreteEvidence(const DiscreteConfig &E, int num_threads, Timer *timer);
+    void LoadEvidenceToNodes(vector<Clique*> &vector_reduced_node_ptr,
+                             int index, int value_index, int num_threads, Timer *timer);
+    void MessagePassingUpdateJT(int num_threads, Timer *timer);
+
     void Collect(int num_threads, Timer *timer);
     void Distribute(int num_threads, Timer *timer);
     void SeparatorLevelOperation(bool is_collect, int i, int num_threads, Timer *timer);
     void CliqueLevelOperation(bool is_collect, int i, int size, const vector<int> &has_kth_child, int k, int num_threads, Timer *timer);
+
+    PotentialTable CalculateMarginalProbability(int query_index);
+    int InferenceUsingJT(int &query_index);
+    int PredictUseJTInfer(const DiscreteConfig &E, int Y_index, int num_threads, Timer *timer);
+    vector<int> PredictUseJTInfer(const vector<DiscreteConfig> &evidences, int target_node_idx, int num_threads, Timer *timer);
 
     /**
      * @brief: compute 2d index (j,k) according to 1d index s

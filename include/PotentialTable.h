@@ -10,7 +10,7 @@
 #include <utility>
 #include <string>
 #include <algorithm>
-
+#include "common.h"
 #include "gadget.h"
 #include "Node.h"
 #include "DiscreteNode.h"

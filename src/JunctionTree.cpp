@@ -23,15 +23,13 @@ JunctionTree::JunctionTree(Network *net) : network(net) {
     timer->Stop("construct jt");
     cout << "==================================================";
     cout << endl; timer->Print("construct jt"); cout << endl;
-    delete timer;
-    timer = nullptr;
+    SAFE_DELETE(timer);
 }
 
 JunctionTree::~JunctionTree() {
-    delete tree;
-
-    delete [] clique_backup;
-    delete [] separator_backup;
+    SAFE_DELETE(tree);
+    SAFE_DELETE_ARRAY(clique_backup);
+    SAFE_DELETE_ARRAY(separator_backup);
 }
 
 /**
@@ -220,14 +218,8 @@ void JunctionTree::LoadEvidenceToNodes(vector<Clique*> &vector_reduced_node_ptr,
 #pragma omp parallel for
     for (int s = 0; s < final_sum; ++s) {
         // compute k and i
-        int k = -1;
-        for (int m = red_size - 1; m >= 0; --m) {
-            if (s >= cum_sum[m]) {
-                k = m;
-                break;
-            }
-        }
-        int i = s - cum_sum[k];
+        int k, i;
+        Compute2DIndex(k, i, s, red_size, cum_sum);
 
         v_index[k][i] = vector_reduced_node_ptr[k]->p_table.TableReductionMain(i, full_config[k], e_loc[k]);
     }
@@ -243,15 +235,15 @@ void JunctionTree::LoadEvidenceToNodes(vector<Clique*> &vector_reduced_node_ptr,
         auto clique_ptr = vector_reduced_node_ptr[k];
         clique_ptr->p_table.TableReductionPost(index, value_index, v_index[k], e_loc[k]);
 
-        delete[] full_config[k];
-        delete[] v_index[k];
+        SAFE_DELETE_ARRAY(full_config[k]);
+        SAFE_DELETE_ARRAY(v_index[k]);
     }
     timer->Stop("parallel");
 
-    delete[] e_loc;
-    delete[] full_config;
-    delete[] v_index;
-    delete[] cum_sum;
+    SAFE_DELETE_ARRAY(e_loc);
+    SAFE_DELETE_ARRAY(full_config);
+    SAFE_DELETE_ARRAY(v_index);
+    SAFE_DELETE_ARRAY(cum_sum);
     timer->Stop("post-evi");
 }
 
@@ -272,7 +264,6 @@ void JunctionTree::MessagePassingUpdateJT(int num_threads, Timer *timer) {
 //#pragma omp single
 //        {
 //            arb_root->Collect2();
-////            arb_root->Collect3(nodes_by_level, max_level);
 //        }
 //    }
 //    timer->Stop("upstream");
@@ -283,7 +274,6 @@ void JunctionTree::MessagePassingUpdateJT(int num_threads, Timer *timer) {
 //#pragma omp single
 //        {
 //            arb_root->Distribute2();
-////            arb_root->Distribute3(nodes_by_level, max_level);
 //        }
 //    }
 //    timer->Stop("downstream");
@@ -407,9 +397,9 @@ void JunctionTree::SeparatorLevelOperation(bool is_collect, int i, int num_threa
     omp_set_num_threads(num_threads);
 #pragma omp parallel for
     for (int j = 0; j < size; ++j) { // for each separator in this level
-        delete[] loc_in_old[j];
-        delete[] full_config[j];
-        delete[] partial_config[j];
+        SAFE_DELETE_ARRAY(loc_in_old[j]);
+        SAFE_DELETE_ARRAY(full_config[j]);
+        SAFE_DELETE_ARRAY(partial_config[j]);
 
         auto separator = separators_by_level[i/2][j];
         Clique *mar_clique;
@@ -420,7 +410,7 @@ void JunctionTree::SeparatorLevelOperation(bool is_collect, int i, int num_threa
         }
 
         tmp_pt[j].TableMarginalizationPost(mar_clique->p_table, table_index[j]);
-        delete[] table_index[j];
+        SAFE_DELETE_ARRAY(table_index[j]);
 
         separator->p_table = tmp_pt[j];
         separator->p_table.TableDivision(separator->old_ptable);
@@ -428,12 +418,12 @@ void JunctionTree::SeparatorLevelOperation(bool is_collect, int i, int num_threa
     timer->Stop("parallel");
     timer->Stop("post-up-sep");
     timer->Start("post-sep-del");
-    delete[] loc_in_old;
-    delete[] full_config;
-    delete[] partial_config;
-    delete[] table_index;
-    delete[] cum_sum;
-    delete[] nv_old;
+    SAFE_DELETE_ARRAY(loc_in_old);
+    SAFE_DELETE_ARRAY(full_config);
+    SAFE_DELETE_ARRAY(partial_config);
+    SAFE_DELETE_ARRAY(table_index);
+    SAFE_DELETE_ARRAY(cum_sum);
+    SAFE_DELETE_ARRAY(nv_old);
     timer->Stop("post-sep-del");
 }
 
@@ -587,18 +577,17 @@ void JunctionTree::CliqueLevelOperation(bool is_collect, int i, int size,
 
     timer->Start("post-down-clq-del");
     for (int l = 0; l < size_e; ++l) {
-        delete[] loc_in_new[l];
-        delete[] full_config[l];
-        delete[] partial_config[l];
-        delete[] table_index[l];
+        SAFE_DELETE_ARRAY(loc_in_new[l]);
+        SAFE_DELETE_ARRAY(full_config[l]);
+        SAFE_DELETE_ARRAY(partial_config[l]);
+        SAFE_DELETE_ARRAY(table_index[l]);
     }
-
-    delete[] loc_in_new;
-    delete[] full_config;
-    delete[] partial_config;
-    delete[] table_index;
-    delete[] cum_sum;
-    delete[] nv_old;
+    SAFE_DELETE_ARRAY(loc_in_new);
+    SAFE_DELETE_ARRAY(full_config);
+    SAFE_DELETE_ARRAY(partial_config);
+    SAFE_DELETE_ARRAY(table_index);
+    SAFE_DELETE_ARRAY(cum_sum);
+    SAFE_DELETE_ARRAY(nv_old);
     timer->Stop("post-down-clq-del");
 
     timer->Start("post-down-clq-mul");
@@ -615,10 +604,8 @@ void JunctionTree::CliqueLevelOperation(bool is_collect, int i, int size,
         }
     }
     timer->Stop("parallel");
-
-    delete[] cum_sum2;
+    SAFE_DELETE_ARRAY(cum_sum2);
     timer->Stop("post-down-clq-mul");
-
     timer->Stop("post-down-clq");
 }
 
@@ -729,17 +716,14 @@ void JunctionTree::Distribute(int num_threads, Timer *timer) {
 
 /**
  * @brief: compute the marginal distribution for a query variable
+ * @param query_index the index of query variable TODO: here only support one query variable
+ * @return a potential table (factor) representing the marginal of the query variable
  **/
-PotentialTable JunctionTree::BeliefPropagationCalcuDiscreteVarMarginal2(int query_index) {
-
-    // The input is a set of query_indexes of variables.
-    // The output is a factor representing the joint marginal of these variables.
-    // TODO: here only support one query variable
+PotentialTable JunctionTree::CalculateMarginalProbability(int query_index) {
 
     int min_size = INT32_MAX;
     Clique *selected_clique = nullptr;
 
-    // The case where the query variables are all appear in one clique.
     // Find the clique that contains this variable,
     // whose size of potentials table is the smallest,
     // which can reduce the number of sum operation.
@@ -769,9 +753,7 @@ PotentialTable JunctionTree::BeliefPropagationCalcuDiscreteVarMarginal2(int quer
     other_vars.erase(query_index);
 
     PotentialTable pt = selected_clique->p_table;
-
     pt.TableMarginalization(other_vars);
-
     pt.Normalize(); // todo: no need to do normalization
 
     return pt;
@@ -780,9 +762,9 @@ PotentialTable JunctionTree::BeliefPropagationCalcuDiscreteVarMarginal2(int quer
 /**
  * @brief: predict the label for a given variable.
  */
-int JunctionTree::InferenceUsingBeliefPropagation(int &query_index) {
+int JunctionTree::InferenceUsingJT(int &query_index) {
 
-    PotentialTable pt = BeliefPropagationCalcuDiscreteVarMarginal2(query_index);
+    PotentialTable pt = CalculateMarginalProbability(query_index);
     double max_prob = 0;
     int max_index;
     for (int i = 0; i < pt.table_size; ++i) { // traverse the potential table
@@ -881,8 +863,7 @@ double JunctionTree::EvaluateAccuracy(Dataset *dts, int num_threads, int num_sam
     cout << "(" << timer->time["parallel"] / (timer->time["jt"] - timer->time["norm"])* 100 << "%)";
     cout << "(" << timer->time["parallel"] / total * 100 << "%)" << endl;
 
-    delete timer;
-    timer = nullptr;
+    SAFE_DELETE(timer);
 
     return accuracy;
 }
@@ -905,7 +886,7 @@ int JunctionTree::PredictUseJTInfer(const DiscreteConfig &E, int Y_index, int nu
 //    cout << "finish msg passing" << endl;
 
     timer->Start("predict");
-    int label_predict = InferenceUsingBeliefPropagation(Y_index);
+    int label_predict = InferenceUsingJT(Y_index);
     timer->Stop("predict");
 //    cout << "finish predict " << endl;
 

@@ -118,7 +118,7 @@ void PotentialTable::GetConfigByTableIndex(const int &table_index, Network *net,
         pair<int, int> tmp_pair(v, node->vec_potential_vals[config_value[i++]]);
         config.insert(tmp_pair);
     }
-    delete[] config_value;
+    SAFE_DELETE_ARRAY(config_value);
 }
 
 /*!
@@ -206,15 +206,15 @@ void PotentialTable::TableReduction(int e_index, int e_value_index, int num_thre
     int *full_config = new int[this->table_size * this->num_variables];
     int *value_index = new int[this->table_size];
 
-    omp_set_num_threads(num_threads);
-#pragma omp parallel for //schedule(dynamic, 1)
+//    omp_set_num_threads(num_threads);
+//#pragma omp parallel for //schedule(dynamic, 1)
     for (int i = 0; i < this->table_size; ++i) {
         value_index[i] = this->TableReductionMain(i, full_config, e_loc);
     }
-    delete[] full_config;
+    SAFE_DELETE_ARRAY(full_config);
 
     this->TableReductionPost(e_index, e_value_index, value_index, e_loc);
-    delete[] value_index;
+    SAFE_DELETE_ARRAY(value_index);
 }
 
 int PotentialTable::TableReductionPre(int e_index) {
@@ -283,7 +283,7 @@ void PotentialTable::TableMarginalization(const set<int> &ext_variables) {
     int *partial_config = new int[this->table_size * new_table.num_variables];
     int *table_index = new int[this->table_size];
 
-#pragma omp taskloop
+//#pragma omp taskloop
 //    omp_set_num_threads(num_threads);
 //#pragma omp parallel for
     for (int i = 0; i < this->table_size; ++i) {
@@ -296,9 +296,9 @@ void PotentialTable::TableMarginalization(const set<int> &ext_variables) {
         // 3. obtain the potential index
         table_index[i] = new_table.GetTableIndexByConfigValue(partial_config + i * new_table.num_variables);
     }
-    delete[] full_config;
-    delete[] partial_config;
-    delete[] loc_in_old;
+    SAFE_DELETE_ARRAY(full_config);
+    SAFE_DELETE_ARRAY(partial_config);
+    SAFE_DELETE_ARRAY(loc_in_old);
 
     new_table.TableMarginalizationPost(*this, table_index);
     (*this) = new_table;
@@ -377,7 +377,7 @@ void PotentialTable::TableExtension(const set<int> &variables, const vector<int>
     int *partial_config = new int[new_table.table_size * this->num_variables];
     int *table_index = new int[new_table.table_size];
 
-#pragma omp taskloop
+//#pragma omp taskloop
 //    omp_set_num_threads(num_threads);
 //#pragma omp parallel for
     for (int i = 0; i < new_table.table_size; ++i) {
@@ -391,12 +391,12 @@ void PotentialTable::TableExtension(const set<int> &variables, const vector<int>
         // 3. obtain the potential index
         table_index[i] = this->GetTableIndexByConfigValue(partial_config + i * this->num_variables);
     }
-    delete[] full_config;
-    delete[] partial_config;
-    delete[] loc_in_new;
+    SAFE_DELETE_ARRAY(full_config);
+    SAFE_DELETE_ARRAY(partial_config);
+    SAFE_DELETE_ARRAY(loc_in_new);
 
     new_table.TableExtensionPost(*this, table_index);
-    delete[] table_index;
+    SAFE_DELETE_ARRAY(table_index);
 
     (*this) = new_table;
 }

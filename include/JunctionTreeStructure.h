@@ -30,7 +30,6 @@ protected:
     static void Moralize(int **direc_adjac_matrix, int &num_nodes);
     void Triangulate(Network *net, int **adjac_matrix, vector<bool> &has_processed);
     void FormJunctionTree();
-    void NumberTheCliquesAndSeparators();
     void AssignPotentials();
     float GetAveAndMaxCliqueSize(int &max_size);
 };

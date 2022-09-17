@@ -1,11 +1,9 @@
 #include "Clique.h"
 
 Clique::Clique() {
-  is_separator = false;
-  clique_id = -1;
-  clique_size = -1;
-  pure_discrete = true;
-  ptr_upstream_clique = nullptr;
+    clique_size = -1;
+    pure_discrete = true;
+    ptr_upstream_clique = nullptr;
 }
 
 /*!
@@ -18,7 +16,6 @@ Clique::Clique() {
  * TODO: only support (pure) discrete cases now
  */
 Clique::Clique(set<int> set_node_index, Network *net) : clique_variables(set_node_index) {
-    is_separator = false;
     clique_size = set_node_index.size();
     pure_discrete = true;
 
@@ -34,6 +31,7 @@ Clique::Clique(set<int> set_node_index, Network *net) : clique_variables(set_nod
 
     ptr_upstream_clique = nullptr;
 }
+
 
 /*!
  * @brief: a step of msg passing (alg1, use recursive functions)
@@ -68,36 +66,12 @@ void Clique::Collect2() {
  * @param cliques: all cliques (separators) in the junction tree, ordered by levels
  * @param max_level: the max level of the junction tree (cliques and separators are all included)
  */
-/**
- * 1. omp task
- */
-void Clique::Collect3(vector<vector<Clique*>> &cliques, int max_level) {
-    for (int i = max_level - 2; i >= 0 ; --i) { // for each level
-        for (int j = 0; j < cliques[i].size(); ++j) { // for each clique of this level
-#pragma omp task shared(cliques)
-            {
-                for (auto &ptr_child : cliques[i][j]->ptr_downstream_cliques) {
-//                    cliques[i][j]->UpdateUseMessage2(ptr_child->p_table);
-//                    cliques[i][j]->ConstructMessage2();
-                    cliques[i][j]->UpdateMessage(ptr_child->p_table);
-                }
-            }
-        }
-#pragma omp taskwait
-    }
-}
-
-/**
- * 2. omp parallel for
- */
 void Clique::Collect3(vector<vector<Clique*>> &cliques, int max_level, int num_threads, Timer *timer) {
     for (int i = max_level - 2; i >= 0 ; --i) { // for each level
 //        omp_set_num_threads(num_threads);
 //#pragma omp parallel for
         for (int j = 0; j < cliques[i].size(); ++j) { // for each clique of this level
             for (auto &ptr_child : cliques[i][j]->ptr_downstream_cliques) {
-//                cliques[i][j]->UpdateUseMessage2(ptr_child->p_table);
-//                cliques[i][j]->ConstructMessage2();
                 cliques[i][j]->UpdateMessage(ptr_child->p_table);
             }
         }
@@ -118,6 +92,7 @@ void Clique::Collect3(vector<vector<Clique*>> &cliques, int max_level, int num_t
         timer->Stop("norm");
     }
 }
+
 
 /**
  * @brief: a step of msg passing in clique trees (alg1, use recursive functions)
@@ -152,40 +127,6 @@ void Clique::Distribute2(PotentialTable &pt) {
  * because the handling order of the cliques in the same level does not matter
  * in the handling process, first update the msg; then construct the msg and push the clique to the queue
  */
-/**
- * 1. omp task
- */
-void Clique::Distribute3(vector<vector<Clique*>> &cliques, int max_level) {
-    for (int i = 1; i < max_level; ++i) { // for each level
-        for (int j = 0; j < cliques[i].size(); ++j) { // for each clique in this level
-                auto clique = cliques[i][j];
-                auto par = clique->ptr_upstream_clique;
-#pragma omp task // TODO: need test
-            {
-                clique->UpdateMessage(par->p_table);
-            }
-        }
-#pragma omp taskwait
-    }
-
-//    for (int i = 0; i < max_level - 1; ++i) {
-//        for (int j = 0; j < cliques[i].size(); ++j) {
-//            Clique *clique = cliques[i][j];
-//            for (auto &ptr_child : clique->ptr_downstream_cliques) {
-//#pragma omp task shared(ptr_child)
-//                {
-//                    // Prepare message for the downstream.
-//                    ptr_child->UpdateMessage(clique->p_table);
-//                }
-//            }
-//        }
-//#pragma omp taskwait
-//    }
-}
-
-/**
- * 2. omp parallel for
- */
 void Clique::Distribute3(vector<vector<Clique*>> &cliques, int max_level, int num_threads) {
     for (int i = 1; i < max_level; ++i) { // for each level
 //        omp_set_num_threads(num_threads);
@@ -198,18 +139,6 @@ void Clique::Distribute3(vector<vector<Clique*>> &cliques, int max_level, int nu
     }
 }
 
-//void Clique::UpdateUseMessage2(const PotentialTable &pt) {
-//    PotentialTable tmp_pt = pt;
-//    p_table.TableMultiplication(tmp_pt); // multiply two factors
-//}
-//
-///**
-// * @brief: construct a factor of this clique and return
-// */
-//void Clique::ConstructMessage2() {
-//    // do nothing
-//    return;
-//}
 
 /**
  * merging the above two methods
@@ -218,33 +147,3 @@ void Clique::UpdateMessage(const PotentialTable &pt) {
     PotentialTable tmp_pt = pt;
     p_table.TableMultiplication(tmp_pt); // multiply two factors
 }
-
-//void Clique::PrintPotentials() const {
-//  if (pure_discrete) {
-//    for (const auto &potentials_key_value : table.map_potentials) {
-//      for (const auto &vars_index_value : potentials_key_value.first) {
-//        cout << '(' << vars_index_value.first << ',' << vars_index_value.second << ") ";
-//      }
-//      cout << "\t: " << potentials_key_value.second << endl;
-//    }
-//  } else {
-//    fprintf(stderr, "%s not implemented for continuous clique yet!", __FUNCTION__);
-//    exit(1);
-//    // todo: implement
-//  }
-//  cout << "----------" << endl;
-//}
-
-//void Clique::PrintRelatedVars() const {
-//  string out = "{  ";
-//  for (const auto &v : table.related_variables) {
-//    if (v==elimination_variable_index) {
-//      out += "[" + to_string(v) + "]";
-//    } else {
-//      out += to_string(v);
-//    }
-//    out += "  ";
-//  }
-//  out += "}";
-//  cout << out << endl;
-//}

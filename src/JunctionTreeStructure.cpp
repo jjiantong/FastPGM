@@ -35,10 +35,6 @@ JunctionTreeStructure::JunctionTreeStructure(Network *net) : network(net) {
     cout << "finish FormJunctionTree, number of cliques = " << vector_clique_ptr_container.size()
          << ", number of separators = " << vector_separator_ptr_container.size() << endl;
 
-    //assign id to each clique
-    NumberTheCliquesAndSeparators();
-    cout << "finish NumberTheCliquesAndSeparators" << endl;
-
     AssignPotentials();
     cout << "finish AssignPotentials" << endl;
 
@@ -306,20 +302,6 @@ void JunctionTreeStructure::FormJunctionTree() {
         } else {
             it++;
         }
-    }
-}
-
-/**
- * @brief: assign an id to each clique and separator
- */
-void JunctionTreeStructure::NumberTheCliquesAndSeparators() {//checked
-    int i = 0;
-    for (auto c : vector_clique_ptr_container) {
-        c->clique_id = i++;
-    }
-    int j = 0;
-    for (auto s : vector_separator_ptr_container) {
-        s->clique_id = j++;
     }
 }
 
