@@ -460,18 +460,18 @@ void JunctionTree::CliqueLevelOperation(bool is_collect, int i, int size,
     timer->Start("pre-down-clq");
 
     vector<PotentialTable> tmp_pt;
-    tmp_pt.reserve(2 * size);
+    tmp_pt.reserve(size);
 
     vector<PotentialTable> multi_pt;
     multi_pt.resize(size);
 
     // store number_variables and cum_levels of the original table
     // rather than storing the whole potential table
-    int *nv_old = new int[2 * size];
+    int *nv_old = new int[size];
     vector<vector<int>> cl_old;
-    cl_old.reserve(2 * size);
+    cl_old.reserve(size);
 
-    int *cum_sum = new int[2 * size];
+    int *cum_sum = new int[size];
     int final_sum = 0;
     int sum_index = 0;
 
@@ -482,10 +482,10 @@ void JunctionTree::CliqueLevelOperation(bool is_collect, int i, int size,
     vector_extension.reserve(size);
 
     // set of arrays, showing the locations of the variables of the new table in the old table
-    int **loc_in_new = new int*[2 * size];
-    int **full_config = new int*[2 * size];
-    int **partial_config = new int*[2 * size];
-    int **table_index = new int*[2 * size];
+    int **loc_in_new = new int*[size];
+    int **full_config = new int*[size];
+    int **partial_config = new int*[size];
+    int **table_index = new int*[size];
 
     /**
      * pre computing
@@ -511,7 +511,7 @@ void JunctionTree::CliqueLevelOperation(bool is_collect, int i, int size,
          */
         if (to_be_extended) { // if the separator table should be extended
             // record the index (that requires to do the extension)
-            vector_extension.push_back(j * 2 + 1);
+            vector_extension.push_back(j);
             nv_old[sum_index] = separator->p_table.num_variables;
             cl_old.push_back(separator->p_table.cum_levels);
 
@@ -580,18 +580,7 @@ void JunctionTree::CliqueLevelOperation(bool is_collect, int i, int size,
             separator = clique->ptr_upstream_clique;
         }
 
-        int m = j * 2 + 0;
-        if (l < size_e && m == vector_extension[l]) { // index k have done the extension
-            for (int k = 0; k < tmp_pt[l].table_size; ++k) {
-                // 4. potential[table_index]
-                tmp_pt[l].potentials[k] = clique->p_table.potentials[table_index[l][k]];
-            }
-            clique->p_table = tmp_pt[l];
-            l++;
-        }
-
-        m = j * 2 + 1;
-        if (l < size_e && m == vector_extension[l]) { // index j have done the extension
+        if (l < size_e && j == vector_extension[l]) { // index j have done the extension
             for (int k = 0; k < tmp_pt[l].table_size; ++k) {
                 // 4. potential[table_index]
                 tmp_pt[l].potentials[k] = separator->p_table.potentials[table_index[l][k]];
