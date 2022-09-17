@@ -1,0 +1,8 @@
+//
+// Created by jjt on 17/09/22.
+//
+
+#ifndef BAYESIANNETWORK_COMMON_H
+#define BAYESIANNETWORK_COMMON_H
+
+#endif //BAYESIANNETWORK_COMMON_H

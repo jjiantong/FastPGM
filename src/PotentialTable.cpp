@@ -183,8 +183,8 @@ int PotentialTable::GetVariableIndex(const int &variable) {
     return index;
 }
 
-/*!
- * @brief: factor reduction given evidence
+/**
+ * @brief: table operation 1: table reduction - reduce factors givn evidence
  * @example:    a0 b0 c0    0.3             b0 c0    0.3
  *              a0 b0 c1    0.7             b0 c1    0.7
  *              a0 b1 c0    0.4     -->     b1 c0    0.4
@@ -262,8 +262,9 @@ void PotentialTable::TableReductionPost(int index, int value_index, int *v_index
     }
 }
 
+
 /**
- * @brief: factor out a node by id; i.e., factor marginalization
+ * @brief: table operation 2: table marginalization - factor out a node by id
  * eliminate variable "id" by summation of the factor over "id"
  */
 void PotentialTable::TableMarginalization(const set<int> &ext_variables) {
@@ -299,12 +300,7 @@ void PotentialTable::TableMarginalization(const set<int> &ext_variables) {
     delete[] partial_config;
     delete[] loc_in_old;
 
-    for (int i = 0; i < this->table_size; ++i) {
-        // 4. potential[table_index]
-        new_table.potentials[table_index[i]] += this->potentials[i];
-    }
-    delete[] table_index;
-
+    new_table.TableMarginalizationPost(*this, table_index);
     (*this) = new_table;
 }
 
@@ -337,6 +333,9 @@ void PotentialTable::TableMarginalizationPre(const set<int> &ext_variables, Pote
     new_table.potentials.resize(new_table.table_size);
 }
 
+// note that this method is used in junction tree class.
+// it is not used in the tablemarginalization method of this class.
+// because the two use different getconfigvaluebytableindex method.
 int PotentialTable::TableMarginalizationMain(int k, int *full_config, int *partial_config,
                                              int nv, const vector<int> &cl, int *loc) {
     // 1. get the full config value of old table
@@ -349,10 +348,23 @@ int PotentialTable::TableMarginalizationMain(int k, int *full_config, int *parti
     return this->GetTableIndexByConfigValue(partial_config + k * this->num_variables);
 }
 
+void PotentialTable::TableMarginalizationPost(const PotentialTable &pt, int *table_index) {
+    for (int k = 0; k < pt.table_size; ++k) {
+        // 4. potential[table_index]
+        this->potentials[table_index[k]] += pt.potentials[k];
+    }
+}
+
+
+/**
+ * @brief table operation 3: table extension - a pre computation of multiplication
+ * before doing multiplication, we can first let the two tables have the same entries
+ * so we need to extend the tables to let them have the same related variables
+ */
 void PotentialTable::TableExtension(const set<int> &variables, const vector<int> &dims) {
     PotentialTable new_table;
 
-    new_table.ExtensionPre(variables, dims);
+    new_table.TableExtensionPre(variables, dims);
 
     // generate an array showing the locations of the variables of the old table in the new table
     int *loc_in_new = new int[this->num_variables];
@@ -383,16 +395,13 @@ void PotentialTable::TableExtension(const set<int> &variables, const vector<int>
     delete[] partial_config;
     delete[] loc_in_new;
 
-    for (int i = 0; i < new_table.table_size; ++i) {
-        // 4. potentials[i]
-        new_table.potentials[i] = this->potentials[table_index[i]];
-    }
+    new_table.TableExtensionPost(*this, table_index);
     delete[] table_index;
 
     (*this) = new_table;
 }
 
-void PotentialTable::ExtensionPre(const set<int> &variables, const vector<int> &dims) {
+void PotentialTable::TableExtensionPre(const set<int> &variables, const vector<int> &dims) {
     related_variables = variables;
     num_variables = variables.size();
 
@@ -402,27 +411,29 @@ void PotentialTable::ExtensionPre(const set<int> &variables, const vector<int> &
     potentials.resize(table_size);
 }
 
+int PotentialTable::TableExtensionMain(int k, int *full_config, int *partial_config,
+                                        int nv, const vector<int> &cl, int *loc) {
+    // 1. get the full config value of new table
+    this->GetConfigValueByTableIndex(k, full_config + k * this->num_variables);
+    // 2. get the partial config value from the new table
+    for (int l = 0; l < nv; ++l) {
+        partial_config[k * nv + l] = full_config[k * this->num_variables + loc[l]];
+    }
+    // 3. obtain the potential index
+    return this->GetTableIndexByConfigValue(partial_config + k * nv, nv, cl);
+}
 
-
-
-
-
-bool PotentialTable::TableMultiplicationPre(PotentialTable &second_table, set<int> &all_related_variables) {
-    set<int> diff;
-    all_related_variables.insert(this->related_variables.begin(), this->related_variables.end());
-    all_related_variables.insert(second_table.related_variables.begin(), second_table.related_variables.end());
-
-    // before multiplication, we first extend the separator table to the same size if required
-    // get the variables that in the clique table but not in the separator table
-    set_difference(all_related_variables.begin(), all_related_variables.end(),
-                   second_table.related_variables.begin(), second_table.related_variables.end(),
-                   inserter(diff, diff.begin()));
-    return !diff.empty();
+void PotentialTable::TableExtensionPost(const PotentialTable &pt, int *table_index) {
+    for (int k = 0; k < this->table_size; ++k) {
+        // 4. potential[table_index]
+        this->potentials[k] = pt.potentials[table_index[k]];
+    }
 }
 
 
 /**
- * @brief: cartesian product on two factors (product of factors)
+ * @brief: table operation 4: table multiplication
+ * cartesian product on two factors (product of factors)
  * if two factors have shared variables, the conflict ones (i.e. one variable has more than one value) in the results need to be removed.
  * if "related_variables" of one of the factors is empty, then directly return the other factor without multiplication
  * because the case means that this factor is a constant; since we re-normalize at the end, the constant will not affect the result
@@ -452,6 +463,24 @@ void PotentialTable::TableMultiplication(PotentialTable &second_table) {
     }
 }
 
+bool PotentialTable::TableMultiplicationPre(PotentialTable &second_table, set<int> &all_related_variables) {
+    set<int> diff;
+    all_related_variables.insert(this->related_variables.begin(), this->related_variables.end());
+    all_related_variables.insert(second_table.related_variables.begin(), second_table.related_variables.end());
+
+    // before multiplication, we first extend the separator table to the same size if required
+    // get the variables that in the clique table but not in the separator table
+    set_difference(all_related_variables.begin(), all_related_variables.end(),
+                   second_table.related_variables.begin(), second_table.related_variables.end(),
+                   inserter(diff, diff.begin()));
+    return !diff.empty();
+}
+
+
+/**
+ * @brief table operation 5: table division
+ * @param second_table
+ */
 void PotentialTable::TableDivision(const PotentialTable &second_table) {
     // if related variable of both are empty
     if (this->related_variables.empty()) {

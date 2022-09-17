@@ -41,32 +41,40 @@ public:
     void ConstructEmptyPotentialTable(const set<int> &set_node_index, Network *net);
 
     /**
-     * table reduction, used in the evidence loading procedure
+     * potential table operation 1: table reduction
      */
     void TableReduction(int e_index, int e_value_index, int num_threads);
     int TableReductionPre(int e_index);
     int TableReductionMain(int i, int *full_config, int loc);
     void TableReductionPost(int index, int value_index, int *v_index, int loc);
 
+    /**
+     * potential table operation 2: table marginalization
+     */
     void TableMarginalization(const set<int> &ext_variables);
     void TableMarginalizationPre(const set<int> &ext_variables, PotentialTable &new_table, int *location);
     int TableMarginalizationMain(int k, int *full_config, int *partial_config,
                                  int nv, const vector<int> &cl, int *loc);
+    void TableMarginalizationPost(const PotentialTable &pt, int *table_index);
 
-
-
-
-
-
-
-
-    void ExtensionPre(const set<int> &variables, const vector<int> &dims);
+    /**
+     * potential table operation 3: table extension
+     */
     void TableExtension(const set<int> &variables, const vector<int> &dims);
+    void TableExtensionPre(const set<int> &variables, const vector<int> &dims);
+    int TableExtensionMain(int k, int *full_config, int *partial_config,
+                                           int nv, const vector<int> &cl, int *loc);
+    void TableExtensionPost(const PotentialTable &pt, int *table_index);
 
-
-
+    /**
+     * potential table operation 4: table multiplication
+     */
     bool TableMultiplicationPre(PotentialTable &second_table, set<int> &all_related_variables);
     void TableMultiplication(PotentialTable &second_table);
+
+    /**
+     * potential table operation 5: table division
+     */
     void TableDivision(const PotentialTable &second_table);
 
 

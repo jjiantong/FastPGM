@@ -419,15 +419,11 @@ void JunctionTree::SeparatorLevelOperation(bool is_collect, int i, int num_threa
             mar_clique = separator->ptr_upstream_clique;
         }
 
-        for (int k = 0; k < mar_clique->p_table.table_size; ++k) {
-            // 4. potential[table_index]
-            tmp_pt[j].potentials[table_index[j][k]] += mar_clique->p_table.potentials[k];
-        }
+        tmp_pt[j].TableMarginalizationPost(mar_clique->p_table, table_index[j]);
         delete[] table_index[j];
 
-        tmp_pt[j].TableDivision(separator->old_ptable);
-
         separator->p_table = tmp_pt[j];
+        separator->p_table.TableDivision(separator->old_ptable);
     }
     timer->Stop("parallel");
     timer->Stop("post-up-sep");
@@ -459,9 +455,12 @@ void JunctionTree::CliqueLevelOperation(bool is_collect, int i, int size,
                                         int num_threads, Timer *timer) {
     timer->Start("pre-down-clq");
 
+    // used to store the (separator) potential tables that are needed to be extended
     vector<PotentialTable> tmp_pt;
     tmp_pt.reserve(size);
 
+    // used to store the (separator) potential tables that are used to be multiplied
+    // it is different from "tmp_pt" because not all the tables are needed to be extended
     vector<PotentialTable> multi_pt;
     multi_pt.resize(size);
 
@@ -476,7 +475,7 @@ void JunctionTree::CliqueLevelOperation(bool is_collect, int i, int size,
     int sum_index = 0;
 
     // not all tables need to do the extension
-    // there are "2 * size" tables in total
+    // there are "size" tables in total
     // use a vector to show which tables need to do the extension
     vector<int> vector_extension;
     vector_extension.reserve(size);
@@ -516,7 +515,7 @@ void JunctionTree::CliqueLevelOperation(bool is_collect, int i, int size,
             cl_old.push_back(separator->p_table.cum_levels);
 
             PotentialTable pt;
-            pt.ExtensionPre(all_related_variables, clique->p_table.var_dims);
+            pt.TableExtensionPre(all_related_variables, clique->p_table.var_dims);
 
             // get this table's location -- it is currently the last one
             int last = vector_extension.size() - 1;
@@ -524,7 +523,8 @@ void JunctionTree::CliqueLevelOperation(bool is_collect, int i, int size,
             loc_in_new[last] = new int[separator->p_table.num_variables];
             int k = 0;
             for (auto &v: separator->p_table.related_variables) {
-                loc_in_new[last][k++] = pt.GetVariableIndex(v);
+                // just to avoid using "GetVariableIndex"
+                loc_in_new[last][k++] = pt.TableReductionPre(v);
             }
             table_index[last] = new int[pt.table_size];
 
@@ -551,14 +551,8 @@ void JunctionTree::CliqueLevelOperation(bool is_collect, int i, int size,
     for (int s = 0; s < final_sum; ++s) {
         int j, k;
         Compute2DIndex(j, k, s, size_e, cum_sum); // compute j and k
-        // 1. get the full config value of new table
-        tmp_pt[j].GetConfigValueByTableIndex(k, full_config[j] + k * tmp_pt[j].num_variables);
-        // 2. get the partial config value from the new table
-        for (int l = 0; l < nv_old[j]; ++l) {
-            partial_config[j][k * nv_old[j] + l] = full_config[j][k * tmp_pt[j].num_variables + loc_in_new[j][l]];
-        }
-        // 3. obtain the potential index
-        table_index[j][k] = tmp_pt[j].GetTableIndexByConfigValue(partial_config[j] + k * nv_old[j], nv_old[j], cl_old[j]);
+        table_index[j][k] = tmp_pt[j].TableExtensionMain(k, full_config[j], partial_config[j],
+                                                         nv_old[j], cl_old[j], loc_in_new[j]);
     }
     timer->Stop("parallel");
     timer->Stop("main-down-clq");
@@ -581,10 +575,7 @@ void JunctionTree::CliqueLevelOperation(bool is_collect, int i, int size,
         }
 
         if (l < size_e && j == vector_extension[l]) { // index j have done the extension
-            for (int k = 0; k < tmp_pt[l].table_size; ++k) {
-                // 4. potential[table_index]
-                tmp_pt[l].potentials[k] = separator->p_table.potentials[table_index[l][k]];
-            }
+            tmp_pt[l].TableExtensionPost(separator->p_table, table_index[l]);
             multi_pt[j] = tmp_pt[l];
             l++;
         }
@@ -622,7 +613,6 @@ void JunctionTree::CliqueLevelOperation(bool is_collect, int i, int size,
         } else {
             nodes_by_level[i][j]->p_table.potentials[k] *= multi_pt[j].potentials[k];
         }
-
     }
     timer->Stop("parallel");
 
