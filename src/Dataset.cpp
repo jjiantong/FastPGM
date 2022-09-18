@@ -12,20 +12,16 @@ Dataset::Dataset() {
 Dataset::~Dataset() {
     if (dataset_all_vars) {
         for (int i = 0; i < num_instance; ++i) {
-            delete [] dataset_all_vars[i];
-            dataset_all_vars[i] = nullptr;
+            SAFE_DELETE_ARRAY(dataset_all_vars[i]);
         }
-        delete [] dataset_all_vars;
-        dataset_all_vars = nullptr;
+        SAFE_DELETE_ARRAY(dataset_all_vars);
     }
 
     if (dataset_columns) {
         for (int i = 0; i < num_vars; ++i) {
-            delete [] dataset_columns[i];
-            dataset_columns[i] = nullptr;
+            SAFE_DELETE_ARRAY(dataset_columns[i]);
         }
-        delete [] dataset_columns;
-        dataset_columns = nullptr;
+        SAFE_DELETE_ARRAY(dataset_columns);
     }
 }
 

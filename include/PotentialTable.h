@@ -76,16 +76,14 @@ public:
      */
     void TableDivision(const PotentialTable &second_table);
 
-
-
     void Normalize();
 
+protected:
     void GetConfigValueByTableIndex(const int &table_index, int *config_value, int num_variables, const vector<int> &cum_levels);
     int GetTableIndexByConfigValue(int *config_value, int num_variables, const vector<int> &cum_levels);
     void GetConfigValueByTableIndex(const int &table_index, int *config_value);
     int GetTableIndexByConfigValue(int *config_value);
 
-//private:
     void ConstructVarDimsAndCumLevels(Network *net);
     void ConstructCumLevels();
     void GetConfigByTableIndex(const int &table_index, Network *net, DiscreteConfig &config);

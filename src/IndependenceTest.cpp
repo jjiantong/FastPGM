@@ -147,8 +147,7 @@ IndependenceTest::Result IndependenceTest::ComputeGSquareXYZ(int x_idx, int y_id
 //    timer->Stop("g2 & df + p value");
 
 //    timer->Start("new & delete");
-    delete table_3d;
-    table_3d = nullptr;
+    SAFE_DELETE(table_3d);
 //    timer->Stop("new & delete");
 
     bool indep = (p_value > alpha);
@@ -256,12 +255,9 @@ IndependenceTest::Result IndependenceTest::ComputeGSquareXYZGroup(int x_idx, int
             }
         }
 
-        delete[] offset_xy;
-        offset_xy = nullptr;
-        delete[] offset_x;
-        offset_x = nullptr;
-        delete[] offset_y;
-        offset_y = nullptr;
+        SAFE_DELETE_ARRAY(offset_xy);
+        SAFE_DELETE_ARRAY(offset_x);
+        SAFE_DELETE_ARRAY(offset_y);
 
         if (df == 0) { // if df == 0, this is definitely an independent table
             results[m] = true;
@@ -279,7 +275,7 @@ IndependenceTest::Result IndependenceTest::ComputeGSquareXYZGroup(int x_idx, int
 //    timer->Stop("g2 & df + p value");
 
 //    timer->Start("new & delete");
-    delete table_3d_group;
+    SAFE_DELETE(table_3d_group);
 //    timer->Stop("new & delete");
 
     for (int i = 0; i < c_size; ++i) {
@@ -360,8 +356,7 @@ IndependenceTest::Result IndependenceTest::ComputeGSquareXY(int x_idx, int y_idx
 //    timer->Stop("g2 & df & p value");
 
 //    timer->Start("new & delete");
-    delete table_2d;
-    table_2d = nullptr;
+    SAFE_DELETE(table_2d);
 //    timer->Stop("new & delete");
 
     bool indep = (p_value > alpha);

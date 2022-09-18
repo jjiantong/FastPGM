@@ -19,106 +19,98 @@
 #include <bits/stdc++.h>
 #include "omp.h"
 
-
 using namespace std;
 
-// Forward Declaration
-class ScoreFunction;
-
-//TODO: devide into 3 or more classes (e.g. network, learning and inference)
 class Network {//this class is used by both the customized networks and networks learning from data.
- public:
-  string network_name;//a name for each bayesian network (usually an xml file contains a name for the network).
-  int num_nodes = 0;
-  int num_edges = 0;
-  bool pure_discrete;
-  vector<int> topo_ord;
+public:
+    string network_name;//a name for each bayesian network (usually an xml file contains a name for the network).
+    int num_nodes = 0;
+    int num_edges = 0;
+    bool pure_discrete;
+    vector<int> topo_ord;
     /** the default value to infer is the first (i.e. root) variable **/
-  vector<int> vec_default_elim_ord;//the elimination order is obtained by reverse topological sort.
+    vector<int> vec_default_elim_ord;//the elimination order is obtained by reverse topological sort.
 
-  map<int, Node*> map_idx_node_ptr;  // Key: node index. Value: node pointer. This map is a helper for FindNodePtrByIndex.
-  vector<Edge> vec_edges;  // edges in the network
-//  map<int, set<int>> adjacencies; // key is node index, value is the set of neighbor node indexes of the node
-  /**
-   * key is node index, value is a map, contains the set of neighbor node indexes of the node and their weights
-   * the weight refers to the strength of association between the node and its neighbor,
-   * it is in fact the p-value obtained from the level 0 of PC alg. step 1, smaller weight means stronger association
-   */
-  map<int, map<int, double>> adjacencies;
+    map<int, Node*> map_idx_node_ptr;  // Key: node index. Value: node pointer. This map is a helper for FindNodePtrByIndex.
+    vector<Edge> vec_edges;  // edges in the network
 
-  vector<Edge> edge_order;
+    /**
+     * key is node index, value is a map, contains the set of neighbor node indexes of the node and their weights
+     * the weight refers to the strength of association between the node and its neighbor,
+     * it is in fact the p-value obtained from the level 0 of PC alg. step 1, smaller weight means stronger association
+     */
+    map<int, map<int, double>> adjacencies;
 
-  Network();
-  explicit Network(bool pure_disc);
-  Network(Network &net);
+    vector<Edge> edge_order;
+
+    Network();
+    explicit Network(bool pure_disc);
+    Network(Network &net);
     Network(vector<Node*> nodes, string name);
-  virtual ~Network();
+    virtual ~Network();
 
-  void PrintEachNodeParents();
-  void PrintEachNodeChildren();
+    void PrintEachNodeParents();
+    void PrintEachNodeChildren();
 
-  Node* FindNodePtrByIndex(const int &index) const;
-  Node* FindNodePtrByName(const string &name) const;
+    Node* FindNodePtrByIndex(const int &index) const;
+    Node* FindNodePtrByName(const string &name) const;
 
-  void ConstructNaiveBayesNetwork(Dataset *dts);
+    void ConstructNaiveBayesNetwork(Dataset *dts);
 
-  int GetNumParams() const;
-//  void ClearStructure();
-//  void ClearParams();
+    int GetNumParams() const;
 
-  void AddNode(Node *node_ptr);
-  void RemoveNode(int node_index);
+    void AddNode(Node *node_ptr);
+    void RemoveNode(int node_index);
 
-  bool NodeIsInNetwork(Node *node_ptr);
-  bool NodeIsInNetwork(int node_idx);
+    bool NodeIsInNetwork(Node *node_ptr);
+    bool NodeIsInNetwork(int node_idx);
 
-  int GetUndirectedEdge(Node* node1, Node* node2);
-  int GetDirectedEdge(Node* node1, Node* node2);
-  int GetEdge(Node* node1, Node* node2);
-  int GetDirectedEdgeFromEdgeOrder(Node* node1, Node* node2);
-  void PrintEachEdgeWithIndex();
-  void PrintEachEdgeWithName();
+    int GetUndirectedEdge(Node* node1, Node* node2);
+    int GetDirectedEdge(Node* node1, Node* node2);
+    int GetEdge(Node* node1, Node* node2);
+    int GetDirectedEdgeFromEdgeOrder(Node* node1, Node* node2);
+    void PrintEachEdgeWithIndex();
+    void PrintEachEdgeWithName();
 
-  bool AddDirectedEdge(int p_index, int c_index);
-  bool DeleteDirectedEdge(int p_index, int c_index);
-  bool ReverseDirectedEdge(int p_index, int c_index);
-  void AddUndirectedEdge(int p_index, int c_index);
-  bool DeleteUndirectedEdge(int p_index, int c_index);
-//  bool DeleteEdge(int p_index, int c_index);
-  void GenerateUndirectedCompleteGraph();
+    bool AddDirectedEdge(int p_index, int c_index);
+    bool DeleteDirectedEdge(int p_index, int c_index);
+    bool ReverseDirectedEdge(int p_index, int c_index);
+    void AddUndirectedEdge(int p_index, int c_index);
+    bool DeleteUndirectedEdge(int p_index, int c_index);
+    void GenerateUndirectedCompleteGraph();
 
-  // whether two nodes are adjacent, or say, whether an edge (either directed and undirected) between two nodes exists
-  bool IsAdjacentTo(int node_idx1, int node_idx2);
-  // whether an edge from node1->node2 exists, or say, whether node1 is a parent of node2
-  bool IsDirectedFromTo(int node_idx1, int node_idx2);
-  // whether an edge node1--node2 exists, or say,
-  // whether node1 is adjacent to node2 && node1 is not a parent of node2 && node2 is not a parent of node1
-  bool IsUndirectedFromTo(int node_idx1, int node_idx2);
+    // whether two nodes are adjacent, or say, whether an edge (either directed and undirected) between two nodes exists
+    bool IsAdjacentTo(int node_idx1, int node_idx2);
+    // whether an edge from node1->node2 exists, or say, whether node1 is a parent of node2
+    bool IsDirectedFromTo(int node_idx1, int node_idx2);
+    // whether an edge node1--node2 exists, or say,
+    // whether node1 is adjacent to node2 && node1 is not a parent of node2 && node2 is not a parent of node1
+    bool IsUndirectedFromTo(int node_idx1, int node_idx2);
 
-  double CalcuExtraScoreWithModifiedEdge(int p_index, int c_index, Dataset *dts,
-                                         const string &modification, const string &score_metric);
+    double CalcuExtraScoreWithModifiedEdge(int p_index, int c_index, Dataset *dts,
+                                           const string &modification, const string &score_metric);
 
-  void SetParentChild(int p_index, int c_index);
-  void SetParentChild(Node *par, Node *chi); // checked
+    void SetParentChild(int p_index, int c_index);
+    void SetParentChild(Node *par, Node *chi); // checked
 
-  void RemoveParentChild(int p_index, int c_index);
-  void RemoveParentChild(Node *par, Node *chi);
+    void RemoveParentChild(int p_index, int c_index);
+    void RemoveParentChild(Node *par, Node *chi);
 
-  set<Node*> GetParentPtrsOfNode(int node_index);
-  set<Node*> GetChildrenPtrsOfNode(int node_index);
+    set<Node*> GetParentPtrsOfNode(int node_index);
+    set<Node*> GetChildrenPtrsOfNode(int node_index);
     set<int> GetChildrenIdxesOfNode(int node_index);
 
-  void GenDiscParCombsForAllNodes();
+    void GenDiscParCombsForAllNodes();
 
-  vector<int> GetTopoOrd();
-  vector<int> GetReverseTopoOrd();
+    vector<int> GetTopoOrd();
+    vector<int> GetReverseTopoOrd();
 
-  set<int> GetMarkovBlanketIndexesOfNode(Node *node_ptr);
+    set<int> GetMarkovBlanketIndexesOfNode(Node *node_ptr);
 
-  int** ConvertDAGNetworkToAdjacencyMatrix();
-  bool ContainCircle();
+    int** ConvertDAGNetworkToAdjacencyMatrix();
+    bool ContainCircle();
 
-  virtual vector<int> SimplifyDefaultElimOrd(DiscreteConfig evidence);
+    virtual vector<int> SimplifyDefaultElimOrd(DiscreteConfig evidence);
 
     /**
      * is used for Structural Hamming Distance (SHD)
@@ -130,8 +122,8 @@ class Network {//this class is used by both the customized networks and networks
     void FindCompelled();
     bool IsDAG();
 
- protected:
-  vector<int> GenTopoOrd();
+protected:
+    vector<int> GenTopoOrd();
 };
 
 

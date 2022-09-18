@@ -13,7 +13,7 @@ PCStable::PCStable(Network *net, double a, int d) {
 }
 
 PCStable::~PCStable() {
-    delete network;
+    SAFE_DELETE(network);
 }
 
 void PCStable::StructLearnCompData(Dataset *dts, int group_size, int num_threads, bool print_struct, bool verbose) {
@@ -43,8 +43,7 @@ void PCStable::StructLearnCompData(Dataset *dts, int group_size, int num_threads
 //    timer->Print("config + count"); cout << " (" << timer->time["config + count"] / timer->time["pc-stable step 1"] * 100 << "%)";
 //    timer->Print("marginals"); cout << " (" << timer->time["marginals"] / timer->time["pc-stable step 1"] * 100 << "%)";
 //    timer->Print("g2 & df + p value"); cout << " (" << timer->time["g2 & df + p value"] / timer->time["pc-stable step 1"] * 100 << "%)" << endl;
-    delete timer;
-    timer = nullptr;
+    SAFE_DELETE(timer);
 }
 
 void PCStable::StructLearnByPCStable(Dataset *dts, int num_threads, int group_size,
@@ -98,7 +97,7 @@ void PCStable::StructLearnByPCStable(Dataset *dts, int num_threads, int group_si
         IndependenceTest *ci_test = new IndependenceTest(dts, alpha);
         IndependenceTest::Result result = ci_test->IndependenceResult(node_idx1, node_idx2, vector<int>(),
                                                                       "g square", timer);
-        delete ci_test;
+        SAFE_DELETE(ci_test);
         bool independent = result.is_independent;
         if (verbose) {
             cout << "    > node " << network->FindNodePtrByIndex(node_idx1)->node_name << " is ";
@@ -413,8 +412,7 @@ bool PCStable::CheckEdge(Dataset *dts, const map<int, map<int, double>> &adjacen
 //    timer->Stop("ci");
 
     if (ind) {
-        delete network->vec_edges[edge_id].cg;
-        network->vec_edges[edge_id].cg = nullptr;
+        SAFE_DELETE(network->vec_edges[edge_id].cg);
         network->vec_edges[edge_id].need_remove = true;
         return false;
     } else {
@@ -422,13 +420,11 @@ bool PCStable::CheckEdge(Dataset *dts, const map<int, map<int, double>> &adjacen
             return true;
         } else {
             if (network->vec_edges[edge_id].process == NODE1) {
-                delete network->vec_edges[edge_id].cg;
-                network->vec_edges[edge_id].cg = nullptr;
+                SAFE_DELETE(network->vec_edges[edge_id].cg);
                 network->vec_edges[edge_id].process = ENODE1;
                 return true;
             } else {
-                delete network->vec_edges[edge_id].cg;
-                network->vec_edges[edge_id].cg = nullptr;
+                SAFE_DELETE(network->vec_edges[edge_id].cg);
                 network->vec_edges[edge_id].need_remove  = false;
                 return false;
             }
@@ -503,7 +499,7 @@ bool PCStable::Testing(Dataset *dts, int c_depth, int edge_idx, int x_idx, int y
         num_ci_test += i;
         IndependenceTest *ci_test = new IndependenceTest(dts, alpha);
         IndependenceTest::Result result = ci_test->IndependenceResult(x_idx, y_idx, Z, "g square", timer, i);
-        delete ci_test;
+        SAFE_DELETE(ci_test);
         bool independent = result.is_independent;
 
         if (independent) {

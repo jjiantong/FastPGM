@@ -55,8 +55,9 @@ Network::Network(Network &net) {
 
 Network::~Network() {
     for (int i = 0; i < num_nodes; ++i) {
-        delete map_idx_node_ptr[i];
-        map_idx_node_ptr[i] = nullptr;
+        SAFE_DELETE(map_idx_node_ptr[i]);
+//        delete map_idx_node_ptr[i];
+//        map_idx_node_ptr[i] = nullptr;
     }
 }
 
@@ -404,13 +405,6 @@ bool Network::DeleteUndirectedEdge(int p_index, int c_index) {
     }
 }
 
-//bool Network::DeleteEdge(int p_index, int c_index) { // todo: check for usage
-//    bool del = (DeleteUndirectedEdge(p_index, c_index) ||
-//                DeleteDirectedEdge(p_index, c_index) ||
-//                DeleteDirectedEdge(c_index, p_index));
-//    return del;
-//}
-
 void Network::GenerateUndirectedCompleteGraph() {
     // |E| = n(n-1)/2
     num_edges = (num_nodes - 1) * num_nodes / 2;
@@ -621,12 +615,9 @@ vector<int> Network::GenTopoOrd() {
     topo_ord = TopoSortOfDAGZeroInDegreeFirst(graph, num_nodes);
 
     for (int i=0; i<num_nodes; ++i) {
-      delete[] graph[i];
-      graph[i] = nullptr;
+        SAFE_DELETE_ARRAY(graph[i]);
     }
-    delete[] graph;
-    graph = nullptr;
-
+      SAFE_DELETE_ARRAY(graph);
   }
   else { // TODO: double-check, not check for the continuous cases
 
@@ -697,16 +688,14 @@ vector<int> Network::GenTopoOrd() {
     this->topo_ord = topo_ord_disc;
 
     for (int i=0; i<set_disc_node_ptr.size(); ++i) {
-      delete[] graph_disc[i];
+        SAFE_DELETE_ARRAY(graph_disc[i]);
     }
     for (int i=0; i<set_cont_node_ptr.size(); ++i) {
-      delete[] graph_cont[i];
+        SAFE_DELETE_ARRAY(graph_cont[i]);
     }
-    delete[] graph_disc;
-    delete[] graph_cont;
-
+      SAFE_DELETE_ARRAY(graph_disc);
+      SAFE_DELETE_ARRAY(graph_cont);
   }
-
   return topo_ord;
 }
 
@@ -746,9 +735,9 @@ bool Network::ContainCircle() {
   bool result = DirectedGraphContainsCircleByBFS(graph, num_nodes);
 
   for (int i = 0; i < num_nodes; ++i) {
-    delete[] graph[i];
+      SAFE_DELETE_ARRAY(graph[i]);
   }
-  delete[] graph;
+    SAFE_DELETE_ARRAY(graph);
   return result;
 }
 

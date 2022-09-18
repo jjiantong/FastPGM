@@ -5,6 +5,7 @@
 #ifndef BAYESIANNETWORK_PCSTABLE_H
 #define BAYESIANNETWORK_PCSTABLE_H
 
+#include "common.h"
 #include "StructureLearning.h"
 #include "IndependenceTest.h"
 #include "ChoiceGenerator.h"
