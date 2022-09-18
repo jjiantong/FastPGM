@@ -7,7 +7,7 @@
 #include <utility>
 #include <string>
 #include "Node.h"
-#include "gadget.h"
+#include "common.h"
 
 using namespace std;
 

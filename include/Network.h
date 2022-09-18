@@ -1,10 +1,10 @@
 #ifndef BAYESIANNETWORK_NETWORK_H
 #define BAYESIANNETWORK_NETWORK_H
 
+#include "common.h"
 #include "Dataset.h"
 #include "Node.h"
 #include "Edge.h"
-#include "gadget.h"
 #include <string>
 #include <set>
 #include <queue>

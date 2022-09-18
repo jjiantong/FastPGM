@@ -371,7 +371,7 @@ void JunctionTree::SeparatorLevelOperation(bool is_collect, int i, int num_threa
         full_config[j] = new int[mar_clique->p_table.table_size * mar_clique->p_table.num_variables];
         partial_config[j] = new int[mar_clique->p_table.table_size * num_vars];
 
-        mar_clique->p_table.TableMarginalizationPre(set_external_vars, tmp_pt[j], loc_in_old[j]);
+        mar_clique->p_table.TableMarginalizationPre(set_external_vars, tmp_pt[j]);
         int k = 0;
         for (auto &v: tmp_pt[j].related_variables) {
             // just to avoid using "GetVariableIndex"

@@ -6,7 +6,6 @@
 #include <utility>
 #include <string>
 #include <queue>
-#include "gadget.h"
 #include "Node.h"
 #include "Network.h"
 #include "PotentialTable.h"

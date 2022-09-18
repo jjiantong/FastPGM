@@ -1,12 +1,12 @@
 #ifndef BAYESIANNETWORK_CUSTOMNETWORK_H
 #define BAYESIANNETWORK_CUSTOMNETWORK_H
 
+#include "common.h"
 #include "Dataset.h"
 #include "Network.h"
 #include "Edge.h"
 #include "DiscreteNode.h"
 #include "XMLBIFParser.h"
-#include "gadget.h"
 #include <string>
 #include <set>
 #include <queue>

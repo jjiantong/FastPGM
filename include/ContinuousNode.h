@@ -12,7 +12,6 @@
 #include <utility>
 #include <string>
 #include "Node.h"
-#include "gadget.h"
 
 using namespace std;
 

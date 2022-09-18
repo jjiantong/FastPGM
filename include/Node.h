@@ -12,7 +12,7 @@
 #include <random>
 #include <chrono>
 #include<bits/stdc++.h>
-#include "gadget.h"
+#include "common.h"
 
 using namespace std;
 

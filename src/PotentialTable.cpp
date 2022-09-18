@@ -4,8 +4,6 @@
 
 #include "PotentialTable.h"
 
-//int num_threads = 1;
-
 /**
  * @brief: construct a potential table given a node;
  * the table consists of the node and all the existing related_variables, i.e., all its parents.
@@ -270,7 +268,7 @@ void PotentialTable::TableReductionPost(int index, int value_index, int *v_index
 void PotentialTable::TableMarginalization(const set<int> &ext_variables) {
     PotentialTable new_table;
     int *loc;
-    this->TableMarginalizationPre(ext_variables, new_table, loc);
+    this->TableMarginalizationPre(ext_variables, new_table);
 
     // generate an array showing the locations of the variables of the new table in the old table
     int *loc_in_old = new int[new_table.num_variables];
@@ -304,7 +302,7 @@ void PotentialTable::TableMarginalization(const set<int> &ext_variables) {
     (*this) = new_table;
 }
 
-void PotentialTable::TableMarginalizationPre(const set<int> &ext_variables, PotentialTable &new_table, int *location) {
+void PotentialTable::TableMarginalizationPre(const set<int> &ext_variables, PotentialTable &new_table) {
     // update the new table's related variables and num variables
     new_table.related_variables = this->related_variables;
     for (auto &ext_var: ext_variables) {

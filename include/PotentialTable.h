@@ -11,7 +11,6 @@
 #include <string>
 #include <algorithm>
 #include "common.h"
-#include "gadget.h"
 #include "Node.h"
 #include "DiscreteNode.h"
 #include "Network.h"
@@ -52,7 +51,7 @@ public:
      * potential table operation 2: table marginalization
      */
     void TableMarginalization(const set<int> &ext_variables);
-    void TableMarginalizationPre(const set<int> &ext_variables, PotentialTable &new_table, int *location);
+    void TableMarginalizationPre(const set<int> &ext_variables, PotentialTable &new_table);
     int TableMarginalizationMain(int k, int *full_config, int *partial_config,
                                  int nv, const vector<int> &cl, int *loc);
     void TableMarginalizationPost(const PotentialTable &pt, int *table_index);
