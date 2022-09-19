@@ -1,6 +1,6 @@
 #include "JunctionTree.h"
 
-JunctionTree::JunctionTree(Network *net) : network(net) {
+JunctionTree::JunctionTree(Network *net) : Inference(net) {
     cout << "begin construction function of JunctionTree..." << endl;
 
     Timer *timer = new Timer();
@@ -30,6 +30,92 @@ JunctionTree::~JunctionTree() {
     SAFE_DELETE(tree);
     SAFE_DELETE_ARRAY(clique_backup);
     SAFE_DELETE_ARRAY(separator_backup);
+}
+
+/**
+ * @brief: test the Junction Tree given a data set
+ */
+double JunctionTree::EvaluateAccuracy(Dataset *dts, int num_threads, int num_samples, bool is_dense) {
+
+    cout << "==================================================" << '\n'
+         << "Begin testing the trained network." << endl;
+
+    Timer *timer = new Timer();
+    // record time
+    timer->Start("jt");
+
+    int m = dts->num_instance;
+
+    int class_var_index = dts->class_var_index;
+
+    vector<DiscreteConfig> evidences;
+    evidences.reserve(m);
+    vector<int> ground_truths;
+    ground_truths.reserve(m);
+
+    for (int i = 0; i < m; ++i) {  // For each sample in test set
+        vector<VarVal> vec_instance = dts->vector_dataset_all_vars.at(i);
+
+        // construct an evidence by removing the class variable
+        DiscreteConfig e;
+        pair<int, int> p;
+        for (int j = 0; j < vec_instance.size(); ++j) {
+            if (j == class_var_index) { // skip the class variable
+                continue;
+            }
+            p.first = vec_instance.at(j).first;
+            p.second = vec_instance.at(j).second.GetInt();
+            e.insert(p);
+        }
+
+        if (is_dense) {
+            e = Sparse2Dense(e, network->num_nodes, class_var_index);
+        }
+        evidences.push_back(e);
+
+        // construct the ground truth
+        int g = vec_instance.at(class_var_index).second.GetInt();
+        ground_truths.push_back(g);
+    }
+
+    // predict the labels of the test instances
+    vector<int> predictions = PredictUseJTInfer(evidences, class_var_index, num_threads, timer);
+
+    double accuracy = Accuracy(ground_truths, predictions);
+
+    timer->Stop("jt");
+    setlocale(LC_NUMERIC, "");
+
+//    double accuracy = num_of_correct / (double)(num_of_correct+num_of_wrong);
+    cout << '\n' << "Accuracy: " << accuracy << endl;
+    cout << "==================================================" << endl;
+    timer->Print("jt"); cout << "after removing reset time: " << timer->time["jt"] - timer->time["reset"] << " s"<< endl;
+    double total = timer->time["jt"] - timer->time["reset"] - timer->time["norm"]; cout << "after removing norm time: " << total << " s"<< endl;
+    timer->Print("load evidence"); cout << "(" << timer->time["load evidence"] / timer->time["jt"] * 100 << "%)" << endl;
+    timer->Print("msg passing"); cout << "(" << timer->time["msg passing"] / timer->time["jt"] * 100 << "%)" << endl;
+    timer->Print("upstream"); cout << endl;
+    timer->Print("downstream"); cout << endl;
+    timer->Print("predict"); cout << "(" << timer->time["predict"] / timer->time["jt"] * 100 << "%)" << endl;
+    timer->Print("reset"); cout << "(" << timer->time["reset"] / timer->time["jt"] * 100 << "%)" << endl << endl;
+
+    timer->Print("pre-evi"); timer->Print("main-evi"); timer->Print("post-evi"); cout << endl << endl;
+    timer->Print("pre-down-sep"); timer->Print("main-down-sep"); timer->Print("post-down-sep"); cout << endl;
+    timer->Print("pre-down-clq"); timer->Print("main-down-clq"); timer->Print("post-down-clq"); cout << endl;
+    timer->Print("pre-up-sep"); timer->Print("main-up-sep"); timer->Print("post-up-sep"); cout << endl;
+    timer->Print("pre-up-clq"); timer->Print("main-up-clq"); timer->Print("post-up-clq"); cout << endl << endl;
+
+    timer->Print("post-down-clq-mem"); timer->Print("post-down-clq-del"); timer->Print("post-down-clq-mul"); cout << endl;
+    timer->Print("post-down-sep-mem"); timer->Print("post-sep-del"); timer->Print("post-down-sep-div"); cout << endl << endl;
+
+    timer->Print("norm"); cout << endl << endl;
+
+    timer->Print("parallel");
+    cout << "(" << timer->time["parallel"] / (timer->time["jt"] - timer->time["norm"])* 100 << "%)";
+    cout << "(" << timer->time["parallel"] / total * 100 << "%)" << endl;
+
+    SAFE_DELETE(timer);
+
+    return accuracy;
 }
 
 /**
@@ -783,92 +869,6 @@ int JunctionTree::InferenceUsingJT(int &query_index) {
 }
 
 /**
- * @brief: test the Junction Tree given a data set
- */
-double JunctionTree::EvaluateAccuracy(Dataset *dts, int num_threads, int num_samp, string alg, bool is_dense) {
-
-  cout << "==================================================" << '\n'
-       << "Begin testing the trained network." << endl;
-
-    Timer *timer = new Timer();
-    // record time
-    timer->Start("jt");
-
-    int m = dts->num_instance;
-
-    int class_var_index = dts->class_var_index;
-
-    vector<DiscreteConfig> evidences;
-    evidences.reserve(m);
-    vector<int> ground_truths;
-    ground_truths.reserve(m);
-
-    for (int i = 0; i < m; ++i) {  // For each sample in test set
-        vector<VarVal> vec_instance = dts->vector_dataset_all_vars.at(i);
-
-        // construct an evidence by removing the class variable
-        DiscreteConfig e;
-        pair<int, int> p;
-        for (int j = 0; j < vec_instance.size(); ++j) {
-            if (j == class_var_index) { // skip the class variable
-                continue;
-            }
-            p.first = vec_instance.at(j).first;
-            p.second = vec_instance.at(j).second.GetInt();
-            e.insert(p);
-        }
-
-        if (is_dense) {
-            e = Sparse2Dense(e, network->num_nodes, class_var_index);
-        }
-        evidences.push_back(e);
-
-        // construct the ground truth
-        int g = vec_instance.at(class_var_index).second.GetInt();
-        ground_truths.push_back(g);
-    }
-
-    // predict the labels of the test instances
-    vector<int> predictions = PredictUseJTInfer(evidences, class_var_index, num_threads, timer);
-
-    double accuracy = Accuracy(ground_truths, predictions);
-
-    timer->Stop("jt");
-    setlocale(LC_NUMERIC, "");
-
-//    double accuracy = num_of_correct / (double)(num_of_correct+num_of_wrong);
-    cout << '\n' << "Accuracy: " << accuracy << endl;
-    cout << "==================================================" << endl;
-    timer->Print("jt"); cout << "after removing reset time: " << timer->time["jt"] - timer->time["reset"] << " s"<< endl;
-    double total = timer->time["jt"] - timer->time["reset"] - timer->time["norm"]; cout << "after removing norm time: " << total << " s"<< endl;
-    timer->Print("load evidence"); cout << "(" << timer->time["load evidence"] / timer->time["jt"] * 100 << "%)" << endl;
-    timer->Print("msg passing"); cout << "(" << timer->time["msg passing"] / timer->time["jt"] * 100 << "%)" << endl;
-    timer->Print("upstream"); cout << endl;
-    timer->Print("downstream"); cout << endl;
-    timer->Print("predict"); cout << "(" << timer->time["predict"] / timer->time["jt"] * 100 << "%)" << endl;
-    timer->Print("reset"); cout << "(" << timer->time["reset"] / timer->time["jt"] * 100 << "%)" << endl << endl;
-
-    timer->Print("pre-evi"); timer->Print("main-evi"); timer->Print("post-evi"); cout << endl << endl;
-    timer->Print("pre-down-sep"); timer->Print("main-down-sep"); timer->Print("post-down-sep"); cout << endl;
-    timer->Print("pre-down-clq"); timer->Print("main-down-clq"); timer->Print("post-down-clq"); cout << endl;
-    timer->Print("pre-up-sep"); timer->Print("main-up-sep"); timer->Print("post-up-sep"); cout << endl;
-    timer->Print("pre-up-clq"); timer->Print("main-up-clq"); timer->Print("post-up-clq"); cout << endl << endl;
-
-    timer->Print("post-down-clq-mem"); timer->Print("post-down-clq-del"); timer->Print("post-down-clq-mul"); cout << endl;
-    timer->Print("post-down-sep-mem"); timer->Print("post-sep-del"); timer->Print("post-down-sep-div"); cout << endl << endl;
-
-    timer->Print("norm"); cout << endl << endl;
-
-    timer->Print("parallel");
-    cout << "(" << timer->time["parallel"] / (timer->time["jt"] - timer->time["norm"])* 100 << "%)";
-    cout << "(" << timer->time["parallel"] / total * 100 << "%)" << endl;
-
-    SAFE_DELETE(timer);
-
-    return accuracy;
-}
-
-/**
  * @brief: predict label given evidence E and target variable id Y_index
  * @return label of the target variable
  */
@@ -915,10 +915,8 @@ vector<int> JunctionTree::PredictUseJTInfer(const vector<DiscreteConfig> &eviden
         ++progress;
 
         if (progress % every_1_of_20 == 0) {
-            string progress_percentage = to_string((double)progress/size * 100) + "%...\n";
+            string progress_percentage = to_string((double)progress/size * 100) + "%...";
             fprintf(stdout, "%s\n", progress_percentage.c_str());
-//            double acc_so_far = num_of_correct / (double)(num_of_correct+num_of_wrong);
-//            fprintf(stdout, "Accuracy so far: %f\n", acc_so_far);
             fflush(stdout);
         }
 

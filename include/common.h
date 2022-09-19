@@ -100,6 +100,8 @@ bool DirectedGraphContainsCircleByBFS(int **graph, int num_nodes);
 vector<int> TopoSortOfDAGZeroInDegreeFirst(int **graph, int num_nodes);
 
 
+bool Conflict(const DiscreteConfig *cfg1, const DiscreteConfig *cfg2);
+
 string TrimRight(string);
 string TrimLeft(string);
 string Trim(string &);

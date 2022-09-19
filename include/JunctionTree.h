@@ -19,7 +19,7 @@
 class JunctionTree: public Inference {
     //==================================================
 public:
-    Network *network;//the learned network which can be used for inference
+//    Network *network;//the learned network which can be used for inference
     JunctionTreeStructure *tree;
     Clique *arb_root;
 
@@ -31,12 +31,10 @@ public:
     JunctionTree(Network *net);
     ~JunctionTree();
 
+    virtual double EvaluateAccuracy(Dataset *dts, int num_threads, int num_samples, bool is_dense);
+
     void ResetJunctionTree();
 
-    virtual double EvaluateAccuracy(Dataset *dts, int num_threads, int num_samp, string alg, bool is_dense);
-
-
-    //==================================================
 protected:
     Clique* clique_backup; // use an array to backup cliques
     Separator* separator_backup; // use an array to backup separators
