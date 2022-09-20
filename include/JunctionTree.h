@@ -28,10 +28,10 @@ public:
     int max_level;
 
     JunctionTree() = default;
-    JunctionTree(Network *net);
+    JunctionTree(Network *net, Dataset *dts, bool is_dense);
     ~JunctionTree();
 
-    virtual double EvaluateAccuracy(Dataset *dts, int num_threads, int num_samples, bool is_dense);
+    virtual double EvaluateAccuracy(int num_threads, int num_samples);
 
     void ResetJunctionTree();
 
@@ -54,8 +54,9 @@ protected:
 
     PotentialTable CalculateMarginalProbability(int query_index);
     int InferenceUsingJT(int &query_index);
-    int PredictUseJTInfer(const DiscreteConfig &E, int Y_index, int num_threads, Timer *timer);
-    vector<int> PredictUseJTInfer(const vector<DiscreteConfig> &evidences, int target_node_idx, int num_threads, Timer *timer);
+    int PredictUseJTInfer(const DiscreteConfig &E, int num_threads, Timer *timer);
+//    vector<int> PredictUseJTInfer(const vector<DiscreteConfig> &evidences, int target_node_idx, int num_threads, Timer *timer);
+    vector<int> PredictUseJTInfer(int num_threads, Timer *timer);
 
     /**
      * @brief: compute 2d index (j,k) according to 1d index s

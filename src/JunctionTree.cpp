@@ -1,6 +1,6 @@
 #include "JunctionTree.h"
 
-JunctionTree::JunctionTree(Network *net) : Inference(net) {
+JunctionTree::JunctionTree(Network *net, Dataset *dts, bool is_dense) : Inference(net, dts, is_dense) {
     cout << "begin construction function of JunctionTree..." << endl;
 
     Timer *timer = new Timer();
@@ -35,7 +35,7 @@ JunctionTree::~JunctionTree() {
 /**
  * @brief: test the Junction Tree given a data set
  */
-double JunctionTree::EvaluateAccuracy(Dataset *dts, int num_threads, int num_samples, bool is_dense) {
+double JunctionTree::EvaluateAccuracy(int num_threads, int num_samples) {
 
     cout << "==================================================" << '\n'
          << "Begin testing the trained network." << endl;
@@ -44,44 +44,10 @@ double JunctionTree::EvaluateAccuracy(Dataset *dts, int num_threads, int num_sam
     // record time
     timer->Start("jt");
 
-    int m = dts->num_instance;
-
-    int class_var_index = dts->class_var_index;
-
-    vector<DiscreteConfig> evidences;
-    evidences.reserve(m);
-    vector<int> ground_truths;
-    ground_truths.reserve(m);
-
-    for (int i = 0; i < m; ++i) {  // For each sample in test set
-        vector<VarVal> vec_instance = dts->vector_dataset_all_vars.at(i);
-
-        // construct an evidence by removing the class variable
-        DiscreteConfig e;
-        pair<int, int> p;
-        for (int j = 0; j < vec_instance.size(); ++j) {
-            if (j == class_var_index) { // skip the class variable
-                continue;
-            }
-            p.first = vec_instance.at(j).first;
-            p.second = vec_instance.at(j).second.GetInt();
-            e.insert(p);
-        }
-
-        if (is_dense) {
-            e = Sparse2Dense(e, network->num_nodes, class_var_index);
-        }
-        evidences.push_back(e);
-
-        // construct the ground truth
-        int g = vec_instance.at(class_var_index).second.GetInt();
-        ground_truths.push_back(g);
-    }
-
     // predict the labels of the test instances
-    vector<int> predictions = PredictUseJTInfer(evidences, class_var_index, num_threads, timer);
+    vector<int> predictions = PredictUseJTInfer(num_threads, timer);
 
-    double accuracy = Accuracy(ground_truths, predictions);
+    double accuracy = Accuracy(predictions);
 
     timer->Stop("jt");
     setlocale(LC_NUMERIC, "");
@@ -872,7 +838,7 @@ int JunctionTree::InferenceUsingJT(int &query_index) {
  * @brief: predict label given evidence E and target variable id Y_index
  * @return label of the target variable
  */
-int JunctionTree::PredictUseJTInfer(const DiscreteConfig &E, int Y_index, int num_threads, Timer *timer) {
+int JunctionTree::PredictUseJTInfer(const DiscreteConfig &E, int num_threads, Timer *timer) {
     timer->Start("load evidence");
     //update a clique using the evidence
     LoadDiscreteEvidence(E, num_threads, timer);
@@ -886,7 +852,7 @@ int JunctionTree::PredictUseJTInfer(const DiscreteConfig &E, int Y_index, int nu
 //    cout << "finish msg passing" << endl;
 
     timer->Start("predict");
-    int label_predict = InferenceUsingJT(Y_index);
+    int label_predict = InferenceUsingJT(query_index);
     timer->Stop("predict");
 //    cout << "finish predict " << endl;
 
@@ -901,8 +867,7 @@ int JunctionTree::PredictUseJTInfer(const DiscreteConfig &E, int Y_index, int nu
  * @brief: predict the labels given different evidences
  * it just repeats the function above multiple times, and print the progress at the meantime
  */
-vector<int> JunctionTree::PredictUseJTInfer(const vector<DiscreteConfig> &evidences, int target_node_idx,
-                                            int num_threads, Timer *timer) {
+vector<int> JunctionTree::PredictUseJTInfer(int num_threads, Timer *timer) {
     int size = evidences.size();
 
     cout << "Progress indicator: ";
@@ -920,7 +885,7 @@ vector<int> JunctionTree::PredictUseJTInfer(const vector<DiscreteConfig> &eviden
             fflush(stdout);
         }
 
-        int label_predict = PredictUseJTInfer(evidences.at(i), target_node_idx, num_threads, timer);
+        int label_predict = PredictUseJTInfer(evidences.at(i), num_threads, timer);
         results.at(i) = label_predict;
     }
     return results;

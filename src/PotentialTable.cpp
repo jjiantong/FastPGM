@@ -7,7 +7,6 @@
 /**
  * @brief: construct a potential table given a node;
  * the table consists of the node and all the existing related_variables, i.e., all its parents.
- * this constructor is used in class JunctionTree (when doing the triangulation)
  */
 PotentialTable::PotentialTable(DiscreteNode *disc_node, Network *net) {
     int node_index = disc_node->GetNodeIndex();
