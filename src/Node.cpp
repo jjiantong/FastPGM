@@ -153,32 +153,32 @@ void Node::AddParent(Node *p) {
  *          "set_discrete_parents_combinations"
  */
 void Node::AddDiscreteParent(Node *p) {
-  int p_idx = p->GetNodeIndex();//get the id of the parent p
-  if (set_parent_indexes.find(p_idx) == set_parent_indexes.end()) {
-    // If p is not in the parent set.
-    // update "set_parent_indexes", "vec_disc_parent_indexes", "map_disc_parents_domain_size"
-    set_parent_indexes.insert(p_idx);
-    auto dp = (DiscreteNode *) p;//dp stands for "discrete parent"
-    vec_disc_parent_indexes.push_back(p_idx);
-    map_disc_parents_domain_size[p_idx] = dp->GetDomainSize();
+    int p_idx = p->GetNodeIndex();//get the id of the parent p
+    if (set_parent_indexes.find(p_idx) == set_parent_indexes.end()) {
+        // If p is not in the parent set.
+        // update "set_parent_indexes", "vec_disc_parent_indexes", "map_disc_parents_domain_size"
+        set_parent_indexes.insert(p_idx);
+        auto dp = (DiscreteNode *) p;//dp stands for "discrete parent"
+        vec_disc_parent_indexes.push_back(p_idx);
+        map_disc_parents_domain_size[p_idx] = dp->GetDomainSize();
 
-    // Update possible parent configurations
-    set<DiscreteConfig> new_par_combs;
-    for (const auto &val : dp->vec_potential_vals) { // for each possible value of p
-      DiscVarVal vv(p_idx, val); // get [idx of p, each value of p]
-      for (auto old_par_comb : set_discrete_parents_combinations) {
-        // set_discrete_parents_combinations: set< set< pair<int, int> > >
-        // new_par_combs: set< set< pair<int, int> > >
-        // old_par_comb: set< pair<int, int> >
-        // vv: pair<int, int>
-        // add each vv(corresponding to each potential value of p) to each old_par_comb
-        old_par_comb.insert(vv);//insert the new parent with a potential value to the old configuration
-        new_par_combs.insert(old_par_comb);
-      } // finish adding one vv to all old_par_comb
-    } // finish adding all potential vv to all old_par_comb
-    this->set_discrete_parents_combinations = new_par_combs;
-  }
-  //if the parent is already in the set_parent_indexes, nothing needs to be done.
+        // Update possible parent configurations
+        set<DiscreteConfig> new_par_combs;
+        for (int i = 0; i < dp->GetDomainSize(); ++i) {
+            DiscVarVal vv(p_idx, i); // get [idx of p, each value of p]
+            for (auto old_par_comb : set_discrete_parents_combinations) {
+                // set_discrete_parents_combinations: set< set< pair<int, int> > >
+                // new_par_combs: set< set< pair<int, int> > >
+                // old_par_comb: set< pair<int, int> >
+                // vv: pair<int, int>
+                // add each vv(corresponding to each potential value of p) to each old_par_comb
+                old_par_comb.insert(vv);//insert the new parent with a potential value to the old configuration
+                new_par_combs.insert(old_par_comb);
+            } // finish adding one vv to all old_par_comb
+        }
+        this->set_discrete_parents_combinations = new_par_combs;
+    }
+    //if the parent is already in the set_parent_indexes, nothing needs to be done.
 }
 
 /**
@@ -264,7 +264,7 @@ void Node::RemoveParent(Node *p) {
      * maybe choose combs from set_discrete_parents_combinations that have one specific [p_idx, one of the value]
      * then erase [p_idx, one of the value] and insert to new_par_combs
      */
-//    int val = dp->vec_potential_vals[0]; // just use (any) one possible value of p
+//    int val = 0; // just use (any) one possible value of p
 //    DiscVarVal vv(p_idx, val);
 //    for (auto old_par_comb : set_discrete_parents_combinations) {
 //        if (old_par_comb.find(vv) != old_par_comb.end()) { // old_par_comb contains vv
@@ -272,13 +272,14 @@ void Node::RemoveParent(Node *p) {
 //            new_par_combs.insert(old_par_comb);
 //        }
 //    }
-    for (const auto &val : dp->vec_potential_vals) {
-      DiscVarVal vv(p_idx, val); // get [idx of p, each value of p]
-      for (auto old_par_comb : set_discrete_parents_combinations) {
-        old_par_comb.erase(vv);
-        new_par_combs.insert(old_par_comb);
+      for (int i = 0; i < dp->GetDomainSize(); ++i) {
+          DiscVarVal vv(p_idx, i); // get [idx of p, each value of p]
+          for (auto old_par_comb : set_discrete_parents_combinations) {
+              old_par_comb.erase(vv);
+              new_par_combs.insert(old_par_comb);
+          }
       }
-    }
+
     set_discrete_parents_combinations = new_par_combs;
   }
 }
@@ -325,7 +326,7 @@ void Node::GenDiscParCombs(set<Node*> set_parent_ptrs) {
 
     for (int i = 0; i < d_par_ptr->GetDomainSize(); ++i) {
       varId_val.first = par_ptr->node_index;
-      varId_val.second = ((DiscreteNode*)par_ptr)->vec_potential_vals[i];
+      varId_val.second = i;
       all_config_of_a_parent.insert(varId_val);
     }
     all_config_of_each_parent.insert(all_config_of_a_parent);

@@ -9,11 +9,9 @@
  * index, name, domain size, possible values
  */
 void StructureLearning::AssignNodeInformation(Dataset *dts) {
-    // common part with "ConstructNaiveBayesNetwork" TODO
     network->num_nodes = dts->num_vars;
 
     // Assign an index for each node.
-//#pragma omp parallel for
     for (int i = 0; i < network->num_nodes; ++i) {
         // construct a node in the network
         DiscreteNode *node_ptr = new DiscreteNode(i);
@@ -28,13 +26,7 @@ void StructureLearning::AssignNodeInformation(Dataset *dts) {
         //set the potential values for this node
         int domain_size = dts->num_of_possible_values_of_disc_vars[i];
         node_ptr->SetDomainSize(domain_size);
-        for (auto v : dts->map_disc_vars_possible_values[i]) {
-            node_ptr->vec_potential_vals.push_back(v); // todo!! memory leakage
-        }
-//#pragma omp critical
-//        {
-            network->map_idx_node_ptr[i] = node_ptr;
-//        }
+        network->map_idx_node_ptr[i] = node_ptr;
     }
 }
 

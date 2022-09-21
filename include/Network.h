@@ -55,8 +55,6 @@ public:
     Node* FindNodePtrByIndex(const int &index) const;
     Node* FindNodePtrByName(const string &name) const;
 
-    void ConstructNaiveBayesNetwork(Dataset *dts);
-
     int GetNumParams() const;
 
     void AddNode(Node *node_ptr);

@@ -18,7 +18,7 @@ class DiscreteNode : public Node {//the parent nodes of DiscreteNode must be dis
   // The order matters.
   // TODO: can be improved
   vector<string> vec_str_potential_vals;//the values of some variables are strings (e.g., gender = "male" or "female"); can be improved.
-  vector<int> vec_potential_vals;
+//  vector<int> vec_potential_vals;
 
   // =============== refactor like Weka ===============
   // Keep the count instead of probability.
@@ -53,8 +53,6 @@ class DiscreteNode : public Node {//the parent nodes of DiscreteNode must be dis
   DiscreteNode(const DiscreteNode &n) = default;
   DiscreteNode(DiscreteNode &n) = default;
 
-  void SetDomain(vector<string> str_domain);
-  void SetDomain(vector<int> int_domain);
   int GetDomainSize() const;
   void SetDomainSize(int size);
   void AddParent(Node *node_ptr) override;

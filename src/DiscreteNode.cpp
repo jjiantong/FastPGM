@@ -10,23 +10,6 @@ DiscreteNode::DiscreteNode(int index) {
     num_potential_vals = -1;//may be 0 is better?
 }
 
-/**
- * @brief: the values of the variables are represented using "string" in this function.
- */
-void DiscreteNode::SetDomain(vector<string> str_domain) {
-  SetDomainSize(str_domain.size());
-  vec_str_potential_vals = str_domain;//potential values in string form
-
-  for (int i = 0; i < GetDomainSize(); ++i) {
-    vec_potential_vals.push_back(i);//potential values in "int" form
-  }
-}
-
-void DiscreteNode::SetDomain(vector<int> int_domain) {
-  SetDomainSize(int_domain.size());
-  vec_potential_vals = int_domain;
-}
-
 int DiscreteNode::GetDomainSize() const {
   return num_potential_vals;
 }
@@ -80,7 +63,7 @@ void DiscreteNode::PrintProbabilityTable() {//checked
   if (this->HasParents()) {    // If this node has parents
 
     for(int i = 0; i<GetDomainSize(); ++i) {    // For each head variable of CPT (i.e., value of child)
-      int query = vec_potential_vals[i];
+        int query = i;
       auto it = set_discrete_parents_combinations.begin();
       for (int j = 0; j < GetNumParentsConfig(); ++j){  // For tail variables of CPT (i.e., parent configuration)
         DiscreteConfig parcfg = *it;
@@ -95,7 +78,7 @@ void DiscreteNode::PrintProbabilityTable() {//checked
 
     DiscreteConfig parcfg;
     for(int i = 0; i < GetDomainSize(); ++i) {    // For each row of CPT
-      int query = vec_potential_vals[i];
+        int query = i;
       cout << "P(" << query << ")=" << GetProbability(query, parcfg) << '\t';
     }
     cout << endl;
@@ -125,7 +108,7 @@ int DiscreteNode::SampleNodeGivenParents(DiscreteConfig &evidence) {
   // every potential value of this node has a weight (type int)
   vector<int> weights;
   for (int i = 0; i < GetDomainSize(); ++i) {
-    int query_value = vec_potential_vals[i];//potential value of the current node
+      int query_value = i;//potential value of the current node
     // get the probability P(node=query_value|par_evi) and convert it into int for calling API
     int w = (int) (GetProbability(query_value, par_evi) * 10000);
     weights.push_back(w);
@@ -136,7 +119,7 @@ int DiscreteNode::SampleNodeGivenParents(DiscreteConfig &evidence) {
   // understand: "this distribution" contains indexes of "weights"/"vec_potential_vals"
   discrete_distribution<int> this_distribution(weights.begin(),weights.end());
   // understand: randomly pick one index and output the value
-  return vec_potential_vals[this_distribution(rand_gen)];//get the final value
+    return this_distribution(rand_gen);//get the final value
 }
 
 
@@ -171,13 +154,13 @@ void DiscreteNode::InitializeCPT() {
         DiscreteConfig par_config;
         map_total_count_under_parents_config[par_config] = 0;
         for (int i = 0; i < GetDomainSize(); ++i) {
-            map_cond_prob_table_statistics[vec_potential_vals[i]][par_config] = 0; // todo
+            map_cond_prob_table_statistics[i][par_config] = 0;
         }
     } else {
         for (const auto &par_config : set_discrete_parents_combinations) {
             map_total_count_under_parents_config[par_config] = 0; // todo
             for (int i = 0; i < GetDomainSize(); ++i) {
-                map_cond_prob_table_statistics[vec_potential_vals[i]][par_config] = 0; //todo
+                map_cond_prob_table_statistics[i][par_config] = 0;
             }
         }
     }

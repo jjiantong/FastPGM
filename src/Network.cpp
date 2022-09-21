@@ -116,68 +116,6 @@ Node* Network::FindNodePtrByName(const string &name) const {
 }
 
 /**
- * @brief: construct a Naive Bayesian Network with the class variable as the root and all the other variables as leaves.
- * structure of Naive Bayes: label is the root node; all feature variables are the children of the root node.
- * time complexity: O( number of feature variables * number of possible labels of class variable)
- * (not consider the time spent on generating topological ordering)
- */
-void Network::ConstructNaiveBayesNetwork(Dataset *dts) {
-
-  // common part with "AssignNodeInformation" TODO
-  num_nodes = dts->num_vars;
-
-  // Assign an index for each node.
-#pragma omp parallel for
-  for (int i = 0; i < num_nodes; ++i) {
-    DiscreteNode *node_ptr = new DiscreteNode(i);  // For now, only support discrete node.
-
-    //set the potential values for this node
-    node_ptr->SetDomainSize(dts->num_of_possible_values_of_disc_vars[i]);
-    for (const auto &v : dts->map_disc_vars_possible_values[i]) {
-      node_ptr->vec_potential_vals.push_back(v);//TODO: keep name convention consistent (i.e. possible vs potential)
-    }
-#pragma omp critical
-    {
-      map_idx_node_ptr[i] = node_ptr;
-    }
-  }
-
-  // Set parents and children.
-  Node *class_node_ptr = FindNodePtrByIndex(dts->class_var_index);
-  for (const auto &i_n : map_idx_node_ptr) { // for each id-node_ptr pair i_n
-    if (i_n.second == class_node_ptr) {
-      continue;
-    }
-    // all feature variables are the children of the root node (i.e., the label)
-    SetParentChild(class_node_ptr, i_n.second);
-  }
-
-  // Generate parent configurations for all nodes in the network.
-  // TODO: for Naive Bayesian Network, it may not need to call "GenDiscParCombsForAllNodes"
-  // because "GenDiscParCombsForAllNodes" needs "GetParentPtrsOfNode" -> "GenDiscParCombs",
-  // where "GenAllCombinationsFromSets" is expensive.
-  // while we can directly generate configurations of the root node,
-  // it is exactly the parent configurations of all nodes except for the root;
-  // and the parent configurations of the root is ONE empty parent configuration (cf. "GenDiscParCombs" in class Node)
-  GenDiscParCombsForAllNodes();
-
-  // Generate topological ordering and default elimination ordering.
-  vector<int> topo = GetTopoOrd();
-
-  vec_default_elim_ord.reserve(num_nodes - 1);//-1, because the last one is the value (which must be kept) to be inferred.
-  for (int i = 0; i < num_nodes-1; ++i) { // TODO: for num_nodes-1 -> 0, at(i)
-    vec_default_elim_ord.push_back(topo.at(num_nodes-1-i));
-  }
-
-  //check for correctness (i.e. reserved size == number of variables).
-  int vec_size = vec_default_elim_ord.size();
-  int vec_capacity = vec_default_elim_ord.capacity();
-  if (vec_size != vec_capacity) {
-    fprintf(stderr, "Function [%s]: vec_size != vec_capacity\n", __FUNCTION__);
-  }
-}
-
-/**
  * @brief: add a node to the map
  */
 void Network::AddNode(Node *node_ptr) {

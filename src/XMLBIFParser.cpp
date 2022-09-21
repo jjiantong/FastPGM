@@ -55,10 +55,6 @@ vector<Node*> XMLBIFParser::GetUnconnectedNodes() const {
             }
             n_p->SetDomainSize(n_p->vec_str_potential_vals.size());
 
-            n_p->vec_potential_vals.resize(n_p->GetDomainSize()); //todo
-            for (int i = 0; i < n_p->GetDomainSize(); ++i) {
-                n_p->vec_potential_vals[i] = i;
-            }
             vec_node_ptrs.push_back(n_p);
         } else {  // if the "TYPE" is "continuous"
 //            // todo: implement continuous node
@@ -159,7 +155,7 @@ void XMLBIFParser::AssignProbsToNodes(vector<Node*> vec_nodes_ptr) {
             vector<int> &digits = nary_counts[i];
 
             // The first (left-most) digit is for this node.
-            int query = for_np->vec_potential_vals[digits[0]];
+            int query = digits[0];
             DiscreteConfig comb;
 
             // The first (left-most) digit is for this node not the parents.
@@ -168,8 +164,7 @@ void XMLBIFParser::AssignProbsToNodes(vector<Node*> vec_nodes_ptr) {
             for (int j = 1; j < digits.size(); ++j) {
                 comb.insert(
                         pair<int,int>(
-                                vec_given_vars_ptrs[j-1]->GetNodeIndex(),
-                                dynamic_cast<DiscreteNode*>(vec_given_vars_ptrs[j-1])->vec_potential_vals[digits[j]]));
+                                vec_given_vars_ptrs[j-1]->GetNodeIndex(),digits[j]));
             }
 
             // directly set probability based on the input file causes a problem when testing,
@@ -209,9 +204,9 @@ vector<Node*> XMLBIFParser::GetConnectedNodes() {
 //
 //            int rand_num = rand() % num_vals;
 //            if (node_index == 0) {
-//                cout << dis_node->vec_potential_vals[rand_num] << " ";
+//                cout << rand_num << " ";
 //            } else {
-//                cout << node_index << ":" << dis_node->vec_potential_vals[rand_num] << " ";
+//                cout << node_index << ":" << rand_num << " ";
 //            }
 //        }
 //        cout << endl;
