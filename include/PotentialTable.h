@@ -86,7 +86,7 @@ protected:
 
     void ConstructVarDimsAndCumLevels(Network *net);
     void ConstructCumLevels();
-    void GetConfigByTableIndex(const int &table_index, Network *net, DiscreteConfig &config);
+//    void GetConfigByTableIndex(const int &table_index, Network *net, DiscreteConfig &config);
     int GetVariableIndex(const int &variable);
 };
 
