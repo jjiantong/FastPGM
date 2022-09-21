@@ -16,7 +16,6 @@ int DiscreteNode::GetDomainSize() const {
 
 void DiscreteNode::SetDomainSize(int size) {
   num_potential_vals = size;
-//  vec_potential_vals.reserve(size);
 }
 
 void DiscreteNode::AddParent(Node *p) {
@@ -181,14 +180,6 @@ void DiscreteNode::AddCount(int query_val, DiscreteConfig &parents_config, int c
 }
 
 /**
- * @brief: set the probability of a node given the evidence(s)
- * it is used when loading a saved BN
- */
-//void DiscreteNode:: SetProbability(int query_val, DiscreteConfig &parents_config, double prob) {
-//    map_cond_prob[query_val][parents_config] = prob;
-//}
-
-/**
  * @brief: use the counters in the probability table to compute the probabilities
  * parent configuration must be full for looking up the probability in the table
  */
@@ -203,40 +194,11 @@ double DiscreteNode:: GetProbability(int query_val, DiscreteConfig &parents_conf
  */
 // TODO: check the algorithm for the case of unseen values (based on a forgotten paper of weka)
 double DiscreteNode:: GetConditionalProbability(int query_val, DiscreteConfig &parents_config) {
-//    // If the given instance contains the parent configuration or query value that has not been seen before,
-//    // return the smallest probability divided by the domain size and number of parents configurations.
-//    bool unseen_value = (set_discrete_parents_combinations.find(parents_config) == set_discrete_parents_combinations.end() ||
-//                         std::find(vec_potential_vals.begin(), vec_potential_vals.end(), query_val) == vec_potential_vals.end());
-//    if (unseen_value) {
-////    fprintf(stdout, "In function [%s]: the given instance contains the value that has not been seen before.\n", __FUNCTION__);
-//        double min_prob = 1;
-//        // traverse all potential values of child & all configurations of parents and compute all the probabilities
-//        // however, 1. getting probability for the same seen value will do the same computation
-//        // more importantly, 2. each time getting probabilities for the unseen value will get probabilities of all the seen values...
-//        // TODO: can we compute the probabilities of all the seen values once and store them?
-//        for (int val : vec_potential_vals) {
-//            for (DiscreteConfig par_cfg : set_discrete_parents_combinations) {
-//                double temp = GetConditionalProbability(val, par_cfg);
-//                if (temp < min_prob) {
-//                    min_prob = temp;
-//                }
-//            }
-//        }
-//        double prob = min_prob / (GetDomainSize() * GetNumParentsConfig());
-//        return prob;
-//    }
-
     int frequency_count =  map_cond_prob_table_statistics[query_val][parents_config]; // P(AB)
     int total = map_total_count_under_parents_config[parents_config]; // P(B)
     double prob = (frequency_count + laplace_smooth) / (total + laplace_smooth * GetDomainSize()); // P(A|B) = P(AB) / P(B)
     return prob;
 }
-
-//int DiscreteNode::GetIndexOfValue(int val) {
-//  auto it = std::find(this->vec_potential_vals.begin(), this->vec_potential_vals.end(), val);
-//  int val_index = std::distance(this->vec_potential_vals.begin(), it);
-//  return val_index;
-//}
 
 int DiscreteNode::GetNumPotentialVals() {
     return num_potential_vals;

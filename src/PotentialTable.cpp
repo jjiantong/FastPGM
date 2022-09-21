@@ -27,7 +27,6 @@ PotentialTable::PotentialTable(DiscreteNode *disc_node, Network *net) {
         DiscreteConfig empty_par_config;
         for (int i = 0; i < table_size; ++i) {
             // potentials[i]
-//            potentials.push_back(disc_node->GetProbability(disc_node->vec_potential_vals[i], empty_par_config));
             potentials.push_back(disc_node->GetProbability(i, empty_par_config));
         }
     } else { // if this disc_node has parents
@@ -110,27 +109,6 @@ void PotentialTable::ConstructCumLevels() {
         cum_levels[i] = cum_levels[i + 1] * var_dims[i + 1];
     }
 }
-
-///*!
-// * @brief: get discrete configuration given table index
-// * note: DiscreteConfig: set< pair<int, int> >,
-// *       the second int of pair is the value itself, not the index of the value!!
-// *       but actually the index of the value equals to the value itself in LIBSVM format
-// */
-//void PotentialTable::GetConfigByTableIndex(const int &table_index, Network *net, DiscreteConfig &config) {
-//    int *config_value = new int[num_variables];
-//    GetConfigValueByTableIndex(table_index, config_value);
-//    int i = 0;
-////    for (auto &v: related_variables) {
-////        DiscreteNode *node = dynamic_cast<DiscreteNode*>(net->FindNodePtrByIndex(v));
-////        pair<int, int> tmp_pair(v, node->vec_potential_vals[config_value[i++]]);
-////        config.insert(tmp_pair);
-////    }
-//    for (auto &v: related_variables) {
-//        config.insert(pair<int, int>(v, config_value[i++]));
-//    }
-//    SAFE_DELETE_ARRAY(config_value);
-//}
 
 /*!
  * @brief: get each value (index) of the configuration corresponding to the given table index
