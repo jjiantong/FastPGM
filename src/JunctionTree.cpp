@@ -35,7 +35,7 @@ JunctionTree::~JunctionTree() {
 /**
  * @brief: test the Junction Tree given a data set
  */
-double JunctionTree::EvaluateAccuracy(int num_threads, int num_samples) {
+double JunctionTree::EvaluateAccuracy(int num_threads) {
 
     cout << "==================================================" << '\n'
          << "Begin testing the trained network." << endl;

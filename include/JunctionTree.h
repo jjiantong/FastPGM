@@ -31,7 +31,7 @@ public:
     JunctionTree(Network *net, Dataset *dts, bool is_dense);
     ~JunctionTree();
 
-    virtual double EvaluateAccuracy(int num_threads, int num_samples);
+    virtual double EvaluateAccuracy(int num_threads);
 
     void ResetJunctionTree();
 

@@ -25,6 +25,7 @@ Inference::Inference(Network *net, Dataset *dts, bool is_dense): network(net), n
             if (j == query_index) { // skip the class variable
                 continue;
             }
+            evidence_nodes.insert(vec_instance.at(j).first);
             p.first = vec_instance.at(j).first;
             p.second = vec_instance.at(j).second.GetInt();
             e.insert(p);

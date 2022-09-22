@@ -24,18 +24,22 @@ class Inference {
 public:
     Network *network; // the learned network which can be used for inference
     int num_instances; // number of instances in the testing set
-    // the index of the variable we are interested in (for each instance in the testing set)
-    // for the classification problem, typically we have only one class variable to infer, so query_index is only one index
-    // but actually for inference problem on BNs, there are commonly a set of variables interested
-    // meanwhile, we commonly compute/estimate the probability of every non-evidence variable in the network
+    /**
+     * the index of the variable we are interested in (for each instance in the testing set)
+     * for the classification problem, typically we have only one class variable to infer, so query_index is only one index
+     * but actually for inference problem on BNs, there are commonly a set of variables interested
+     * meanwhile, we commonly compute/estimate the probability of every non-evidence variable in the network
+     */
     int query_index;
+
     vector<DiscreteConfig> evidences; // the evidences of each instance in the testing set
+    set<int> evidence_nodes; // the index of the evidence nodes
     vector<int> ground_truths; // the ground truths of each class variable
 
     Inference(Network *net, Dataset *dts, bool is_dense);
     virtual ~Inference() {};
 
-    virtual double EvaluateAccuracy(int num_threads, int num_samples)= 0;
+    virtual double EvaluateAccuracy(int num_threads)= 0;
 
     double Accuracy(vector<int> predictions);
     DiscreteConfig Sparse2Dense(DiscreteConfig evidence, int num_nodes);
