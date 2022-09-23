@@ -103,7 +103,6 @@ int DiscreteNode::SampleNodeGivenParents(DiscreteConfig &evidence) {
     }
   }
 
-  // TODO: why we use "weight" rather than directly use "value" or index to randomly pick one possible value?
   // every potential value of this node has a weight (type int)
   vector<int> weights;
   for (int i = 0; i < GetDomainSize(); ++i) {
