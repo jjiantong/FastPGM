@@ -173,7 +173,7 @@ int PotentialTable::GetVariableIndex(const int &variable) {
 }
 
 /**
- * @brief: table operation 1: table reduction - reduce factors givn evidence
+ * @brief: table operation 1: table reduction - reduce factors given evidence
  * @example:    a0 b0 c0    0.3             b0 c0    0.3
  *              a0 b0 c1    0.7             b0 c1    0.7
  *              a0 b1 c0    0.4     -->     b1 c0    0.4
@@ -252,13 +252,153 @@ void PotentialTable::TableReductionPost(int index, int value_index, int *v_index
 }
 
 
+
+void PotentialTable::TableReduction2(const DiscreteConfig &evidence, int num_threads) {
+    PotentialTable new_table;
+    int *evi_loc = new int[evidence.size()];
+    int *evi_config = new int[evidence.size()];
+    int k = 0;
+    for (auto &e: evidence) {
+        evi_loc[k] = this->GetVariableIndex(e.first);
+        evi_config[k++] = e.second;
+    }
+
+    int *full_config = new int[this->table_size * this->num_variables];
+    int *partial_config = new int[this->table_size * evidence.size()];
+
+//#pragma omp taskloop
+//    omp_set_num_threads(num_threads);
+//#pragma omp parallel for
+    for (int i = 0; i < this->table_size; ++i) {
+        // 1. get the full config value of old table
+        this->GetConfigValueByTableIndex(i, full_config + i * this->num_variables);
+        // 2. get the partial config value from the old table
+        for (int j = 0; j < new_table.num_variables; ++j) {
+            partial_config[i * evidence.size() + j] = full_config[i * this->num_variables + evi_loc[j]];
+        }
+    }
+    SAFE_DELETE_ARRAY(full_config);
+    SAFE_DELETE_ARRAY(partial_config);
+    SAFE_DELETE_ARRAY(evi_loc);
+
+    int evi_dims = 1;
+    for (int i = 0; i < evidence.size(); ++i) {
+        evi_dims *= this->var_dims[evi_loc[i]];
+    }
+    int new_size = this->table_size / evi_dims;
+    vector<double> new_potentials(new_size);
+
+    for (int i = 0, j = 0; i < this->table_size; ++i) {
+        // 3. whether it is consistent with the evidence
+        bool is_consistent = true;
+        for (int l = 0; l < evidence.size(); ++l) {
+            if (partial_config[i * evidence.size() + l] != evi_config[l]) {
+                is_consistent = false;
+                break;
+            }
+        }
+
+        if (is_consistent) {
+            new_potentials[j++] = this->potentials[i];
+        }
+    }
+    this->potentials = new_potentials;
+    for (auto &e: evidence) {
+        this->related_variables.erase(e.first);
+    }
+    this->num_variables -= evidence.size();
+
+    if (this->num_variables > 0) {
+        vector<int> dims;
+        dims.reserve(this->num_variables);
+        int i = 0;
+        for (int j = 0; j < evidence.size(); ++i) {
+            if (i != evi_loc[j]) {
+                dims.push_back(this->var_dims[i]);
+            } else {
+                j++;
+            }
+        }
+        for (int i2 = i; i2 < this->num_variables + evidence.size(); ++i2) {
+            dims.push_back(this->var_dims[i]);
+        }
+        this->var_dims = dims;
+
+        this->ConstructCumLevels();
+        // table size -- number of possible configurations
+        this->table_size = new_size;
+    } else {
+        this->var_dims = vector<int>();
+        this->cum_levels = vector<int>();
+        this->table_size = 1;
+    }
+}
+
+//void PotentialTable::TableReductionPre2(const DiscreteConfig &evidence, int *loc, int num_threads) {
+//    for (auto &e: evidence) {
+//        int e_index = e.first;
+//    }
+//
+//
+//    // update the new table's related variables and num variables
+//    new_table.related_variables = this->related_variables;
+//    for (auto &ext_var: ext_variables) {
+//        new_table.related_variables.erase(ext_var);
+//    }
+//    new_table.num_variables = this->num_variables - ext_variables.size();
+//
+//    // update the new table's var dims, cum levels and table size
+//    if (new_table.num_variables == 0) {
+//        new_table.var_dims = vector<int>();
+//        new_table.cum_levels = vector<int>();
+//        new_table.table_size = 1;
+//    } else {
+//        new_table.var_dims.reserve(new_table.num_variables);
+//        int k = 0;
+//        for (auto &v: this->related_variables) {
+//            if (ext_variables.find(v) == ext_variables.end()) { // v is not in ext_variables
+//                new_table.var_dims.push_back(this->var_dims[k]);
+//            }
+//            k++;
+//        }
+//        new_table.ConstructCumLevels();
+//        new_table.table_size = new_table.cum_levels[0] * new_table.var_dims[0];
+//    }
+//
+//    new_table.potentials.resize(new_table.table_size);
+//}
+//
+//// note that this method is used in junction tree class.
+//// it is not used in the tablemarginalization method of this class.
+//// because the two use different getconfigvaluebytableindex method.
+//int PotentialTable::TableReductionMain2(int k, int *full_config, int *partial_config,
+//                                             int nv, const vector<int> &cl, int *loc) {
+//    // 1. get the full config value of old table
+//    this->GetConfigValueByTableIndex(k, full_config + k * nv, nv, cl);
+//    // 2. get the partial config value from the old table
+//    for (int l = 0; l < this->num_variables; ++l) {
+//        partial_config[k * this->num_variables + l] = full_config[k * nv + loc[l]];
+//    }
+//    // 3. obtain the potential index
+//    return this->GetTableIndexByConfigValue(partial_config + k * this->num_variables);
+//}
+//
+//void PotentialTable::TableReductionPost2(const PotentialTable &pt, int *table_index) {
+//    for (int k = 0; k < pt.table_size; ++k) {
+//        // 4. potential[table_index]
+//        this->potentials[table_index[k]] += pt.potentials[k];
+//    }
+//}
+
+
+
+
 /**
  * @brief: table operation 2: table marginalization - factor out a node by id
  * eliminate variable "id" by summation of the factor over "id"
  */
 void PotentialTable::TableMarginalization(const set<int> &ext_variables) {
     PotentialTable new_table;
-    int *loc;
     this->TableMarginalizationPre(ext_variables, new_table);
 
     // generate an array showing the locations of the variables of the new table in the old table
