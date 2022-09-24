@@ -170,96 +170,66 @@ void JunctionTree::ResetJunctionTree() {
  * @brief: when inferring, an evidence is given. The evidence needs to be loaded and propagate in the network.
  */
 void JunctionTree::LoadDiscreteEvidence(const DiscreteConfig &E, int num_threads, Timer *timer) {
-
-//    for (auto &e: E) { // for each observation of variable
-//        timer->Start("pre-evi");
-//        // we need the index of the the evidence and the value index
-//        int index = e.first;
-//        int value = e.second;
-//        if (index >= network->num_nodes) {
-//            // todo: this is because the testing set has more features than the training set
-//            //  for this case, we just ignore such evidence in the current implementation
-//            continue;
-//        }
-//
-//        int value_index;
-//        auto dn = dynamic_cast<DiscreteNode*>(network->FindNodePtrByIndex(index));
-//        for (int i = 0; i < dn->GetDomainSize(); ++i) {
-//            if (value == i) {
-//                value_index = i;
-//                break;
-//            }
-//        }
-//
-////        /**
-////         * 1. nested version, without flattening
-////         */
-////        for (auto &c: tree->vector_clique_ptr_container) {
-////            if (c->p_table.related_variables.find(index) != c->p_table.related_variables.end()) {
-////                c->p_table.TableReduction(index, value_index, num_threads);
-////            }
-////        }
-////        for (auto &c: tree->vector_separator_ptr_container) {
-////            if (c->p_table.related_variables.find(index) != c->p_table.related_variables.end()) {
-////                c->p_table.TableReduction(index, value_index, num_threads);
-////            }
-////        }
-////        timer->Stop("pre-evi");
-//
-//        /**
-//         * 2. flatten version
-//         */
-//        vector<Clique*> vector_reduced_clique_and_separator_ptr;
-//        for (auto &c: tree->vector_clique_ptr_container) {
-//            if (c->p_table.related_variables.find(index) != c->p_table.related_variables.end()) {
-//                vector_reduced_clique_and_separator_ptr.push_back(c);
-//            }
-//        }
-//        for (auto &c: tree->vector_separator_ptr_container) {
-//            if (c->p_table.related_variables.find(index) != c->p_table.related_variables.end()) {
-//                vector_reduced_clique_and_separator_ptr.push_back(c);
-//            }
-//        }
-//        timer->Stop("pre-evi");
-//
-//        LoadEvidenceToNodes(vector_reduced_clique_and_separator_ptr, index, value_index, num_threads, timer);
-//    }
+    /**
+     * version 1: use TableReduction method
+     * including both nested and flattened version
+     */
     for (auto &e: E) { // for each observation of variable
         timer->Start("pre-evi");
         // we need the index of the the evidence and the value index
         int index = e.first;
         int value = e.second;
         if (index >= network->num_nodes) {
+            cout << "!!!!" << endl;
             // todo: this is because the testing set has more features than the training set
             //  for this case, we just ignore such evidence in the current implementation
             continue;
         }
 
-        int value_index;
-        auto dn = dynamic_cast<DiscreteNode*>(network->FindNodePtrByIndex(index));
-        for (int i = 0; i < dn->GetDomainSize(); ++i) {
-            if (value == i) {
-                value_index = i;
-                break;
-            }
-        }
+//        /**
+//         * 1. nested version, without flattening
+//         */
+//        for (auto &c: tree->vector_clique_ptr_container) {
+//            if (c->p_table.related_variables.find(index) != c->p_table.related_variables.end()) {
+//                c->p_table.TableReduction(index, value, num_threads);
+//            }
+//        }
+//        for (auto &c: tree->vector_separator_ptr_container) {
+//            if (c->p_table.related_variables.find(index) != c->p_table.related_variables.end()) {
+//                c->p_table.TableReduction(index, value, num_threads);
+//            }
+//        }
+//        timer->Stop("pre-evi");
 
         /**
-         * 1. nested version, without flattening
+         * 2. flatten version
          */
+        vector<Clique*> vector_reduced_clique_and_separator_ptr;
         for (auto &c: tree->vector_clique_ptr_container) {
             if (c->p_table.related_variables.find(index) != c->p_table.related_variables.end()) {
-                c->p_table.TableReduction(index, value_index, num_threads);
+                vector_reduced_clique_and_separator_ptr.push_back(c);
             }
         }
         for (auto &c: tree->vector_separator_ptr_container) {
             if (c->p_table.related_variables.find(index) != c->p_table.related_variables.end()) {
-                c->p_table.TableReduction(index, value_index, num_threads);
+                vector_reduced_clique_and_separator_ptr.push_back(c);
             }
         }
         timer->Stop("pre-evi");
 
-     }
+        LoadEvidenceToNodes(vector_reduced_clique_and_separator_ptr, index, value, num_threads, timer);
+    }
+
+//    /**
+//     * version 2: use TableReduction2 method
+//     * TODO: create the flattened version
+//     */
+//    for (auto &c: tree->vector_clique_ptr_container) {
+//        c->p_table.TableReduction2(E, num_threads);
+//    }
+//    for (auto &c: tree->vector_separator_ptr_container) {
+//        c->p_table.TableReduction2(E, num_threads);
+//    }
 }
 
 
