@@ -92,32 +92,23 @@ void DiscreteNode::PrintProbabilityTable() {//checked
  * this condition can be met by generating an instance from the roots (without parents), i.e., following the topological order
  * the evidence about other nodes (including children) are IGNORED!!!
  */
-int DiscreteNode::SampleNodeGivenParents(DiscreteConfig &evidence) {
-  // filter evidence about the parents of the current node from all the evidence "evidence"
-  // TODO: function "DiscreteConfig Node::GetDiscParConfigGivenAllVarValue(DiscreteConfig &all_var_val)"
-  DiscreteConfig par_evi; // for storing the parents of the current node
-  for (auto &e : evidence) {
-    // if evidence e is about a parent node
-    if (set_parent_indexes.find(e.first) != set_parent_indexes.end()) {
-      par_evi.insert(e);
+vector<double> DiscreteNode::GetProbabilitiesGivenParents(DiscreteConfig &evidence) {
+    // filter evidence about the parents of the current node from all the evidence "evidence"
+    DiscreteConfig par_evi; // for storing the parents of the current node
+    for (auto &e : evidence) {
+        // if evidence e is about a parent node
+        if (set_parent_indexes.find(e.first) != set_parent_indexes.end()) {
+            par_evi.insert(e);
+        }
     }
-  }
 
-  // every potential value of this node has a weight (type int)
-  vector<int> weights;
-  for (int i = 0; i < GetDomainSize(); ++i) {
-      int query_value = i;//potential value of the current node
-    // get the probability P(node=query_value|par_evi) and convert it into int for calling API
-    int w = (int) (GetProbability(query_value, par_evi) * 10000);
-    weights.push_back(w);
-  }
-
-  unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
-  default_random_engine rand_gen(seed);
-  // understand: "this distribution" contains indexes of "weights"/"vec_potential_vals"
-  discrete_distribution<int> this_distribution(weights.begin(),weights.end());
-  // understand: randomly pick one index and output the value
-    return this_distribution(rand_gen);//get the final value
+    vector<double> weights(GetDomainSize());
+    for (int i = 0; i < GetDomainSize(); ++i) {
+        int query_value = i;//potential value of the current node
+        // get the probability P(node=query_value|par_evi)
+        weights[i] = GetProbability(query_value, par_evi);
+    }
+    return weights;
 }
 
 
@@ -153,12 +144,14 @@ void DiscreteNode::InitializeCPT() {
         map_total_count_under_parents_config[par_config] = 0;
         for (int i = 0; i < GetDomainSize(); ++i) {
             map_cond_prob_table_statistics[i][par_config] = 0;
+            map_cond_prob[i][par_config] = -1;
         }
     } else {
         for (const auto &par_config : set_discrete_parents_combinations) {
             map_total_count_under_parents_config[par_config] = 0; // todo
             for (int i = 0; i < GetDomainSize(); ++i) {
                 map_cond_prob_table_statistics[i][par_config] = 0;
+                map_cond_prob[i][par_config] = -1;
             }
         }
     }
@@ -184,19 +177,14 @@ void DiscreteNode::AddCount(int query_val, DiscreteConfig &parents_config, int c
  */
 // TODO: check the algorithm for the case of unseen values (based on a forgotten paper of weka)
 double DiscreteNode:: GetProbability(int query_val, DiscreteConfig &parents_config) {
-    return GetConditionalProbability(query_val, parents_config);
-}
-
-/**
- * @brief: use the counters in the probability table to compute the probabilities
- * parent configuration must be full for looking up the probability in the table
- */
-// TODO: check the algorithm for the case of unseen values (based on a forgotten paper of weka)
-double DiscreteNode:: GetConditionalProbability(int query_val, DiscreteConfig &parents_config) {
-    int frequency_count =  map_cond_prob_table_statistics[query_val][parents_config]; // P(AB)
-    int total = map_total_count_under_parents_config[parents_config]; // P(B)
-    double prob = (frequency_count + laplace_smooth) / (total + laplace_smooth * GetDomainSize()); // P(A|B) = P(AB) / P(B)
-    return prob;
+    if (map_cond_prob[query_val][parents_config] < 0) {
+        int frequency_count =  map_cond_prob_table_statistics[query_val][parents_config]; // P(AB)
+        int total = map_total_count_under_parents_config[parents_config]; // P(B)
+        map_cond_prob[query_val][parents_config] = (frequency_count + laplace_smooth) / (total + laplace_smooth * GetDomainSize()); // P(A|B) = P(AB) / P(B)
+//        double prob = (frequency_count + laplace_smooth) / (total + laplace_smooth * GetDomainSize()); // P(A|B) = P(AB) / P(B)
+//        return prob;
+    }
+    return map_cond_prob[query_val][parents_config];
 }
 
 int DiscreteNode::GetNumPotentialVals() {

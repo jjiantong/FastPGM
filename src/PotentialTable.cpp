@@ -266,7 +266,7 @@ void PotentialTable::TableReduction2(const DiscreteConfig &evidence, int num_thr
     DiscreteConfig true_evidence;
     for (auto &e:evidence) {
         if (this->related_variables.find(e.first) != this->related_variables.end()) {
-            true_evidence.insert(pair<int, int>(e.first, e.second));
+            true_evidence.insert(e);
         }
     }
 
@@ -319,6 +319,9 @@ void PotentialTable::TableReduction2(const DiscreteConfig &evidence, int num_thr
             new_potentials[j++] = this->potentials[i];
         }
     }
+    SAFE_DELETE_ARRAY(evi_config);
+    SAFE_DELETE_ARRAY(partial_config);
+
     this->potentials = new_potentials;
     for (auto &e: true_evidence) {
         this->related_variables.erase(e.first);
@@ -349,10 +352,65 @@ void PotentialTable::TableReduction2(const DiscreteConfig &evidence, int num_thr
         this->cum_levels = vector<int>();
         this->table_size = 1;
     }
+    SAFE_DELETE_ARRAY(evi_loc);
+}
+
+vector<double> PotentialTable::GetReducedPotentials(const DiscreteConfig &evidence, int node_index, int num_threads) {
+    int num_vars = this->num_variables - 1;
+    int *evi_loc = new int[num_vars];
+    int *evi_config = new int[num_vars];
+
+    /**
+     * "evidence" contains more - some of variables may not be inside the potential table
+     * we need to first filter out the variables that are not related to the potential table
+     * at the same time, we construct evi_loc and evi_config
+     */
+    int k = 0;
+    DiscreteConfig true_evidence;
+    for (auto &e:evidence) {
+        if (this->related_variables.find(e.first) != this->related_variables.end()) {
+            true_evidence.insert(e);
+            evi_loc[k] = this->GetVariableIndex(e.first);
+            evi_config[k++] = e.second;
+        }
+    }
+
+    int node_loc = this->GetVariableIndex(node_index);
+
+    int *full_config = new int[this->table_size * this->num_variables];
+    int *partial_config = new int[this->table_size * num_vars];
+    for (int i = 0; i < this->table_size; ++i) {
+        // 1. get the full config value of old table
+        this->GetConfigValueByTableIndex(i, full_config + i * this->num_variables);
+        // 2. get the partial config value from the old table
+        for (int j = 0; j < num_vars; ++j) {
+            partial_config[i * num_vars + j] = full_config[i * this->num_variables + evi_loc[j]];
+        }
+    }
+    SAFE_DELETE_ARRAY(full_config);
+
+    int new_size = this->var_dims[node_loc];
+    vector<double> new_potentials(new_size);
+
+    for (int i = 0, j = 0; j < new_size && i < this->table_size; ++i) {
+        // 3. whether it is consistent with the evidence
+        bool is_consistent = true;
+        for (int l = 0; l < num_vars; ++l) {
+            if (partial_config[i * num_vars + l] != evi_config[l]) {
+                is_consistent = false;
+                break;
+            }
+        }
+        if (is_consistent) {
+            new_potentials[j++] = this->potentials[i];
+        }
+    }
 
     SAFE_DELETE_ARRAY(partial_config);
     SAFE_DELETE_ARRAY(evi_loc);
     SAFE_DELETE_ARRAY(evi_config);
+
+    return new_potentials;
 }
 
 /**
