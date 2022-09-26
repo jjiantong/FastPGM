@@ -221,14 +221,14 @@ void JunctionTree::LoadDiscreteEvidence(const DiscreteConfig &E, int num_threads
     }
 
 //    /**
-//     * version 2: use TableReduction2 method
+//     * version 2: use TableReduction v2 method
 //     * TODO: create the flattened version
 //     */
 //    for (auto &c: tree->vector_clique_ptr_container) {
-//        c->p_table.TableReduction2(E, num_threads);
+//        c->p_table.TableReduction(E, num_threads);
 //    }
 //    for (auto &c: tree->vector_separator_ptr_container) {
-//        c->p_table.TableReduction2(E, num_threads);
+//        c->p_table.TableReduction(E, num_threads);
 //    }
 }
 

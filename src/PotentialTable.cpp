@@ -252,13 +252,13 @@ void PotentialTable::TableReductionPost(int index, int value_index, int *v_index
 }
 
 /**
- * this method is like TableReduction, but the input is a set of evidence
+ * this method is like TableReduction, but the input is a set of evidence (v2)
  * this method has been tested using the junction tree algorithm
  * if want to use this method instead of the original one:
  * TODO:    1. split into pre, main and post
  *          2. create the flattened version
  */
-void PotentialTable::TableReduction2(const DiscreteConfig &evidence, int num_threads) {
+void PotentialTable::TableReduction(const DiscreteConfig &evidence, int num_threads) {
     /**
      * "evidence" contains more - some of variables may not be inside the potential table
      * we need to first filter out the variables that are not related to the potential table
@@ -355,7 +355,7 @@ void PotentialTable::TableReduction2(const DiscreteConfig &evidence, int num_thr
     SAFE_DELETE_ARRAY(evi_loc);
 }
 
-vector<double> PotentialTable::GetReducedPotentials(const DiscreteConfig &evidence, int node_index, int num_threads) {
+vector<double> PotentialTable::GetReducedPotentials(const vector<int> &evidence, int node_index, int num_threads) {
     int num_vars = this->num_variables - 1;
     int *evi_loc = new int[num_vars];
     int *evi_config = new int[num_vars];
@@ -366,13 +366,12 @@ vector<double> PotentialTable::GetReducedPotentials(const DiscreteConfig &eviden
      * at the same time, we construct evi_loc and evi_config
      */
     int k = 0;
-    DiscreteConfig true_evidence;
-    for (auto &e:evidence) {
-        if (this->related_variables.find(e.first) != this->related_variables.end()) {
-            true_evidence.insert(e);
-            evi_loc[k] = this->GetVariableIndex(e.first);
-            evi_config[k++] = e.second;
-        }
+    // get all parent indexes
+    set<int> par_idx = this->related_variables;
+    par_idx.erase(node_index);
+    for (auto &p: par_idx) { // for each parent node
+        evi_loc[k] = this->GetVariableIndex(p);
+        evi_config[k++] = evidence[p];
     }
 
     int node_loc = this->GetVariableIndex(node_index);
