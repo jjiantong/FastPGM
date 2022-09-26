@@ -52,7 +52,7 @@ public:
     void AddParent(Node *node_ptr) override;
     int GetNumParams() override;
     void PrintProbabilityTable();
-    vector<double> GetProbabilitiesGivenParents(DiscreteConfig &evidence);
+    vector<double> GetProbabilitiesGivenParents(vector<int> &evidence);
 
     int GetNumPotentialVals();
 

@@ -87,19 +87,16 @@ void DiscreteNode::PrintProbabilityTable() {//checked
 
 /**
  * @brief: helper of generating instances from the network for approximate inference
- * the purpose seems to be randomly selecting one possible value from all possible values of the current node
+ * the purpose is to select one possible value from all possible values of the current node
  * @param evidence should contain all parents of this node
  * this condition can be met by generating an instance from the roots (without parents), i.e., following the topological order
  * the evidence about other nodes (including children) are IGNORED!!!
  */
-vector<double> DiscreteNode::GetProbabilitiesGivenParents(DiscreteConfig &evidence) {
+vector<double> DiscreteNode::GetProbabilitiesGivenParents(vector<int> &evidence) {
     // filter evidence about the parents of the current node from all the evidence "evidence"
     DiscreteConfig par_evi; // for storing the parents of the current node
-    for (auto &e : evidence) {
-        // if evidence e is about a parent node
-        if (set_parent_indexes.find(e.first) != set_parent_indexes.end()) {
-            par_evi.insert(e);
-        }
+    for (auto &par_idx: set_parent_indexes) { // for each parent of the node
+        par_evi.insert(pair<int, int>(par_idx, evidence[par_idx]));
     }
 
     vector<double> weights(GetDomainSize());
@@ -110,7 +107,6 @@ vector<double> DiscreteNode::GetProbabilitiesGivenParents(DiscreteConfig &eviden
     }
     return weights;
 }
-
 
 void DiscreteNode::SetLaplaceSmooth(double alpha) {
   this->laplace_smooth = alpha;

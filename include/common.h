@@ -101,6 +101,7 @@ vector<int> TopoSortOfDAGZeroInDegreeFirst(int **graph, int num_nodes);
 
 
 bool Conflict(const DiscreteConfig *cfg1, const DiscreteConfig *cfg2);
+bool Conflict(const DiscreteConfig *cfg, vector<int> &vec);
 
 string TrimRight(string);
 string TrimLeft(string);
