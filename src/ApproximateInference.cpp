@@ -76,6 +76,8 @@
 //    return accuracy;
 //}
 //
+
+
 ///**
 // * @brief: predice a label given a (part/full) evidence
 // * @param e: evidence
@@ -100,37 +102,8 @@
 //    return (*c.begin()).second; // return one value of the target node that has the largest probability
 //}
 //
-///**
-// * @brief: approximate inference given different evidences
-// * it just repeats the function above multiple times, and print the progress at the meantime
-// * @return a vector of labels for each evidence
-// */
-//vector<int> ApproximateInference::PredictUseLikelihoodWeighting(vector<DiscreteConfig> evidences,
-//                                                     const int &target_node_idx, const int &num_samp) {
-//    int size = evidences.size();
-//
-//    cout << "Progress indicator: ";
-//    int every_1_of_20 = size / 20;
-//    int progress = 0;
-//
-//    vector<int> results(size, 0);
-//#pragma omp parallel for
-//    for (int i = 0; i < size; ++i) {
-//#pragma omp critical
-//        { ++progress; }
-//
-//        if (progress % every_1_of_20 == 0) {
-//            string progress_percentage = to_string((double)progress/size * 100) + "%...\n";
-//            fprintf(stdout, "%s\n", progress_percentage.c_str());
-//            fflush(stdout);
-//        }
-//
-//        int pred = PredictUseLikelihoodWeighting(evidences.at(i), target_node_idx, num_samp);
-//        results.at(i) = pred;
-//    }
-//    return results;
-//}
-//
+
+
 ///**
 // * @brief: draw multiple instances for approximate inference
 // * it repeats the function above "num_samp" times to select "num_samp" samples
