@@ -33,7 +33,6 @@ public:
     int query_index;
 
     vector<DiscreteConfig> evidences; // the evidences of each instance in the testing set
-    set<int> evidence_nodes; // the index of the evidence nodes
     vector<int> ground_truths; // the ground truths of each class variable
 
     Inference(Network *net, Dataset *dts, bool is_dense);
