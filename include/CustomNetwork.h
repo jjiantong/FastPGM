@@ -33,6 +33,7 @@ class CustomNetwork : public Network {//CustomNetwork may be a tree shape graph 
   void GetNetFromXMLBIFFile(string file_path);//construct the network using content from the xml file.
 
   // construct network structure from BIF files
+  // todo: can we use xmlbif?
   void LoadBIFFile(string path);
 
 };
