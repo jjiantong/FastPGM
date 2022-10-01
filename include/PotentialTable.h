@@ -37,6 +37,7 @@ public:
 
     PotentialTable()=default;
     PotentialTable(DiscreteNode *disc_node, Network *net);
+    PotentialTable(DiscreteNode *disc_node, int observed_value);
     void ConstructEmptyPotentialTable(const set<int> &set_node_index, Network *net);
 
     /**

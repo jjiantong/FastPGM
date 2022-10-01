@@ -4,11 +4,6 @@
 
 #include "PotentialTable.h"
 
-//PotentialTable::PotentialTable() {
-//    related_variables = set<int>();
-//    num_variables = 0;
-//}
-
 /**
  * @brief: construct a potential table given a node;
  * the table consists of the node and all the existing related_variables, i.e., all its parents.
@@ -68,6 +63,33 @@ PotentialTable::PotentialTable(DiscreteNode *disc_node, Network *net) {
             potentials.push_back(disc_node->GetProbability(node_value, parent_config));
         }
     }//end has parents
+}
+
+/**
+ * @brief: construct a potential table given an evidence node;
+ * the table consists of only the node
+ * the location of the observed value is set to 1 and other locations are set to 0
+ */
+PotentialTable::PotentialTable(DiscreteNode *disc_node, int observed_value) {
+    int node_index = disc_node->GetNodeIndex();
+    int node_dim = disc_node->GetDomainSize();
+
+    related_variables.insert(node_index); // related_variables is empty initially, because this is a constructor
+    num_variables = 1;
+    var_dims.reserve(num_variables);
+    var_dims.push_back(node_dim);
+    cum_levels.reserve(num_variables);
+    cum_levels.push_back(1);
+    table_size = node_dim;
+
+    potentials.resize(table_size);
+    for (int i = 0; i < table_size; ++i) {
+        if (i == observed_value) {
+            potentials[i] = 1;
+        } else {
+            potentials[i] = 0;
+        }
+    }
 }
 
 /**
