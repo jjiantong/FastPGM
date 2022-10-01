@@ -4,6 +4,11 @@
 
 #include "PotentialTable.h"
 
+//PotentialTable::PotentialTable() {
+//    related_variables = set<int>();
+//    num_variables = 0;
+//}
+
 /**
  * @brief: construct a potential table given a node;
  * the table consists of the node and all the existing related_variables, i.e., all its parents.
@@ -188,6 +193,20 @@ int PotentialTable::GetVariableIndex(const int &variable) {
  */
 void PotentialTable::TableReduction(int e_index, int e_value_index, int num_threads) {
     // in table reduction, we first update potentials, then consider the other things
+    /**
+     * want to reduce the computations, but don't know why it leads to the wrong results
+     */
+//    if (this->num_variables == 1) {
+//        // then new table's num_variable = 0
+//        this->related_variables.erase(e_index);
+//        this->num_variables = 0;
+//        this->var_dims = vector<int>();
+//        this->cum_levels = vector<int>();
+//        this->table_size = 1;
+//        vector<double> new_potentials(1);
+//        this->potentials = new_potentials;
+//        return;
+//    }
 
     // find the location of the evidence in the old table
     int e_loc = this->TableReductionPre(e_index);
@@ -589,14 +608,14 @@ void PotentialTable::TableExtensionPost(const PotentialTable &pt, int *table_ind
  * @output: this table
  */
 void PotentialTable::TableMultiplication(PotentialTable &second_table) {
-//    if (this->related_variables.empty()) {
-//        (*this) = second_table; // directly return "second_table"
-////        return second_table;
-//    }
-//    if (second_table.related_variables.empty()) {
-//        return; // directly return this table
-////        return (*this);
-//    }
+    if (this->related_variables.empty()) {
+        (*this) = second_table; // directly return "second_table"
+//        return second_table;
+    }
+    if (second_table.related_variables.empty()) {
+        return; // directly return this table
+//        return (*this);
+    }
 
     set<int> all_related_variables;
     bool to_be_extended = this->TableMultiplicationPre(second_table, all_related_variables);

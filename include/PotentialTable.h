@@ -35,7 +35,7 @@ public:
     int num_variables; // i.e., clique size
     int table_size; // number of entries
 
-    PotentialTable() = default;
+    PotentialTable()=default;
     PotentialTable(DiscreteNode *disc_node, Network *net);
     void ConstructEmptyPotentialTable(const set<int> &set_node_index, Network *net);
 

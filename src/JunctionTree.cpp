@@ -503,6 +503,27 @@ void JunctionTree::CliqueLevelOperation(bool is_collect, int i, int size,
                                         int num_threads, Timer *timer) {
     timer->Start("pre-down-clq");
 
+    /**
+     * the purpose of this part is to avoid extension and multiplication when the separator has no related variable
+     * i.e., the potential table of separator is "1 vector" (1, 1, ..., 1)
+     * however, the implementation is wrong because we perform all the operations on "size" cliques together
+     * so we cannot just "return" if we find one of the related separator has no related variable
+     */
+//    for (int j = 0; j < size; ++j) { // for each clique in this level
+//        Clique *clique, *separator;
+//        if (is_collect) {
+//            clique = nodes_by_level[i][has_kth_child[j]];
+//            separator = clique->ptr_downstream_cliques[k];
+//        } else {
+//            clique = nodes_by_level[i][j];
+//            separator = clique->ptr_upstream_clique;
+//        }
+//
+//        if (separator->p_table.related_variables.empty()) {
+//            return;
+//        }
+//    }
+
     // used to store the (separator) potential tables that are needed to be extended
     vector<PotentialTable> tmp_pt;
     tmp_pt.reserve(size);
