@@ -4,6 +4,11 @@
 
 #include "PotentialTable.h"
 
+PotentialTable::PotentialTable() {
+    num_variables = 0;
+    table_size = 0;
+}
+
 /**
  * @brief: construct a potential table given a node;
  * the table consists of the node and all the existing related_variables, i.e., all its parents.
