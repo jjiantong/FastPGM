@@ -634,7 +634,7 @@ void PotentialTable::TableExtensionPost(const PotentialTable &pt, int *table_ind
  * @input: this table and "second_table"
  * @output: this table
  */
-void PotentialTable::TableMultiplication(PotentialTable &second_table) {
+void PotentialTable::TableMultiplication(const PotentialTable &second_table) {
     if (this->related_variables.empty()) {
         (*this) = second_table; // directly return "second_table"
 //        return second_table;
@@ -648,16 +648,20 @@ void PotentialTable::TableMultiplication(PotentialTable &second_table) {
     bool to_be_extended = this->TableMultiplicationPre(second_table, all_related_variables);
 
     if (to_be_extended) { // if table2 should be extended and table1 not
-        second_table.TableExtension(all_related_variables, this->var_dims);
-    }
+        PotentialTable tmp_pt = second_table;
+        tmp_pt.TableExtension(all_related_variables, this->var_dims);
 
-//#pragma omp taskloop
-    for (int i = 0; i < this->table_size; ++i) {
-        this->potentials[i] *= second_table.potentials[i];
+        for (int i = 0; i < this->table_size; ++i) {
+            this->potentials[i] *= tmp_pt.potentials[i];
+        }
+    } else {
+        for (int i = 0; i < this->table_size; ++i) {
+            this->potentials[i] *= second_table.potentials[i];
+        }
     }
 }
 
-bool PotentialTable::TableMultiplicationPre(PotentialTable &second_table, set<int> &all_related_variables) {
+bool PotentialTable::TableMultiplicationPre(const PotentialTable &second_table, set<int> &all_related_variables) {
     set<int> diff;
     all_related_variables.insert(this->related_variables.begin(), this->related_variables.end());
     all_related_variables.insert(second_table.related_variables.begin(), second_table.related_variables.end());
