@@ -571,8 +571,7 @@ void JunctionTree::CliqueLevelOperation(bool is_collect, int i, int size,
         multi_pt[j] = separator->p_table;
 
         // pre processing for extension
-        set<int> all_related_variables;
-        bool to_be_extended = clique->p_table.TableMultiplicationPre(separator->p_table, all_related_variables);
+        bool to_be_extended = clique->p_table.TableMultiplicationPre(separator->p_table);
 
         /**
          * we only need to decide whether the separator needs to be extended
@@ -584,7 +583,7 @@ void JunctionTree::CliqueLevelOperation(bool is_collect, int i, int size,
             cl_old.push_back(separator->p_table.cum_levels);
 
             PotentialTable pt;
-            pt.TableExtensionPre(all_related_variables, clique->p_table.var_dims);
+            pt.TableExtensionPre(clique->p_table.related_variables, clique->p_table.var_dims);
 
             // get this table's location -- it is currently the last one
             int last = vector_extension.size() - 1;

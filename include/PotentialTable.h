@@ -71,8 +71,9 @@ public:
     /**
      * potential table operation 4: table multiplication
      */
-    bool TableMultiplicationPre(const PotentialTable &second_table, set<int> &all_related_variables);
     void TableMultiplication(const PotentialTable &second_table);
+    bool TableMultiplicationPre(const PotentialTable &second_table);
+    void TableMultiplicationOneVariable(const PotentialTable &second_table);
 
     /**
      * potential table operation 5: table division

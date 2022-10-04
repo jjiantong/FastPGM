@@ -630,7 +630,11 @@ void PotentialTable::TableExtensionPost(const PotentialTable &pt, int *table_ind
  * cartesian product on two factors (product of factors)
  * if two factors have shared variables, the conflict ones (i.e. one variable has more than one value) in the results need to be removed.
  * if "related_variables" of one of the factors is empty, then directly return the other factor without multiplication
- * because the case means that this factor is a constant; since we re-normalize at the end, the constant will not affect the result
+ * because it means that this factor is a constant; since we re-normalize at the end, the constant will not affect the result
+ * @important: double-check before using this function: "this" should be always bigger than "second_table"
+ * which means, there is no variable in "second_table" but not in "this"
+ * if this condition cannot be satisfied, we need to implement another function, which checks whether the two tables need to be extended
+ *
  * @input: this table and "second_table"
  * @output: this table
  */
@@ -644,12 +648,11 @@ void PotentialTable::TableMultiplication(const PotentialTable &second_table) {
 //        return (*this);
     }
 
-    set<int> all_related_variables;
-    bool to_be_extended = this->TableMultiplicationPre(second_table, all_related_variables);
+    bool to_be_extended = this->TableMultiplicationPre(second_table);
 
     if (to_be_extended) { // if table2 should be extended and table1 not
         PotentialTable tmp_pt = second_table;
-        tmp_pt.TableExtension(all_related_variables, this->var_dims);
+        tmp_pt.TableExtension(this->related_variables, this->var_dims);
 
         for (int i = 0; i < this->table_size; ++i) {
             this->potentials[i] *= tmp_pt.potentials[i];
@@ -661,17 +664,19 @@ void PotentialTable::TableMultiplication(const PotentialTable &second_table) {
     }
 }
 
-bool PotentialTable::TableMultiplicationPre(const PotentialTable &second_table, set<int> &all_related_variables) {
+bool PotentialTable::TableMultiplicationPre(const PotentialTable &second_table) {
     set<int> diff;
-    all_related_variables.insert(this->related_variables.begin(), this->related_variables.end());
-    all_related_variables.insert(second_table.related_variables.begin(), second_table.related_variables.end());
 
     // before multiplication, we first extend the separator table to the same size if required
     // get the variables that in the clique table but not in the separator table
-    set_difference(all_related_variables.begin(), all_related_variables.end(),
+    set_difference(this->related_variables.begin(), this->related_variables.end(),
                    second_table.related_variables.begin(), second_table.related_variables.end(),
                    inserter(diff, diff.begin()));
     return !diff.empty();
+}
+
+void PotentialTable::TableMultiplicationOneVariable(const PotentialTable &second_table) {
+
 }
 
 
