@@ -459,7 +459,7 @@ vector<double> PotentialTable::GetReducedPotentials(const vector<int> &evidence,
 }
 
 /**
- * @brief: table operation 2: table marginalization - factor out a node by id
+ * @brief: table operation 2: table marginalization - factor out a set of nodes by id
  * eliminate variable "id" by summation of the factor over "id"
  */
 void PotentialTable::TableMarginalization(const set<int> &ext_variables) {
@@ -549,6 +549,68 @@ void PotentialTable::TableMarginalizationPost(const PotentialTable &pt, int *tab
     }
 }
 
+void PotentialTable::TableMarginalization(int ext_variable) {
+    PotentialTable new_table;
+    this->TableMarginalizationPre(ext_variable, new_table);
+
+    // generate an array showing the locations of the variables of the new table in the old table
+    int *loc_in_old = new int[new_table.num_variables];
+    int i = 0;
+    for (auto &v: new_table.related_variables) {
+        loc_in_old[i++] = this->GetVariableIndex(v);
+    }
+
+    int *full_config = new int[this->table_size * this->num_variables];
+    int *partial_config = new int[this->table_size * new_table.num_variables];
+    int *table_index = new int[this->table_size];
+
+//#pragma omp taskloop
+//    omp_set_num_threads(num_threads);
+//#pragma omp parallel for
+    for (int i = 0; i < this->table_size; ++i) {
+        // 1. get the full config value of old table
+        this->GetConfigValueByTableIndex(i, full_config + i * this->num_variables);
+        // 2. get the partial config value from the old table
+        for (int j = 0; j < new_table.num_variables; ++j) {
+            partial_config[i * new_table.num_variables + j] = full_config[i * this->num_variables + loc_in_old[j]];
+        }
+        // 3. obtain the potential index
+        table_index[i] = new_table.GetTableIndexByConfigValue(partial_config + i * new_table.num_variables);
+    }
+    SAFE_DELETE_ARRAY(full_config);
+    SAFE_DELETE_ARRAY(partial_config);
+    SAFE_DELETE_ARRAY(loc_in_old);
+
+    new_table.TableMarginalizationPost(*this, table_index);
+    (*this) = new_table;
+}
+
+void PotentialTable::TableMarginalizationPre(int ext_variable, PotentialTable &new_table) {
+    // update the new table's related variables and num variables
+    new_table.related_variables = this->related_variables;
+    new_table.related_variables.erase(ext_variable);
+    new_table.num_variables = this->num_variables - 1;
+
+    // update the new table's var dims, cum levels and table size
+    if (new_table.num_variables == 0) {
+        new_table.var_dims = vector<int>();
+        new_table.cum_levels = vector<int>();
+        new_table.table_size = 1;
+    } else {
+        new_table.var_dims.reserve(new_table.num_variables);
+        int k = 0;
+        for (auto &v: this->related_variables) {
+            if (v != ext_variable) { // v is not the ext_variable
+                new_table.var_dims.push_back(this->var_dims[k]);
+            }
+            k++;
+        }
+        new_table.ConstructCumLevels();
+        new_table.table_size = new_table.cum_levels[0] * new_table.var_dims[0];
+    }
+
+    new_table.potentials.resize(new_table.table_size);
+}
 
 /**
  * @brief table operation 3: table extension - a pre computation of multiplication
@@ -721,6 +783,7 @@ void PotentialTable::TableMultiplicationOneVariable(const PotentialTable &second
             // get the value of the one variable and update
             this->potentials[i] *= potential_values[full_config[loc]];
         }
+        SAFE_DELETE_ARRAY(full_config);
     } else {
         for (int i = 0; i < this->table_size; ++i) {
             this->potentials[i] *= second_table.potentials[i];

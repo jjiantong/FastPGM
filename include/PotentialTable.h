@@ -58,6 +58,8 @@ public:
     int TableMarginalizationMain(int k, int *full_config, int *partial_config,
                                  int nv, const vector<int> &cl, int *loc);
     void TableMarginalizationPost(const PotentialTable &pt, int *table_index);
+    void TableMarginalization(int ext_variable);
+    void TableMarginalizationPre(int ext_variable, PotentialTable &new_table);
 
     /**
      * potential table operation 3: table extension
