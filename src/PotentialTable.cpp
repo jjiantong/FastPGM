@@ -675,8 +675,57 @@ bool PotentialTable::TableMultiplicationPre(const PotentialTable &second_table) 
     return !diff.empty();
 }
 
+/**
+ * do table multiplication for the case where second_table contains only one related variable
+ * and this table also contains this variable
+ * implement this version because lbp always multiplies with a table that contains only one variable
+ */
 void PotentialTable::TableMultiplicationOneVariable(const PotentialTable &second_table) {
+    if (this->related_variables.empty()) {
+        (*this) = second_table; // directly return "second_table"
+//        return second_table;
+    }
+    if (second_table.related_variables.empty()) {
+        return; // directly return this table
+//        return (*this);
+    }
 
+    if (second_table.related_variables.size() > 1) {
+        cout << "error in TableMultiplicationOneVariable: the second table has " << second_table.related_variables.size() << " variables" << endl;
+    }
+
+    int variable_index = *second_table.related_variables.begin();
+
+    /**
+     * it is just the "to_be_extended", to decide whether table 1 is bigger
+     * if not, which means both table 1 and 2 have one variable
+     * then directly do the multiplication
+     */
+    bool first_is_bigger = this->TableMultiplicationPre(second_table);
+
+    if (first_is_bigger) {
+        /**
+         * in this case, the main structure of table 1 is not changed;
+         * the change is that every cell of the potential table is multiplied with a value
+         */
+        // get the location of the one variable
+        int loc = this->GetVariableIndex(variable_index);
+
+        vector<double> potential_values = second_table.potentials;
+        int *full_config = new int[this->num_variables];
+
+        // change each cell of table 1
+        for (int i = 0; i < this->table_size; ++i) {
+            // get the full config value of table 1
+            this->GetConfigValueByTableIndex(i, full_config);
+            // get the value of the one variable and update
+            this->potentials[i] *= potential_values[full_config[loc]];
+        }
+    } else {
+        for (int i = 0; i < this->table_size; ++i) {
+            this->potentials[i] *= second_table.potentials[i];
+        }
+    }
 }
 
 
