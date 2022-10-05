@@ -472,6 +472,11 @@ void JunctionTree::SeparatorLevelOperation(bool is_collect, int i, int num_threa
 
         separator->p_table = tmp_pt[j];
         separator->p_table.TableDivision(separator->old_ptable);
+
+        // normalization
+        timer->Start("norm");
+        separator->p_table.Normalize();
+        timer->Stop("norm");
     }
     timer->Stop("parallel");
     timer->Stop("post-up-sep");
@@ -677,8 +682,18 @@ void JunctionTree::CliqueLevelOperation(bool is_collect, int i, int size,
         Compute2DIndex(j, k, s, size, cum_sum2); // compute j and k
         if (is_collect) {
             nodes_by_level[i][has_kth_child[j]]->p_table.potentials[k] *= multi_pt[j].potentials[k];
+
+            // normalization
+            timer->Start("norm");
+            nodes_by_level[i][has_kth_child[j]]->p_table.Normalize();
+            timer->Stop("norm");
         } else {
             nodes_by_level[i][j]->p_table.potentials[k] *= multi_pt[j].potentials[k];
+
+            // normalization
+            timer->Start("norm");
+            nodes_by_level[i][j]->p_table.Normalize();
+            timer->Stop("norm");
         }
     }
     timer->Stop("parallel");
