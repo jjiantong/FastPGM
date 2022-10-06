@@ -52,19 +52,17 @@ int BruteForce::PredictDirectly(const DiscreteConfig &E) {
  * it just repeats the function above multiple times, and print the progress at the meantime
  */
 vector<int> BruteForce::PredictDirectly() {
-    int size = evidences.size();
-
     cout << "Progress indicator: ";
-    int every_1_of_20 = size / 20;
+    int every_1_of_20 = num_instances / 20;
     int progress = 0;
 
-    vector<int> results(size, 0);
+    vector<int> results(num_instances, 0);
 
-    for (int i = 0; i < size; ++i) {
+    for (int i = 0; i < num_instances; ++i) {
         ++progress;
 
         if (progress % every_1_of_20 == 0) {
-            string progress_percentage = to_string((double)progress/size * 100) + "%...";
+            string progress_percentage = to_string((double)progress/num_instances * 100) + "%...";
             fprintf(stdout, "%s\n", progress_percentage.c_str());
             fflush(stdout);
         }
