@@ -90,9 +90,10 @@ map<int, double> BruteForce::GetMarginalProbabilitiesDirectly(const DiscreteConf
     DiscreteNode *query_node = (DiscreteNode*)network->FindNodePtrByIndex(query_index);
 
     vector<int> vec_complete_instance_values;
-    vec_complete_instance_values.push_back(0);
+    vec_complete_instance_values.resize(network->num_nodes);
+    vec_complete_instance_values[query_index] = 0; // a initialization
     for (auto evi = evidence.begin(); evi != evidence.end(); evi++) {
-        vec_complete_instance_values.push_back(evi->second);
+        vec_complete_instance_values[evi->first] = evi->second;
     }
 
     // compute the probability of each possible value of the target node
