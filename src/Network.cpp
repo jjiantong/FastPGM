@@ -536,7 +536,6 @@ vector<int> Network::GenTopoOrd() {
     // TODO: use function "ConvertDAGNetworkToAdjacencyMatrix"
     // TODO: adjacency matrix or adjacency list? more memory for adjacency matrix
     int **graph = new int*[num_nodes];
-#pragma omp for
     for (int i=0; i<num_nodes; ++i) {
       graph[i] = new int[num_nodes]();
     }

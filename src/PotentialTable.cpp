@@ -695,7 +695,7 @@ void PotentialTable::TableExtensionPost(const PotentialTable &pt, int *table_ind
  * because it means that this factor is a constant; since we re-normalize at the end, the constant will not affect the result
  * @important: double-check before using this function: "this" should be always bigger than "second_table"
  * which means, there is no variable in "second_table" but not in "this"
- * if this condition cannot be satisfied, we need to implement another function, which checks whether the two tables need to be extended
+ * if this condition cannot be satisfied, use TableMultiplicationTwoExtention, which checks whether the two tables need to be extended
  *
  * @input: this table and "second_table"
  * @output: this table
@@ -789,6 +789,57 @@ void PotentialTable::TableMultiplicationOneVariable(const PotentialTable &second
             this->potentials[i] *= second_table.potentials[i];
         }
     }
+}
+
+void PotentialTable::TableMultiplicationTwoExtension(const PotentialTable &second_table) {
+    if (this->related_variables.empty()) {
+        (*this) = second_table; // directly return "second_table"
+//        return second_table;
+    }
+    if (second_table.related_variables.empty()) {
+        return; // directly return this table
+//        return (*this);
+    }
+
+    set<int> all_related_variabls, diff1, diff2;
+    this->TableMultiplicationPre(second_table, all_related_variabls, diff1, diff2);
+
+    if (diff1.empty() && diff2.empty()) {
+        // do nothing
+    } else if (!diff1.empty() && diff2.empty()) {
+
+    } else if (diff1.empty() && diff2.empty()) {
+
+    }
+
+
+    if (to_be_extended) { // if table2 should be extended and table1 not
+        PotentialTable tmp_pt = second_table;
+        tmp_pt.TableExtension(this->related_variables, this->var_dims);
+
+        for (int i = 0; i < this->table_size; ++i) {
+            this->potentials[i] *= tmp_pt.potentials[i];
+        }
+    } else {
+        for (int i = 0; i < this->table_size; ++i) {
+            this->potentials[i] *= second_table.potentials[i];
+        }
+    }
+}
+
+void PotentialTable::TableMultiplicationPre(const PotentialTable &second_table, set<int> &all_related_variables,
+                                            set<int> &diff1, set<int> &diff2) {
+    all_related_variables.insert(this->related_variables.begin(), this->related_variables.end());
+    all_related_variables.insert(second_table.related_variables.begin(), second_table.related_variables.end());
+
+    // before multiplication, we first extend the separator table to the same size if required
+    // get the variables that in the clique table but not in the separator table
+    set_difference(all_related_variables.begin(), all_related_variables.end(),
+                   this->related_variables.begin(), this->related_variables.end(),
+                   inserter(diff1, diff1.begin()));
+    set_difference(all_related_variables.begin(), all_related_variables.end(),
+                   second_table.related_variables.begin(), second_table.related_variables.end(),
+                   inserter(diff2, diff2.begin()));
 }
 
 
