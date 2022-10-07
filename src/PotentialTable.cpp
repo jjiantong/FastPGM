@@ -791,7 +791,11 @@ void PotentialTable::TableMultiplicationOneVariable(const PotentialTable &second
     }
 }
 
-void PotentialTable::TableMultiplicationTwoExtension(const PotentialTable &second_table) {
+/**
+ * this function is used when we don't know which table is bigger
+ * note that table 2 may be changed after this process
+ */
+void PotentialTable::TableMultiplicationTwoExtension(PotentialTable &second_table) {
     if (this->related_variables.empty()) {
         (*this) = second_table; // directly return "second_table"
 //        return second_table;
@@ -801,29 +805,35 @@ void PotentialTable::TableMultiplicationTwoExtension(const PotentialTable &secon
 //        return (*this);
     }
 
-    set<int> all_related_variabls, diff1, diff2;
-    this->TableMultiplicationPre(second_table, all_related_variabls, diff1, diff2);
+    set<int> all_related_variables, diff1, diff2;
+    this->TableMultiplicationPre(second_table, all_related_variables, diff1, diff2);
 
-    if (diff1.empty() && diff2.empty()) {
+    if (diff1.empty() && diff2.empty()) { // if both table1 and table2 should not be extended
         // do nothing
-    } else if (!diff1.empty() && diff2.empty()) {
-
-    } else if (diff1.empty() && diff2.empty()) {
-
+    } else if (!diff1.empty() && diff2.empty()) { // if table1 should be extended and table2 not
+        this->TableExtension(all_related_variables, second_table.var_dims);
+    } else if (diff1.empty() && !diff2.empty()) { // if table2 should be extended and table1 not
+        second_table.TableExtension(all_related_variables, this->var_dims);
+    } else { // if both table1 and table2 should be extended
+        vector<int> dims; // to save dims of the new related variables
+        dims.reserve(all_related_variables.size());
+        // to find the location of each new related variable
+        for (auto &v: all_related_variables) {
+            int loc = this->GetVariableIndex(v);
+            if (loc < this->related_variables.size()) { // find it in table1
+                dims.push_back(this->var_dims[loc]);
+            } else { // cannot find in table1, we need to find it in table2
+                loc = second_table.GetVariableIndex(v);
+                dims.push_back(second_table.var_dims[loc]);
+            }
+        }
+        this->TableExtension(all_related_variables, dims);
+        second_table.TableExtension(all_related_variables, dims);
     }
 
-
-    if (to_be_extended) { // if table2 should be extended and table1 not
-        PotentialTable tmp_pt = second_table;
-        tmp_pt.TableExtension(this->related_variables, this->var_dims);
-
-        for (int i = 0; i < this->table_size; ++i) {
-            this->potentials[i] *= tmp_pt.potentials[i];
-        }
-    } else {
-        for (int i = 0; i < this->table_size; ++i) {
-            this->potentials[i] *= second_table.potentials[i];
-        }
+//#pragma omp taskloop
+    for (int i = 0; i < this->table_size; ++i) {
+        this->potentials[i] *= second_table.potentials[i];
     }
 }
 

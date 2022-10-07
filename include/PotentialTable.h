@@ -76,7 +76,7 @@ public:
     void TableMultiplication(const PotentialTable &second_table);
     bool TableMultiplicationPre(const PotentialTable &second_table);
     void TableMultiplicationOneVariable(const PotentialTable &second_table);
-    void TableMultiplicationTwoExtension(const PotentialTable &second_table);
+    void TableMultiplicationTwoExtension(PotentialTable &second_table);
     void TableMultiplicationPre(const PotentialTable &second_table, set<int> &all_related_variables, set<int> &diff1, set<int> &diff2);
 
     /**

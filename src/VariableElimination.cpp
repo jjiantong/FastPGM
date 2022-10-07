@@ -79,7 +79,7 @@ int VariableElimination::PredictUseVEInfer(const DiscreteConfig &evid, int num_t
             max_index = i;
         }
     }
-    cout << "finish max" << endl;
+//    cout << "finish max" << endl;
 
     // "pt" has only one related variable, which is exactly the query variable,
     // so the "max_index" exactly means which value of the query variable gets the max probability
@@ -128,7 +128,7 @@ PotentialTable VariableElimination::GetMarginalProbabilitiesUseVE(const Discrete
     // find the nodes to be removed, include barren nodes and m-separated nodes
     // filter out these nodes and obtain the left nodes
     vector<int> left_nodes = FilterOutIrrelevantNodes();
-    cout << "finish filtering out" << endl;
+//    cout << "finish filtering out" << endl;
     timer->Stop("filter out");
 
     timer->Start("initialization");
@@ -136,23 +136,23 @@ PotentialTable VariableElimination::GetMarginalProbabilitiesUseVE(const Discrete
     // because we have removed barren nodes and m-separated nodes TODO
     // and also load evidence: return a cpt list with fewer configurations
     InitializeCPTAndLoadEvidence(left_nodes, evidence, num_threads);
-    cout << "finish reduced CPT" << endl;
+//    cout << "finish reduced CPT" << endl;
 
     if (elim_order.empty()) {
         elim_order = DefaultEliminationOrder(evidence, left_nodes);
     }
-    cout << "finish elimination order" << endl;
+//    cout << "finish elimination order" << endl;
     timer->Stop("initialization");
 
     timer->Start("ve process");
     // compute the probability table of the target node
     PotentialTable target_node_table = SumProductVE(elim_order);
-    cout << "finish ve process" << endl;
+//    cout << "finish ve process" << endl;
     timer->Stop("ve process");
 
     // renormalization
     target_node_table.Normalize();
-    cout << "finish norm" << endl;
+//    cout << "finish norm" << endl;
 
     return target_node_table;
 }
@@ -286,7 +286,7 @@ PotentialTable VariableElimination::SumProductVE(vector<int> elim_order) {
             tmp2 = tmp_table_list.back();
             tmp_table_list.pop_back();
             // note that after popping tmp1, tmp2, they are no use. so we can just do table multiplication and replace tmp1 with the result of production
-            tmp1.TableMultiplication(tmp2);
+            tmp1.TableMultiplicationTwoExtension(tmp2);
             tmp_table_list.push_back(tmp1);
         }
 
@@ -308,7 +308,7 @@ PotentialTable VariableElimination::SumProductVE(vector<int> elim_order) {
         tmp2 = table_list.back();
         table_list.pop_back();
         // note that after popping tmp1, tmp2, they are no use. so we can just do table multiplication and replace tmp1 with the result of production
-        tmp1.TableMultiplication(tmp2);
+        tmp1.TableMultiplicationTwoExtension(tmp2);
         table_list.push_back(tmp1);
     }
 
