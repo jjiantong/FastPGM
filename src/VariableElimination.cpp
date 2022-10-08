@@ -3,6 +3,11 @@
 //
 #include "VariableElimination.h"
 
+VariableElimination::VariableElimination(Network *net, Dataset *dts, bool is_dense): Inference(net, dts, is_dense) {
+    // TODO: if we need to specify an order, change this part...
+    elimination_orderings = vector<vector<int>> (num_instances, vector<int>{});
+}
+
 double VariableElimination::EvaluateAccuracy(int num_threads) {
     cout << "==================================================" << '\n'
          << "Begin testing the trained network." << endl;
@@ -66,7 +71,6 @@ void VariableElimination::InitializeCPTAndLoadEvidence(const vector<int> &left_n
  * @return label of the target variable
  */
 int VariableElimination::PredictUseVEInfer(const DiscreteConfig &evid, int num_threads, Timer *timer, vector<int> elim_order) {
-
     // get the factor (marginal probability) of the target node given the evidences
     PotentialTable pt = GetMarginalProbabilitiesUseVE(evid, num_threads, timer, elim_order);
 
@@ -79,7 +83,6 @@ int VariableElimination::PredictUseVEInfer(const DiscreteConfig &evid, int num_t
             max_index = i;
         }
     }
-//    cout << "finish max" << endl;
 
     // "pt" has only one related variable, which is exactly the query variable,
     // so the "max_index" exactly means which value of the query variable gets the max probability
@@ -89,17 +92,11 @@ int VariableElimination::PredictUseVEInfer(const DiscreteConfig &evid, int num_t
 /**
  * @brief: predict the labels given different evidences
  * it just repeats the function above multiple times, and print the progress at the meantime
- * @param elim_orders: elimination order which may be different given different evidences due to the simplification of elimination order
  */
-vector<int> VariableElimination::PredictUseVEInfer(int num_threads, Timer *timer, vector<vector<int>> elim_orders) {
+vector<int> VariableElimination::PredictUseVEInfer(int num_threads, Timer *timer) {
     cout << "Progress indicator: ";
     int every_1_of_20 = num_instances / 20; // used to print, print 20 times in total
     int progress = 0;
-
-    if (elim_orders.empty()) { // each instance has an order...
-        // Vector of size "size". Each element is an empty vector.
-        elim_orders = vector<vector<int>> (num_instances, vector<int>{});
-    }
 
     vector<int> results(num_instances, 0);
 
@@ -112,7 +109,7 @@ vector<int> VariableElimination::PredictUseVEInfer(int num_threads, Timer *timer
             fflush(stdout);
         }
 
-        vector<int> elim_ord = elim_orders.at(i);
+        vector<int> elim_ord = elimination_orderings[i];
         int pred = PredictUseVEInfer(evidences.at(i), num_threads, timer, elim_ord);
         results.at(i) = pred;
     }
@@ -128,7 +125,6 @@ PotentialTable VariableElimination::GetMarginalProbabilitiesUseVE(const Discrete
     // find the nodes to be removed, include barren nodes and m-separated nodes
     // filter out these nodes and obtain the left nodes
     vector<int> left_nodes = FilterOutIrrelevantNodes();
-//    cout << "finish filtering out" << endl;
     timer->Stop("filter out");
 
     timer->Start("initialization");
@@ -136,23 +132,19 @@ PotentialTable VariableElimination::GetMarginalProbabilitiesUseVE(const Discrete
     // because we have removed barren nodes and m-separated nodes TODO
     // and also load evidence: return a cpt list with fewer configurations
     InitializeCPTAndLoadEvidence(left_nodes, evidence, num_threads);
-//    cout << "finish reduced CPT" << endl;
 
     if (elim_order.empty()) {
         elim_order = DefaultEliminationOrder(evidence, left_nodes);
     }
-//    cout << "finish elimination order" << endl;
     timer->Stop("initialization");
 
     timer->Start("ve process");
     // compute the probability table of the target node
     PotentialTable target_node_table = SumProductVE(elim_order);
-//    cout << "finish ve process" << endl;
     timer->Stop("ve process");
 
     // renormalization
     target_node_table.Normalize();
-//    cout << "finish norm" << endl;
 
     return target_node_table;
 }
@@ -227,23 +219,10 @@ vector<int> VariableElimination::DefaultEliminationOrder(const DiscreteConfig &e
 PotentialTable VariableElimination::SumProductVE(vector<int> elim_order) {
     // at the beginning, let table list be the reduced CPTs of all the relevant nodes
     vector<PotentialTable> table_list = cpts;
-//    cout << "init tables: " << endl;
-//    for (int i = 0; i < table_list.size(); ++i) {
-//        cout << i << ": ";
-//        for (auto v: table_list[i].related_variables) {
-//            cout << v << " ";
-//        }
-//        cout << ": ";
-//        for (int j = 0; j < table_list[i].table_size; ++j) {
-//            cout << table_list[i].potentials[j] << " ";
-//        }
-//        cout << endl;
-//    }
 
     for (int i = 0; i < elim_order.size(); ++i) { // consider each node i according to the elimination order
         // the node to be eliminated now
         int node_index = elim_order[i];
-//        cout << "now eliminate " << i << "..." << endl;
 
         vector<PotentialTable> tmp_table_list;
         /**
@@ -263,19 +242,6 @@ PotentialTable VariableElimination::SumProductVE(vector<int> elim_order) {
                 ++it;
             }
         }
-
-//        cout << "before merge: " << endl;
-//        for (int i = 0; i < tmp_table_list.size(); ++i) {
-//            cout << i << ": ";
-//            for (auto v: tmp_table_list[i].related_variables) {
-//                cout << v << " ";
-//            }
-//            cout << ": ";
-//            for (int j = 0; j < tmp_table_list[i].table_size; ++j) {
-//                cout << tmp_table_list[i].potentials[j] << " ";
-//            }
-//            cout << endl;
-//        }
 
         // merge all the factors in tmp table list into one potential table
         while(tmp_table_list.size() > 1) {
