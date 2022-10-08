@@ -19,7 +19,7 @@ double VariableElimination::EvaluateAccuracy(int num_threads) {
     setlocale(LC_NUMERIC, "");
 
     cout << "==================================================";
-    timer->Print("ve");
+    cout << endl; timer->Print("ve"); cout << endl;
     timer->Print("filter out"); cout << " (" << timer->time["filter out"] / timer->time["ve"] * 100 << "%)";
     timer->Print("load evidence"); cout << " (" << timer->time["load evidence"] / timer->time["ve"] * 100 << "%)";
     timer->Print("ve process"); cout << " (" << timer->time["ve process"] / timer->time["ve"] * 100 << "%)" << endl;

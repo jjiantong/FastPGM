@@ -19,7 +19,7 @@ double BruteForce::EvaluateAccuracy(int num_threads) {
     setlocale(LC_NUMERIC, "");
 
     cout << "==================================================";
-    timer->Print("bf"); cout << endl;
+    cout << endl; timer->Print("bf"); cout << endl;
 
     SAFE_DELETE(timer);
 
