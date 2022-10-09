@@ -83,3 +83,18 @@ DiscreteConfig Inference::Sparse2Dense(DiscreteConfig evidence, int num_nodes) {
 
     return dense_instance;
 }
+
+/**
+ * find the index i that leads to the max array[i] over all elements in array
+ */
+int Inference::ArgMax(const vector<double> &array) {
+    double max_prob = 0;
+    int max_index;
+    for (int i = 0; i < array.size(); ++i) { // traverse the potential table
+        if (array[i] > max_prob) {
+            max_prob = array[i];
+            max_index = i;
+        }
+    }
+    return max_index;
+}

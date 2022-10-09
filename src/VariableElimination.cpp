@@ -74,19 +74,10 @@ int VariableElimination::PredictUseVEInfer(const DiscreteConfig &evid, int num_t
     // get the factor (marginal probability) of the target node given the evidences
     PotentialTable pt = GetMarginalProbabilitiesUseVE(evid, num_threads, timer, elim_order);
 
-    // find the configuration with the maximum probability
-    double max_prob = 0;
-    int max_index;
-    for (int i = 0; i < pt.table_size; ++i) { // traverse the potential table
-        if (pt.potentials[i] > max_prob) {
-            max_prob = pt.potentials[i];
-            max_index = i;
-        }
-    }
-
+    // find the maximum probability
     // "pt" has only one related variable, which is exactly the query variable,
     // so the "max_index" exactly means which value of the query variable gets the max probability
-    return max_index;
+    return ArgMax(pt.potentials);
 }
 
 /**

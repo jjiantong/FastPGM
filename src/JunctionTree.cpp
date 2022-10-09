@@ -858,18 +858,11 @@ PotentialTable JunctionTree::CalculateMarginalProbability(int query_index) {
 int JunctionTree::InferenceUsingJT(int &query_index) {
 
     PotentialTable pt = CalculateMarginalProbability(query_index);
-    double max_prob = 0;
-    int max_index;
-    for (int i = 0; i < pt.table_size; ++i) { // traverse the potential table
-        if (pt.potentials[i] > max_prob) {
-            max_prob = pt.potentials[i];
-            max_index = i;
-        }
-    }
 
+    // find the maximum probability
     // "pt" has only one related variable, which is exactly the query variable,
     // so the "max_index" exactly means which value of the query variable gets the max probability
-    return max_index;
+    return ArgMax(pt.potentials);
 }
 
 /**

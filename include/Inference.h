@@ -42,6 +42,7 @@ public:
 
     double Accuracy(vector<int> predictions);
     DiscreteConfig Sparse2Dense(DiscreteConfig evidence, int num_nodes);
+    int ArgMax(const vector<double> &array);
 };
 
 #endif //BAYESIANNETWORK_INFERENCE_H
