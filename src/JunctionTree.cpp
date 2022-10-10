@@ -52,32 +52,31 @@ double JunctionTree::EvaluateAccuracy(int num_threads) {
     timer->Stop("jt");
     setlocale(LC_NUMERIC, "");
 
-//    double accuracy = num_of_correct / (double)(num_of_correct+num_of_wrong);
-    cout << '\n' << "Accuracy: " << accuracy << endl;
-    cout << "==================================================" << endl;
-    timer->Print("jt"); cout << "after removing reset time: " << timer->time["jt"] - timer->time["reset"] << " s"<< endl;
-    double total = timer->time["jt"] - timer->time["reset"] - timer->time["norm"]; cout << "after removing norm time: " << total << " s"<< endl;
-    timer->Print("load evidence"); cout << "(" << timer->time["load evidence"] / timer->time["jt"] * 100 << "%)" << endl;
-    timer->Print("msg passing"); cout << "(" << timer->time["msg passing"] / timer->time["jt"] * 100 << "%)" << endl;
-    timer->Print("upstream"); cout << endl;
-    timer->Print("downstream"); cout << endl;
-    timer->Print("predict"); cout << "(" << timer->time["predict"] / timer->time["jt"] * 100 << "%)" << endl;
-    timer->Print("reset"); cout << "(" << timer->time["reset"] / timer->time["jt"] * 100 << "%)" << endl << endl;
-
-    timer->Print("pre-evi"); timer->Print("main-evi"); timer->Print("post-evi"); cout << endl << endl;
-    timer->Print("pre-down-sep"); timer->Print("main-down-sep"); timer->Print("post-down-sep"); cout << endl;
-    timer->Print("pre-down-clq"); timer->Print("main-down-clq"); timer->Print("post-down-clq"); cout << endl;
-    timer->Print("pre-up-sep"); timer->Print("main-up-sep"); timer->Print("post-up-sep"); cout << endl;
-    timer->Print("pre-up-clq"); timer->Print("main-up-clq"); timer->Print("post-up-clq"); cout << endl << endl;
-
-    timer->Print("post-down-clq-mem"); timer->Print("post-down-clq-del"); timer->Print("post-down-clq-mul"); cout << endl;
-    timer->Print("post-down-sep-mem"); timer->Print("post-sep-del"); timer->Print("post-down-sep-div"); cout << endl << endl;
-
-    timer->Print("norm"); cout << endl << endl;
-
-    timer->Print("parallel");
-    cout << "(" << timer->time["parallel"] / (timer->time["jt"] - timer->time["norm"])* 100 << "%)";
-    cout << "(" << timer->time["parallel"] / total * 100 << "%)" << endl;
+//    cout << '\n' << "Accuracy: " << accuracy << endl;
+//    cout << "==================================================" << endl;
+//    timer->Print("jt"); cout << "after removing reset time: " << timer->time["jt"] - timer->time["reset"] << " s"<< endl;
+//    double total = timer->time["jt"] - timer->time["reset"] - timer->time["norm"]; cout << "after removing norm time: " << total << " s"<< endl;
+//    timer->Print("load evidence"); cout << "(" << timer->time["load evidence"] / timer->time["jt"] * 100 << "%)" << endl;
+//    timer->Print("msg passing"); cout << "(" << timer->time["msg passing"] / timer->time["jt"] * 100 << "%)" << endl;
+//    timer->Print("upstream"); cout << endl;
+//    timer->Print("downstream"); cout << endl;
+//    timer->Print("predict"); cout << "(" << timer->time["predict"] / timer->time["jt"] * 100 << "%)" << endl;
+//    timer->Print("reset"); cout << "(" << timer->time["reset"] / timer->time["jt"] * 100 << "%)" << endl << endl;
+//
+//    timer->Print("pre-evi"); timer->Print("main-evi"); timer->Print("post-evi"); cout << endl << endl;
+//    timer->Print("pre-down-sep"); timer->Print("main-down-sep"); timer->Print("post-down-sep"); cout << endl;
+//    timer->Print("pre-down-clq"); timer->Print("main-down-clq"); timer->Print("post-down-clq"); cout << endl;
+//    timer->Print("pre-up-sep"); timer->Print("main-up-sep"); timer->Print("post-up-sep"); cout << endl;
+//    timer->Print("pre-up-clq"); timer->Print("main-up-clq"); timer->Print("post-up-clq"); cout << endl << endl;
+//
+//    timer->Print("post-down-clq-mem"); timer->Print("post-down-clq-del"); timer->Print("post-down-clq-mul"); cout << endl;
+//    timer->Print("post-down-sep-mem"); timer->Print("post-sep-del"); timer->Print("post-down-sep-div"); cout << endl << endl;
+//
+//    timer->Print("norm"); cout << endl << endl;
+//
+//    timer->Print("parallel");
+//    cout << "(" << timer->time["parallel"] / (timer->time["jt"] - timer->time["norm"])* 100 << "%)";
+//    cout << "(" << timer->time["parallel"] / total * 100 << "%)" << endl;
 
     SAFE_DELETE(timer);
 
@@ -891,6 +890,9 @@ int JunctionTree::PredictUseJTInfer(const DiscreteConfig &E, int num_threads, Ti
     ResetJunctionTree();
     timer->Stop("reset");
 //    cout << "finish reset" << endl;
+
+    cout << label_predict << endl;
+
     return label_predict;
 }
 
@@ -908,11 +910,11 @@ vector<int> JunctionTree::PredictUseJTInfer(int num_threads, Timer *timer) {
     for (int i = 0; i < num_instances; ++i) {
         ++progress;
 
-        if (progress % every_1_of_20 == 0) {
-            string progress_percentage = to_string((double)progress/num_instances * 100) + "%...";
-            fprintf(stdout, "%s\n", progress_percentage.c_str());
-            fflush(stdout);
-        }
+//        if (progress % every_1_of_20 == 0) {
+//            string progress_percentage = to_string((double)progress/num_instances * 100) + "%...";
+//            fprintf(stdout, "%s\n", progress_percentage.c_str());
+//            fflush(stdout);
+//        }
 
         int label_predict = PredictUseJTInfer(evidences.at(i), num_threads, timer);
         results.at(i) = label_predict;
