@@ -41,6 +41,8 @@ Inference::Inference(Network *net, Dataset *dts, bool is_dense): network(net), n
     }
 }
 
+Inference::Inference(Network *net): network(net) {}
+
 double Inference::Accuracy(vector<int> predictions) {
     int size = ground_truths.size(),
             num_of_correct = 0,
@@ -98,3 +100,4 @@ int Inference::ArgMax(const vector<double> &array) {
     }
     return max_index;
 }
+

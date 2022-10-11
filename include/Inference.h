@@ -36,6 +36,8 @@ public:
     vector<int> ground_truths; // the ground truths of each class variable
 
     Inference(Network *net, Dataset *dts, bool is_dense);
+    Inference(Network *net); // it is used only in LBP for EPIS-BN
+
     virtual ~Inference() {};
 
     virtual double EvaluateAccuracy(int num_threads)= 0;

@@ -47,8 +47,7 @@ public:
     int TableReductionPre(int e_index);
     int TableReductionMain(int i, int *full_config, int loc);
     void TableReductionPost(int index, int value_index, int *v_index, int loc);
-    void TableReduction(const DiscreteConfig &evidence, int num_threads);
-    vector<double> GetReducedPotentials(const vector<int> &evidence, int node_index, int num_threads);
+    void GetReducedPotentials(vector<double> &result, const vector<int> &evidence, int node_index, int num_threads);
 
     /**
      * potential table operation 2: table marginalization
