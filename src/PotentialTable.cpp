@@ -297,58 +297,75 @@ void PotentialTable::TableReductionPost(int index, int value_index, int *v_index
     }
 }
 
+/**
+ * @brief: get the reduced potential tables simplified version (must satisfy some specific conditions!!!)
+ * @param result the resulting table values (reduced pt.potentials)
+ * @param evidence a vector of the values of all the nodes, the index is consistent with the node id in the network
+ * @param node_index the node that the reduced table corresponding to
+ * conditions here:
+ *      1. the related variables of the original potential table should be the node "node_index" and its parents (i.e., it should be like the node's CPT)
+ *      2. "evidence" should include the observations of all the parents of the node
+ *      3. we reduce the original potential table according to the observations and thus the resulting table only include the node
+ * improved method:
+ *      the resulting table only contains the node, so the table size = dimension of the node (this->var_dims[node_loc] ==> d)
+ *      we first get each of the d configurations (store in "config"), then find the "table index" of the "config" and store in "result"
+ *      in this way, we only need to do the config & index mapping for d times
+ *      but in the original version of table reduction, we need to do such mapping for "this->table_size" times
+ */
 void PotentialTable::GetReducedPotentials(vector<double> &result, const vector<int> &evidence, int node_index, int num_threads) {
-    int num_vars = this->num_variables - 1;
-    int *evi_loc = new int[num_vars];
-    int *evi_config = new int[num_vars];
 
+    int *config = new int[this->num_variables];
     /**
-     * "evidence" contains more - some of variables may not be inside the potential table
-     * we need to first filter out the variables that are not related to the potential table
-     * at the same time, we construct evi_loc and evi_config
+     * store the evidence into config
      */
     int k = 0;
-    // get all parent indexes
-    set<int> par_idx = this->related_variables;
-    par_idx.erase(node_index);
-    for (auto &p: par_idx) { // for each parent node
-        evi_loc[k] = this->GetVariableIndex(p);
-        evi_config[k++] = evidence[p];
+    for (auto &rv: this->related_variables) {
+        if (rv == node_index) {
+            // if it is the node, do nothing
+        } else {
+            // if it is one of the node's parent, store its value in config
+            config[k] = evidence[rv];
+        }
+        k++;
     }
 
+    /**
+     * store each possible value of the node into config to construct each possible config
+     */
     int node_loc = this->GetVariableIndex(node_index);
-
-    int *full_config = new int[this->table_size * this->num_variables];
-    int *partial_config = new int[this->table_size * num_vars];
-    for (int i = 0; i < this->table_size; ++i) {
-        // 1. get the full config value of old table
-        this->GetConfigValueByTableIndex(i, full_config + i * this->num_variables);
-        // 2. get the partial config value from the old table
-        for (int j = 0; j < num_vars; ++j) {
-            partial_config[i * num_vars + j] = full_config[i * this->num_variables + evi_loc[j]];
-        }
-    }
-    SAFE_DELETE_ARRAY(full_config);
-
-    int new_size = this->var_dims[node_loc];
-
-    for (int i = 0, j = 0; j < new_size && i < this->table_size; ++i) {
-        // 3. whether it is consistent with the evidence
-        bool is_consistent = true;
-        for (int l = 0; l < num_vars; ++l) {
-            if (partial_config[i * num_vars + l] != evi_config[l]) {
-                is_consistent = false;
-                break;
-            }
-        }
-        if (is_consistent) {
-            result[j++] = this->potentials[i];
-        }
+    for (int i = 0; i < this->var_dims[node_loc]; ++i) { // for each possible value of the node
+        config[node_loc] = i; // store this value of the node into config
+        int table_index = GetTableIndexByConfigValue(config); // find the table index of this config
+        result[i] = this->potentials[table_index]; // get one value of the resulting vector
     }
 
-    SAFE_DELETE_ARRAY(partial_config);
-    SAFE_DELETE_ARRAY(evi_loc);
-    SAFE_DELETE_ARRAY(evi_config);
+    SAFE_DELETE_ARRAY(config);
+}
+
+/**
+ * just like the above method, the difference is that now we also know the value of this node, and thus this method returns a value
+ */
+double PotentialTable::GetReducedPotential(const vector<int> &evidence, int node_index, int node_value, int num_threads) {
+
+    int *config = new int[this->num_variables];
+    /**
+     * construct the config with evidence and the value of this node
+     */
+    int k = 0;
+    for (auto &rv: this->related_variables) {
+        if (rv == node_index) {
+            // if it is the node, store its value "node_value"
+            config[k++] = node_value;
+        } else {
+            // if it is one of the node's parent, store its value in config
+            config[k++] = evidence[rv];
+        }
+    }
+
+    int table_index = GetTableIndexByConfigValue(config); // find the table index of this config
+    SAFE_DELETE_ARRAY(config);
+
+    return this->potentials[table_index];
 }
 
 /**
