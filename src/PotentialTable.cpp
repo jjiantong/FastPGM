@@ -345,7 +345,7 @@ void PotentialTable::GetReducedPotentials(vector<double> &result, const vector<i
 /**
  * just like the above method, the difference is that now we also know the value of this node, and thus this method returns a value
  */
-double PotentialTable::GetReducedPotential(const vector<int> &evidence, int node_index, int node_value, int num_threads) {
+double PotentialTable::GetReducedPotential(int &table_index, const vector<int> &evidence, int node_index, int node_value, int num_threads) {
 
     int *config = new int[this->num_variables];
     /**
@@ -362,7 +362,7 @@ double PotentialTable::GetReducedPotential(const vector<int> &evidence, int node
         }
     }
 
-    int table_index = GetTableIndexByConfigValue(config); // find the table index of this config
+    table_index = GetTableIndexByConfigValue(config); // find the table index of this config
     SAFE_DELETE_ARRAY(config);
 
     return this->potentials[table_index];
