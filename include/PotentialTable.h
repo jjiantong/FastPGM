@@ -84,6 +84,11 @@ public:
      */
     void TableDivision(const PotentialTable &second_table);
 
+    /**
+     * potential table operation 6: table addition
+     */
+    void TableAddition(const PotentialTable &second_table);
+
     void Normalize();
 
 protected:

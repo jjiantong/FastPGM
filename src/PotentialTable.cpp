@@ -786,6 +786,18 @@ void PotentialTable::TableDivision(const PotentialTable &second_table) {
 
 
 
+/**
+ * @brief table operation 6: table addition
+ * @param second_table should have the same structure as this table, the only difference should be the values in potentials
+ */
+void PotentialTable::TableAddition(const PotentialTable &second_table) {
+    for (int i = 0; i < this->table_size; ++i) {
+        this->potentials[i] += second_table.potentials[i];
+    }
+}
+
+
+
 void PotentialTable::Normalize() {
     double denominator = 0;
 
