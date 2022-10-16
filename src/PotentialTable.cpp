@@ -343,9 +343,9 @@ void PotentialTable::GetReducedPotentials(vector<double> &result, const vector<i
 }
 
 /**
- * just like the above method, the difference is that now we also know the value of this node, and thus this method returns a value
+ * just like the above method, the difference is that now we also know the value of this node, and thus this method returns one value
  */
-double PotentialTable::GetReducedPotential(int &table_index, const vector<int> &evidence, int node_index, int node_value, int num_threads) {
+double PotentialTable::GetReducedPotential(const vector<int> &evidence, int num_threads) {
 
     int *config = new int[this->num_variables];
     /**
@@ -353,19 +353,35 @@ double PotentialTable::GetReducedPotential(int &table_index, const vector<int> &
      */
     int k = 0;
     for (auto &rv: this->related_variables) {
-        if (rv == node_index) {
-            // if it is the node, store its value "node_value"
-            config[k++] = node_value;
-        } else {
-            // if it is one of the node's parent, store its value in config
-            config[k++] = evidence[rv];
-        }
+        // store the value of the node into config
+        config[k++] = evidence[rv];
     }
 
-    table_index = GetTableIndexByConfigValue(config); // find the table index of this config
+    int table_index = GetTableIndexByConfigValue(config); // find the table index of this config
     SAFE_DELETE_ARRAY(config);
 
     return this->potentials[table_index];
+}
+
+/**
+ * like the above method, just return the table index rather than the value of the index
+ */
+int PotentialTable::GetReducedTableIndex(const vector<int> &evidence, int num_threads) {
+
+    int *config = new int[this->num_variables];
+    /**
+     * construct the config with evidence
+     */
+    int k = 0;
+    for (auto &rv: this->related_variables) {
+        // store the value of the node into config
+        config[k++] = evidence[rv];
+    }
+
+    int table_index = GetTableIndexByConfigValue(config); // find the table index of this config
+    SAFE_DELETE_ARRAY(config);
+
+    return table_index;
 }
 
 /**
