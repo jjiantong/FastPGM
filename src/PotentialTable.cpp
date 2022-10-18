@@ -812,6 +812,12 @@ void PotentialTable::TableAddition(const PotentialTable &second_table) {
     }
 }
 
+void PotentialTable::TableSubtraction(const PotentialTable &second_table) {
+    for (int i = 0; i < this->table_size; ++i) {
+        this->potentials[i] -= second_table.potentials[i];
+    }
+}
+
 
 
 void PotentialTable::Normalize() {

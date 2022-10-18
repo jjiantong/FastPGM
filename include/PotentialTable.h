@@ -89,6 +89,7 @@ public:
      * potential table operation 6: table addition
      */
     void TableAddition(const PotentialTable &second_table);
+    void TableSubtraction(const PotentialTable &second_table);
 
     void Normalize();
 
