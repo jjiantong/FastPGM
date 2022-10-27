@@ -61,6 +61,7 @@ public:
     void TableMarginalizationPost(const PotentialTable &pt, int *table_index);
     void TableMarginalization(int ext_variable);
     void TableMarginalizationPre(int ext_variable, PotentialTable &new_table);
+    void GetMarginalizedProbabilities(vector<double> &result, int node_index, int num_threads);
 
     /**
      * potential table operation 3: table extension
@@ -92,6 +93,8 @@ public:
     void TableSubtraction(const PotentialTable &second_table);
 
     void Normalize();
+
+    void UniformDistribution();
 
     int GetVariableIndex(const int &variable);
 

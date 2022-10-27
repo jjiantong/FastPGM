@@ -313,6 +313,10 @@ void PotentialTable::TableReductionPost(int index, int value_index, int *v_index
  *      but in the original version of table reduction, we need to do such mapping for "this->table_size" times
  */
 void PotentialTable::GetReducedPotentials(vector<double> &result, const vector<int> &evidence, int node_index, int num_threads) {
+    if (this->num_variables == 1) {
+        result = this->potentials;
+        return;
+    }
 
     int *config = new int[this->num_variables];
     /**
@@ -537,6 +541,38 @@ void PotentialTable::TableMarginalizationPre(int ext_variable, PotentialTable &n
 
     new_table.potentials.resize(new_table.table_size);
 }
+
+/**
+ * @brief: get the marginalized potential tables simplified version (must satisfy some specific conditions!!!)
+ * @param result the resulting table values (marginalized pt.potentials)
+ * @param node_index the node that the reduced table corresponding to
+ * conditions here:
+ *      1. the related variables of the original potential table should be the node "node_index" and its parents (i.e., it should be like the node's CPT)
+ *      2. we sum out all the variables except for the node and thus the resulting table only include the node
+ * improved method:
+ *      the resulting table only contains the node, so the table size = dimension of the node (this->var_dims[node_loc] ==> d)
+ *      we first get the location of the node, then check each cell in the original table and get the value of the location
+ *      according to the value, we add the corresponding probability to the corresponding location of the resulting table
+ */
+void PotentialTable::GetMarginalizedProbabilities(vector<double> &result, int node_index, int num_threads) {
+    if (this->num_variables == 1) {
+        result = this->potentials;
+        return;
+    }
+
+    int node_loc = this->GetVariableIndex(node_index);
+
+    int *full_config = new int[this->num_variables];
+    for (int i = 0; i < this->table_size; ++i) {
+        // 1. get the full config value of old table
+        this->GetConfigValueByTableIndex(i, full_config);
+        result[full_config[node_loc]] += this->potentials[i];
+    }
+
+    SAFE_DELETE_ARRAY(full_config);
+}
+
+
 
 /**
  * @brief table operation 3: table extension - a pre computation of multiplication
@@ -831,5 +867,13 @@ void PotentialTable::Normalize() {
     // normalize for each of the configurations
     for (int i = 0; i < table_size; ++i) {
         potentials[i] /= denominator;
+    }
+}
+
+
+void PotentialTable::UniformDistribution() {
+    double value = 1.0 / this->table_size;
+    for (int i = 0; i < this->table_size; ++i) {
+        potentials[i] = value;
     }
 }
