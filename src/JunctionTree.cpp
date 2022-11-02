@@ -52,31 +52,31 @@ double JunctionTree::EvaluateAccuracy(int num_threads) {
     timer->Stop("jt");
     setlocale(LC_NUMERIC, "");
 
-//    cout << '\n' << "Accuracy: " << accuracy << endl;
-//    cout << "==================================================" << endl;
-//    timer->Print("jt"); cout << "after removing reset time: " << timer->time["jt"] - timer->time["reset"] << " s"<< endl;
-//    double total = timer->time["jt"] - timer->time["reset"] - timer->time["norm"]; cout << "after removing norm time: " << total << " s"<< endl;
-//    timer->Print("load evidence"); cout << "(" << timer->time["load evidence"] / timer->time["jt"] * 100 << "%)" << endl;
-//    timer->Print("msg passing"); cout << "(" << timer->time["msg passing"] / timer->time["jt"] * 100 << "%)" << endl;
-//    timer->Print("upstream"); cout << endl;
-//    timer->Print("downstream"); cout << endl;
-//    timer->Print("predict"); cout << "(" << timer->time["predict"] / timer->time["jt"] * 100 << "%)" << endl;
-//    timer->Print("reset"); cout << "(" << timer->time["reset"] / timer->time["jt"] * 100 << "%)" << endl << endl;
-//
-//    timer->Print("pre-evi"); timer->Print("main-evi"); timer->Print("post-evi"); cout << endl << endl;
-//    timer->Print("pre-down-sep"); timer->Print("main-down-sep"); timer->Print("post-down-sep"); cout << endl;
-//    timer->Print("pre-down-clq"); timer->Print("main-down-clq"); timer->Print("post-down-clq"); cout << endl;
-//    timer->Print("pre-up-sep"); timer->Print("main-up-sep"); timer->Print("post-up-sep"); cout << endl;
-//    timer->Print("pre-up-clq"); timer->Print("main-up-clq"); timer->Print("post-up-clq"); cout << endl << endl;
-//
-//    timer->Print("post-down-clq-mem"); timer->Print("post-down-clq-del"); timer->Print("post-down-clq-mul"); cout << endl;
-//    timer->Print("post-down-sep-mem"); timer->Print("post-sep-del"); timer->Print("post-down-sep-div"); cout << endl << endl;
-//
-//    timer->Print("norm"); cout << endl << endl;
-//
-//    timer->Print("parallel");
-//    cout << "(" << timer->time["parallel"] / (timer->time["jt"] - timer->time["norm"])* 100 << "%)";
-//    cout << "(" << timer->time["parallel"] / total * 100 << "%)" << endl;
+    cout << '\n' << "Accuracy: " << accuracy << endl;
+    cout << "==================================================" << endl;
+    timer->Print("jt"); cout << "after removing reset time: " << timer->time["jt"] - timer->time["reset"] << " s"<< endl;
+    double total = timer->time["jt"] - timer->time["reset"] - timer->time["norm"]; cout << "after removing norm time: " << total << " s"<< endl;
+    timer->Print("load evidence"); cout << "(" << timer->time["load evidence"] / timer->time["jt"] * 100 << "%)" << endl;
+    timer->Print("msg passing"); cout << "(" << timer->time["msg passing"] / timer->time["jt"] * 100 << "%)" << endl;
+    timer->Print("upstream"); cout << endl;
+    timer->Print("downstream"); cout << endl;
+    timer->Print("predict"); cout << "(" << timer->time["predict"] / timer->time["jt"] * 100 << "%)" << endl;
+    timer->Print("reset"); cout << "(" << timer->time["reset"] / timer->time["jt"] * 100 << "%)" << endl << endl;
+
+    timer->Print("pre-evi"); timer->Print("main-evi"); timer->Print("post-evi"); cout << endl << endl;
+    timer->Print("pre-down-sep"); timer->Print("main-down-sep"); timer->Print("post-down-sep"); cout << endl;
+    timer->Print("pre-down-clq"); timer->Print("main-down-clq"); timer->Print("post-down-clq"); cout << endl;
+    timer->Print("pre-up-sep"); timer->Print("main-up-sep"); timer->Print("post-up-sep"); cout << endl;
+    timer->Print("pre-up-clq"); timer->Print("main-up-clq"); timer->Print("post-up-clq"); cout << endl << endl;
+
+    timer->Print("post-down-clq-mem"); timer->Print("post-down-clq-del"); timer->Print("post-down-clq-mul"); cout << endl;
+    timer->Print("post-down-sep-mem"); timer->Print("post-sep-del"); timer->Print("post-down-sep-div"); cout << endl << endl;
+
+    timer->Print("norm"); cout << endl << endl;
+
+    timer->Print("parallel");
+    cout << "(" << timer->time["parallel"] / (timer->time["jt"] - timer->time["norm"])* 100 << "%)";
+    cout << "(" << timer->time["parallel"] / total * 100 << "%)" << endl;
 
     SAFE_DELETE(timer);
 
@@ -473,9 +473,9 @@ void JunctionTree::SeparatorLevelOperation(bool is_collect, int i, int num_threa
         separator->p_table.TableDivision(separator->old_ptable);
 
         // normalization
-        timer->Start("norm");
-        separator->p_table.Normalize();
-        timer->Stop("norm");
+//        timer->Start("norm");
+//        separator->p_table.Normalize();
+//        timer->Stop("norm");
     }
     timer->Stop("parallel");
     timer->Stop("post-up-sep");
@@ -683,16 +683,16 @@ void JunctionTree::CliqueLevelOperation(bool is_collect, int i, int size,
             nodes_by_level[i][has_kth_child[j]]->p_table.potentials[k] *= multi_pt[j].potentials[k];
 
             // normalization
-            timer->Start("norm");
-            nodes_by_level[i][has_kth_child[j]]->p_table.Normalize();
-            timer->Stop("norm");
+//            timer->Start("norm");
+//            nodes_by_level[i][has_kth_child[j]]->p_table.Normalize();
+//            timer->Stop("norm");
         } else {
             nodes_by_level[i][j]->p_table.potentials[k] *= multi_pt[j].potentials[k];
 
             // normalization
-            timer->Start("norm");
-            nodes_by_level[i][j]->p_table.Normalize();
-            timer->Stop("norm");
+//            timer->Start("norm");
+//            nodes_by_level[i][j]->p_table.Normalize();
+//            timer->Stop("norm");
         }
     }
     timer->Stop("parallel");
@@ -762,24 +762,24 @@ void JunctionTree::Collect(int num_threads, Timer *timer) {
             }
         }
 
-//        /**
-//         * there are some issues with datasets munin2, munin3, munin4
-//         * after debugging -- caused by table multiplication
-//         * don't have enough precision so it may cause 0 prob after multiplication
-//         * therefore, I add a normalization after collection of each level
-//         * we can remove this part for other datasets
-//         */
-//        timer->Start("norm");
-//        omp_set_num_threads(num_threads);
-//#pragma omp parallel for
-//        for (int i = 0; i < vector_clique_ptr_container.size(); ++i) {
-//            vector_clique_ptr_container[i]->p_table.Normalize();
-//        }
-//#pragma omp parallel for
-//        for (int i = 0; i < vector_separator_ptr_container.size(); ++i) {
-//            vector_separator_ptr_container[i]->p_table.Normalize();
-//        }
-//        timer->Stop("norm");
+        /**
+         * there are some issues with datasets munin2, munin3, munin4
+         * after debugging -- caused by table multiplication
+         * don't have enough precision so it may cause 0 prob after multiplication
+         * therefore, I add a normalization after collection of each level
+         * we can remove this part for other datasets
+         */
+        timer->Start("norm");
+        omp_set_num_threads(num_threads);
+#pragma omp parallel for
+        for (int i = 0; i < tree->vector_clique_ptr_container.size(); ++i) {
+            tree->vector_clique_ptr_container[i]->p_table.Normalize();
+        }
+#pragma omp parallel for
+        for (int i = 0; i < tree->vector_separator_ptr_container.size(); ++i) {
+            tree->vector_separator_ptr_container[i]->p_table.Normalize();
+        }
+        timer->Stop("norm");
     }
 }
 
@@ -852,6 +852,71 @@ PotentialTable JunctionTree::CalculateMarginalProbability(int query_index) {
 }
 
 /**
+ * @brief: get probabilities for all possible values of all non-evidence nodes
+ */
+void JunctionTree::GetProbabilitiesAllNodes(const DiscreteConfig &E) {
+    for (int i = 0; i < network->num_nodes; ++i) {
+        GetProbabilitiesOneNode(E, i);
+        cout << endl;
+    }
+}
+
+void JunctionTree::GetProbabilitiesOneNode(const DiscreteConfig &E, int index) {
+    for (auto &e: E) {
+        if (index == e.first) {
+            /**
+             * case 1: the node is evidence node
+             * do nothing
+             */
+            return;
+        }
+    }
+
+    /**
+     * case 2: the node is non-evidence node, do the sampling like pls; has two steps:
+     * output the probabilities by finding a clique containing this node
+     */
+    int min_size = INT32_MAX;
+    Clique *selected_clique = nullptr;
+
+    // Find the clique that contains this variable,
+    // whose size of potentials table is the smallest,
+    // which can reduce the number of sum operation.
+    // TODO: find from separator
+    for (auto &c : tree->vector_clique_ptr_container) {
+
+        if (!c->pure_discrete) {
+            continue;
+        }
+        if (c->p_table.related_variables.find(index) == c->p_table.related_variables.end()) { // cannot find the query variable
+            continue;
+        }
+        if (c->p_table.related_variables.size() >= min_size) {
+            continue;
+        }
+        min_size = c->p_table.related_variables.size();
+        selected_clique = c;
+    }
+
+    if (selected_clique == nullptr) {
+        fprintf(stderr, "Error in function [%s]\n"
+                        "Variable [%d] does not appear in any clique!", __FUNCTION__, index);
+        exit(1);
+    }
+
+    set<int> other_vars = selected_clique->p_table.related_variables;
+    other_vars.erase(index);
+
+    PotentialTable pt = selected_clique->p_table;
+    pt.TableMarginalization(other_vars);
+    pt.Normalize();
+
+    for (int i = 0; i < pt.table_size; ++i) {
+        cout << pt.potentials[i] << " ";
+    }
+}
+
+/**
  * @brief: predict the label for a given variable.
  */
 int JunctionTree::InferenceUsingJT(int &query_index) {
@@ -873,25 +938,21 @@ int JunctionTree::PredictUseJTInfer(const DiscreteConfig &E, int num_threads, Ti
     //update a clique using the evidence
     LoadDiscreteEvidence(E, num_threads, timer);
     timer->Stop("load evidence");
-//    cout << "finish load evidence" << endl;
 
     timer->Start("msg passing");
     //update the whole Junction Tree
     MessagePassingUpdateJT(num_threads, timer);
     timer->Stop("msg passing");
-//    cout << "finish msg passing" << endl;
 
     timer->Start("predict");
+    GetProbabilitiesAllNodes(E); // todo: used for print probabilities of all values of all non-evidence nodes
     int label_predict = InferenceUsingJT(query_index);
     timer->Stop("predict");
-//    cout << "finish predict " << endl;
 
     timer->Start("reset");
     ResetJunctionTree();
     timer->Stop("reset");
-//    cout << "finish reset" << endl;
 
-    cout << label_predict << endl;
 
     return label_predict;
 }

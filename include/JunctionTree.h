@@ -53,6 +53,9 @@ protected:
     void CliqueLevelOperation(bool is_collect, int i, int size, const vector<int> &has_kth_child, int k, int num_threads, Timer *timer);
 
     PotentialTable CalculateMarginalProbability(int query_index);
+    void GetProbabilitiesAllNodes(const DiscreteConfig &E);
+    void GetProbabilitiesOneNode(const DiscreteConfig &E, int index);
+
     int InferenceUsingJT(int &query_index);
     int PredictUseJTInfer(const DiscreteConfig &E, int num_threads, Timer *timer);
 //    vector<int> PredictUseJTInfer(const vector<DiscreteConfig> &evidences, int target_node_idx, int num_threads, Timer *timer);
