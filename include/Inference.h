@@ -34,6 +34,7 @@ public:
 
     vector<DiscreteConfig> evidences; // the evidences of each instance in the testing set
     vector<int> ground_truths; // the ground truths of each class variable
+    vector<vector<vector<double>>> ground_truth_probability_tables; // the probabilities for each state of each node, computed by exact inference algorithms
 
     Inference(Network *net, Dataset *dts, bool is_dense);
     Inference(Network *net); // it is used only in LBP for EPIS-BN
@@ -45,6 +46,9 @@ public:
     double Accuracy(vector<int> predictions);
     DiscreteConfig Sparse2Dense(DiscreteConfig evidence, int num_nodes);
     int ArgMax(const vector<double> &array);
+
+    void LoadGroundTruthProbabilityTable(string file_path);
+    double CalculateMSE(const vector<vector<double>> &approximate_distribution, int instance_index);
 };
 
 #endif //BAYESIANNETWORK_INFERENCE_H

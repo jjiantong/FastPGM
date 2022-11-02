@@ -101,3 +101,69 @@ int Inference::ArgMax(const vector<double> &array) {
     return max_index;
 }
 
+/**
+ * load the ground truth probability table for each node
+ * they are computed by JT and saved in a file
+ */
+void Inference::LoadGroundTruthProbabilityTable(string file_path) {
+    ground_truth_probability_tables.resize(num_instances);
+    for (int i = 0; i < num_instances; ++i) {
+        ground_truth_probability_tables[i].resize(network->num_nodes);
+        for (int j = 0; j < network->num_nodes; ++j) {
+            int dim = dynamic_cast<DiscreteNode*>(network->FindNodePtrByIndex(j))->GetDomainSize();
+            ground_truth_probability_tables[i][j].resize(dim);
+        }
+    }
+
+    ifstream in_file;
+    in_file.open(file_path);
+    if (!in_file.is_open()) {
+        fprintf(stderr, "Error in function %s!", __FUNCTION__);
+        fprintf(stderr, "Unable to open file %s!", file_path.c_str());
+        exit(1);
+    }
+
+    cout << "Data file opened. Begin to load ground truth probability tables computed by JT. " << endl;
+
+    string line;
+    for (int i = 0; i < num_instances; ++i) { // for each test case
+        for (int j = 0; j < network->num_nodes; ++j) { // for each node
+            // the file has #instances * #nodes lines in total
+            getline(in_file, line);
+            line = TrimLeft(line);
+            vector<string> parsed_line = Split(line, " ");
+
+            if (!parsed_line.empty()) { // for non-evidence nodes
+                int dim = dynamic_cast<DiscreteNode*>(network->FindNodePtrByIndex(j))->GetDomainSize();
+                for (int k = 0; k < dim; ++k) {
+                    ground_truth_probability_tables[i][j][k] = stof(parsed_line[k]);
+                }
+            } else { // for evidence nodes
+                ground_truth_probability_tables[i][j][0] = -1; // just mark for the evidence nodes
+            }
+        }
+    }
+}
+
+/**
+ * @brief: compute the MSE (Mean Square Error) for one instance
+ * refer to AIS-BN paper for the MSE formula
+ * @param approximate_distribution the approximate distribution
+ */
+double Inference::CalculateMSE(const vector<vector<double>> &approximate_distribution, int instance_index) {
+    // the exact distribution
+    vector<vector<double>> exact_distribution = ground_truth_probability_tables[instance_index];
+
+    double num = 0.0;
+    double error = 0.0;
+    for (int i = 0; i < network->num_nodes; ++i) {
+        if (exact_distribution[i][0] > 0) { // for non-evidence nodes
+            int dim = dynamic_cast<DiscreteNode*>(network->FindNodePtrByIndex(i))->GetDomainSize();
+            num += dim;
+            for (int j = 0; j < dim; ++j) {
+                error += (approximate_distribution[i][j] - exact_distribution[i][j]) * (approximate_distribution[i][j] - exact_distribution[i][j]);
+            }
+        }
+    }
+    return sqrt(error/num);
+}
