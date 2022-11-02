@@ -41,7 +41,7 @@ public:
 
     virtual ~Inference() {};
 
-    virtual double EvaluateAccuracy(int num_threads)= 0;
+    virtual double EvaluateAccuracy(string path, int num_threads)= 0;
 
     double Accuracy(vector<int> predictions);
     DiscreteConfig Sparse2Dense(DiscreteConfig evidence, int num_nodes);

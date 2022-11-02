@@ -11,7 +11,7 @@ class BruteForce : public Inference {
 public:
     BruteForce(Network *net, Dataset *dts, bool is_dense): Inference(net, dts, is_dense) {};
 
-    virtual double EvaluateAccuracy(int num_threads);
+    virtual double EvaluateAccuracy(string path, int num_threads);
 
 protected:
     int PredictDirectly(const DiscreteConfig &E);

@@ -3,7 +3,7 @@
 //
 #include "BruteForce.h"
 
-double BruteForce::EvaluateAccuracy(int num_threads) {
+double BruteForce::EvaluateAccuracy(string path, int num_threads) {
     cout << "==================================================" << '\n'
          << "Begin testing the trained network." << endl;
 
