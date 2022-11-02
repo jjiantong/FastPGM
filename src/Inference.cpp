@@ -130,16 +130,16 @@ void Inference::LoadGroundTruthProbabilityTable(string file_path) {
         for (int j = 0; j < network->num_nodes; ++j) { // for each node
             // the file has #instances * #nodes lines in total
             getline(in_file, line);
-            line = TrimLeft(line);
-            vector<string> parsed_line = Split(line, " ");
+            line = TrimRight(line);
+            if (line.empty()) {
+                ground_truth_probability_tables[i][j][0] = -1; // just mark for the evidence nodes
+            } else {
+                vector<string> parsed_line = Split(line, " ");
 
-            if (!parsed_line.empty()) { // for non-evidence nodes
                 int dim = dynamic_cast<DiscreteNode*>(network->FindNodePtrByIndex(j))->GetDomainSize();
                 for (int k = 0; k < dim; ++k) {
                     ground_truth_probability_tables[i][j][k] = stof(parsed_line[k]);
                 }
-            } else { // for evidence nodes
-                ground_truth_probability_tables[i][j][0] = -1; // just mark for the evidence nodes
             }
         }
     }
@@ -162,6 +162,31 @@ double Inference::CalculateMSE(const vector<vector<double>> &approximate_distrib
             num += dim;
             for (int j = 0; j < dim; ++j) {
                 error += (approximate_distribution[i][j] - exact_distribution[i][j]) * (approximate_distribution[i][j] - exact_distribution[i][j]);
+            }
+        }
+    }
+    return sqrt(error/num);
+}
+
+/**
+ * @brief: compute the Hellinger's Distance for one instance
+ * refer to EPIS-BN paper for the Hellinger's Distance formula
+ * @param approximate_distribution the approximate distribution
+ */
+double Inference::CalculateHellingerDistance(const vector<vector<double>> &approximate_distribution,
+                                             int instance_index) {
+    // the exact distribution
+    vector<vector<double>> exact_distribution = ground_truth_probability_tables[instance_index];
+
+    double num = 0.0;
+    double error = 0.0;
+    for (int i = 0; i < network->num_nodes; ++i) {
+        if (exact_distribution[i][0] > 0) { // for non-evidence nodes
+            int dim = dynamic_cast<DiscreteNode*>(network->FindNodePtrByIndex(i))->GetDomainSize();
+            num += dim;
+            for (int j = 0; j < dim; ++j) {
+                error += (sqrt(approximate_distribution[i][j]) - sqrt(exact_distribution[i][j])) *
+                        (sqrt(approximate_distribution[i][j]) - sqrt(exact_distribution[i][j]));
             }
         }
     }

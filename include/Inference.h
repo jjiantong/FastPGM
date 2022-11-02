@@ -49,6 +49,7 @@ public:
 
     void LoadGroundTruthProbabilityTable(string file_path);
     double CalculateMSE(const vector<vector<double>> &approximate_distribution, int instance_index);
+    double CalculateHellingerDistance(const vector<vector<double>> &approximate_distribution, int instance_index);
 };
 
 #endif //BAYESIANNETWORK_INFERENCE_H
