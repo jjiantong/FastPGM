@@ -35,7 +35,7 @@ JunctionTree::~JunctionTree() {
 /**
  * @brief: test the Junction Tree given a data set
  */
-double JunctionTree::EvaluateAccuracy(int num_threads) {
+double JunctionTree::EvaluateAccuracy(string path, int num_threads) {
 
     cout << "==================================================" << '\n'
          << "Begin testing the trained network." << endl;
@@ -945,7 +945,7 @@ int JunctionTree::PredictUseJTInfer(const DiscreteConfig &E, int num_threads, Ti
     timer->Stop("msg passing");
 
     timer->Start("predict");
-    GetProbabilitiesAllNodes(E); // todo: used for print probabilities of all values of all non-evidence nodes
+//    GetProbabilitiesAllNodes(E); // todo: used for print probabilities of all values of all non-evidence nodes
     int label_predict = InferenceUsingJT(query_index);
     timer->Stop("predict");
 
@@ -953,7 +953,7 @@ int JunctionTree::PredictUseJTInfer(const DiscreteConfig &E, int num_threads, Ti
     ResetJunctionTree();
     timer->Stop("reset");
 
-
+//    cout << label_predict << endl;
     return label_predict;
 }
 
@@ -971,11 +971,11 @@ vector<int> JunctionTree::PredictUseJTInfer(int num_threads, Timer *timer) {
     for (int i = 0; i < num_instances; ++i) {
         ++progress;
 
-//        if (progress % every_1_of_20 == 0) {
-//            string progress_percentage = to_string((double)progress/num_instances * 100) + "%...";
-//            fprintf(stdout, "%s\n", progress_percentage.c_str());
-//            fflush(stdout);
-//        }
+        if (progress % every_1_of_20 == 0) {
+            string progress_percentage = to_string((double)progress/num_instances * 100) + "%...";
+            fprintf(stdout, "%s\n", progress_percentage.c_str());
+            fflush(stdout);
+        }
 
         int label_predict = PredictUseJTInfer(evidences.at(i), num_threads, timer);
         results.at(i) = label_predict;

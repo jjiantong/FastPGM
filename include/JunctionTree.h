@@ -31,7 +31,7 @@ public:
     JunctionTree(Network *net, Dataset *dts, bool is_dense);
     ~JunctionTree();
 
-    virtual double EvaluateAccuracy(int num_threads);
+    virtual double EvaluateAccuracy(string path, int num_threads);
 
     void ResetJunctionTree();
 
@@ -58,7 +58,6 @@ protected:
 
     int InferenceUsingJT(int &query_index);
     int PredictUseJTInfer(const DiscreteConfig &E, int num_threads, Timer *timer);
-//    vector<int> PredictUseJTInfer(const vector<DiscreteConfig> &evidences, int target_node_idx, int num_threads, Timer *timer);
     vector<int> PredictUseJTInfer(int num_threads, Timer *timer);
 
     /**
