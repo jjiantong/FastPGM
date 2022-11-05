@@ -138,7 +138,7 @@ void Inference::LoadGroundTruthProbabilityTable(string file_path) {
 
                 int dim = dynamic_cast<DiscreteNode*>(network->FindNodePtrByIndex(j))->GetDomainSize();
                 for (int k = 0; k < dim; ++k) {
-                    ground_truth_probability_tables[i][j][k] = stof(parsed_line[k]);
+                    ground_truth_probability_tables[i][j][k] = stod(parsed_line[k]);
                 }
             }
         }
