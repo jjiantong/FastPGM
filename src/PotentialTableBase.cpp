@@ -91,7 +91,6 @@ PotentialTableBase::PotentialTableBase(DiscreteNode *disc_node, int observed_val
     }
 }
 
-
 /**
  * @brief: get the reduced potential tables simplified version (must satisfy some specific conditions!!!)
  * @param result the resulting table values (reduced pt.potentials)
@@ -106,7 +105,7 @@ PotentialTableBase::PotentialTableBase(DiscreteNode *disc_node, int observed_val
  *      so we can first compute the dimensionality of its parents dp, and the parent configuration location according to its parent configuration lp
  *      then we can find the values of the indexes satisfying index % dp == lp
  */
-void PotentialTableBase::GetReducedPotentials(vector<double> &result, const vector<int> &evidence, int node_index, int num_threads) {
+void PotentialTableBase::GetReducedPotentials(vector<double> &result, const vector<int> &evidence, int num_threads) {
     if (this->num_variables == 1) { // if the node has no parent, directly return its table
         result = this->potentials;
         return;
@@ -117,7 +116,6 @@ void PotentialTableBase::GetReducedPotentials(vector<double> &result, const vect
      * which is table size / dim of the node
      */
     int dp = this->table_size / this->var_dims[0];
-//    cout << "dp = " << dp << ", ";
 
     /**
      * compute the parent configuration location lp
@@ -130,11 +128,6 @@ void PotentialTableBase::GetReducedPotentials(vector<double> &result, const vect
     }
     // find the relative location
     int lp = GetRelativeIndexByConfigValue(par_config);
-//    cout << "lp = " << lp << ": ";
-//    for (int i = 0; i < this->num_variables - 1; ++i) {
-//        cout << par_config[i] << ", ";
-//    }
-//    cout << endl;
 
     SAFE_DELETE_ARRAY(par_config);
 
@@ -144,12 +137,9 @@ void PotentialTableBase::GetReducedPotentials(vector<double> &result, const vect
     int j = 0;
     for (int i = 0; i < this->table_size; ++i) {
         if (i % dp == lp) {
-//            cout << "find index " << i << ", ";
             result[j++] = this->potentials[i];
-//            cout << "get value " << this->potentials[i] << ", ";
         }
     }
-//    cout << endl;
 }
 
 /**
@@ -274,7 +264,7 @@ void PotentialTableBase::TableMarginalizationOneVariablePost(const PotentialTabl
  *      since the location of the node is 0, we accumulate the first d values -> result[0],
  *                                              accumulate the second d values -> result[1], ...
  */
-void PotentialTableBase::GetMarginalizedProbabilities(vector<double> &result, int node_index, int num_threads) {
+void PotentialTableBase::GetMarginalizedProbabilities(vector<double> &result, int num_threads) {
     if (this->num_variables == 1) { // if the node has no parent, directly return its potential table
         result = this->potentials;
         return;
@@ -372,11 +362,6 @@ void PotentialTableBase::TableMultiplicationOneVariable(const PotentialTableBase
         }
     }
 }
-
-
-
-
-
 
 /**
  * @brief table operation 6: table addition
