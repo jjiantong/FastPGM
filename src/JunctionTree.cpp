@@ -681,18 +681,14 @@ void JunctionTree::CliqueLevelOperation(bool is_collect, int i, int size,
         Compute2DIndex(j, k, s, size, cum_sum2); // compute j and k
         if (is_collect) {
             nodes_by_level[i][has_kth_child[j]]->p_table.potentials[k] *= multi_pt[j].potentials[k];
-
-            // normalization
-//            timer->Start("norm");
-//            nodes_by_level[i][has_kth_child[j]]->p_table.Normalize();
-//            timer->Stop("norm");
+            timer->Start("norm");
+            nodes_by_level[i][has_kth_child[j]]->p_table.Normalize();
+            timer->Stop("norm");
         } else {
             nodes_by_level[i][j]->p_table.potentials[k] *= multi_pt[j].potentials[k];
-
-            // normalization
-//            timer->Start("norm");
-//            nodes_by_level[i][j]->p_table.Normalize();
-//            timer->Stop("norm");
+            timer->Start("norm");
+            nodes_by_level[i][j]->p_table.Normalize();
+            timer->Stop("norm");
         }
     }
     timer->Stop("parallel");
@@ -762,24 +758,24 @@ void JunctionTree::Collect(int num_threads, Timer *timer) {
             }
         }
 
-        /**
-         * there are some issues with datasets munin2, munin3, munin4
-         * after debugging -- caused by table multiplication
-         * don't have enough precision so it may cause 0 prob after multiplication
-         * therefore, I add a normalization after collection of each level
-         * we can remove this part for other datasets
-         */
-        timer->Start("norm");
-        omp_set_num_threads(num_threads);
-#pragma omp parallel for
-        for (int i = 0; i < tree->vector_clique_ptr_container.size(); ++i) {
-            tree->vector_clique_ptr_container[i]->p_table.Normalize();
-        }
-#pragma omp parallel for
-        for (int i = 0; i < tree->vector_separator_ptr_container.size(); ++i) {
-            tree->vector_separator_ptr_container[i]->p_table.Normalize();
-        }
-        timer->Stop("norm");
+//        /**
+//         * there are some issues with datasets munin2, munin3, munin4
+//         * after debugging -- caused by table multiplication
+//         * don't have enough precision so it may cause 0 prob after multiplication
+//         * therefore, I add a normalization after collection of each level
+//         * we can remove this part for other datasets
+//         */
+//        timer->Start("norm");
+//        omp_set_num_threads(num_threads);
+//#pragma omp parallel for
+//        for (int i = 0; i < tree->vector_clique_ptr_container.size(); ++i) {
+//            tree->vector_clique_ptr_container[i]->p_table.Normalize();
+//        }
+//#pragma omp parallel for
+//        for (int i = 0; i < tree->vector_separator_ptr_container.size(); ++i) {
+//            tree->vector_separator_ptr_container[i]->p_table.Normalize();
+//        }
+//        timer->Stop("norm");
     }
 }
 
@@ -846,7 +842,7 @@ PotentialTable JunctionTree::CalculateMarginalProbability(int query_index) {
 
     PotentialTable pt = selected_clique->p_table;
     pt.TableMarginalization(other_vars);
-    pt.Normalize(); // todo: no need to do normalization
+//    pt.Normalize(); // todo: no need to do normalization, because we do normalization for each clique in message passing
 
     return pt;
 }
@@ -938,6 +934,12 @@ int JunctionTree::PredictUseJTInfer(const DiscreteConfig &E, int num_threads, Ti
     //update a clique using the evidence
     LoadDiscreteEvidence(E, num_threads, timer);
     timer->Stop("load evidence");
+
+    timer->Start("norm");
+    for (int i = 0; i < tree->vector_clique_ptr_container.size(); ++i) {
+        tree->vector_clique_ptr_container[i]->p_table.Normalize();
+    }
+    timer->Stop("norm");
 
     timer->Start("msg passing");
     //update the whole Junction Tree
