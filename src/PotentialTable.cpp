@@ -322,8 +322,10 @@ void PotentialTable::GetReducedPotentials(vector<double> &result, const vector<i
     /**
      * store the evidence into config
      */
+//    cout << "rv: ";
     int k = 0;
     for (auto &rv: this->related_variables) {
+//        cout << rv << ", ";
         if (rv == node_index) {
             // if it is the node, do nothing
         } else {
@@ -333,6 +335,12 @@ void PotentialTable::GetReducedPotentials(vector<double> &result, const vector<i
         k++;
     }
 
+//    cout << ", config = ";
+//    for (int i = 0; i < this->num_variables; ++i) {
+//        cout << config[i] << ", ";
+//    }
+//    cout << endl;
+
     /**
      * store each possible value of the node into config to construct each possible config
      */
@@ -341,6 +349,8 @@ void PotentialTable::GetReducedPotentials(vector<double> &result, const vector<i
         config[node_loc] = i; // store this value of the node into config
         int table_index = GetTableIndexByConfigValue(config); // find the table index of this config
         result[i] = this->potentials[table_index]; // get one value of the resulting vector
+
+//        cout << "this node = " << i << ": table index = " << table_index << ", get value = " << result[i] << endl;
     }
 
     SAFE_DELETE_ARRAY(config);

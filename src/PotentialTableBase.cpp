@@ -117,6 +117,7 @@ void PotentialTableBase::GetReducedPotentials(vector<double> &result, const vect
      * which is table size / dim of the node
      */
     int dp = this->table_size / this->var_dims[0];
+//    cout << "dp = " << dp << ", ";
 
     /**
      * compute the parent configuration location lp
@@ -124,12 +125,17 @@ void PotentialTableBase::GetReducedPotentials(vector<double> &result, const vect
      */
     int *par_config = new int[this->num_variables - 1];
     // store the evidence into parent configuration
-    int k = 0;
     for (int i = 1; i < this->vec_related_variables.size(); ++i) {
-        par_config[k++] = evidence[this->vec_related_variables[i]];
+        par_config[i - 1] = evidence[this->vec_related_variables[i]];
     }
     // find the relative location
     int lp = GetRelativeIndexByConfigValue(par_config);
+//    cout << "lp = " << lp << ": ";
+//    for (int i = 0; i < this->num_variables - 1; ++i) {
+//        cout << par_config[i] << ", ";
+//    }
+//    cout << endl;
+
     SAFE_DELETE_ARRAY(par_config);
 
     /**
@@ -138,9 +144,12 @@ void PotentialTableBase::GetReducedPotentials(vector<double> &result, const vect
     int j = 0;
     for (int i = 0; i < this->table_size; ++i) {
         if (i % dp == lp) {
+//            cout << "find index " << i << ", ";
             result[j++] = this->potentials[i];
+//            cout << "get value " << this->potentials[i] << ", ";
         }
     }
+//    cout << endl;
 }
 
 /**
