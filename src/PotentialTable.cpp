@@ -47,7 +47,7 @@ PotentialTable::PotentialTable(DiscreteNode *disc_node, Network *net) {
 //            GetConfigByTableIndex(i, net, parent_config);
 
             int *config_value = new int[num_variables];
-            GetConfigValueByTableIndex(i, config_value);
+            PotentialTableBase::GetConfigValueByTableIndex(i, config_value);
             int j = 0;
             for (auto &v: related_variables) {
                 parent_config.insert(pair<int, int>(v, config_value[j++]));
@@ -129,19 +129,6 @@ void PotentialTable::ConstructVarDimsAndCumLevels(Network *net){
     table_size = cum_levels[0] * var_dims[0];
 }
 
-/**
- * construct "cum_levels" according to "var_dims"
- */
-void PotentialTable::ConstructCumLevels() {
-    cum_levels.resize(num_variables);
-    // set the right-most one ...
-    cum_levels[num_variables - 1] = 1;
-    // ... then compute the left ones
-    for (int i = num_variables - 2; i >= 0; --i) {
-        cum_levels[i] = cum_levels[i + 1] * var_dims[i + 1];
-    }
-}
-
 /*!
  * @brief: get each value (index) of the configuration corresponding to the given table index
  * @method: a/b = c...d, from left to right
@@ -149,16 +136,6 @@ void PotentialTable::ConstructCumLevels() {
  *          b -- cum_levels[i]
  *          c -- save in config_value
  */
-void PotentialTable::GetConfigValueByTableIndex(const int &table_index, int *config_value) {
-    int a = table_index;
-    for (int i = 0; i < num_variables; ++i) {
-        int c = a / cum_levels[i];
-        int d = a % cum_levels[i];
-        config_value[i] = c;
-        a = d;
-    }
-}
-
 void PotentialTable::GetConfigValueByTableIndex(const int &table_index, int *config_value, int num_variables, const vector<int> &cum_levels) {
     int a = table_index;
     for (int i = 0; i < num_variables; ++i) {
@@ -172,14 +149,6 @@ void PotentialTable::GetConfigValueByTableIndex(const int &table_index, int *con
 /*!
  * @brief: get table index given each value (index) of the configuration
  */
-int PotentialTable::GetTableIndexByConfigValue(int *config_value) {
-    int table_index = 0;
-    for (int i = 0; i < num_variables; ++i) {
-        table_index += config_value[i] * cum_levels[i];
-    }
-    return table_index;
-}
-
 int PotentialTable::GetTableIndexByConfigValue(int *config_value, int num_variables, const vector<int> &cum_levels) {
     int table_index = 0;
     for (int i = 0; i < num_variables; ++i) {
@@ -258,7 +227,7 @@ int PotentialTable::TableReductionPre(int e_index) {
 
 int PotentialTable::TableReductionMain(int i, int *full_config, int loc) {
     // 1. get the full config value of old table
-    this->GetConfigValueByTableIndex(i, full_config + i * this->num_variables);
+    PotentialTableBase::GetConfigValueByTableIndex(i, full_config + i * this->num_variables);
     // 2. get the value of the evidence variable from the new table
     return full_config[i * this->num_variables + loc];
 }
@@ -298,107 +267,6 @@ void PotentialTable::TableReductionPost(int index, int value_index, int *v_index
 }
 
 /**
- * @brief: get the reduced potential tables simplified version (must satisfy some specific conditions!!!)
- * @param result the resulting table values (reduced pt.potentials)
- * @param evidence a vector of the values of all the nodes, the index is consistent with the node id in the network
- * @param node_index the node that the reduced table corresponding to
- * conditions here:
- *      1. the related variables of the original potential table should be the node "node_index" and its parents (i.e., it should be like the node's CPT)
- *      2. "evidence" should include the observations of all the parents of the node
- *      3. we reduce the original potential table according to the observations and thus the resulting table only include the node
- * improved method:
- *      the resulting table only contains the node, so the table size = dimension of the node (this->var_dims[node_loc] ==> d)
- *      we first get each of the d configurations (store in "config"), then find the "table index" of the "config" and store in "result"
- *      in this way, we only need to do the config & index mapping for d times
- *      but in the original version of table reduction, we need to do such mapping for "this->table_size" times
- */
-void PotentialTable::GetReducedPotentials(vector<double> &result, const vector<int> &evidence, int node_index, int num_threads) {
-    if (this->num_variables == 1) {
-        result = this->potentials;
-        return;
-    }
-
-    int *config = new int[this->num_variables];
-    /**
-     * store the evidence into config
-     */
-//    cout << "rv: ";
-    int k = 0;
-    for (auto &rv: this->related_variables) {
-//        cout << rv << ", ";
-        if (rv == node_index) {
-            // if it is the node, do nothing
-        } else {
-            // if it is one of the node's parent, store its value in config
-            config[k] = evidence[rv];
-        }
-        k++;
-    }
-
-//    cout << ", config = ";
-//    for (int i = 0; i < this->num_variables; ++i) {
-//        cout << config[i] << ", ";
-//    }
-//    cout << endl;
-
-    /**
-     * store each possible value of the node into config to construct each possible config
-     */
-    int node_loc = this->GetVariableIndex(node_index);
-    for (int i = 0; i < this->var_dims[node_loc]; ++i) { // for each possible value of the node
-        config[node_loc] = i; // store this value of the node into config
-        int table_index = GetTableIndexByConfigValue(config); // find the table index of this config
-        result[i] = this->potentials[table_index]; // get one value of the resulting vector
-
-//        cout << "this node = " << i << ": table index = " << table_index << ", get value = " << result[i] << endl;
-    }
-
-    SAFE_DELETE_ARRAY(config);
-}
-
-/**
- * just like the above method, the difference is that now we also know the value of this node, and thus this method returns one value
- */
-double PotentialTable::GetReducedPotential(const vector<int> &evidence, int num_threads) {
-
-    int *config = new int[this->num_variables];
-    /**
-     * construct the config with evidence and the value of this node
-     */
-    int k = 0;
-    for (auto &rv: this->related_variables) {
-        // store the value of the node into config
-        config[k++] = evidence[rv];
-    }
-
-    int table_index = GetTableIndexByConfigValue(config); // find the table index of this config
-    SAFE_DELETE_ARRAY(config);
-
-    return this->potentials[table_index];
-}
-
-/**
- * like the above method, just return the table index rather than the value of the index
- */
-int PotentialTable::GetReducedTableIndex(const vector<int> &evidence, int num_threads) {
-
-    int *config = new int[this->num_variables];
-    /**
-     * construct the config with evidence
-     */
-    int k = 0;
-    for (auto &rv: this->related_variables) {
-        // store the value of the node into config
-        config[k++] = evidence[rv];
-    }
-
-    int table_index = GetTableIndexByConfigValue(config); // find the table index of this config
-    SAFE_DELETE_ARRAY(config);
-
-    return table_index;
-}
-
-/**
  * @brief: table operation 2: table marginalization - factor out a set of nodes by id
  * eliminate variable "id" by summation of the factor over "id"
  */
@@ -422,13 +290,13 @@ void PotentialTable::TableMarginalization(const set<int> &ext_variables) {
 //#pragma omp parallel for
     for (int i = 0; i < this->table_size; ++i) {
         // 1. get the full config value of old table
-        this->GetConfigValueByTableIndex(i, full_config + i * this->num_variables);
+        PotentialTableBase::GetConfigValueByTableIndex(i, full_config + i * this->num_variables);
         // 2. get the partial config value from the old table
         for (int j = 0; j < new_table.num_variables; ++j) {
             partial_config[i * new_table.num_variables + j] = full_config[i * this->num_variables + loc_in_old[j]];
         }
         // 3. obtain the potential index
-        table_index[i] = new_table.GetTableIndexByConfigValue(partial_config + i * new_table.num_variables);
+        table_index[i] = new_table.PotentialTableBase::GetTableIndexByConfigValue(partial_config + i * new_table.num_variables);
     }
     SAFE_DELETE_ARRAY(full_config);
     SAFE_DELETE_ARRAY(partial_config);
@@ -473,13 +341,13 @@ void PotentialTable::TableMarginalizationPre(const set<int> &ext_variables, Pote
 int PotentialTable::TableMarginalizationMain(int k, int *full_config, int *partial_config,
                                              int nv, const vector<int> &cl, int *loc) {
     // 1. get the full config value of old table
-    this->GetConfigValueByTableIndex(k, full_config + k * nv, nv, cl);
+    GetConfigValueByTableIndex(k, full_config + k * nv, nv, cl);
     // 2. get the partial config value from the old table
     for (int l = 0; l < this->num_variables; ++l) {
         partial_config[k * this->num_variables + l] = full_config[k * nv + loc[l]];
     }
     // 3. obtain the potential index
-    return this->GetTableIndexByConfigValue(partial_config + k * this->num_variables);
+    return PotentialTableBase::GetTableIndexByConfigValue(partial_config + k * this->num_variables);
 }
 
 void PotentialTable::TableMarginalizationPost(const PotentialTable &pt, int *table_index) {
@@ -509,13 +377,13 @@ void PotentialTable::TableMarginalization(int ext_variable) {
 //#pragma omp parallel for
     for (int i = 0; i < this->table_size; ++i) {
         // 1. get the full config value of old table
-        this->GetConfigValueByTableIndex(i, full_config + i * this->num_variables);
+        PotentialTableBase::GetConfigValueByTableIndex(i, full_config + i * this->num_variables);
         // 2. get the partial config value from the old table
         for (int j = 0; j < new_table.num_variables; ++j) {
             partial_config[i * new_table.num_variables + j] = full_config[i * this->num_variables + loc_in_old[j]];
         }
         // 3. obtain the potential index
-        table_index[i] = new_table.GetTableIndexByConfigValue(partial_config + i * new_table.num_variables);
+        table_index[i] = new_table.PotentialTableBase::GetTableIndexByConfigValue(partial_config + i * new_table.num_variables);
     }
     SAFE_DELETE_ARRAY(full_config);
     SAFE_DELETE_ARRAY(partial_config);
@@ -553,38 +421,6 @@ void PotentialTable::TableMarginalizationPre(int ext_variable, PotentialTable &n
 }
 
 /**
- * @brief: get the marginalized potential tables simplified version (must satisfy some specific conditions!!!)
- * @param result the resulting table values (marginalized pt.potentials)
- * @param node_index the node that the reduced table corresponding to
- * conditions here:
- *      1. the related variables of the original potential table should be the node "node_index" and its parents (i.e., it should be like the node's CPT)
- *      2. we sum out all the variables except for the node and thus the resulting table only include the node
- * improved method:
- *      the resulting table only contains the node, so the table size = dimension of the node (this->var_dims[node_loc] ==> d)
- *      we first get the location of the node, then check each cell in the original table and get the value of the location
- *      according to the value, we add the corresponding probability to the corresponding location of the resulting table
- */
-void PotentialTable::GetMarginalizedProbabilities(vector<double> &result, int node_index, int num_threads) {
-    if (this->num_variables == 1) {
-        result = this->potentials;
-        return;
-    }
-
-    int node_loc = this->GetVariableIndex(node_index);
-
-    int *full_config = new int[this->num_variables];
-    for (int i = 0; i < this->table_size; ++i) {
-        // 1. get the full config value of old table
-        this->GetConfigValueByTableIndex(i, full_config);
-        result[full_config[node_loc]] += this->potentials[i];
-    }
-
-    SAFE_DELETE_ARRAY(full_config);
-}
-
-
-
-/**
  * @brief table operation 3: table extension - a pre computation of multiplication
  * before doing multiplication, we can first let the two tables have the same entries
  * so we need to extend the tables to let them have the same related variables
@@ -611,13 +447,13 @@ void PotentialTable::TableExtension(const set<int> &variables, const vector<int>
     for (int i = 0; i < new_table.table_size; ++i) {
         // obtain the config value according to loc_in_new
         // 1. get the full config value of new table
-        new_table.GetConfigValueByTableIndex(i, full_config + i * new_table.num_variables);
+        new_table.PotentialTableBase::GetConfigValueByTableIndex(i, full_config + i * new_table.num_variables);
         // 2. get the partial config value from the new table
         for (int j = 0; j < this->num_variables; ++j) {
             partial_config[i * this->num_variables + j] = full_config[i * new_table.num_variables + loc_in_new[j]];
         }
         // 3. obtain the potential index
-        table_index[i] = this->GetTableIndexByConfigValue(partial_config + i * this->num_variables);
+        table_index[i] = PotentialTableBase::GetTableIndexByConfigValue(partial_config + i * this->num_variables);
     }
     SAFE_DELETE_ARRAY(full_config);
     SAFE_DELETE_ARRAY(partial_config);
@@ -642,7 +478,7 @@ void PotentialTable::TableExtensionPre(const set<int> &variables, const vector<i
 int PotentialTable::TableExtensionMain(int k, int *full_config, int *partial_config,
                                         int nv, const vector<int> &cl, int *loc) {
     // 1. get the full config value of new table
-    this->GetConfigValueByTableIndex(k, full_config + k * this->num_variables);
+    PotentialTableBase::GetConfigValueByTableIndex(k, full_config + k * this->num_variables);
     // 2. get the partial config value from the new table
     for (int l = 0; l < nv; ++l) {
         partial_config[k * nv + l] = full_config[k * this->num_variables + loc[l]];
@@ -707,60 +543,6 @@ bool PotentialTable::TableMultiplicationPre(const PotentialTable &second_table) 
                    second_table.related_variables.begin(), second_table.related_variables.end(),
                    inserter(diff, diff.begin()));
     return !diff.empty();
-}
-
-/**
- * do table multiplication for the case where second_table contains only one related variable
- * and this table also contains this variable
- * implement this version because lbp always multiplies with a table that contains only one variable
- */
-void PotentialTable::TableMultiplicationOneVariable(const PotentialTable &second_table) {
-    if (this->related_variables.empty()) {
-        (*this) = second_table; // directly return "second_table"
-//        return second_table;
-    }
-    if (second_table.related_variables.empty()) {
-        return; // directly return this table
-//        return (*this);
-    }
-
-    if (second_table.related_variables.size() > 1) {
-        cout << "error in TableMultiplicationOneVariable: the second table has " << second_table.related_variables.size() << " variables" << endl;
-    }
-
-    int variable_index = *second_table.related_variables.begin();
-
-    /**
-     * it is just the "to_be_extended", to decide whether table 1 is bigger
-     * if not, which means both table 1 and 2 have one variable
-     * then directly do the multiplication
-     */
-    bool first_is_bigger = this->TableMultiplicationPre(second_table);
-
-    if (first_is_bigger) {
-        /**
-         * in this case, the main structure of table 1 is not changed;
-         * the change is that every cell of the potential table is multiplied with a value
-         */
-        // get the location of the one variable
-        int loc = this->GetVariableIndex(variable_index);
-
-        vector<double> potential_values = second_table.potentials;
-        int *full_config = new int[this->num_variables];
-
-        // change each cell of table 1
-        for (int i = 0; i < this->table_size; ++i) {
-            // get the full config value of table 1
-            this->GetConfigValueByTableIndex(i, full_config);
-            // get the value of the one variable and update
-            this->potentials[i] *= potential_values[full_config[loc]];
-        }
-        SAFE_DELETE_ARRAY(full_config);
-    } else {
-        for (int i = 0; i < this->table_size; ++i) {
-            this->potentials[i] *= second_table.potentials[i];
-        }
-    }
 }
 
 /**
@@ -843,47 +625,5 @@ void PotentialTable::TableDivision(const PotentialTable &second_table) {
         } else {
             this->potentials[i] /= second_table.potentials[i];
         }
-    }
-}
-
-
-
-/**
- * @brief table operation 6: table addition
- * @param second_table should have the same structure as this table, the only difference should be the values in potentials
- */
-void PotentialTable::TableAddition(const PotentialTable &second_table) {
-    for (int i = 0; i < this->table_size; ++i) {
-        this->potentials[i] += second_table.potentials[i];
-    }
-}
-
-void PotentialTable::TableSubtraction(const PotentialTable &second_table) {
-    for (int i = 0; i < this->table_size; ++i) {
-        this->potentials[i] -= second_table.potentials[i];
-    }
-}
-
-
-
-void PotentialTable::Normalize() {
-    double denominator = 0;
-
-    // compute the denominator for each of the configurations
-    for (int i = 0; i < table_size; ++i) {
-        denominator += potentials[i];
-    }
-
-    // normalize for each of the configurations
-    for (int i = 0; i < table_size; ++i) {
-        potentials[i] /= denominator;
-    }
-}
-
-
-void PotentialTable::UniformDistribution() {
-    double value = 1.0 / this->table_size;
-    for (int i = 0; i < this->table_size; ++i) {
-        potentials[i] = value;
     }
 }

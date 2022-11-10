@@ -15,6 +15,7 @@
 #include "DiscreteNode.h"
 #include "Network.h"
 #include "Timer.h"
+#include "PotentialTableBase.h"
 
 using namespace std;
 
@@ -24,15 +25,9 @@ using namespace std;
  * @brief: this class contains the weights/potentials of each discrete config;
  * the discrete config does not have parent-child relationships.
  */
-class PotentialTable {//this is used only for discrete nodes;
+class PotentialTable: public PotentialTableBase {//this is used only for discrete nodes;
 public:
     set<int> related_variables; // the variables involved in this factor/potential table
-    vector<double> potentials; // the potential table
-
-    vector<int> var_dims; // the dimension of each related variable
-    vector<int> cum_levels; // the helper array used to transfer between table index and the config (in array format)
-    int num_variables; // i.e., clique size
-    int table_size; // number of entries
 
     PotentialTable();
     PotentialTable(DiscreteNode *disc_node, Network *net);
@@ -46,9 +41,6 @@ public:
     int TableReductionPre(int e_index);
     int TableReductionMain(int i, int *full_config, int loc);
     void TableReductionPost(int index, int value_index, int *v_index, int loc);
-    void GetReducedPotentials(vector<double> &result, const vector<int> &evidence, int node_index, int num_threads);
-    double GetReducedPotential(const vector<int> &evidence, int num_threads);
-    int GetReducedTableIndex(const vector<int> &evidence, int num_threads);
 
     /**
      * potential table operation 2: table marginalization
@@ -60,7 +52,6 @@ public:
     void TableMarginalizationPost(const PotentialTable &pt, int *table_index);
     void TableMarginalization(int ext_variable);
     void TableMarginalizationPre(int ext_variable, PotentialTable &new_table);
-    void GetMarginalizedProbabilities(vector<double> &result, int node_index, int num_threads);
 
     /**
      * potential table operation 3: table extension
@@ -76,7 +67,6 @@ public:
      */
     void TableMultiplication(const PotentialTable &second_table);
     bool TableMultiplicationPre(const PotentialTable &second_table);
-    void TableMultiplicationOneVariable(const PotentialTable &second_table);
     void TableMultiplicationTwoExtension(PotentialTable &second_table);
     void TableMultiplicationPre(const PotentialTable &second_table, set<int> &all_related_variables, set<int> &diff1, set<int> &diff2);
 
@@ -85,26 +75,13 @@ public:
      */
     void TableDivision(const PotentialTable &second_table);
 
-    /**
-     * potential table operation 6: table addition
-     */
-    void TableAddition(const PotentialTable &second_table);
-    void TableSubtraction(const PotentialTable &second_table);
-
-    void Normalize();
-
-    void UniformDistribution();
-
     int GetVariableIndex(const int &variable);
 
 protected:
     void GetConfigValueByTableIndex(const int &table_index, int *config_value, int num_variables, const vector<int> &cum_levels);
     int GetTableIndexByConfigValue(int *config_value, int num_variables, const vector<int> &cum_levels);
-    void GetConfigValueByTableIndex(const int &table_index, int *config_value);
-    int GetTableIndexByConfigValue(int *config_value);
 
     void ConstructVarDimsAndCumLevels(Network *net);
-    void ConstructCumLevels();
 };
 
 #endif //BAYESIANNETWORK_POTENTIALTABLE_H
