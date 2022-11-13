@@ -509,18 +509,12 @@ void PotentialTable::TableExtensionPost(const PotentialTable &pt, int *table_ind
  * @output: this table
  */
 void PotentialTable::TableMultiplication(const PotentialTable &second_table) {
-    if (this->related_variables.empty()) {
-        (*this) = second_table; // directly return "second_table"
-//        return second_table;
-    }
     if (second_table.related_variables.empty()) {
         return; // directly return this table
 //        return (*this);
     }
 
-    bool to_be_extended = this->TableMultiplicationPre(second_table);
-
-    if (to_be_extended) { // if table2 should be extended and table1 not
+    if (this->num_variables - second_table.num_variables > 0) { // if table2 should be extended and table1 not
         PotentialTable tmp_pt = second_table;
         tmp_pt.TableExtension(this->related_variables, this->var_dims);
 
@@ -532,17 +526,6 @@ void PotentialTable::TableMultiplication(const PotentialTable &second_table) {
             this->potentials[i] *= second_table.potentials[i];
         }
     }
-}
-
-bool PotentialTable::TableMultiplicationPre(const PotentialTable &second_table) {
-    set<int> diff;
-
-    // before multiplication, we first extend the separator table to the same size if required
-    // get the variables that in the clique table but not in the separator table
-    set_difference(this->related_variables.begin(), this->related_variables.end(),
-                   second_table.related_variables.begin(), second_table.related_variables.end(),
-                   inserter(diff, diff.begin()));
-    return !diff.empty();
 }
 
 /**
@@ -559,14 +542,17 @@ void PotentialTable::TableMultiplicationTwoExtension(PotentialTable &second_tabl
 //        return (*this);
     }
 
-    set<int> all_related_variables, diff1, diff2;
-    this->TableMultiplicationPre(second_table, all_related_variables, diff1, diff2);
+    set<int> all_related_variables;
+    all_related_variables.insert(this->related_variables.begin(), this->related_variables.end());
+    all_related_variables.insert(second_table.related_variables.begin(), second_table.related_variables.end());
+    int d1 = all_related_variables.size() - this->num_variables;
+    int d2 = all_related_variables.size() - second_table.num_variables;
 
-    if (diff1.empty() && diff2.empty()) { // if both table1 and table2 should not be extended
+    if (d1 == 0 && d2 == 0) { // if both table1 and table2 should not be extended
         // do nothing
-    } else if (!diff1.empty() && diff2.empty()) { // if table1 should be extended and table2 not
+    } else if (d1 > 0 && d2 == 0) { // if table1 should be extended and table2 not
         this->TableExtension(all_related_variables, second_table.var_dims);
-    } else if (diff1.empty() && !diff2.empty()) { // if table2 should be extended and table1 not
+    } else if (d1 == 0 && d2 > 0) { // if table2 should be extended and table1 not
         second_table.TableExtension(all_related_variables, this->var_dims);
     } else { // if both table1 and table2 should be extended
         vector<int> dims; // to save dims of the new related variables
@@ -590,22 +576,6 @@ void PotentialTable::TableMultiplicationTwoExtension(PotentialTable &second_tabl
         this->potentials[i] *= second_table.potentials[i];
     }
 }
-
-void PotentialTable::TableMultiplicationPre(const PotentialTable &second_table, set<int> &all_related_variables,
-                                            set<int> &diff1, set<int> &diff2) {
-    all_related_variables.insert(this->related_variables.begin(), this->related_variables.end());
-    all_related_variables.insert(second_table.related_variables.begin(), second_table.related_variables.end());
-
-    // before multiplication, we first extend the separator table to the same size if required
-    // get the variables that in the clique table but not in the separator table
-    set_difference(all_related_variables.begin(), all_related_variables.end(),
-                   this->related_variables.begin(), this->related_variables.end(),
-                   inserter(diff1, diff1.begin()));
-    set_difference(all_related_variables.begin(), all_related_variables.end(),
-                   second_table.related_variables.begin(), second_table.related_variables.end(),
-                   inserter(diff2, diff2.begin()));
-}
-
 
 /**
  * @brief table operation 5: table division

@@ -564,13 +564,10 @@ void JunctionTree::CliqueLevelOperation(bool is_collect, int i, int size,
 
         multi_pt[j] = separator->p_table;
 
-        // pre processing for extension
-        bool to_be_extended = clique->p_table.TableMultiplicationPre(separator->p_table);
-
         /**
          * we only need to decide whether the separator needs to be extended
          */
-        if (to_be_extended) { // if the separator table should be extended
+        if (clique->p_table.num_variables - separator->p_table.num_variables > 0) { // if the separator table should be extended
             // record the index (that requires to do the extension)
             vector_extension.push_back(j);
             nv_old[sum_index] = separator->p_table.num_variables;
