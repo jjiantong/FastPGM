@@ -185,12 +185,12 @@ void JunctionTree::LoadDiscreteEvidence(const DiscreteConfig &E, int num_threads
 //         * 1. nested version, without flattening
 //         */
 //        for (auto &c: tree->vector_clique_ptr_container) {
-//            if (c->p_table.related_variables.find(index) != c->p_table.related_variables.end()) {
+//            if (c->p_table.vec_related_variables.find(index) != c->p_table.vec_related_variables.end()) {
 //                c->p_table.TableReduction(index, value, num_threads);
 //            }
 //        }
 //        for (auto &c: tree->vector_separator_ptr_container) {
-//            if (c->p_table.related_variables.find(index) != c->p_table.related_variables.end()) {
+//            if (c->p_table.vec_related_variables.find(index) != c->p_table.vec_related_variables.end()) {
 //                c->p_table.TableReduction(index, value, num_threads);
 //            }
 //        }
@@ -202,7 +202,7 @@ void JunctionTree::LoadDiscreteEvidence(const DiscreteConfig &E, int num_threads
         vector<Clique*> vector_reduced_clique_and_separator_ptr;
         for (auto &c: tree->vector_clique_ptr_container) {
             for (int i = 0; i < c->p_table.num_variables; ++i) { // for each related variable
-                if (c->p_table.related_variables[i] == index) {
+                if (c->p_table.vec_related_variables[i] == index) {
                     vector_reduced_clique_and_separator_ptr.push_back(c);
                     break;
                 }
@@ -210,7 +210,7 @@ void JunctionTree::LoadDiscreteEvidence(const DiscreteConfig &E, int num_threads
         }
         for (auto &c: tree->vector_separator_ptr_container) {
             for (int i = 0; i < c->p_table.num_variables; ++i) { // for each related variable
-                if (c->p_table.related_variables[i] == index) {
+                if (c->p_table.vec_related_variables[i] == index) {
                     vector_reduced_clique_and_separator_ptr.push_back(c);
                     break;
                 }
@@ -419,7 +419,7 @@ void JunctionTree::SeparatorLevelOperation(bool is_collect, int i, int num_threa
 
         // find the variables to be marginalized
         set<int> set_external_vars;
-        set_difference(mar_clique->p_table.related_variables.begin(), mar_clique->p_table.related_variables.end(),
+        set_difference(mar_clique->p_table.vec_related_variables.begin(), mar_clique->p_table.vec_related_variables.end(),
                        separator->clique_variables.begin(), separator->clique_variables.end(),
                        inserter(set_external_vars, set_external_vars.begin()));
 
@@ -432,7 +432,7 @@ void JunctionTree::SeparatorLevelOperation(bool is_collect, int i, int num_threa
 
         mar_clique->p_table.TableMarginalizationPre(set_external_vars, tmp_pt[j]);
         int k = 0;
-        for (auto &v: tmp_pt[j].related_variables) {
+        for (auto &v: tmp_pt[j].vec_related_variables) {
             // just to avoid using "GetVariableIndex"
             loc_in_old[j][k++] = mar_clique->p_table.TableReductionPre(v);
         }
@@ -519,7 +519,7 @@ void JunctionTree::CliqueLevelOperation(bool is_collect, int i, int size,
 //            separator = clique->ptr_upstream_clique;
 //        }
 //
-//        if (separator->p_table.related_variables.empty()) {
+//        if (separator->p_table.vec_related_variables.empty()) {
 //            return;
 //        }
 //    }
@@ -580,14 +580,14 @@ void JunctionTree::CliqueLevelOperation(bool is_collect, int i, int size,
             cl_old.push_back(separator->p_table.cum_levels);
 
             PotentialTable pt;
-            pt.TableExtensionPre(clique->p_table.related_variables, clique->p_table.var_dims);
+            pt.TableExtensionPre(clique->p_table.vec_related_variables, clique->p_table.var_dims);
 
             // get this table's location -- it is currently the last one
             int last = vector_extension.size() - 1;
             // generate an array showing the locations of the variables of the new table in the old table
             loc_in_new[last] = new int[separator->p_table.num_variables];
             int k = 0;
-            for (auto &v: separator->p_table.related_variables) {
+            for (auto &v: separator->p_table.vec_related_variables) {
                 // just to avoid using "GetVariableIndex"
                 loc_in_new[last][k++] = pt.TableReductionPre(v);
             }
@@ -811,7 +811,7 @@ PotentialTable JunctionTree::CalculateMarginalProbability(int query_index) {
 
         set<int> rv;
         for (int i = 0; i < c->p_table.num_variables; ++i) { // for each related variable
-            rv.insert(c->p_table.related_variables[i]);
+            rv.insert(c->p_table.vec_related_variables[i]);
         }
         if (rv.size() >= min_size) {
             continue;
@@ -820,7 +820,7 @@ PotentialTable JunctionTree::CalculateMarginalProbability(int query_index) {
             continue;
         }
 
-        min_size = c->p_table.related_variables.size();
+        min_size = c->p_table.vec_related_variables.size();
         selected_clique = c;
     }
 
@@ -833,19 +833,19 @@ PotentialTable JunctionTree::CalculateMarginalProbability(int query_index) {
     // todo: use vector this part and marginalization part
     set<int> other_vars;
     for (int i = 0; i < selected_clique->p_table.num_variables; ++i) {
-        other_vars.insert(selected_clique->p_table.related_variables[i]);
+        other_vars.insert(selected_clique->p_table.vec_related_variables[i]);
     }
     other_vars.erase(query_index);
 
 //    vector<int> other_vars(selected_clique->p_table.num_variables - 1);
 //    int i = 0;
-//    while (selected_clique->p_table.related_variables[i] != query_index) {
-//        other_vars[i] = selected_clique->p_table.related_variables[i];
+//    while (selected_clique->p_table.vec_related_variables[i] != query_index) {
+//        other_vars[i] = selected_clique->p_table.vec_related_variables[i];
 //        i++;
-//    } // end while, now this->related_variables[i] = index
+//    } // end while, now this->vec_related_variables[i] = index
 //    i++; // skip the index
 //    while (i < selected_clique->p_table.num_variables) {
-//        other_vars[i - 1] = selected_clique->p_table.related_variables[i];
+//        other_vars[i - 1] = selected_clique->p_table.vec_related_variables[i];
 //        i++;
 //    }
 
@@ -896,7 +896,7 @@ void JunctionTree::GetProbabilitiesOneNode(const DiscreteConfig &E, int index) {
 
         set<int> rv;
         for (int i = 0; i < c->p_table.num_variables; ++i) { // for each related variable
-            rv.insert(c->p_table.related_variables[i]);
+            rv.insert(c->p_table.vec_related_variables[i]);
         }
         if (rv.size() >= min_size) {
             continue;
@@ -905,7 +905,7 @@ void JunctionTree::GetProbabilitiesOneNode(const DiscreteConfig &E, int index) {
             continue;
         }
 
-        min_size = c->p_table.related_variables.size();
+        min_size = c->p_table.vec_related_variables.size();
         selected_clique = c;
     }
 
@@ -918,7 +918,7 @@ void JunctionTree::GetProbabilitiesOneNode(const DiscreteConfig &E, int index) {
     // todo: use vector this part and marginalization part
     set<int> other_vars;
     for (int i = 0; i < selected_clique->p_table.num_variables; ++i) {
-        other_vars.insert(selected_clique->p_table.related_variables[i]);
+        other_vars.insert(selected_clique->p_table.vec_related_variables[i]);
     }
     other_vars.erase(query_index);
 

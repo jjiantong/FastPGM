@@ -27,7 +27,6 @@ using namespace std;
  */
 class PotentialTable: public PotentialTableBase {//this is used only for discrete nodes;
 public:
-    vector<int> related_variables; // the variables involved in this factor/potential table
 
     PotentialTable();
     PotentialTable(DiscreteNode *disc_node, Network *net);

@@ -59,12 +59,12 @@ void VariableElimination::InitializeCPTAndLoadEvidence(const vector<int> &left_n
 
         for (int i = 0; i < left_nodes.size(); ++i) {
             for (int j = 0; j < cpts[i].num_variables; ++j) {
-                if (cpts[i].related_variables[j] == index) {
+                if (cpts[i].vec_related_variables[j] == index) {
                     cpts[i].TableReduction(index, value, num_threads);
                     break;
                 }
             }
-//            if (cpts[i].related_variables.find(index) != cpts[i].related_variables.end()) {
+//            if (cpts[i].vec_related_variables.find(index) != cpts[i].vec_related_variables.end()) {
 //                cpts[i].TableReduction(index, value, num_threads);
 //            }
         }
@@ -232,7 +232,7 @@ PotentialTable VariableElimination::SumProductVE(vector<int> elim_order) {
         for (auto it = table_list.begin(); it != table_list.end(); /** no ++it **/) {
             set<int> set_related_variables;
             for (int j = 0; j < (*it).num_variables; ++j) {
-                set_related_variables.insert((*it).related_variables[j]);
+                set_related_variables.insert((*it).vec_related_variables[j]);
             }
 
             if (set_related_variables.find(node_index) != set_related_variables.end()) {

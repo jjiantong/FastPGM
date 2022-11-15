@@ -324,7 +324,7 @@ void JunctionTreeStructure::AssignPotentials() { //checked
     // For potentials from discrete nodes, they should be assigned to purely discrete cliques.
     for (auto &pt : potential_tables) { // for each potential table of the network
         for (auto &clique_ptr : vector_clique_ptr_container) { // for each clique of the graph
-            if (pt.related_variables.empty() || clique_ptr->clique_variables.empty()) {
+            if (pt.vec_related_variables.empty() || clique_ptr->clique_variables.empty()) {
                 break;
             }
             if (!clique_ptr->pure_discrete) {
@@ -333,7 +333,7 @@ void JunctionTreeStructure::AssignPotentials() { //checked
 
             // get the variables that in the potential table but not in the clique
             set<int> diff;
-            set_difference(pt.related_variables.begin(), pt.related_variables.end(),
+            set_difference(pt.vec_related_variables.begin(), pt.vec_related_variables.end(),
                            clique_ptr->clique_variables.begin(), clique_ptr->clique_variables.end(),
                            inserter(diff, diff.begin()));
             // If "diff" is empty, i.e., all the variables in the factor are in the clique,
