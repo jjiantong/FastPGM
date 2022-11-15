@@ -27,7 +27,7 @@ using namespace std;
  */
 class PotentialTable: public PotentialTableBase {//this is used only for discrete nodes;
 public:
-    set<int> related_variables; // the variables involved in this factor/potential table
+    vector<int> related_variables; // the variables involved in this factor/potential table
 
     PotentialTable();
     PotentialTable(DiscreteNode *disc_node, Network *net);
@@ -56,8 +56,8 @@ public:
     /**
      * potential table operation 3: table extension
      */
-    void TableExtension(const set<int> &variables, const vector<int> &dims);
-    void TableExtensionPre(const set<int> &variables, const vector<int> &dims);
+    void TableExtension(const vector<int> &variables, const vector<int> &dims);
+    void TableExtensionPre(const vector<int> &variables, const vector<int> &dims);
     int TableExtensionMain(int k, int *full_config, int *partial_config,
                                            int nv, const vector<int> &cl, int *loc);
     void TableExtensionPost(const PotentialTable &pt, int *table_index);

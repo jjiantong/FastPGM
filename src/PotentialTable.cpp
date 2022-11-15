@@ -17,11 +17,10 @@ PotentialTable::PotentialTable(DiscreteNode *disc_node, Network *net) {
     int node_index = disc_node->GetNodeIndex();
     int node_dim = disc_node->GetDomainSize();
 
-    related_variables.insert(node_index); // related_variables is empty initially, because this is a constructor
-
     if (!disc_node->HasParents()) {
         // if this disc_node has no parents. then the potential table only contains 1 variable
         num_variables = 1;
+        related_variables.push_back(node_index);
         var_dims.reserve(num_variables);
         var_dims.push_back(node_dim);
         cum_levels.reserve(num_variables);
@@ -35,8 +34,15 @@ PotentialTable::PotentialTable(DiscreteNode *disc_node, Network *net) {
             potentials.push_back(disc_node->GetProbability(i, empty_par_config));
         }
     } else { // if this disc_node has parents
-        related_variables.insert(disc_node->set_parent_indexes.begin(), disc_node->set_parent_indexes.end());
-        num_variables = related_variables.size();
+        set<int> set_related_variables;
+        set_related_variables.insert(node_index);
+        set_related_variables.insert(disc_node->set_parent_indexes.begin(), disc_node->set_parent_indexes.end());
+        num_variables = set_related_variables.size();
+        related_variables.resize(num_variables);
+        int i = 0;
+        for (auto &rv: set_related_variables) {
+            related_variables[i++] = rv;
+        }
 
         ConstructVarDimsAndCumLevels(net);
 
@@ -79,7 +85,7 @@ PotentialTable::PotentialTable(DiscreteNode *disc_node, int observed_value) {
     int node_index = disc_node->GetNodeIndex();
     int node_dim = disc_node->GetDomainSize();
 
-    related_variables.insert(node_index); // related_variables is empty initially, because this is a constructor
+    related_variables.push_back(node_index); // related_variables is empty initially, because this is a constructor
     num_variables = 1;
     var_dims.reserve(num_variables);
     var_dims.push_back(node_dim);
@@ -103,8 +109,12 @@ PotentialTable::PotentialTable(DiscreteNode *disc_node, int observed_value) {
  * it is used in class Clique (when constructing a clique)
  */
 void PotentialTable::ConstructEmptyPotentialTable(const set<int> &set_node_index, Network *net){
-    related_variables = set_node_index;
     num_variables = set_node_index.size();
+    related_variables.resize(num_variables);
+    int i = 0;
+    for (auto &rv: set_node_index) {
+        related_variables[i++] = rv;
+    }
 
     ConstructVarDimsAndCumLevels(net);
 
@@ -243,7 +253,19 @@ void PotentialTable::TableReductionPost(int index, int value_index, int *v_index
         }
     }
     this->potentials = new_potentials;
-    this->related_variables.erase(index);
+
+    vector<int> new_related_variables(this->num_variables - 1);
+    int i = 0;
+    while (this->related_variables[i] != index) {
+        new_related_variables[i] = this->related_variables[i];
+        i++;
+    } // end while, now this->related_variables[i] = index
+    i++; // skip the index
+    while (i < this->num_variables) {
+        new_related_variables[i - 1] = this->related_variables[i];
+        i++;
+    }
+    this->related_variables = new_related_variables;
     this->num_variables -= 1;
 
     if (this->num_variables > 0) {
@@ -307,12 +329,49 @@ void PotentialTable::TableMarginalization(const set<int> &ext_variables) {
 }
 
 void PotentialTable::TableMarginalizationPre(const set<int> &ext_variables, PotentialTable &new_table) {
-    // update the new table's related variables and num variables
-    new_table.related_variables = this->related_variables;
-    for (auto &ext_var: ext_variables) {
-        new_table.related_variables.erase(ext_var);
-    }
     new_table.num_variables = this->num_variables - ext_variables.size();
+    new_table.related_variables.resize(new_table.num_variables);
+
+//    if (new_table.num_variables == 0) {
+//        new_table.related_variables = vector<int>();
+//        new_table.var_dims = vector<int>();
+//        new_table.cum_levels = vector<int>();
+//        new_table.table_size = 1;
+//    } else {
+//        new_table.related_variables.resize(new_table.num_variables);
+//        new_table.var_dims.resize(new_table.num_variables);
+//
+//        // remove "ext_variables" from "this->related_variables" -> "new_table.related_variables"
+//        // and store the var dims for the left variables at the same time
+//        int i = 0, j = 0, k = 0; // i for this table, j for ext vars, k for new table
+//        while (i < this->num_variables && j < ext_variables.size()) {
+//            while (this->related_variables[i] != ext_variables[j]) {
+//                // if this value is not in ext vars
+//                new_table.related_variables[k] = this->related_variables[i];
+//                new_table.var_dims[k++] = this->var_dims[i++];
+//            } // end of while, now this->related_variables[i] == ext_variables[j]
+//            // skip this value and move to the next
+//            i++;
+//            j++;
+//        }
+//
+//        new_table.ConstructCumLevels();
+//        new_table.table_size = new_table.cum_levels[0] * new_table.var_dims[0];
+//    }
+
+
+    set<int> tmp_ext_vars = ext_variables;
+    int j = 0;
+    for (int i = 0; i < this->num_variables; ++i) { // for each related variable of this table
+        int variable = this->related_variables[i];
+        if (tmp_ext_vars.find(variable) != tmp_ext_vars.end()) { // if this variable is in external variables
+            // remove this variable from external variables
+            tmp_ext_vars.erase(variable);
+        } else { // if this variable is not in external variables
+            // add this variable into new table's related variables
+            new_table.related_variables[j++] = variable;
+        }
+    }
 
     // update the new table's var dims, cum levels and table size
     if (new_table.num_variables == 0) {
@@ -395,8 +454,17 @@ void PotentialTable::TableMarginalization(int ext_variable) {
 
 void PotentialTable::TableMarginalizationPre(int ext_variable, PotentialTable &new_table) {
     // update the new table's related variables and num variables
-    new_table.related_variables = this->related_variables;
-    new_table.related_variables.erase(ext_variable);
+    new_table.related_variables.resize(this->num_variables - 1);
+    int i = 0;
+    while (this->related_variables[i] != ext_variable) {
+        new_table.related_variables[i] = this->related_variables[i];
+        i++;
+    } // end while, now this->related_variables[i] = index
+    i++; // skip the ext_variable
+    while (i < this->num_variables) {
+        new_table.related_variables[i - 1] = this->related_variables[i];
+        i++;
+    }
     new_table.num_variables = this->num_variables - 1;
 
     // update the new table's var dims, cum levels and table size
@@ -425,7 +493,7 @@ void PotentialTable::TableMarginalizationPre(int ext_variable, PotentialTable &n
  * before doing multiplication, we can first let the two tables have the same entries
  * so we need to extend the tables to let them have the same related variables
  */
-void PotentialTable::TableExtension(const set<int> &variables, const vector<int> &dims) {
+void PotentialTable::TableExtension(const vector<int> &variables, const vector<int> &dims) {
     PotentialTable new_table;
 
     new_table.TableExtensionPre(variables, dims);
@@ -465,7 +533,7 @@ void PotentialTable::TableExtension(const set<int> &variables, const vector<int>
     (*this) = new_table;
 }
 
-void PotentialTable::TableExtensionPre(const set<int> &variables, const vector<int> &dims) {
+void PotentialTable::TableExtensionPre(const vector<int> &variables, const vector<int> &dims) {
     related_variables = variables;
     num_variables = variables.size();
 
@@ -531,6 +599,7 @@ void PotentialTable::TableMultiplication(const PotentialTable &second_table) {
 /**
  * this function is used when we don't know which table is bigger
  * note that table 2 may be changed after this process
+ * note that now this method is only used in ve, if want to use for other cases, take care of the call for table extension
  */
 void PotentialTable::TableMultiplicationTwoExtension(PotentialTable &second_table) {
     if (this->related_variables.empty()) {
@@ -542,11 +611,16 @@ void PotentialTable::TableMultiplicationTwoExtension(PotentialTable &second_tabl
 //        return (*this);
     }
 
-    set<int> all_related_variables;
-    all_related_variables.insert(this->related_variables.begin(), this->related_variables.end());
-    all_related_variables.insert(second_table.related_variables.begin(), second_table.related_variables.end());
-    int d1 = all_related_variables.size() - this->num_variables;
-    int d2 = all_related_variables.size() - second_table.num_variables;
+    set<int> set_all_related_variables;
+    set_all_related_variables.insert(this->related_variables.begin(), this->related_variables.end());
+    set_all_related_variables.insert(second_table.related_variables.begin(), second_table.related_variables.end());
+    int d1 = set_all_related_variables.size() - this->num_variables;
+    int d2 = set_all_related_variables.size() - second_table.num_variables;
+    vector<int> all_related_variables(set_all_related_variables.size());
+    int i = 0;
+    for (auto &v: set_all_related_variables) {
+        all_related_variables[i++] = v;
+    }
 
     if (d1 == 0 && d2 == 0) { // if both table1 and table2 should not be extended
         // do nothing

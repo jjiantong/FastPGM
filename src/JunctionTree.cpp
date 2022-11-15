@@ -201,13 +201,19 @@ void JunctionTree::LoadDiscreteEvidence(const DiscreteConfig &E, int num_threads
          */
         vector<Clique*> vector_reduced_clique_and_separator_ptr;
         for (auto &c: tree->vector_clique_ptr_container) {
-            if (c->p_table.related_variables.find(index) != c->p_table.related_variables.end()) {
-                vector_reduced_clique_and_separator_ptr.push_back(c);
+            for (int i = 0; i < c->p_table.num_variables; ++i) { // for each related variable
+                if (c->p_table.related_variables[i] == index) {
+                    vector_reduced_clique_and_separator_ptr.push_back(c);
+                    break;
+                }
             }
         }
         for (auto &c: tree->vector_separator_ptr_container) {
-            if (c->p_table.related_variables.find(index) != c->p_table.related_variables.end()) {
-                vector_reduced_clique_and_separator_ptr.push_back(c);
+            for (int i = 0; i < c->p_table.num_variables; ++i) { // for each related variable
+                if (c->p_table.related_variables[i] == index) {
+                    vector_reduced_clique_and_separator_ptr.push_back(c);
+                    break;
+                }
             }
         }
         timer->Stop("pre-evi");
@@ -802,12 +808,18 @@ PotentialTable JunctionTree::CalculateMarginalProbability(int query_index) {
         if (!c->pure_discrete) {
             continue;
         }
-        if (c->p_table.related_variables.find(query_index) == c->p_table.related_variables.end()) { // cannot find the query variable
+
+        set<int> rv;
+        for (int i = 0; i < c->p_table.num_variables; ++i) { // for each related variable
+            rv.insert(c->p_table.related_variables[i]);
+        }
+        if (rv.size() >= min_size) {
             continue;
         }
-        if (c->p_table.related_variables.size() >= min_size) {
+        if (rv.find(query_index) == rv.end()) { // cannot find the query variable
             continue;
         }
+
         min_size = c->p_table.related_variables.size();
         selected_clique = c;
     }
@@ -818,8 +830,24 @@ PotentialTable JunctionTree::CalculateMarginalProbability(int query_index) {
         exit(1);
     }
 
-    set<int> other_vars = selected_clique->p_table.related_variables;
+    // todo: use vector this part and marginalization part
+    set<int> other_vars;
+    for (int i = 0; i < selected_clique->p_table.num_variables; ++i) {
+        other_vars.insert(selected_clique->p_table.related_variables[i]);
+    }
     other_vars.erase(query_index);
+
+//    vector<int> other_vars(selected_clique->p_table.num_variables - 1);
+//    int i = 0;
+//    while (selected_clique->p_table.related_variables[i] != query_index) {
+//        other_vars[i] = selected_clique->p_table.related_variables[i];
+//        i++;
+//    } // end while, now this->related_variables[i] = index
+//    i++; // skip the index
+//    while (i < selected_clique->p_table.num_variables) {
+//        other_vars[i - 1] = selected_clique->p_table.related_variables[i];
+//        i++;
+//    }
 
     PotentialTable pt = selected_clique->p_table;
     pt.TableMarginalization(other_vars);
@@ -865,12 +893,18 @@ void JunctionTree::GetProbabilitiesOneNode(const DiscreteConfig &E, int index) {
         if (!c->pure_discrete) {
             continue;
         }
-        if (c->p_table.related_variables.find(index) == c->p_table.related_variables.end()) { // cannot find the query variable
+
+        set<int> rv;
+        for (int i = 0; i < c->p_table.num_variables; ++i) { // for each related variable
+            rv.insert(c->p_table.related_variables[i]);
+        }
+        if (rv.size() >= min_size) {
             continue;
         }
-        if (c->p_table.related_variables.size() >= min_size) {
+        if (rv.find(index) == rv.end()) { // cannot find the query variable
             continue;
         }
+
         min_size = c->p_table.related_variables.size();
         selected_clique = c;
     }
@@ -881,8 +915,14 @@ void JunctionTree::GetProbabilitiesOneNode(const DiscreteConfig &E, int index) {
         exit(1);
     }
 
-    set<int> other_vars = selected_clique->p_table.related_variables;
-    other_vars.erase(index);
+    // todo: use vector this part and marginalization part
+    set<int> other_vars;
+    for (int i = 0; i < selected_clique->p_table.num_variables; ++i) {
+        other_vars.insert(selected_clique->p_table.related_variables[i]);
+    }
+    other_vars.erase(query_index);
+
+
 
     PotentialTable pt = selected_clique->p_table;
     pt.TableMarginalization(other_vars);
