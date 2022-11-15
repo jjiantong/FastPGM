@@ -431,10 +431,8 @@ void JunctionTree::SeparatorLevelOperation(bool is_collect, int i, int num_threa
         partial_config[j] = new int[mar_clique->p_table.table_size * num_vars];
 
         mar_clique->p_table.TableMarginalizationPre(set_external_vars, tmp_pt[j]);
-        int k = 0;
-        for (auto &v: tmp_pt[j].vec_related_variables) {
-            // just to avoid using "GetVariableIndex"
-            loc_in_old[j][k++] = mar_clique->p_table.TableReductionPre(v);
+        for (int k = 0; k < tmp_pt[j].num_variables; ++k) {
+            loc_in_old[j][k] = mar_clique->p_table.TableReductionPre(tmp_pt[j].vec_related_variables[k]);
         }
     }
     timer->Stop("pre-sep");
@@ -503,27 +501,6 @@ void JunctionTree::CliqueLevelOperation(bool is_collect, int i, int size,
                                         int num_threads, Timer *timer) {
     timer->Start("pre-clq");
 
-    /**
-     * the purpose of this part is to avoid extension and multiplication when the separator has no related variable
-     * i.e., the potential table of separator is "1 vector" (1, 1, ..., 1)
-     * however, the implementation is wrong because we perform all the operations on "size" cliques together
-     * so we cannot just "return" if we find one of the related separator has no related variable
-     */
-//    for (int j = 0; j < size; ++j) { // for each clique in this level
-//        Clique *clique, *separator;
-//        if (is_collect) {
-//            clique = nodes_by_level[i][has_kth_child[j]];
-//            separator = clique->ptr_downstream_cliques[k];
-//        } else {
-//            clique = nodes_by_level[i][j];
-//            separator = clique->ptr_upstream_clique;
-//        }
-//
-//        if (separator->p_table.vec_related_variables.empty()) {
-//            return;
-//        }
-//    }
-
     // used to store the (separator) potential tables that are needed to be extended
     vector<PotentialTable> tmp_pt;
     tmp_pt.reserve(size);
@@ -586,10 +563,8 @@ void JunctionTree::CliqueLevelOperation(bool is_collect, int i, int size,
             int last = vector_extension.size() - 1;
             // generate an array showing the locations of the variables of the new table in the old table
             loc_in_new[last] = new int[separator->p_table.num_variables];
-            int k = 0;
-            for (auto &v: separator->p_table.vec_related_variables) {
-                // just to avoid using "GetVariableIndex"
-                loc_in_new[last][k++] = pt.TableReductionPre(v);
+            for (int k = 0; k < separator->p_table.num_variables; ++k) {
+                loc_in_new[last][k] = pt.TableReductionPre(separator->p_table.vec_related_variables[k]);
             }
             table_index[last] = new int[pt.table_size];
 
