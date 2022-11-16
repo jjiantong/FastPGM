@@ -1,8 +1,6 @@
 #include "Clique.h"
 
 Clique::Clique() {
-    clique_size = -1;
-    pure_discrete = true;
     ptr_upstream_clique = nullptr;
 }
 
@@ -16,9 +14,6 @@ Clique::Clique() {
  * TODO: only support (pure) discrete cases now
  */
 Clique::Clique(set<int> set_node_index, Network *net) : clique_variables(set_node_index) {
-    clique_size = set_node_index.size();
-    pure_discrete = true;
-
     /**
      * potential table
      * an object of class PotentialTable is a class variable of class Clique ("p_table")

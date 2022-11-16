@@ -16,8 +16,7 @@ typedef set< pair<int, int> > DiscreteConfig;
 
 class Clique {
 public:
-    int clique_size;//the number of nodes in this clique
-    bool pure_discrete;
+//    bool pure_discrete;
     set <int> clique_variables;
     PotentialTable p_table;
     set<Clique*> set_neighbours_ptr; // neighbor cliques

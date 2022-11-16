@@ -8,7 +8,6 @@
  */
 class Separator : public Clique {
 public:
-    int weight;//the number of nodes in this separator
     bool is_in_jt;
     PotentialTable old_ptable;
 

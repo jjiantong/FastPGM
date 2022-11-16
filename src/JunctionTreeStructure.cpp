@@ -271,7 +271,7 @@ void JunctionTreeStructure::FormJunctionTree() {
                 ||
                 (tree_so_far.find(clq1) == tree_so_far.end() && tree_so_far.find(clq2) != tree_so_far.end())) {
                 // And if the weight of this separator is the largest.
-                if (max_weight_sep==nullptr || max_weight_sep->weight < sep_ptr->weight) {
+                if (max_weight_sep==nullptr || max_weight_sep->p_table.num_variables < sep_ptr->p_table.num_variables) {
                     max_weight_sep = sep_ptr;
                 }
             }
@@ -326,9 +326,6 @@ void JunctionTreeStructure::AssignPotentials() { //checked
         for (auto &clique_ptr : vector_clique_ptr_container) { // for each clique of the graph
             if (pt.vec_related_variables.empty() || clique_ptr->clique_variables.empty()) {
                 break;
-            }
-            if (!clique_ptr->pure_discrete) {
-                continue;
             }
 
             // get the variables that in the potential table but not in the clique

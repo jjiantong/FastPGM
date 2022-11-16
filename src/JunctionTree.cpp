@@ -420,7 +420,7 @@ void JunctionTree::SeparatorLevelOperation(bool is_collect, int i, int num_threa
         // find the variables to be marginalized
         set<int> set_external_vars;
         set_difference(mar_clique->p_table.vec_related_variables.begin(), mar_clique->p_table.vec_related_variables.end(),
-                       separator->clique_variables.begin(), separator->clique_variables.end(),
+                       separator->p_table.vec_related_variables.begin(), separator->p_table.vec_related_variables.end(),
                        inserter(set_external_vars, set_external_vars.begin()));
 
         int num_vars = mar_clique->p_table.num_variables - set_external_vars.size();
@@ -780,10 +780,6 @@ PotentialTable JunctionTree::CalculateMarginalProbability(int query_index) {
     // TODO: find from separator
     for (auto &c : tree->vector_clique_ptr_container) {
 
-        if (!c->pure_discrete) {
-            continue;
-        }
-
         set<int> rv;
         for (int i = 0; i < c->p_table.num_variables; ++i) { // for each related variable
             rv.insert(c->p_table.vec_related_variables[i]);
@@ -805,24 +801,11 @@ PotentialTable JunctionTree::CalculateMarginalProbability(int query_index) {
         exit(1);
     }
 
-    // todo: use vector this part and marginalization part
     set<int> other_vars;
     for (int i = 0; i < selected_clique->p_table.num_variables; ++i) {
         other_vars.insert(selected_clique->p_table.vec_related_variables[i]);
     }
     other_vars.erase(query_index);
-
-//    vector<int> other_vars(selected_clique->p_table.num_variables - 1);
-//    int i = 0;
-//    while (selected_clique->p_table.vec_related_variables[i] != query_index) {
-//        other_vars[i] = selected_clique->p_table.vec_related_variables[i];
-//        i++;
-//    } // end while, now this->vec_related_variables[i] = index
-//    i++; // skip the index
-//    while (i < selected_clique->p_table.num_variables) {
-//        other_vars[i - 1] = selected_clique->p_table.vec_related_variables[i];
-//        i++;
-//    }
 
     PotentialTable pt = selected_clique->p_table;
     pt.TableMarginalization(other_vars);
@@ -865,10 +848,6 @@ void JunctionTree::GetProbabilitiesOneNode(const DiscreteConfig &E, int index) {
     // TODO: find from separator
     for (auto &c : tree->vector_clique_ptr_container) {
 
-        if (!c->pure_discrete) {
-            continue;
-        }
-
         set<int> rv;
         for (int i = 0; i < c->p_table.num_variables; ++i) { // for each related variable
             rv.insert(c->p_table.vec_related_variables[i]);
@@ -890,14 +869,11 @@ void JunctionTree::GetProbabilitiesOneNode(const DiscreteConfig &E, int index) {
         exit(1);
     }
 
-    // todo: use vector this part and marginalization part
     set<int> other_vars;
     for (int i = 0; i < selected_clique->p_table.num_variables; ++i) {
         other_vars.insert(selected_clique->p_table.vec_related_variables[i]);
     }
     other_vars.erase(query_index);
-
-
 
     PotentialTable pt = selected_clique->p_table;
     pt.TableMarginalization(other_vars);

@@ -325,63 +325,32 @@ void PotentialTable::TableMarginalization(const set<int> &ext_variables) {
 
 void PotentialTable::TableMarginalizationPre(const set<int> &ext_variables, PotentialTable &new_table) {
     new_table.num_variables = this->num_variables - ext_variables.size();
-    new_table.vec_related_variables.resize(new_table.num_variables);
-
-//    if (new_table.num_variables == 0) {
-//        new_table.vec_related_variables = vector<int>();
-//        new_table.var_dims = vector<int>();
-//        new_table.cum_levels = vector<int>();
-//        new_table.table_size = 1;
-//    } else {
-//        new_table.vec_related_variables.resize(new_table.num_variables);
-//        new_table.var_dims.resize(new_table.num_variables);
-//
-//        // remove "ext_variables" from "this->vec_related_variables" -> "new_table.vec_related_variables"
-//        // and store the var dims for the left variables at the same time
-//        int i = 0, j = 0, k = 0; // i for this table, j for ext vars, k for new table
-//        while (i < this->num_variables && j < ext_variables.size()) {
-//            while (this->vec_related_variables[i] != ext_variables[j]) {
-//                // if this value is not in ext vars
-//                new_table.vec_related_variables[k] = this->vec_related_variables[i];
-//                new_table.var_dims[k++] = this->var_dims[i++];
-//            } // end of while, now this->vec_related_variables[i] == ext_variables[j]
-//            // skip this value and move to the next
-//            i++;
-//            j++;
-//        }
-//
-//        new_table.ConstructCumLevels();
-//        new_table.table_size = new_table.cum_levels[0] * new_table.var_dims[0];
-//    }
-
-
-    set<int> tmp_ext_vars = ext_variables;
-    int j = 0;
-    for (int i = 0; i < this->num_variables; ++i) { // for each related variable of this table
-        int variable = this->vec_related_variables[i];
-        if (tmp_ext_vars.find(variable) != tmp_ext_vars.end()) { // if this variable is in external variables
-            // remove this variable from external variables
-            tmp_ext_vars.erase(variable);
-        } else { // if this variable is not in external variables
-            // add this variable into new table's related variables
-            new_table.vec_related_variables[j++] = variable;
-        }
-    }
 
     // update the new table's var dims, cum levels and table size
     if (new_table.num_variables == 0) {
+        new_table.vec_related_variables = vector<int>();
         new_table.var_dims = vector<int>();
         new_table.cum_levels = vector<int>();
         new_table.table_size = 1;
     } else {
-        new_table.var_dims.reserve(new_table.num_variables);
-        int k = 0;
-        for (auto &v: this->vec_related_variables) {
-            if (ext_variables.find(v) == ext_variables.end()) { // v is not in ext_variables
-                new_table.var_dims.push_back(this->var_dims[k]);
+        new_table.vec_related_variables.resize(new_table.num_variables);
+        new_table.var_dims.resize(new_table.num_variables);
+
+        set<int> tmp_ext_vars = ext_variables;
+        int j = 0;
+        for (int i = 0; i < this->num_variables; ++i) { // for each related variable of this table
+            int variable = this->vec_related_variables[i];
+            if (tmp_ext_vars.find(variable) != tmp_ext_vars.end()) { // if this variable is in external variables
+                // remove this variable from external variables
+                tmp_ext_vars.erase(variable);
+            } else { // if this variable is not in external variables
+                // add this variable into new table's related variables
+                // and add its dim at the same time
+                new_table.vec_related_variables[j] = variable;
+                new_table.var_dims[j++] = this->var_dims[i];
             }
-            k++;
         }
+
         new_table.ConstructCumLevels();
         new_table.table_size = new_table.cum_levels[0] * new_table.var_dims[0];
     }
@@ -611,31 +580,33 @@ void PotentialTable::TableMultiplicationTwoExtension(PotentialTable &second_tabl
     set_all_related_variables.insert(second_table.vec_related_variables.begin(), second_table.vec_related_variables.end());
     int d1 = set_all_related_variables.size() - this->num_variables;
     int d2 = set_all_related_variables.size() - second_table.num_variables;
-    vector<int> all_related_variables(set_all_related_variables.size());
-    int i = 0;
-    for (auto &v: set_all_related_variables) {
-        all_related_variables[i++] = v;
-    }
 
     if (d1 == 0 && d2 == 0) { // if both table1 and table2 should not be extended
         // do nothing
     } else if (d1 > 0 && d2 == 0) { // if table1 should be extended and table2 not
-        this->TableExtension(all_related_variables, second_table.var_dims);
+        this->TableExtension(second_table.vec_related_variables, second_table.var_dims);
     } else if (d1 == 0 && d2 > 0) { // if table2 should be extended and table1 not
-        second_table.TableExtension(all_related_variables, this->var_dims);
+        second_table.TableExtension(this->vec_related_variables, this->var_dims);
     } else { // if both table1 and table2 should be extended
-        vector<int> dims; // to save dims of the new related variables
-        dims.reserve(all_related_variables.size());
-        // to find the location of each new related variable
-        for (auto &v: all_related_variables) {
+        vector<int> all_related_variables(set_all_related_variables.size());
+        vector<int> dims(set_all_related_variables.size());
+
+        // store elements in set into vector
+        // and store their dim at the same time
+        int i = 0;
+        for (auto &v: set_all_related_variables) {
+            all_related_variables[i] = v;
+            // to find the location of each new related variable
             int loc = this->GetVariableIndex(v);
             if (loc < this->num_variables) { // find it in table1
-                dims.push_back(this->var_dims[loc]);
+                dims[i] = this->var_dims[loc];
             } else { // cannot find in table1, we need to find it in table2
                 loc = second_table.GetVariableIndex(v);
-                dims.push_back(second_table.var_dims[loc]);
+                dims[i] = second_table.var_dims[loc];
             }
+            i++;
         }
+
         this->TableExtension(all_related_variables, dims);
         second_table.TableExtension(all_related_variables, dims);
     }
