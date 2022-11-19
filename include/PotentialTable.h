@@ -34,6 +34,12 @@ public:
     void ConstructEmptyPotentialTable(const set<int> &set_node_index, Network *net);
 
     /**
+     * potential table optimization: table reorganization
+     */
+    void TableReorganizationPre(const vector<int> &common_variables, PotentialTable &new_table, vector<int> &locations);
+    void TableReorganizationMain(int k, int *config1, int *config2, PotentialTable &old_table, const vector<int> &locations);
+
+    /**
      * potential table operation 1: table reduction
      */
     void TableReduction(int e_index, int e_value_index, int num_threads);

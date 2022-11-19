@@ -181,6 +181,66 @@ int PotentialTable::GetVariableIndex(const int &variable) {
     return num_variables;
 }
 
+void PotentialTable::TableReorganizationPre(const vector<int> &common_variables, PotentialTable &new_table, vector<int> &locations) {
+    // maintain
+    new_table.num_variables = this->num_variables;
+    new_table.table_size = this->table_size;
+    new_table.potentials.resize(new_table.table_size);
+
+    new_table.vec_related_variables.resize(new_table.num_variables);
+    new_table.var_dims.resize(new_table.num_variables);
+    locations.resize(new_table.num_variables);
+    vector<int> tmp_loc(common_variables.size()); // to record the location of the common variables
+
+    // remove common_variables from this->table.related_variables
+    // and handle the new var_dims at the same time
+    int i = 0, j = 0, k = 0; // i for this table, j for common, k for new table
+    int m = 0; // for tmp loc
+    while (i < this->num_variables && j < common_variables.size()) {
+        while (this->vec_related_variables[i] != common_variables[j]) {
+            // this variable is not in common variables, keep it
+            locations[k] = i;
+            new_table.vec_related_variables[k] = this->vec_related_variables[i];
+            new_table.var_dims[k++] = this->var_dims[i++];
+        } // end of while, now this table i == common j
+        // this variable is in common variables, skip it
+        tmp_loc[m++] = i;
+        i++;
+        j++;
+    } // end of while, two possible cases: 1. i = this->num_variables; 2. j = common_variables.size()
+
+    // if only 2 but not 1, post-process the left elements
+    while (i < this->num_variables) {
+        // this variable is not in common variables, keep it
+        locations[k] = i;
+        new_table.vec_related_variables[k] = this->vec_related_variables[i];
+        new_table.var_dims[k++] = this->var_dims[i++];
+    }
+
+    // after those variables that are not in common_variables, add common_variables
+    for (int l = 0; l < common_variables.size(); ++l) {
+        new_table.vec_related_variables[k + l] = common_variables[l];
+        new_table.var_dims[k + l] = this->var_dims[tmp_loc[l]];
+        locations[k + l] = tmp_loc[l];
+    }
+
+    new_table.ConstructCumLevels();
+}
+
+void PotentialTable::TableReorganizationMain(int k, int *config1, int *config2, PotentialTable &old_table, const vector<int> &locations) {
+    // 1. get the config value of old table
+    old_table.PotentialTableBase::GetConfigValueByTableIndex(k, config1);
+    // 2. get the config value of new table from the config value of old table
+    for (int l = 0; l < this->num_variables; ++l) {
+        config2[l] = config1[locations[l]];
+    }
+    // 3. obtain the potential index of new table
+    int table_index = PotentialTableBase::GetTableIndexByConfigValue(config2);
+    // 4. potential[table_index]
+    this->potentials[table_index] = old_table.potentials[k];
+}
+
+
 /**
  * @brief: table operation 1: table reduction - reduce factors given evidence
  * @example:    a0 b0 c0    0.3             b0 c0    0.3

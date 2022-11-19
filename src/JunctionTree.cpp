@@ -17,6 +17,9 @@ JunctionTree::JunctionTree(Network *net, Dataset *dts, bool is_dense) : Inferenc
     MarkLevel();
     cout << "finish MarkLevel" << endl;
 
+    ReorganizeTableStorage(num_instances);
+    cout << "finish reorganizing table storage" << endl;
+
     BackUpJunctionTree();
     cout << "finish BackUpJunctionTree" << endl;
 
@@ -129,6 +132,126 @@ void JunctionTree::MarkLevel() {
     nodes_by_level.pop_back();
     separators_by_level.pop_back();
     max_level = nodes_by_level.size();
+}
+
+/**
+ * @brief: re-organize table storage before message passing, by constraining the order of variables
+ *      for each non-root clique C, it has an upstreaming separator S,
+ *      the variables in the higher order are the variables not in S,
+ *      the variables in the lower order are the variables inHCCHHHHHHHHHHHHHhhhyyyyyyyyyyyyyyy S
+ * the computations of marginalization in collection and extension in distribution can be simplified
+ * by reducing the computation of finding the index mappings between the involved tables
+ */
+void JunctionTree::ReorganizeTableStorage(int num_threads) {
+    for (int i = 0; i < tree->vector_clique_ptr_container.size(); ++i) { // for each clique in the junction tree
+        Clique *clique = tree->vector_clique_ptr_container[i];
+        if (!clique->ptr_upstream_clique) { // skip the root clique
+            cout << i << ": is root" << endl;
+            continue;
+        }
+
+        bool need_reorganize = false;
+        Clique *separator = clique->ptr_upstream_clique;
+
+        for (int j = 0; j < separator->p_table.num_variables; ++j) {
+            if (clique->p_table.vec_related_variables[clique->p_table.num_variables - j - 1] !=
+                separator->p_table.vec_related_variables[separator->p_table.num_variables - j - 1]) {
+                need_reorganize = true;
+                break;
+            }
+        }
+        if (!need_reorganize) { // skip the clique that is in the right order
+            cout << i << ": " << endl;
+            cout << "related variables: ";
+            for (int j = 0; j < clique->p_table.num_variables; ++j) {
+                cout << clique->p_table.vec_related_variables[j] << ", ";
+            }
+            cout << endl << "common: ";
+            for (int j = 0; j < separator->p_table.num_variables; ++j) {
+                cout << separator->p_table.vec_related_variables[j] << ", ";
+            }
+            cout << endl;
+
+            continue;
+        }
+
+
+        cout << i << ": " << endl;
+        cout << "related variables: ";
+        for (int j = 0; j < clique->p_table.num_variables; ++j) {
+            cout << clique->p_table.vec_related_variables[j] << ", ";
+        }
+        cout << endl << "var dims: ";
+        for (int j = 0; j < clique->p_table.num_variables; ++j) {
+            cout << clique->p_table.var_dims[j] << ", ";
+        }
+        cout << endl << "cum levels: ";
+        for (int j = 0; j < clique->p_table.num_variables; ++j) {
+            cout << clique->p_table.cum_levels[j] << ", ";
+        }
+        cout << endl << "potentials: ";
+        for (int j = 0; j < clique->p_table.table_size; ++j) {
+            cout << clique->p_table.potentials[j] << ", ";
+        }
+        cout << endl;
+
+        cout << "common: ";
+        for (int j = 0; j < separator->p_table.num_variables; ++j) {
+            cout << separator->p_table.vec_related_variables[j] << ", ";
+        }
+        cout << endl;
+
+
+
+        /**
+         * do table re-organization
+         */
+        int *config1 = new int[clique->p_table.num_variables];
+        int *config2 = new int[clique->p_table.num_variables];
+
+        PotentialTable new_table;
+        vector<int> locations;
+        clique->p_table.TableReorganizationPre(separator->p_table.vec_related_variables, new_table, locations);
+
+        // the main loop
+        for (int k = 0; k < new_table.table_size; ++k) {
+            new_table.TableReorganizationMain(k, config1, config2, clique->p_table, locations);
+        }
+
+
+
+        cout << "related variables: ";
+        for (int j = 0; j < new_table.num_variables; ++j) {
+            cout << new_table.vec_related_variables[j] << ", ";
+        }
+        cout << endl << "var dims: ";
+        for (int j = 0; j < new_table.num_variables; ++j) {
+            cout << new_table.var_dims[j] << ", ";
+        }
+        cout << endl << "cum levels: ";
+        for (int j = 0; j < new_table.num_variables; ++j) {
+            cout << new_table.cum_levels[j] << ", ";
+        }
+        cout << endl << "potentials: ";
+        for (int j = 0; j < new_table.table_size; ++j) {
+            cout << new_table.potentials[j] << ", ";
+        }
+        cout << endl;
+
+
+
+
+
+
+
+
+
+
+        clique->p_table = new_table;
+
+        SAFE_DELETE_ARRAY(config1);
+        SAFE_DELETE_ARRAY(config2);
+    }
 }
 
 /**
@@ -341,13 +464,13 @@ void JunctionTree::MessagePassingUpdateJT(int num_threads, Timer *timer) {
      * 2. omp parallel for
      */
     timer->Start("upstream");
-//    arb_root->Collect3(nodes_by_level, max_level, num_threads, timer);
-    Collect(num_threads, timer);
+    arb_root->Collect3(nodes_by_level, max_level, num_threads, timer);
+//    Collect(num_threads, timer);
     timer->Stop("upstream");
 
     timer->Start("downstream");
-//    arb_root->Distribute3(nodes_by_level, max_level, num_threads);
-    Distribute(num_threads, timer);
+    arb_root->Distribute3(nodes_by_level, max_level, num_threads);
+//    Distribute(num_threads, timer);
     timer->Stop("downstream");
 }
 

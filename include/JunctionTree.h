@@ -40,6 +40,7 @@ protected:
     Separator* separator_backup; // use an array to backup separators
 
     void MarkLevel();
+    void ReorganizeTableStorage(int num_threads);
     void BackUpJunctionTree();
 
     void LoadDiscreteEvidence(const DiscreteConfig &E, int num_threads, Timer *timer);
