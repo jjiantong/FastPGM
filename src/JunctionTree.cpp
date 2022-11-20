@@ -138,7 +138,7 @@ void JunctionTree::MarkLevel() {
  * @brief: re-organize table storage before message passing, by constraining the order of variables
  *      for each non-root clique C, it has an upstreaming separator S,
  *      the variables in the higher order are the variables not in S,
- *      the variables in the lower order are the variables inHCCHHHHHHHHHHHHHhhhyyyyyyyyyyyyyyy S
+ *      the variables in the lower order are the variables in S
  * the computations of marginalization in collection and extension in distribution can be simplified
  * by reducing the computation of finding the index mappings between the involved tables
  */
@@ -146,7 +146,6 @@ void JunctionTree::ReorganizeTableStorage(int num_threads) {
     for (int i = 0; i < tree->vector_clique_ptr_container.size(); ++i) { // for each clique in the junction tree
         Clique *clique = tree->vector_clique_ptr_container[i];
         if (!clique->ptr_upstream_clique) { // skip the root clique
-            cout << i << ": is root" << endl;
             continue;
         }
 
@@ -161,47 +160,8 @@ void JunctionTree::ReorganizeTableStorage(int num_threads) {
             }
         }
         if (!need_reorganize) { // skip the clique that is in the right order
-            cout << i << ": " << endl;
-            cout << "related variables: ";
-            for (int j = 0; j < clique->p_table.num_variables; ++j) {
-                cout << clique->p_table.vec_related_variables[j] << ", ";
-            }
-            cout << endl << "common: ";
-            for (int j = 0; j < separator->p_table.num_variables; ++j) {
-                cout << separator->p_table.vec_related_variables[j] << ", ";
-            }
-            cout << endl;
-
             continue;
         }
-
-
-        cout << i << ": " << endl;
-        cout << "related variables: ";
-        for (int j = 0; j < clique->p_table.num_variables; ++j) {
-            cout << clique->p_table.vec_related_variables[j] << ", ";
-        }
-        cout << endl << "var dims: ";
-        for (int j = 0; j < clique->p_table.num_variables; ++j) {
-            cout << clique->p_table.var_dims[j] << ", ";
-        }
-        cout << endl << "cum levels: ";
-        for (int j = 0; j < clique->p_table.num_variables; ++j) {
-            cout << clique->p_table.cum_levels[j] << ", ";
-        }
-        cout << endl << "potentials: ";
-        for (int j = 0; j < clique->p_table.table_size; ++j) {
-            cout << clique->p_table.potentials[j] << ", ";
-        }
-        cout << endl;
-
-        cout << "common: ";
-        for (int j = 0; j < separator->p_table.num_variables; ++j) {
-            cout << separator->p_table.vec_related_variables[j] << ", ";
-        }
-        cout << endl;
-
-
 
         /**
          * do table re-organization
@@ -217,35 +177,6 @@ void JunctionTree::ReorganizeTableStorage(int num_threads) {
         for (int k = 0; k < new_table.table_size; ++k) {
             new_table.TableReorganizationMain(k, config1, config2, clique->p_table, locations);
         }
-
-
-
-        cout << "related variables: ";
-        for (int j = 0; j < new_table.num_variables; ++j) {
-            cout << new_table.vec_related_variables[j] << ", ";
-        }
-        cout << endl << "var dims: ";
-        for (int j = 0; j < new_table.num_variables; ++j) {
-            cout << new_table.var_dims[j] << ", ";
-        }
-        cout << endl << "cum levels: ";
-        for (int j = 0; j < new_table.num_variables; ++j) {
-            cout << new_table.cum_levels[j] << ", ";
-        }
-        cout << endl << "potentials: ";
-        for (int j = 0; j < new_table.table_size; ++j) {
-            cout << new_table.potentials[j] << ", ";
-        }
-        cout << endl;
-
-
-
-
-
-
-
-
-
 
         clique->p_table = new_table;
 
@@ -542,9 +473,39 @@ void JunctionTree::SeparatorLevelOperation(bool is_collect, int i, int num_threa
 
         // find the variables to be marginalized
         set<int> set_external_vars;
-        set_difference(mar_clique->p_table.vec_related_variables.begin(), mar_clique->p_table.vec_related_variables.end(),
-                       separator->p_table.vec_related_variables.begin(), separator->p_table.vec_related_variables.end(),
+//        set_difference(mar_clique->p_table.vec_related_variables.begin(), mar_clique->p_table.vec_related_variables.end(),
+//                       separator->p_table.vec_related_variables.begin(), separator->p_table.vec_related_variables.end(),
+//                       inserter(set_external_vars, set_external_vars.begin()));
+
+        // TODO: see comments in Separator
+//        // implement set_difference: since set_difference requires the two containers have ordered elements
+//        // remove separator->p_table.vec_related_variables (n) from mar_clique->p_table.vec_related_variables (m)
+//        int m = 0, n = 0;
+//        while (m < mar_clique->p_table.num_variables && n < separator->p_table.num_variables) {
+//            while (mar_clique->p_table.vec_related_variables[m] != separator->p_table.vec_related_variables[n]) {
+//                // this variable of mar_clique is not in this separator, keep it
+//                set_external_vars.insert(mar_clique->p_table.vec_related_variables[m]);
+//                m++;
+//            } // end of while, now tmp pt m == this n
+//            // this variable is in this separator, skip it
+//            m++;
+//            n++;
+//        } // end of while, two possible cases: 1. m = separator->mar_clique.num_variables; 2. n = separator->p_table.num_variables
+//
+//        // if only 2 but not 1, post-process the left elements
+//        while (m < mar_clique->p_table.num_variables) {
+//            // this variable of mar_clique is not in this separator, keep it
+//            set_external_vars.insert(mar_clique->p_table.vec_related_variables[m]);
+//            m++;
+//        }
+
+        vector<int> big = mar_clique->p_table.vec_related_variables;
+        vector<int> small = separator->p_table.vec_related_variables;
+        sort(big.begin(), big.end());
+        sort(small.begin(), small.end());
+        set_difference(big.begin(), big.end(),small.begin(), small.end(),
                        inserter(set_external_vars, set_external_vars.begin()));
+
 
         int num_vars = mar_clique->p_table.num_variables - set_external_vars.size();
         // generate an array showing the locations of the variables of the new table in the old table

@@ -1,6 +1,7 @@
 #ifndef BAYESIANNETWORK_SEPARATOR_H
 #define BAYESIANNETWORK_SEPARATOR_H
 
+#include <algorithm>
 #include "Clique.h"
 
 /**
