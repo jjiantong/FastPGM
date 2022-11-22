@@ -36,6 +36,7 @@ public:
     /**
      * potential table optimization: table reorganization
      */
+    void TableReorganization(const PotentialTable &refer_table);
     void TableReorganizationPre(const vector<int> &common_variables, PotentialTable &new_table, vector<int> &locations);
     void TableReorganizationMain(int k, int *config1, int *config2, PotentialTable &old_table, const vector<int> &locations);
 

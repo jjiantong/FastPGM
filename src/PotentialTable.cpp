@@ -181,6 +181,51 @@ int PotentialTable::GetVariableIndex(const int &variable) {
     return num_variables;
 }
 
+/**
+ * @brief: table operation: table re-organization - re-organize the configuration order of the potential table
+ * the related variables remain the same, but their order is changed
+ * there are two types of table re-organization:
+ * 1. change the order according to another potential table
+ *    this is use before multiplication in the collection procedure (practically can be used before all multiplications)
+ *    TableReorganization() here implements this type
+ * 2. change the order according to some optimization rules
+ *    refer to ReorganizeTableStorage() in JunctionTree
+ *    TableReorganizationPre() below is for this type (also showing the optimization rules)
+ * The main part of them (TableReorganizationMain() below) are the same
+ */
+void PotentialTable::TableReorganization(const PotentialTable &refer_table) {
+    // all things except for potentials are maintained
+    PotentialTable new_table = refer_table;
+
+    // the locations of the elements in the old table
+    // e.g., locations[0] means the locations of new_table.vec_related_variables[0] in this->vec_related_variables
+    // i.e., new_table.vec_related_variables[0] = this->vec_related_variables[locations[0]]
+    vector<int> locations(this->num_variables);
+    for (int i = 0; i < new_table.num_variables; ++i) { // for each new table's related variable
+        int variable = new_table.vec_related_variables[i];
+        // find the location of this variable in the old table
+        for (int j = 0; j < this->num_variables; ++j) {
+            if (variable == this->vec_related_variables[j]) {
+                locations[i] = j;
+                break;
+            }
+        }
+    }
+
+    int *config1 = new int[this->num_variables];
+    int *config2 = new int[this->num_variables];
+
+    // the main loop
+    for (int k = 0; k < new_table.table_size; ++k) {
+        new_table.TableReorganizationMain(k, config1, config2, *this, locations);
+    }
+
+    (*this) = new_table;
+
+    SAFE_DELETE_ARRAY(config1);
+    SAFE_DELETE_ARRAY(config2);
+}
+
 void PotentialTable::TableReorganizationPre(const vector<int> &common_variables, PotentialTable &new_table, vector<int> &locations) {
     // maintain
     new_table.num_variables = this->num_variables;
@@ -613,7 +658,17 @@ void PotentialTable::TableMultiplication(const PotentialTable &second_table) {
         for (int i = 0; i < this->table_size; ++i) {
             this->potentials[i] *= tmp_pt.potentials[i];
         }
-    } else {
+    } else { // two tables have the same size
+        // before multiplication, need to first decide whether the orders are the same
+        if (this->vec_related_variables != second_table.vec_related_variables) {
+            // if not have the same order, change the order to this table's order
+            PotentialTable tmp_pt = second_table;
+            tmp_pt.TableReorganization(*this);
+
+            for (int i = 0; i < this->table_size; ++i) {
+                this->potentials[i] *= tmp_pt.potentials[i];
+            }
+        }
         for (int i = 0; i < this->table_size; ++i) {
             this->potentials[i] *= second_table.potentials[i];
         }
