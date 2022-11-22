@@ -744,9 +744,6 @@ void PotentialTable::TableDivision(const PotentialTable &second_table) {
         return;
     }
 
-    if (this->vec_related_variables != second_table.vec_related_variables) {
-        cout << "error in division" << endl;
-    }
 //#pragma omp taskloop
     for (int i = 0; i < this->table_size; ++i) {
         if (second_table.potentials[i] == 0) {
