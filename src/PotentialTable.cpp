@@ -668,9 +668,10 @@ void PotentialTable::TableMultiplication(const PotentialTable &second_table) {
             for (int i = 0; i < this->table_size; ++i) {
                 this->potentials[i] *= tmp_pt.potentials[i];
             }
-        }
-        for (int i = 0; i < this->table_size; ++i) {
-            this->potentials[i] *= second_table.potentials[i];
+        } else {
+            for (int i = 0; i < this->table_size; ++i) {
+                this->potentials[i] *= second_table.potentials[i];
+            }
         }
     }
 }
@@ -743,6 +744,9 @@ void PotentialTable::TableDivision(const PotentialTable &second_table) {
         return;
     }
 
+    if (this->vec_related_variables != second_table.vec_related_variables) {
+        cout << "error in division" << endl;
+    }
 //#pragma omp taskloop
     for (int i = 0; i < this->table_size; ++i) {
         if (second_table.potentials[i] == 0) {

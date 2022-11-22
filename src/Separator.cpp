@@ -44,15 +44,62 @@ void Separator::UpdateMessage(const PotentialTable &pt) {
 //        i++;
 //    }
 
-    vector<int> big = tmp_pt.vec_related_variables;
+    vector<int> big = pt.vec_related_variables;
     vector<int> small = this->p_table.vec_related_variables;
     sort(big.begin(), big.end());
     sort(small.begin(), small.end());
     set_difference(big.begin(), big.end(),small.begin(), small.end(),
                    inserter(set_external_vars, set_external_vars.begin()));
 
+    if (set_external_vars.empty()) { // two tables have the same size
+        // don't need to do marginalization,
+        // but before division, need to first decide whether the orders are the same
+        if (p_table.vec_related_variables != pt.vec_related_variables) {
+            // if not have the same order, change the order to this table's order
 
-    tmp_pt.TableMarginalization(set_external_vars);
+//            cout << "same size and different order" << endl;
+//            cout << "this separator table: ";
+//            for (int i = 0; i < this->p_table.num_variables; ++i) {
+//                cout << this->p_table.vec_related_variables[i] << " ";
+//            }
+//            cout << endl << "potentials: ";
+//            for (int i = 0; i < this->p_table.table_size; ++i) {
+//                cout << this->p_table.potentials[i] << " ";
+//            }
+//            cout << endl;
+//
+//            cout << "its neighboring clique table: ";
+//            for (int i = 0; i < pt.num_variables; ++i) {
+//                cout << pt.vec_related_variables[i] << " ";
+//            }
+//            cout << endl << "potentials: ";
+//            for (int i = 0; i < pt.table_size; ++i) {
+//                cout << pt.potentials[i] << " ";
+//            }
+//            cout << endl;
+
+            tmp_pt.TableReorganization(p_table);
+
+//            cout << "after reorganization: ";
+//            for (int i = 0; i < tmp_pt.num_variables; ++i) {
+//                cout << tmp_pt.vec_related_variables[i] << " ";
+//            }
+//            cout << endl << "potentials: ";
+//            for (int i = 0; i < tmp_pt.table_size; ++i) {
+//                cout << tmp_pt.potentials[i] << " ";
+//            }
+//            cout << endl;
+        }
+    } else {
+        // need to do the marginalization
+        tmp_pt.TableMarginalization(set_external_vars);
+    }
+
+
+//    if (!set_external_vars.empty()) {
+//        tmp_pt.TableMarginalization(set_external_vars);
+//    }
+//
     tmp_pt.TableDivision(old_ptable);
 
     p_table = tmp_pt;
