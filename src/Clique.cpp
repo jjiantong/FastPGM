@@ -67,6 +67,7 @@ void Clique::Collect3(vector<vector<Clique*>> &cliques, int max_level, int num_t
 //#pragma omp parallel for
         for (int j = 0; j < cliques[i].size(); ++j) { // for each clique of this level
             for (auto &ptr_child : cliques[i][j]->ptr_downstream_cliques) {
+//                cout << "collect-";
                 cliques[i][j]->UpdateMessage(ptr_child->p_table);
             }
         }
@@ -129,6 +130,7 @@ void Clique::Distribute3(vector<vector<Clique*>> &cliques, int max_level, int nu
         for (int j = 0; j < cliques[i].size(); ++j) { // for each clique in this level
             auto clique = cliques[i][j];
             auto par = clique->ptr_upstream_clique;
+//            cout << "distribute-";
             clique->UpdateMessage(par->p_table);
         }
     }
@@ -141,4 +143,16 @@ void Clique::Distribute3(vector<vector<Clique*>> &cliques, int max_level, int nu
 void Clique::UpdateMessage(const PotentialTable &pt) {
     PotentialTable tmp_pt = pt;
     p_table.TableMultiplication(tmp_pt); // multiply two factors
+
+
+//    cout << "related variables: ";
+//    for (int i = 0; i < p_table.num_variables; ++i) {
+//        cout << p_table.vec_related_variables[i] << ", ";
+//    }
+//    cout << endl;
+//    cout << "potentials: ";
+//    for (int i = 0; i < p_table.table_size; ++i) {
+//        cout << p_table.potentials[i] << ", ";
+//    }
+//    cout << endl;
 }

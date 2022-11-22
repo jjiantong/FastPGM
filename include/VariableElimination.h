@@ -15,7 +15,7 @@ public:
 
     VariableElimination(Network *net, Dataset *dts, bool is_dense);
 
-    virtual double EvaluateAccuracy(int num_threads);
+    virtual double EvaluateAccuracy(string path, int num_threads);
 
 protected:
     void InitializeCPTAndLoadEvidence(const vector<int> &left_nodes, const DiscreteConfig &evidence, int num_threads);

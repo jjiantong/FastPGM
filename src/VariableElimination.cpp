@@ -8,7 +8,7 @@ VariableElimination::VariableElimination(Network *net, Dataset *dts, bool is_den
     elimination_orderings = vector<vector<int>> (num_instances, vector<int>{});
 }
 
-double VariableElimination::EvaluateAccuracy(int num_threads) {
+double VariableElimination::EvaluateAccuracy(string path, int num_threads) {
     cout << "==================================================" << '\n'
          << "Begin testing the trained network." << endl;
 

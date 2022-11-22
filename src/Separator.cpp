@@ -12,6 +12,7 @@ Separator::Separator(set<int> set_node_index, Network *net): Clique(set_node_ind
  * merge the above two methods
  */
 void Separator::UpdateMessage(const PotentialTable &pt) {
+
     old_ptable = p_table;
     PotentialTable tmp_pt = pt;
 
@@ -51,23 +52,19 @@ void Separator::UpdateMessage(const PotentialTable &pt) {
                    inserter(set_external_vars, set_external_vars.begin()));
 
 
-//    cout << "duo: ";
-//    for (int k = 0; k < tmp_pt.num_variables; ++k) {
-//        cout << tmp_pt.vec_related_variables[k] << ", ";
-//    }
-//    cout << endl << "shao: ";
-//    for (int k = 0; k < this->p_table.num_variables; ++k) {
-//        cout << this->p_table.vec_related_variables[k] << ", ";
-//    }
-//    cout << endl << "set diff: ";
-//    for (auto &v: set_external_vars) {
-//        cout << v << ", ";
-//    }
-//    cout << endl;
-
-
     tmp_pt.TableMarginalization(set_external_vars);
     tmp_pt.TableDivision(old_ptable);
 
     p_table = tmp_pt;
+
+//    cout << "related variables: ";
+//    for (int i = 0; i < p_table.num_variables; ++i) {
+//        cout << p_table.vec_related_variables[i] << ", ";
+//    }
+//    cout << endl;
+//    cout << "potentials: ";
+//    for (int i = 0; i < p_table.table_size; ++i) {
+//        cout << p_table.potentials[i] << ", ";
+//    }
+//    cout << endl;
 }

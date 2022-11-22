@@ -145,12 +145,40 @@ void JunctionTree::MarkLevel() {
 void JunctionTree::ReorganizeTableStorage(int num_threads) {
     for (int i = 0; i < tree->vector_clique_ptr_container.size(); ++i) { // for each clique in the junction tree
         Clique *clique = tree->vector_clique_ptr_container[i];
+
+//        cout << i << ": " << endl;
+//        for (int j = 0; j < clique->p_table.num_variables; ++j) {
+//            cout << clique->p_table.vec_related_variables[j] << ", ";
+//        }
+//        cout << endl << "var dim: ";
+//        for (int j = 0; j < clique->p_table.num_variables; ++j) {
+//            cout << clique->p_table.var_dims[j] << " ";
+//        }
+//        cout << endl << "potentials: ";
+//        for (int j = 0; j < clique->p_table.table_size; ++j) {
+//            cout << clique->p_table.potentials[j] << " ,";
+//        }
+//        cout << endl;
+
+
+
         if (!clique->ptr_upstream_clique) { // skip the root clique
+//            cout << "is root, skip" << endl;
             continue;
         }
 
         bool need_reorganize = false;
         Clique *separator = clique->ptr_upstream_clique;
+
+
+
+//        cout << "sep: ";
+//        for (int j = 0; j < separator->p_table.num_variables; ++j) {
+//            cout << separator->p_table.vec_related_variables[j] << ", ";
+//        }
+//        cout << endl;
+
+
 
         for (int j = 0; j < separator->p_table.num_variables; ++j) {
             if (clique->p_table.vec_related_variables[clique->p_table.num_variables - j - 1] !=
@@ -160,6 +188,7 @@ void JunctionTree::ReorganizeTableStorage(int num_threads) {
             }
         }
         if (!need_reorganize) { // skip the clique that is in the right order
+//            cout << "no need, skip" << endl;
             continue;
         }
 
@@ -179,6 +208,23 @@ void JunctionTree::ReorganizeTableStorage(int num_threads) {
         }
 
         clique->p_table = new_table;
+
+
+
+//        cout << "after: " << endl;
+//        for (int j = 0; j < clique->p_table.num_variables; ++j) {
+//            cout << clique->p_table.vec_related_variables[j] << ", ";
+//        }
+//        cout << endl << "var dim: ";
+//        for (int j = 0; j < clique->p_table.num_variables; ++j) {
+//            cout << clique->p_table.var_dims[j] << " ";
+//        }
+//        cout << endl << "potentials: ";
+//        for (int j = 0; j < clique->p_table.table_size; ++j) {
+//            cout << clique->p_table.potentials[j] << " ,";
+//        }
+//        cout << endl;
+
 
         SAFE_DELETE_ARRAY(config1);
         SAFE_DELETE_ARRAY(config2);
