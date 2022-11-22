@@ -197,6 +197,7 @@ void JunctionTree::ReorganizeTableStorage(int num_threads) {
          */
         int *config1 = new int[clique->p_table.num_variables];
         int *config2 = new int[clique->p_table.num_variables];
+        int *table_index = new int[clique->p_table.table_size];
 
         PotentialTable new_table;
         vector<int> locations;
@@ -204,8 +205,9 @@ void JunctionTree::ReorganizeTableStorage(int num_threads) {
 
         // the main loop
         for (int k = 0; k < new_table.table_size; ++k) {
-            new_table.TableReorganizationMain(k, config1, config2, clique->p_table, locations);
+            table_index[k] = new_table.TableReorganizationMain(k, config1, config2, clique->p_table, locations);
         }
+        new_table.TableReorganizationPost(clique->p_table, table_index);
 
         clique->p_table = new_table;
 
@@ -228,6 +230,7 @@ void JunctionTree::ReorganizeTableStorage(int num_threads) {
 
         SAFE_DELETE_ARRAY(config1);
         SAFE_DELETE_ARRAY(config2);
+        SAFE_DELETE_ARRAY(table_index);
     }
 }
 

@@ -58,9 +58,9 @@ void Separator::UpdateMessage(const PotentialTable &pt) {
     // after marginalization, two tables have the same size
     // or if marginalization is not required, then the two tables already have the same size
     // but before division, we need to check whether the orders are the same
-    if (p_table.vec_related_variables != pt.vec_related_variables) {
+    if (old_ptable.vec_related_variables != pt.vec_related_variables) {
         // if not have the same order, change the order to this table's order
-        tmp_pt.TableReorganization(p_table);
+        tmp_pt.TableReorganization(old_ptable);
 
     }
 

@@ -214,16 +214,22 @@ void PotentialTable::TableReorganization(const PotentialTable &refer_table) {
 
     int *config1 = new int[this->num_variables];
     int *config2 = new int[this->num_variables];
+    int *table_index = new int[this->table_size];
 
     // the main loop
+//#pragma omp taskloop
+//    omp_set_num_threads(num_threads);
+//#pragma omp parallel for
     for (int k = 0; k < new_table.table_size; ++k) {
-        new_table.TableReorganizationMain(k, config1, config2, *this, locations);
+        table_index[k] = new_table.TableReorganizationMain(k, config1, config2, *this, locations);
     }
+    new_table.TableReorganizationPost(*this, table_index);
 
     (*this) = new_table;
 
     SAFE_DELETE_ARRAY(config1);
     SAFE_DELETE_ARRAY(config2);
+    SAFE_DELETE_ARRAY(table_index);
 }
 
 void PotentialTable::TableReorganizationPre(const vector<int> &common_variables, PotentialTable &new_table, vector<int> &locations) {
@@ -272,7 +278,7 @@ void PotentialTable::TableReorganizationPre(const vector<int> &common_variables,
     new_table.ConstructCumLevels();
 }
 
-void PotentialTable::TableReorganizationMain(int k, int *config1, int *config2, PotentialTable &old_table, const vector<int> &locations) {
+int PotentialTable::TableReorganizationMain(int k, int *config1, int *config2, PotentialTable &old_table, const vector<int> &locations) {
     // 1. get the config value of old table
     old_table.PotentialTableBase::GetConfigValueByTableIndex(k, config1);
     // 2. get the config value of new table from the config value of old table
@@ -280,9 +286,14 @@ void PotentialTable::TableReorganizationMain(int k, int *config1, int *config2, 
         config2[l] = config1[locations[l]];
     }
     // 3. obtain the potential index of new table
-    int table_index = PotentialTableBase::GetTableIndexByConfigValue(config2);
-    // 4. potential[table_index]
-    this->potentials[table_index] = old_table.potentials[k];
+    return PotentialTableBase::GetTableIndexByConfigValue(config2);
+}
+
+void PotentialTable::TableReorganizationPost(const PotentialTable &pt, int *table_index) {
+    for (int k = 0; k < this->table_size; ++k) {
+        // 4. potential[table_index]
+        this->potentials[table_index[k]] = pt.potentials[k];
+    }
 }
 
 
