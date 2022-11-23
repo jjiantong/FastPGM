@@ -468,31 +468,6 @@ void JunctionTree::SeparatorLevelCollection(int i, int num_threads, Timer *timer
 
         // find the variables to be marginalized
         set<int> set_external_vars;
-//        set_difference(mar_clique->p_table.vec_related_variables.begin(), mar_clique->p_table.vec_related_variables.end(),
-//                       separator->p_table.vec_related_variables.begin(), separator->p_table.vec_related_variables.end(),
-//                       inserter(set_external_vars, set_external_vars.begin()));
-
-        // TODO: see comments in Separator
-//        // implement set_difference: since set_difference requires the two containers have ordered elements
-//        // remove separator->p_table.vec_related_variables (n) from mar_clique->p_table.vec_related_variables (m)
-//        int m = 0, n = 0;
-//        while (m < mar_clique->p_table.num_variables && n < separator->p_table.num_variables) {
-//            while (mar_clique->p_table.vec_related_variables[m] != separator->p_table.vec_related_variables[n]) {
-//                // this variable of mar_clique is not in this separator, keep it
-//                set_external_vars.insert(mar_clique->p_table.vec_related_variables[m]);
-//                m++;
-//            } // end of while, now tmp pt m == this n
-//            // this variable is in this separator, skip it
-//            m++;
-//            n++;
-//        } // end of while, two possible cases: 1. m = separator->mar_clique.num_variables; 2. n = separator->p_table.num_variables
-//
-//        // if only 2 but not 1, post-process the left elements
-//        while (m < mar_clique->p_table.num_variables) {
-//            // this variable of mar_clique is not in this separator, keep it
-//            set_external_vars.insert(mar_clique->p_table.vec_related_variables[m]);
-//            m++;
-//        }
 
         vector<int> big = mar_clique->p_table.vec_related_variables;
         vector<int> small = separator->p_table.vec_related_variables;
@@ -1139,14 +1114,21 @@ PotentialTable JunctionTree::CalculateMarginalProbability(int query_index) {
         exit(1);
     }
 
-    set<int> other_vars;
-    for (int i = 0; i < selected_clique->p_table.num_variables; ++i) {
-        other_vars.insert(selected_clique->p_table.vec_related_variables[i]);
+    if (selected_clique->p_table.num_variables == 1) {
+        return selected_clique->p_table;
     }
-    other_vars.erase(query_index);
+
+//    set<int> other_vars;
+//    for (int i = 0; i < selected_clique->p_table.num_variables; ++i) {
+//        other_vars.insert(selected_clique->p_table.vec_related_variables[i]);
+//    }
+//    other_vars.erase(query_index);
+
+    int dim = dynamic_cast<DiscreteNode*>(network->FindNodePtrByIndex(query_index))->GetDomainSize();
 
     PotentialTable pt = selected_clique->p_table;
-    pt.TableMarginalization(other_vars);
+    pt.TableMarginalization(vector<int>(1, query_index), vector<int>(1, dim));
+//    pt.TableMarginalization(other_vars);
 //    pt.Normalize(); // todo: no need to do normalization, because we do normalization for each clique in message passing
 
     return pt;
@@ -1207,14 +1189,17 @@ void JunctionTree::GetProbabilitiesOneNode(const DiscreteConfig &E, int index) {
         exit(1);
     }
 
-    set<int> other_vars;
-    for (int i = 0; i < selected_clique->p_table.num_variables; ++i) {
-        other_vars.insert(selected_clique->p_table.vec_related_variables[i]);
-    }
-    other_vars.erase(query_index);
+//    set<int> other_vars;
+//    for (int i = 0; i < selected_clique->p_table.num_variables; ++i) {
+//        other_vars.insert(selected_clique->p_table.vec_related_variables[i]);
+//    }
+//    other_vars.erase(query_index);
+
+    int dim = dynamic_cast<DiscreteNode*>(network->FindNodePtrByIndex(query_index))->GetDomainSize();
 
     PotentialTable pt = selected_clique->p_table;
-    pt.TableMarginalization(other_vars);
+    pt.TableMarginalization(vector<int>(1, query_index), vector<int>(1, dim));
+//    pt.TableMarginalization(other_vars);
     pt.Normalize();
 
     for (int i = 0; i < pt.table_size; ++i) {

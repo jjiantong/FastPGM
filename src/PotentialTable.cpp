@@ -474,6 +474,51 @@ void PotentialTable::TableMarginalizationPre(const set<int> &ext_variables, Pote
     new_table.potentials.resize(new_table.table_size);
 }
 
+void PotentialTable::TableMarginalization(const vector<int> &variables, const vector<int> &dims) {
+    PotentialTable new_table;
+    new_table.TableMarginalizationPre(variables, dims);
+
+    // generate an array showing the locations of the variables of the new table in the old table
+    int *loc_in_old = new int[new_table.num_variables];
+    for (int i = 0; i < new_table.num_variables; ++i) {
+        loc_in_old[i] = this->GetVariableIndex(new_table.vec_related_variables[i]);
+    }
+
+    int *full_config = new int[this->table_size * this->num_variables];
+    int *partial_config = new int[this->table_size * new_table.num_variables];
+    int *table_index = new int[this->table_size];
+
+//#pragma omp taskloop
+//    omp_set_num_threads(num_threads);
+//#pragma omp parallel for
+    for (int i = 0; i < this->table_size; ++i) {
+        // 1. get the full config value of old table
+        PotentialTableBase::GetConfigValueByTableIndex(i, full_config + i * this->num_variables);
+        // 2. get the partial config value from the old table
+        for (int j = 0; j < new_table.num_variables; ++j) {
+            partial_config[i * new_table.num_variables + j] = full_config[i * this->num_variables + loc_in_old[j]];
+        }
+        // 3. obtain the potential index
+        table_index[i] = new_table.PotentialTableBase::GetTableIndexByConfigValue(partial_config + i * new_table.num_variables);
+    }
+    SAFE_DELETE_ARRAY(full_config);
+    SAFE_DELETE_ARRAY(partial_config);
+    SAFE_DELETE_ARRAY(loc_in_old);
+
+    new_table.TableMarginalizationPost(*this, table_index);
+    (*this) = new_table;
+}
+
+void PotentialTable::TableMarginalizationPre(const vector<int> &variables, const vector<int> &dims) {
+    vec_related_variables = variables;
+    num_variables = variables.size();
+
+    var_dims = dims;
+    ConstructCumLevels();
+    table_size = cum_levels[0] * var_dims[0];
+    potentials.resize(table_size);
+}
+
 // note that this method is used in junction tree class.
 // it is not used in the tablemarginalization method of this class.
 // because the two use different getconfigvaluebytableindex method.
