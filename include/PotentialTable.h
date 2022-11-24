@@ -52,8 +52,6 @@ public:
     /**
      * potential table operation 2: table marginalization
      */
-    void TableMarginalization(const set<int> &ext_variables);
-    void TableMarginalizationPre(const set<int> &ext_variables, PotentialTable &new_table);
     void TableMarginalization(const vector<int> &variables, const vector<int> &dims);
     void TableMarginalizationPre(const vector<int> &variables, const vector<int> &dims);
     int TableMarginalizationMain(int k, int *full_config, int *partial_config,
