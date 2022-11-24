@@ -54,7 +54,7 @@ protected:
     void SeparatorLevelCollection(int i, int num_threads, Timer *timer);
     void SeparatorLevelDistribution(int i, int num_threads, Timer *timer);
     void CliqueLevelCollection(int i, int size, const vector<int> &has_kth_child, int k, int num_threads, Timer *timer);
-    void CliqueLevelDistribution(int i, int size, int num_threads, Timer *timer);
+    void CliqueLevelDistribution(int i, int num_threads, Timer *timer);
 
     PotentialTable CalculateMarginalProbability(int query_index);
     void GetProbabilitiesAllNodes(const DiscreteConfig &E);

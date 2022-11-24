@@ -819,9 +819,9 @@ void JunctionTree::CliqueLevelCollection(int i, int size, const vector<int> &has
     timer->Stop("post-clq");
 }
 
-void JunctionTree::CliqueLevelDistribution(int i, int size, int num_threads, Timer *timer) {
+void JunctionTree::CliqueLevelDistribution(int i, int num_threads, Timer *timer) {
     timer->Start("pre-clq");
-
+    int size = nodes_by_level[i].size();
     // used to store the (separator) potential tables that are needed to be extended
     vector<PotentialTable> tmp_pt;
     tmp_pt.reserve(size);
@@ -1062,8 +1062,7 @@ void JunctionTree::Distribute(int num_threads, Timer *timer) {
              * distribute msg from its parent (a separator) to it (a clique)
              * do extension + multiplication for clique levels
              */
-            int size = nodes_by_level[i].size();
-            CliqueLevelDistribution(i, size, num_threads, timer);
+            CliqueLevelDistribution(i, num_threads, timer);
         }
     }
 }
