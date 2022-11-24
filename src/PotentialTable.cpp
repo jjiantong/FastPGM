@@ -709,33 +709,25 @@ void PotentialTable::TableExtensionPost(const PotentialTable &pt, int *table_ind
  * @output: this table
  */
 void PotentialTable::TableMultiplication(const PotentialTable &second_table) {
-    if (second_table.vec_related_variables.empty()) {
-        return; // directly return this table
-//        return (*this);
-    }
+//    if (second_table.vec_related_variables.empty()) {
+//        return; // directly return this table
+////        return (*this);
+//    }
+
+    PotentialTable tmp_pt = second_table;
 
     if (this->num_variables - second_table.num_variables > 0) { // if table2 should be extended and table1 not
-        PotentialTable tmp_pt = second_table;
         tmp_pt.TableExtension(this->vec_related_variables, this->var_dims);
+    }
 
-        for (int i = 0; i < this->table_size; ++i) {
-            this->potentials[i] *= tmp_pt.potentials[i];
-        }
-    } else { // two tables have the same size
-        // before multiplication, need to first decide whether the orders are the same
-        if (this->vec_related_variables != second_table.vec_related_variables) {
-            // if not have the same order, change the order to this table's order
-            PotentialTable tmp_pt = second_table;
-            tmp_pt.TableReorganization(*this);
+    // before multiplication, need to first decide whether the orders are the same
+    if (this->vec_related_variables != second_table.vec_related_variables) {
+        // if not have the same order, change the order to this table's order
+        tmp_pt.TableReorganization(*this);
+    }
 
-            for (int i = 0; i < this->table_size; ++i) {
-                this->potentials[i] *= tmp_pt.potentials[i];
-            }
-        } else {
-            for (int i = 0; i < this->table_size; ++i) {
-                this->potentials[i] *= second_table.potentials[i];
-            }
-        }
+    for (int i = 0; i < this->table_size; ++i) {
+        this->potentials[i] *= tmp_pt.potentials[i];
     }
 }
 
@@ -802,10 +794,10 @@ void PotentialTable::TableMultiplicationTwoExtension(PotentialTable &second_tabl
  */
 void PotentialTable::TableDivision(const PotentialTable &second_table) {
     // if related variable of both are empty
-    if (this->vec_related_variables.empty()) {
-        // do nothing, just return, because "table" is a constant
-        return;
-    }
+//    if (this->vec_related_variables.empty()) {
+//        // do nothing, just return, because "table" is a constant
+//        return;
+//    }
 
 //#pragma omp taskloop
     for (int i = 0; i < this->table_size; ++i) {

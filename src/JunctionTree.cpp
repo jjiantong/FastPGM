@@ -511,6 +511,10 @@ void JunctionTree::SeparatorLevelCollection(int i, int num_threads, Timer *timer
     timer->Stop("main-sep");
 
     timer->Start("post-sep");
+    // post-computing
+    int *cum_sum2 = new int[size];
+    int final_sum2 = 0;
+
     int l = 0;
     for (int j = 0; j < size; ++j) {
         auto separator = separators_by_level[i/2][j];
@@ -521,6 +525,9 @@ void JunctionTree::SeparatorLevelCollection(int i, int num_threads, Timer *timer
             div_pt[j] = tmp_pt[l];
             l++;
         }
+
+        cum_sum2[j] = final_sum2;
+        final_sum2 += div_pt[j].table_size;
     }
 
     for (int l = 0; l < size_m; ++l) {
@@ -539,13 +546,19 @@ void JunctionTree::SeparatorLevelCollection(int i, int num_threads, Timer *timer
     timer->Start("parallel");
     omp_set_num_threads(num_threads);
 #pragma omp parallel for
-    for (int j = 0; j < size; ++j) {
-        auto separator = separators_by_level[i/2][j];
+    for (int s = 0; s < final_sum2; ++s) {
+        int j, k;
+        Compute2DIndex(j, k, s, size, cum_sum2); // compute j and k
 
-        separator->p_table = div_pt[j];
-        separator->p_table.TableDivision(separator->old_ptable);
+        if (separators_by_level[i/2][j]->old_ptable.potentials[k] == 0) {
+            separators_by_level[i/2][j]->p_table.potentials[k] = 0;
+        } else {
+            separators_by_level[i/2][j]->p_table.potentials[k] = div_pt[j].potentials[k] / separators_by_level[i/2][j]->old_ptable.potentials[k];
+        }
     }
+
     timer->Stop("parallel");
+    SAFE_DELETE_ARRAY(cum_sum2);
     timer->Stop("post-sep");
 }
 
