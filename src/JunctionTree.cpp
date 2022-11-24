@@ -399,13 +399,13 @@ void JunctionTree::MessagePassingUpdateJT(int num_threads, Timer *timer) {
      * 2. omp parallel for
      */
     timer->Start("upstream");
-    arb_root->Collect3(nodes_by_level, max_level, num_threads, timer);
-//    Collect(num_threads, timer);
+//    arb_root->Collect3(nodes_by_level, max_level, num_threads, timer);
+    Collect(num_threads, timer);
     timer->Stop("upstream");
 
     timer->Start("downstream");
-    arb_root->Distribute3(nodes_by_level, max_level, num_threads);
-//    Distribute(num_threads, timer);
+//    arb_root->Distribute3(nodes_by_level, max_level, num_threads);
+    Distribute(num_threads, timer);
     timer->Stop("downstream");
 }
 
@@ -438,26 +438,12 @@ void JunctionTree::SeparatorLevelCollection(int i, int num_threads, Timer *timer
     int **partial_config = new int*[size];
     int **table_index = new int*[size];
 
-    for (int j = 0; j < size; ++j) {
-        Separator *separator = separators_by_level[i/2][j];
-        Clique *mar_clique;
-        mar_clique = separator->ptr_downstream_cliques[0]; // there is only one child for each separator
-
-        // update sum
-        cum_sum[j] = final_sum;
-        final_sum += mar_clique->p_table.table_size;
-    }
-
     /**
      * pre computing
      */
-    timer->Start("parallel");
-    omp_set_num_threads(num_threads);
-#pragma omp parallel for
     for (int j = 0; j < size; ++j) { // for each separator in this level
         auto separator = separators_by_level[i/2][j];
-        Clique *mar_clique;
-        mar_clique = separator->ptr_downstream_cliques[0]; // there is only one child for each separator
+        Clique *mar_clique = separator->ptr_downstream_cliques[0]; // there is only one child for each separator
 
         // store the old table before marginalization, used for division
         separator->old_ptable = separator->p_table;
@@ -487,10 +473,15 @@ void JunctionTree::SeparatorLevelCollection(int i, int num_threads, Timer *timer
         for (int k = 0; k < tmp_pt[j].num_variables; ++k) {
             loc_in_old[j][k] = mar_clique->p_table.TableReductionPre(tmp_pt[j].vec_related_variables[k]);
         }
+
+        // update sum
+        cum_sum[j] = final_sum;
+        final_sum += mar_clique->p_table.table_size;
     }
     timer->Stop("pre-sep");
 
     timer->Start("main-sep");
+    timer->Start("parallel");
     // the main loop
     omp_set_num_threads(num_threads);
 #pragma omp parallel for
