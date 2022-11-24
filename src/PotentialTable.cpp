@@ -514,8 +514,15 @@ void PotentialTable::TableMarginalizationPre(const vector<int> &variables, const
     num_variables = variables.size();
 
     var_dims = dims;
-    ConstructCumLevels();
-    table_size = cum_levels[0] * var_dims[0];
+
+    if (num_variables != 0) {
+        ConstructCumLevels();
+        table_size = cum_levels[0] * var_dims[0];
+    } else {
+        cum_levels = vector<int>();
+        table_size = 1;
+    }
+
     potentials.resize(table_size);
 }
 

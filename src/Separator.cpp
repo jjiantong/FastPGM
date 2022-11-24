@@ -15,7 +15,7 @@ void Separator::UpdateMessage(const PotentialTable &pt) {
     old_ptable = p_table;
     PotentialTable tmp_pt = pt;
 
-    if (pt.num_variables - this->old_ptable.num_variables != 0 && this->old_ptable.num_variables != 0) {
+    if (pt.num_variables - this->old_ptable.num_variables != 0) {
         // need to do the marginalization
         tmp_pt.TableMarginalization(this->old_ptable.vec_related_variables, this->old_ptable.var_dims);
     } else {
