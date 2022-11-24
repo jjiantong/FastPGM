@@ -715,14 +715,13 @@ void JunctionTree::SeparatorLevelDistribution(int i, int num_threads, Timer *tim
  *      distribution finds each clique and its parent, extends the parent, then multiplies them
  *      collection finds each clique and its k-th child, extends the child, then multiplies them
  * @param i corresponds to level
- * @param size number of clique-separator pairs to be processed
  * @param has_kth_child an array containing all cliques in the current level that has the k-th child; only used for collection
  * @param k we need "k"-th child; only used for collection
  */
-void JunctionTree::CliqueLevelCollection(int i, int size, const vector<int> &has_kth_child, int k,
+void JunctionTree::CliqueLevelCollection(int i, const vector<int> &has_kth_child, int k,
                                          int num_threads, Timer *timer) {
     timer->Start("pre-clq");
-
+    int size = has_kth_child.size();
     // used to store the (separator) potential tables that are needed to be extended
     vector<PotentialTable> tmp_pt;
     tmp_pt.reserve(size);
@@ -1061,8 +1060,7 @@ void JunctionTree::Collect(int num_threads, Timer *timer) {
                  * before: process "size" cliques in parallel, each update once
                  * now: process "process_size" cliques in parallel, each update once
                  */
-                int process_size = has_kth_child.size();
-                CliqueLevelCollection(i, process_size, has_kth_child, k, num_threads, timer);
+                CliqueLevelCollection(i, has_kth_child, k, num_threads, timer);
             }
         }
 
