@@ -172,7 +172,7 @@ void JunctionTree::ReorganizeTableStorage(int num_threads) {
         int *table_index = new int[clique->p_table.table_size];
 
         PotentialTable new_table;
-        vector<int> locations;
+        int *locations = new int[clique->p_table.num_variables];
         clique->p_table.TableReorganizationPre(separator->p_table.vec_related_variables, new_table, locations);
 
         // the main loop
@@ -183,6 +183,7 @@ void JunctionTree::ReorganizeTableStorage(int num_threads) {
 
         clique->p_table = new_table;
 
+        SAFE_DELETE_ARRAY(locations);
         SAFE_DELETE_ARRAY(config1);
         SAFE_DELETE_ARRAY(config2);
         SAFE_DELETE_ARRAY(table_index);
@@ -726,6 +727,10 @@ void JunctionTree::CliqueLevelCollection(int i, const vector<int> &has_kth_child
     vector<PotentialTable> tmp_pt;
     tmp_pt.reserve(size);
 
+    // used to store the potential tables that are needed to be re-organized
+    vector<PotentialTable> tmp_pt2;
+    tmp_pt2.reserve(size);
+
     // used to store the (separator) potential tables that are used to be multiplied
     // it is different from "tmp_pt" because not all the tables are needed to be extended
     vector<PotentialTable> multi_pt;
@@ -736,6 +741,9 @@ void JunctionTree::CliqueLevelCollection(int i, const vector<int> &has_kth_child
     int *nv_old = new int[size];
     vector<vector<int>> cl_old;
     cl_old.reserve(size);
+
+    vector<vector<int>> cl_old2;
+    cl_old2.reserve(size);
 
     int *cum_sum = new int[size];
     int final_sum = 0;
@@ -814,8 +822,8 @@ void JunctionTree::CliqueLevelCollection(int i, const vector<int> &has_kth_child
 
     timer->Start("post-clq");
     // post-computing
-    int *cum_sum2 = new int[size];
-    int final_sum2 = 0;
+    int *cum_sum3 = new int[size];
+    int final_sum3 = 0;
 
     int l = 0;
     for (int j = 0; j < size; ++j) {
@@ -829,8 +837,8 @@ void JunctionTree::CliqueLevelCollection(int i, const vector<int> &has_kth_child
             l++;
         }
 
-        cum_sum2[j] = final_sum2;
-        final_sum2 += multi_pt[j].table_size;
+        cum_sum3[j] = final_sum3;
+        final_sum3 += multi_pt[j].table_size;
     }
 
     for (int l = 0; l < size_e; ++l) {
@@ -849,16 +857,16 @@ void JunctionTree::CliqueLevelCollection(int i, const vector<int> &has_kth_child
     timer->Start("parallel");
     omp_set_num_threads(num_threads);
 #pragma omp parallel for
-    for (int s = 0; s < final_sum2; ++s) {
+    for (int s = 0; s < final_sum3; ++s) {
         int j, k;
-        Compute2DIndex(j, k, s, size, cum_sum2); // compute j and k
+        Compute2DIndex(j, k, s, size, cum_sum3); // compute j and k
         nodes_by_level[i][has_kth_child[j]]->p_table.potentials[k] *= multi_pt[j].potentials[k];
 //        timer->Start("norm");
 //        nodes_by_level[i][has_kth_child[j]]->p_table.Normalize();
 //        timer->Stop("norm");
     }
     timer->Stop("parallel");
-    SAFE_DELETE_ARRAY(cum_sum2);
+    SAFE_DELETE_ARRAY(cum_sum3);
     timer->Stop("post-clq");
 }
 

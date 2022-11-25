@@ -200,7 +200,7 @@ void PotentialTable::TableReorganization(const PotentialTable &refer_table) {
     // the locations of the elements in the old table
     // e.g., locations[0] means the locations of new_table.vec_related_variables[0] in this->vec_related_variables
     // i.e., new_table.vec_related_variables[0] = this->vec_related_variables[locations[0]]
-    vector<int> locations(this->num_variables);
+    int *locations = new int[this->num_variables];
     for (int i = 0; i < new_table.num_variables; ++i) { // for each new table's related variable
         int variable = new_table.vec_related_variables[i];
         // find the location of this variable in the old table
@@ -227,12 +227,13 @@ void PotentialTable::TableReorganization(const PotentialTable &refer_table) {
 
     (*this) = new_table;
 
+    SAFE_DELETE_ARRAY(locations);
     SAFE_DELETE_ARRAY(config1);
     SAFE_DELETE_ARRAY(config2);
     SAFE_DELETE_ARRAY(table_index);
 }
 
-void PotentialTable::TableReorganizationPre(const vector<int> &common_variables, PotentialTable &new_table, vector<int> &locations) {
+void PotentialTable::TableReorganizationPre(const vector<int> &common_variables, PotentialTable &new_table, int *locations) {
     // maintain
     new_table.num_variables = this->num_variables;
     new_table.table_size = this->table_size;
@@ -240,7 +241,6 @@ void PotentialTable::TableReorganizationPre(const vector<int> &common_variables,
 
     new_table.vec_related_variables.resize(new_table.num_variables);
     new_table.var_dims.resize(new_table.num_variables);
-    locations.resize(new_table.num_variables);
     vector<int> tmp_loc(common_variables.size()); // to record the location of the common variables
 
     // remove common_variables from this->table.related_variables
@@ -278,7 +278,7 @@ void PotentialTable::TableReorganizationPre(const vector<int> &common_variables,
     new_table.ConstructCumLevels();
 }
 
-int PotentialTable::TableReorganizationMain(int k, int *config1, int *config2, PotentialTable &old_table, const vector<int> &locations) {
+int PotentialTable::TableReorganizationMain(int k, int *config1, int *config2, PotentialTable &old_table, int *locations) {
     // 1. get the config value of old table
     old_table.PotentialTableBase::GetConfigValueByTableIndex(k, config1);
     // 2. get the config value of new table from the config value of old table
@@ -287,6 +287,22 @@ int PotentialTable::TableReorganizationMain(int k, int *config1, int *config2, P
     }
     // 3. obtain the potential index of new table
     return PotentialTableBase::GetTableIndexByConfigValue(config2);
+}
+
+// note that this method is used in junction tree class.
+// it is not used in the TableReorganization method of this class.
+// because the two use different getconfigvaluebytableindex method.
+int PotentialTable::TableReorganizationMain(int k, int *config1, int *config2, const vector<int> &cl, int *locations) {
+    // note the difference from marginalization/extension main:
+    // nv (of old table) = this->num_variables
+    // 1. get the config value of old table
+    GetConfigValueByTableIndex(k, config1 + k * this->num_variables, this->num_variables, cl);
+    // 2. get the config value of new table from the config value of old table
+    for (int l = 0; l < this->num_variables; ++l) {
+        config2[k * this->num_variables + l] = config1[k * this->num_variables + locations[l]];
+    }
+    // 3. obtain the potential index of new table
+    return PotentialTableBase::GetTableIndexByConfigValue(config2 + k * this->num_variables);
 }
 
 void PotentialTable::TableReorganizationPost(const PotentialTable &pt, int *table_index) {
