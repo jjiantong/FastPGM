@@ -400,13 +400,13 @@ void JunctionTree::MessagePassingUpdateJT(int num_threads, Timer *timer) {
      * 2. omp parallel for
      */
     timer->Start("upstream");
-//    arb_root->Collect3(nodes_by_level, max_level, num_threads, timer);
-    Collect(num_threads, timer);
+    arb_root->Collect3(nodes_by_level, max_level, num_threads, timer);
+//    Collect(num_threads, timer);
     timer->Stop("upstream");
 
     timer->Start("downstream");
-//    arb_root->Distribute3(nodes_by_level, max_level, num_threads);
-    Distribute(num_threads, timer);
+    arb_root->Distribute3(nodes_by_level, max_level, num_threads);
+//    Distribute(num_threads, timer);
     timer->Stop("downstream");
 }
 
@@ -993,12 +993,15 @@ void JunctionTree::CliqueLevelCollection(int i, const vector<int> &has_kth_child
         int j, k;
         Compute2DIndex(j, k, s, size, cum_sum3); // compute j and k
         nodes_by_level[i][has_kth_child[j]]->p_table.potentials[k] *= multi_pt[j].potentials[k];
-//        timer->Start("norm");
-//        nodes_by_level[i][has_kth_child[j]]->p_table.Normalize();
-//        timer->Stop("norm");
     }
     timer->Stop("parallel");
     SAFE_DELETE_ARRAY(cum_sum3);
+
+    timer->Start("norm");
+    for (int j = 0; j < size; ++j) {
+        nodes_by_level[i][has_kth_child[j]]->p_table.Normalize();
+    }
+    timer->Stop("norm");
     timer->Stop("post-clq");
 }
 
@@ -1136,12 +1139,15 @@ void JunctionTree::CliqueLevelDistribution(int i, int num_threads, Timer *timer)
         int j, k;
         Compute2DIndex(j, k, s, size, cum_sum2); // compute j and k
         nodes_by_level[i][j]->p_table.potentials[k] *= multi_pt[j].potentials[k];
-//        timer->Start("norm");
-//        nodes_by_level[i][j]->p_table.Normalize(); // todo: wrong..
-//        timer->Stop("norm");
     }
     timer->Stop("parallel");
     SAFE_DELETE_ARRAY(cum_sum2);
+
+    timer->Start("norm");
+    for (int j = 0; j < size; ++j) {
+        nodes_by_level[i][j]->p_table.Normalize();
+    }
+    timer->Stop("norm");
     timer->Stop("post-clq");
 }
 

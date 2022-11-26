@@ -144,15 +144,6 @@ void Clique::UpdateMessage(const PotentialTable &pt) {
     PotentialTable tmp_pt = pt;
     p_table.TableMultiplication(tmp_pt); // multiply two factors
 
+    p_table.Normalize();
 
-//    cout << "related variables: ";
-//    for (int i = 0; i < p_table.num_variables; ++i) {
-//        cout << p_table.vec_related_variables[i] << ", ";
-//    }
-//    cout << endl;
-//    cout << "potentials: ";
-//    for (int i = 0; i < p_table.table_size; ++i) {
-//        cout << p_table.potentials[i] << ", ";
-//    }
-//    cout << endl;
 }
