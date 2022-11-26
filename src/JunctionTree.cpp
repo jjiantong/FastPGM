@@ -438,7 +438,6 @@ void JunctionTree::SeparatorLevelCollection(int i, int num_threads, Timer *timer
 
     int *cum_sum = new int[size];
     int final_sum = 0;
-    int sum_index = 0;
 
     // not all tables need to do the marginalization
     // there are "size" tables in total
@@ -467,14 +466,15 @@ void JunctionTree::SeparatorLevelCollection(int i, int num_threads, Timer *timer
         if (clique->p_table.num_variables - separator->p_table.num_variables != 0) {
             // record the index (that requires to do the marginalization)
             vector_marginalization.push_back(j);
-            nv_old[sum_index] = clique->p_table.num_variables;
+            // get this table's location -- it is currently the last one
+            int last = vector_marginalization.size() - 1;
+
+            nv_old[last] = clique->p_table.num_variables;
             cl_old.push_back(clique->p_table.cum_levels);
 
             PotentialTable pt;
             pt.TableMarginalizationPre(separator->p_table.vec_related_variables, separator->old_ptable.var_dims);
 
-            // get this table's location -- it is currently the last one
-            int last = vector_marginalization.size() - 1;
             // generate an array showing the locations of the variables of the new table in the old table
             loc_in_old[last] = new int[separator->p_table.num_variables];
             for (int k = 0; k < separator->p_table.num_variables; ++k) {
@@ -489,7 +489,7 @@ void JunctionTree::SeparatorLevelCollection(int i, int num_threads, Timer *timer
             partial_config[last] = new int[clique->p_table.table_size * separator->p_table.num_variables];
 
             // update sum
-            cum_sum[sum_index++] = final_sum;
+            cum_sum[last] = final_sum;
             final_sum += clique->p_table.table_size;
         }
     }
@@ -583,7 +583,6 @@ void JunctionTree::SeparatorLevelDistribution(int i, int num_threads, Timer *tim
 
     int *cum_sum = new int[size];
     int final_sum = 0;
-    int sum_index = 0;
 
     // not all tables need to do the marginalization
     // there are "size" tables in total
@@ -612,14 +611,16 @@ void JunctionTree::SeparatorLevelDistribution(int i, int num_threads, Timer *tim
         if (clique->p_table.num_variables - separator->p_table.num_variables != 0) {
             // record the index (that requires to do the marginalization)
             vector_marginalization.push_back(j);
-            nv_old[sum_index] = clique->p_table.num_variables;
+            // get this table's location -- it is currently the last one
+            int last = vector_marginalization.size() - 1;
+
+            nv_old[last] = clique->p_table.num_variables;
             cl_old.push_back(clique->p_table.cum_levels);
 
             PotentialTable pt;
             pt.TableMarginalizationPre(separator->p_table.vec_related_variables, separator->old_ptable.var_dims);
 
-            // get this table's location -- it is currently the last one
-            int last = vector_marginalization.size() - 1;
+
             // generate an array showing the locations of the variables of the new table in the old table
             loc_in_old[last] = new int[separator->p_table.num_variables];
             for (int k = 0; k < separator->p_table.num_variables; ++k) {
@@ -634,7 +635,7 @@ void JunctionTree::SeparatorLevelDistribution(int i, int num_threads, Timer *tim
             partial_config[last] = new int[clique->p_table.table_size * separator->p_table.num_variables];
 
             // update sum
-            cum_sum[sum_index++] = final_sum;
+            cum_sum[last] = final_sum;
             final_sum += clique->p_table.table_size;
         }
     }
@@ -726,7 +727,6 @@ void JunctionTree::CliqueLevelCollection(int i, const vector<int> &has_kth_child
     // used to store the (separator) potential tables that are needed to be extended
     vector<PotentialTable> tmp_pt;
     tmp_pt.reserve(size);
-
     // used to store the potential tables that are needed to be re-organized
     vector<PotentialTable> tmp_pt2;
     tmp_pt2.reserve(size);
@@ -741,25 +741,31 @@ void JunctionTree::CliqueLevelCollection(int i, const vector<int> &has_kth_child
     int *nv_old = new int[size];
     vector<vector<int>> cl_old;
     cl_old.reserve(size);
-
     vector<vector<int>> cl_old2;
     cl_old2.reserve(size);
 
     int *cum_sum = new int[size];
     int final_sum = 0;
-    int sum_index = 0;
+    int *cum_sum2 = new int[size];
+    int final_sum2 = 0;
 
     // not all tables need to do the extension
     // there are "size" tables in total
     // use a vector to show which tables need to do the extension
     vector<int> vector_extension;
     vector_extension.reserve(size);
+    vector<int> vector_reorganization;
+    vector_reorganization.reserve(size);
 
     // set of arrays, showing the locations of the variables of the new table in the old table
     int **loc_in_new = new int*[size];
     int **full_config = new int*[size];
     int **partial_config = new int*[size];
     int **table_index = new int*[size];
+    int **locations = new int*[size];
+    int **config1 = new int*[size];
+    int **config2 = new int*[size];
+    int **table_index2 = new int*[size];
 
     /**
      * pre computing
@@ -773,17 +779,18 @@ void JunctionTree::CliqueLevelCollection(int i, const vector<int> &has_kth_child
         /**
          * we only need to decide whether the separator needs to be extended
          */
-        if (clique->p_table.num_variables - separator->p_table.num_variables > 0) { // if the separator table should be extended
+        if (clique->p_table.num_variables - separator->p_table.num_variables != 0) { // if the separator table should be extended
             // record the index (that requires to do the extension)
             vector_extension.push_back(j);
-            nv_old[sum_index] = separator->p_table.num_variables;
+            // get this table's location -- it is currently the last one
+            int last = vector_extension.size() - 1;
+
+            nv_old[last] = separator->p_table.num_variables;
             cl_old.push_back(separator->p_table.cum_levels);
 
             PotentialTable pt;
             pt.TableExtensionPre(clique->p_table.vec_related_variables, clique->p_table.var_dims);
 
-            // get this table's location -- it is currently the last one
-            int last = vector_extension.size() - 1;
             // generate an array showing the locations of the variables of the new table in the old table
             loc_in_new[last] = new int[separator->p_table.num_variables];
             for (int k = 0; k < separator->p_table.num_variables; ++k) {
@@ -798,14 +805,46 @@ void JunctionTree::CliqueLevelCollection(int i, const vector<int> &has_kth_child
             partial_config[last] = new int[pt.table_size * separator->p_table.num_variables];
 
             // update sum
-            cum_sum[sum_index++] = final_sum;
+            cum_sum[last] = final_sum;
             final_sum += pt.table_size;
+        }
+        else {
+            if (clique->p_table.vec_related_variables != separator->p_table.vec_related_variables) {
+                // if they have same size but different order, change the order to the clique's order
+                // record the index (that requires to do the re-organization)
+                vector_reorganization.push_back(j);
+                // get this table's location -- it is currently the last one
+                int last = vector_reorganization.size() - 1;
+
+                cl_old2.push_back(separator->p_table.cum_levels);
+
+                // all things except for potentials are maintained
+                PotentialTable pt = clique->p_table;
+                // the locations of the elements in the old table
+                // e.g., locations[0] means the locations of pt.vec_related_variables[0] in separator->p_table.vec_related_variables
+                // i.e., pt.vec_related_variables[0] = separator->p_table.vec_related_variables[locations[0]]
+                locations[last] = new int[pt.num_variables];
+                for (int k = 0; k < pt.num_variables; ++k) { // for each new table's related variable
+                    locations[last][k] = separator->p_table.GetVariableIndex(pt.vec_related_variables[k]);
+                }
+                table_index2[last] = new int[separator->p_table.table_size];
+
+                tmp_pt2.push_back(pt);
+
+                config1[last] = new int[separator->p_table.table_size * separator->p_table.num_variables];
+                config2[last] = new int[separator->p_table.table_size * pt.num_variables];
+
+                // update sum
+                cum_sum2[last] = final_sum2;
+                final_sum2 += separator->p_table.table_size;
+            }
         }
     }
     timer->Stop("pre-clq");
 
     timer->Start("main-clq");
     int size_e = vector_extension.size(); // the number of variables to be extended
+    int size_r = vector_reorganization.size();
 
     timer->Start("parallel");
     // the main loop
@@ -817,6 +856,15 @@ void JunctionTree::CliqueLevelCollection(int i, const vector<int> &has_kth_child
         table_index[j][k] = tmp_pt[j].TableExtensionMain(k, full_config[j], partial_config[j],
                                                          nv_old[j], cl_old[j], loc_in_new[j]);
     }
+
+    omp_set_num_threads(num_threads);
+#pragma omp parallel for
+    for (int s = 0; s < final_sum2; ++s) {
+        int j, k;
+        Compute2DIndex(j, k, s, size_r, cum_sum2); // compute j and k
+        table_index2[j][k] = tmp_pt2[j].TableReorganizationMain(k, config1[j], config2[j],
+                                                                cl_old2[j], locations[j]);
+    }
     timer->Stop("parallel");
     timer->Stop("main-clq");
 
@@ -825,27 +873,38 @@ void JunctionTree::CliqueLevelCollection(int i, const vector<int> &has_kth_child
     int *cum_sum3 = new int[size];
     int final_sum3 = 0;
 
-    int l = 0;
+    int p = 0, q = 0;
     for (int j = 0; j < size; ++j) {
-        Clique *clique, *separator;
-        clique = nodes_by_level[i][has_kth_child[j]];
-        separator = clique->ptr_downstream_cliques[k];
+        Clique *clique = nodes_by_level[i][has_kth_child[j]];
+        Clique *separator = clique->ptr_downstream_cliques[k];
 
-        if (l < size_e && j == vector_extension[l]) { // index j have done the extension
-            tmp_pt[l].TableExtensionPost(separator->p_table, table_index[l]);
-            multi_pt[j] = tmp_pt[l];
-            l++;
+        if (p < size_e && j == vector_extension[p]) { // index j have done the extension
+            tmp_pt[p].TableExtensionPost(separator->p_table, table_index[p]);
+            multi_pt[j] = tmp_pt[p];
+            p++;
+        } else {
+            if (q < size_r && j == vector_reorganization[q]) { // index j have done the re-organization
+                tmp_pt2[q].TableReorganizationPost(separator->p_table, table_index2[q]);
+                multi_pt[j] = tmp_pt2[q];
+                q++;
+            }
         }
 
         cum_sum3[j] = final_sum3;
         final_sum3 += multi_pt[j].table_size;
     }
 
-    for (int l = 0; l < size_e; ++l) {
-        SAFE_DELETE_ARRAY(loc_in_new[l]);
-        SAFE_DELETE_ARRAY(full_config[l]);
-        SAFE_DELETE_ARRAY(partial_config[l]);
-        SAFE_DELETE_ARRAY(table_index[l]);
+    for (int p = 0; p < size_e; ++p) {
+        SAFE_DELETE_ARRAY(loc_in_new[p]);
+        SAFE_DELETE_ARRAY(full_config[p]);
+        SAFE_DELETE_ARRAY(partial_config[p]);
+        SAFE_DELETE_ARRAY(table_index[p]);
+    }
+    for (int q = 0; q < size_r; ++q) {
+        SAFE_DELETE_ARRAY(locations[q]);
+        SAFE_DELETE_ARRAY(config1[q]);
+        SAFE_DELETE_ARRAY(config2[q]);
+        SAFE_DELETE_ARRAY(table_index2[q]);
     }
     SAFE_DELETE_ARRAY(loc_in_new);
     SAFE_DELETE_ARRAY(full_config);
@@ -853,6 +912,11 @@ void JunctionTree::CliqueLevelCollection(int i, const vector<int> &has_kth_child
     SAFE_DELETE_ARRAY(table_index);
     SAFE_DELETE_ARRAY(cum_sum);
     SAFE_DELETE_ARRAY(nv_old);
+    SAFE_DELETE_ARRAY(locations);
+    SAFE_DELETE_ARRAY(config1);
+    SAFE_DELETE_ARRAY(config2);
+    SAFE_DELETE_ARRAY(table_index2);
+    SAFE_DELETE_ARRAY(cum_sum2);
 
     timer->Start("parallel");
     omp_set_num_threads(num_threads);
@@ -890,7 +954,6 @@ void JunctionTree::CliqueLevelDistribution(int i, int num_threads, Timer *timer)
 
     int *cum_sum = new int[size];
     int final_sum = 0;
-    int sum_index = 0;
 
     // not all tables need to do the extension
     // there are "size" tables in total
@@ -919,14 +982,16 @@ void JunctionTree::CliqueLevelDistribution(int i, int num_threads, Timer *timer)
         if (clique->p_table.num_variables - separator->p_table.num_variables > 0) { // if the separator table should be extended
             // record the index (that requires to do the extension)
             vector_extension.push_back(j);
-            nv_old[sum_index] = separator->p_table.num_variables;
+            // get this table's location -- it is currently the last one
+            int last = vector_extension.size() - 1;
+
+            nv_old[last] = separator->p_table.num_variables;
             cl_old.push_back(separator->p_table.cum_levels);
 
             PotentialTable pt;
             pt.TableExtensionPre(clique->p_table.vec_related_variables, clique->p_table.var_dims);
 
-            // get this table's location -- it is currently the last one
-            int last = vector_extension.size() - 1;
+
             // generate an array showing the locations of the variables of the new table in the old table
             loc_in_new[last] = new int[separator->p_table.num_variables];
             for (int k = 0; k < separator->p_table.num_variables; ++k) {
@@ -941,7 +1006,7 @@ void JunctionTree::CliqueLevelDistribution(int i, int num_threads, Timer *timer)
             partial_config[last] = new int[pt.table_size * separator->p_table.num_variables];
 
             // update sum
-            cum_sum[sum_index++] = final_sum;
+            cum_sum[last] = final_sum;
             final_sum += pt.table_size;
         }
     }

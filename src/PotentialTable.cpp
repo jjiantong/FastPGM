@@ -202,14 +202,7 @@ void PotentialTable::TableReorganization(const PotentialTable &refer_table) {
     // i.e., new_table.vec_related_variables[0] = this->vec_related_variables[locations[0]]
     int *locations = new int[this->num_variables];
     for (int i = 0; i < new_table.num_variables; ++i) { // for each new table's related variable
-        int variable = new_table.vec_related_variables[i];
-        // find the location of this variable in the old table
-        for (int j = 0; j < this->num_variables; ++j) {
-            if (variable == this->vec_related_variables[j]) {
-                locations[i] = j;
-                break;
-            }
-        }
+        locations[i] = this->GetVariableIndex(new_table.vec_related_variables[i]);
     }
 
     int *config1 = new int[this->num_variables];
