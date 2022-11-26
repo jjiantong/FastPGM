@@ -67,25 +67,9 @@ void Clique::Collect3(vector<vector<Clique*>> &cliques, int max_level, int num_t
 //#pragma omp parallel for
         for (int j = 0; j < cliques[i].size(); ++j) { // for each clique of this level
             for (auto &ptr_child : cliques[i][j]->ptr_downstream_cliques) {
-//                cout << "collect-";
                 cliques[i][j]->UpdateMessage(ptr_child->p_table);
             }
         }
-
-        /**
-        * there are some issues with datasets munin2, munin3, munin4
-        * after debugging -- caused by table multiplication
-        * don't have enough precision so it may cause 0 prob after multiplication
-        * therefore, I add a normalization after collection of each level
-        * we can remove this part for other datasets
-        */
-        timer->Start("norm");
-        omp_set_num_threads(num_threads);
-#pragma omp parallel for
-        for (int j = 0; j < cliques[i].size(); ++j) {
-            cliques[i][j]->p_table.Normalize();
-        }
-        timer->Stop("norm");
     }
 }
 
@@ -130,7 +114,6 @@ void Clique::Distribute3(vector<vector<Clique*>> &cliques, int max_level, int nu
         for (int j = 0; j < cliques[i].size(); ++j) { // for each clique in this level
             auto clique = cliques[i][j];
             auto par = clique->ptr_upstream_clique;
-//            cout << "distribute-";
             clique->UpdateMessage(par->p_table);
         }
     }

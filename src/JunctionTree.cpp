@@ -55,10 +55,10 @@ double JunctionTree::EvaluateAccuracy(string path, int num_threads) {
     timer->Stop("jt");
     setlocale(LC_NUMERIC, "");
 
-    cout << '\n' << "Accuracy: " << accuracy << endl;
     cout << "==================================================" << endl;
-    timer->Print("jt"); cout << "removing reset: " << timer->time["jt"] - timer->time["reset"] << " s";
-    double total = timer->time["jt"] - timer->time["reset"] - timer->time["norm"]; cout << " removing norm: " << total << " s"<< endl;
+    timer->Print("jt");
+    cout << "removing reset: " << timer->time["jt"] - timer->time["reset"] << " s ";
+    cout << "removing norm: " << timer->time["jt"] - timer->time["reset"] - timer->time["norm"] << " s ";
 
     timer->Print("load evidence"); cout << "(" << timer->time["load evidence"] / timer->time["jt"] * 100 << "%) ";
     timer->Print("msg passing"); cout << "(" << timer->time["msg passing"] / timer->time["jt"] * 100 << "%) ";
@@ -67,15 +67,32 @@ double JunctionTree::EvaluateAccuracy(string path, int num_threads) {
 
     timer->Print("upstream"); timer->Print("downstream"); cout << endl << endl;
 
-    timer->Print("pre-evi"); timer->Print("main-evi"); timer->Print("post-evi"); cout << endl;
-    timer->Print("pre-sep"); timer->Print("main-sep"); timer->Print("post-sep"); cout << endl;
-    timer->Print("pre-clq"); timer->Print("main-clq"); timer->Print("post-clq"); cout << endl;
+    timer->Print("p-evi-pre");
+    timer->Print("p-evi-main");
+    timer->Print("p-evi-post"); cout << endl;
+
+    timer->Print("s-sep-col-pre");
+    timer->Print("s-sep-col-main");
+    timer->Print("s-sep-col-post"); cout << endl;
+
+    timer->Print("s-sep-dis-pre");
+    timer->Print("s-sep-dis-main-mar");
+    timer->Print("s-clq-col-main-reo");
+    timer->Print("s-clq-col-post"); cout << endl;
+
+    timer->Print("s-clq-col-pre");
+    timer->Print("s-clq-col-main-ext");
+    timer->Print("s-sep-dis-main-reo");
+    timer->Print("s-sep-dis-post"); cout << endl;
+
+    timer->Print("s-clq-dis-pre");
+    timer->Print("s-clq-dis-main");
+    timer->Print("s-clq-dis-post"); cout << endl;
+
+    timer->Print("p-division");
+    timer->Print("p-multiplication"); cout << endl;
 
     timer->Print("norm"); cout << endl << endl;
-
-    timer->Print("parallel");
-    cout << "(" << timer->time["parallel"] / (timer->time["jt"] - timer->time["norm"])* 100 << "%)";
-    cout << "(" << timer->time["parallel"] / total * 100 << "%)" << endl;
 
     SAFE_DELETE(timer);
 
@@ -296,7 +313,7 @@ void JunctionTree::LoadDiscreteEvidence(const DiscreteConfig &E, int num_threads
 void JunctionTree::LoadEvidenceToNodes(vector<Clique*> &vector_reduced_node_ptr,
                                        int index, int value_index, int num_threads, Timer *timer) {
 
-    timer->Start("pre-evi");
+    timer->Start("p-evi-pre");
     int red_size = vector_reduced_node_ptr.size();
 
     int *e_loc = new int[red_size];
@@ -317,7 +334,6 @@ void JunctionTree::LoadEvidenceToNodes(vector<Clique*> &vector_reduced_node_ptr,
         final_sum += clique_ptr->p_table.table_size;
     }
 
-    timer->Start("parallel");
     omp_set_num_threads(num_threads);
 #pragma omp parallel for
     for (int k = 0; k < red_size; ++k) {
@@ -327,10 +343,9 @@ void JunctionTree::LoadEvidenceToNodes(vector<Clique*> &vector_reduced_node_ptr,
 
         e_loc[k] = clique_ptr->p_table.TableReductionPre(index);
     }
+    timer->Stop("p-evi-pre");
 
-    timer->Stop("pre-evi");
-
-    timer->Start("main-evi");
+    timer->Start("p-evi-main");
     // the main loop
     omp_set_num_threads(num_threads);
 #pragma omp parallel for
@@ -341,9 +356,9 @@ void JunctionTree::LoadEvidenceToNodes(vector<Clique*> &vector_reduced_node_ptr,
 
         v_index[k][i] = vector_reduced_node_ptr[k]->p_table.TableReductionMain(i, full_config[k], e_loc[k]);
     }
-    timer->Stop("main-evi");
+    timer->Stop("p-evi-main");
 
-    timer->Start("post-evi");
+    timer->Start("p-evi-post");
     /**
      * post-computing
      */
@@ -356,13 +371,12 @@ void JunctionTree::LoadEvidenceToNodes(vector<Clique*> &vector_reduced_node_ptr,
         SAFE_DELETE_ARRAY(full_config[k]);
         SAFE_DELETE_ARRAY(v_index[k]);
     }
-    timer->Stop("parallel");
 
     SAFE_DELETE_ARRAY(e_loc);
     SAFE_DELETE_ARRAY(full_config);
     SAFE_DELETE_ARRAY(v_index);
     SAFE_DELETE_ARRAY(cum_sum);
-    timer->Stop("post-evi");
+    timer->Stop("p-evi-post");
 }
 
 /**
@@ -400,13 +414,13 @@ void JunctionTree::MessagePassingUpdateJT(int num_threads, Timer *timer) {
      * 2. omp parallel for
      */
     timer->Start("upstream");
-    arb_root->Collect3(nodes_by_level, max_level, num_threads, timer);
-//    Collect(num_threads, timer);
+//    arb_root->Collect3(nodes_by_level, max_level, num_threads, timer);
+    Collect(num_threads, timer);
     timer->Stop("upstream");
 
     timer->Start("downstream");
-    arb_root->Distribute3(nodes_by_level, max_level, num_threads);
-//    Distribute(num_threads, timer);
+//    arb_root->Distribute3(nodes_by_level, max_level, num_threads);
+    Distribute(num_threads, timer);
     timer->Stop("downstream");
 }
 
@@ -419,7 +433,7 @@ void JunctionTree::MessagePassingUpdateJT(int num_threads, Timer *timer) {
  *      distribution finds each separator and its parent, marginalizes from parent to it
  */
 void JunctionTree::SeparatorLevelCollection(int i, int num_threads, Timer *timer) {
-    timer->Start("pre-sep");
+    timer->Start("s-sep-col-pre");
     int size = separators_by_level[i/2].size();
     // used to store the (clique) potential tables that are needed to be marginalized
     vector<PotentialTable> tmp_pt;
@@ -493,12 +507,10 @@ void JunctionTree::SeparatorLevelCollection(int i, int num_threads, Timer *timer
             final_sum += clique->p_table.table_size;
         }
     }
-    timer->Stop("pre-sep");
+    timer->Stop("s-sep-col-pre");
 
-    timer->Start("main-sep");
+    timer->Start("s-sep-col-main");
     int size_m = vector_marginalization.size(); // the number of variables to be marginalized
-
-    timer->Start("parallel");
     // the main loop
     omp_set_num_threads(num_threads);
 #pragma omp parallel for
@@ -508,10 +520,9 @@ void JunctionTree::SeparatorLevelCollection(int i, int num_threads, Timer *timer
         table_index[j][k] = tmp_pt[j].TableMarginalizationMain(k, full_config[j], partial_config[j],
                                                                nv_old[j], cl_old[j], loc_in_old[j]);
     }
-    timer->Stop("parallel");
-    timer->Stop("main-sep");
+    timer->Stop("s-sep-col-main");
 
-    timer->Start("post-sep");
+    timer->Start("s-sep-col-post");
     // post-computing
     int *cum_sum2 = new int[size];
     int final_sum2 = 0;
@@ -530,7 +541,6 @@ void JunctionTree::SeparatorLevelCollection(int i, int num_threads, Timer *timer
         cum_sum2[j] = final_sum2;
         final_sum2 += div_pt[j].table_size;
     }
-
     for (int l = 0; l < size_m; ++l) {
         SAFE_DELETE_ARRAY(loc_in_old[l]);
         SAFE_DELETE_ARRAY(full_config[l]);
@@ -543,9 +553,9 @@ void JunctionTree::SeparatorLevelCollection(int i, int num_threads, Timer *timer
     SAFE_DELETE_ARRAY(table_index);
     SAFE_DELETE_ARRAY(cum_sum);
     SAFE_DELETE_ARRAY(nv_old);
+    timer->Stop("s-sep-col-post");
 
-    timer->Start("parallel");
-    omp_set_num_threads(num_threads);
+    timer->Start("p-division");
 #pragma omp parallel for
     for (int s = 0; s < final_sum2; ++s) {
         int j, k;
@@ -557,14 +567,12 @@ void JunctionTree::SeparatorLevelCollection(int i, int num_threads, Timer *timer
             separators_by_level[i/2][j]->p_table.potentials[k] = div_pt[j].potentials[k] / separators_by_level[i/2][j]->old_ptable.potentials[k];
         }
     }
-
-    timer->Stop("parallel");
     SAFE_DELETE_ARRAY(cum_sum2);
-    timer->Stop("post-sep");
+    timer->Stop("p-division");
 }
 
 void JunctionTree::SeparatorLevelDistribution(int i, int num_threads, Timer *timer) {
-    timer->Start("pre-sep");
+    timer->Start("s-sep-dis-pre");
     int size = separators_by_level[i/2].size();
     // used to store the (clique) potential tables that are needed to be marginalized
     vector<PotentialTable> tmp_pt;
@@ -679,15 +687,13 @@ void JunctionTree::SeparatorLevelDistribution(int i, int num_threads, Timer *tim
                 cum_sum2[last] = final_sum2;
                 final_sum2 += clique->p_table.table_size;
             }
+
         }
     }
-    timer->Stop("pre-sep");
+    timer->Stop("s-sep-dis-pre");
 
-    timer->Start("main-sep");
+    timer->Start("s-sep-dis-main-mar");
     int size_m = vector_marginalization.size(); // the number of variables to be marginalized
-    int size_r = vector_reorganization.size();
-
-    timer->Start("parallel");
     // the main loop
     omp_set_num_threads(num_threads);
 #pragma omp parallel for
@@ -697,8 +703,10 @@ void JunctionTree::SeparatorLevelDistribution(int i, int num_threads, Timer *tim
         table_index[j][k] = tmp_pt[j].TableMarginalizationMain(k, full_config[j], partial_config[j],
                                                                nv_old[j], cl_old[j], loc_in_old[j]);
     }
+    timer->Stop("s-sep-dis-main-mar");
 
-    omp_set_num_threads(num_threads);
+    timer->Start("s-sep-dis-main-reo");
+    int size_r = vector_reorganization.size();
 #pragma omp parallel for
     for (int s = 0; s < final_sum2; ++s) {
         int j, k;
@@ -706,10 +714,9 @@ void JunctionTree::SeparatorLevelDistribution(int i, int num_threads, Timer *tim
         table_index2[j][k] = tmp_pt2[j].TableReorganizationMain(k, config1[j], config2[j],
                                                                 cl_old2[j], locations[j]);
     }
-    timer->Stop("parallel");
-    timer->Stop("main-sep");
+    timer->Stop("s-sep-dis-main-reo");
 
-    timer->Start("post-sep");
+    timer->Start("s-sep-dis-post");
     // post-computing
     int *cum_sum3 = new int[size];
     int final_sum3 = 0;
@@ -758,8 +765,9 @@ void JunctionTree::SeparatorLevelDistribution(int i, int num_threads, Timer *tim
     SAFE_DELETE_ARRAY(config2);
     SAFE_DELETE_ARRAY(table_index2);
     SAFE_DELETE_ARRAY(cum_sum2);
+    timer->Stop("s-sep-dis-post");
 
-    timer->Start("parallel");
+    timer->Stop("p-division");
     omp_set_num_threads(num_threads);
 #pragma omp parallel for
     for (int s = 0; s < final_sum3; ++s) {
@@ -773,9 +781,8 @@ void JunctionTree::SeparatorLevelDistribution(int i, int num_threads, Timer *tim
         }
     }
 
-    timer->Stop("parallel");
     SAFE_DELETE_ARRAY(cum_sum3);
-    timer->Stop("post-sep");
+    timer->Stop("p-division");
 }
 
 /**
@@ -791,7 +798,7 @@ void JunctionTree::SeparatorLevelDistribution(int i, int num_threads, Timer *tim
  */
 void JunctionTree::CliqueLevelCollection(int i, const vector<int> &has_kth_child, int k,
                                          int num_threads, Timer *timer) {
-    timer->Start("pre-clq");
+    timer->Start("s-clq-col-pre");
     int size = has_kth_child.size();
     // used to store the (separator) potential tables that are needed to be extended
     vector<PotentialTable> tmp_pt;
@@ -908,13 +915,11 @@ void JunctionTree::CliqueLevelCollection(int i, const vector<int> &has_kth_child
             }
         }
     }
-    timer->Stop("pre-clq");
+    timer->Stop("s-clq-col-pre");
 
-    timer->Start("main-clq");
+    timer->Start("s-clq-col-main-ext");
     int size_e = vector_extension.size(); // the number of variables to be extended
-    int size_r = vector_reorganization.size();
 
-    timer->Start("parallel");
     // the main loop
     omp_set_num_threads(num_threads);
 #pragma omp parallel for
@@ -924,8 +929,10 @@ void JunctionTree::CliqueLevelCollection(int i, const vector<int> &has_kth_child
         table_index[j][k] = tmp_pt[j].TableExtensionMain(k, full_config[j], partial_config[j],
                                                          nv_old[j], cl_old[j], loc_in_new[j]);
     }
+    timer->Stop("s-clq-col-main-ext");
 
-    omp_set_num_threads(num_threads);
+    timer->Start("s-clq-col-main-reo");
+    int size_r = vector_reorganization.size();
 #pragma omp parallel for
     for (int s = 0; s < final_sum2; ++s) {
         int j, k;
@@ -933,10 +940,9 @@ void JunctionTree::CliqueLevelCollection(int i, const vector<int> &has_kth_child
         table_index2[j][k] = tmp_pt2[j].TableReorganizationMain(k, config1[j], config2[j],
                                                                 cl_old2[j], locations[j]);
     }
-    timer->Stop("parallel");
-    timer->Stop("main-clq");
+    timer->Stop("s-clq-col-main-reo");
 
-    timer->Start("post-clq");
+    timer->Start("s-clq-col-post");
     // post-computing
     int *cum_sum3 = new int[size];
     int final_sum3 = 0;
@@ -985,8 +991,9 @@ void JunctionTree::CliqueLevelCollection(int i, const vector<int> &has_kth_child
     SAFE_DELETE_ARRAY(config2);
     SAFE_DELETE_ARRAY(table_index2);
     SAFE_DELETE_ARRAY(cum_sum2);
+    timer->Stop("s-clq-col-post");
 
-    timer->Start("parallel");
+    timer->Start("p-multiplication");
     omp_set_num_threads(num_threads);
 #pragma omp parallel for
     for (int s = 0; s < final_sum3; ++s) {
@@ -994,19 +1001,18 @@ void JunctionTree::CliqueLevelCollection(int i, const vector<int> &has_kth_child
         Compute2DIndex(j, k, s, size, cum_sum3); // compute j and k
         nodes_by_level[i][has_kth_child[j]]->p_table.potentials[k] *= multi_pt[j].potentials[k];
     }
-    timer->Stop("parallel");
     SAFE_DELETE_ARRAY(cum_sum3);
+    timer->Stop("p-multiplication");
 
     timer->Start("norm");
     for (int j = 0; j < size; ++j) {
         nodes_by_level[i][has_kth_child[j]]->p_table.Normalize();
     }
     timer->Stop("norm");
-    timer->Stop("post-clq");
 }
 
 void JunctionTree::CliqueLevelDistribution(int i, int num_threads, Timer *timer) {
-    timer->Start("pre-clq");
+    timer->Start("s-clq-dis-pre");
     int size = nodes_by_level[i].size();
     // used to store the (separator) potential tables that are needed to be extended
     vector<PotentialTable> tmp_pt;
@@ -1062,7 +1068,6 @@ void JunctionTree::CliqueLevelDistribution(int i, int num_threads, Timer *timer)
             PotentialTable pt;
             pt.TableExtensionPre(clique->p_table.vec_related_variables, clique->p_table.var_dims);
 
-
             // generate an array showing the locations of the variables of the new table in the old table
             loc_in_new[last] = new int[separator->p_table.num_variables];
             for (int k = 0; k < separator->p_table.num_variables; ++k) {
@@ -1081,12 +1086,10 @@ void JunctionTree::CliqueLevelDistribution(int i, int num_threads, Timer *timer)
             final_sum += pt.table_size;
         }
     }
-    timer->Stop("pre-clq");
+    timer->Stop("s-clq-dis-pre");
 
-    timer->Start("main-clq");
+    timer->Start("s-clq-dis-main");
     int size_e = vector_extension.size(); // the number of variables to be extended
-
-    timer->Start("parallel");
     // the main loop
     omp_set_num_threads(num_threads);
 #pragma omp parallel for
@@ -1096,10 +1099,9 @@ void JunctionTree::CliqueLevelDistribution(int i, int num_threads, Timer *timer)
         table_index[j][k] = tmp_pt[j].TableExtensionMain(k, full_config[j], partial_config[j],
                                                          nv_old[j], cl_old[j], loc_in_new[j]);
     }
-    timer->Stop("parallel");
-    timer->Stop("main-clq");
+    timer->Stop("s-clq-dis-main");
 
-    timer->Start("post-clq");
+    timer->Start("s-clq-dis-post");
     // post-computing
     int *cum_sum2 = new int[size];
     int final_sum2 = 0;
@@ -1131,8 +1133,9 @@ void JunctionTree::CliqueLevelDistribution(int i, int num_threads, Timer *timer)
     SAFE_DELETE_ARRAY(table_index);
     SAFE_DELETE_ARRAY(cum_sum);
     SAFE_DELETE_ARRAY(nv_old);
+    timer->Stop("s-clq-dis-post");
 
-    timer->Start("parallel");
+    timer->Start("p-multiplication");
     omp_set_num_threads(num_threads);
 #pragma omp parallel for
     for (int s = 0; s < final_sum2; ++s) {
@@ -1140,15 +1143,15 @@ void JunctionTree::CliqueLevelDistribution(int i, int num_threads, Timer *timer)
         Compute2DIndex(j, k, s, size, cum_sum2); // compute j and k
         nodes_by_level[i][j]->p_table.potentials[k] *= multi_pt[j].potentials[k];
     }
-    timer->Stop("parallel");
     SAFE_DELETE_ARRAY(cum_sum2);
+    timer->Stop("p-multiplication");
 
     timer->Start("norm");
     for (int j = 0; j < size; ++j) {
         nodes_by_level[i][j]->p_table.Normalize();
     }
     timer->Stop("norm");
-    timer->Stop("post-clq");
+
 }
 
 void JunctionTree::Collect(int num_threads, Timer *timer) {
@@ -1168,7 +1171,7 @@ void JunctionTree::Collect(int num_threads, Timer *timer) {
              * collect msg from its children (separators) to it (a clique)
              * do extension + multiplication for clique levels
              */
-            timer->Start("pre-up-clq");
+            timer->Start("s-clq-col-pre");
             int size = nodes_by_level[i].size();
 
             // get the maximum number of children for the cliques in the current level
@@ -1180,7 +1183,7 @@ void JunctionTree::Collect(int num_threads, Timer *timer) {
                     max_num_children = clique->ptr_downstream_cliques.size();
                 }
             }
-            timer->Stop("pre-up-clq");
+            timer->Stop("s-clq-col-pre");
 
             /**
              * there may be multiple children for a clique
@@ -1190,7 +1193,7 @@ void JunctionTree::Collect(int num_threads, Timer *timer) {
              *
              */
             for (int k = 0; k < max_num_children; ++k) { // process the k-th child
-                timer->Start("pre-up-clq");
+                timer->Start("s-clq-col-pre");
                 // use a vector to mark which clique(s) has the k-th children
                 vector<int> has_kth_child;
                 has_kth_child.reserve(size);
@@ -1201,6 +1204,7 @@ void JunctionTree::Collect(int num_threads, Timer *timer) {
                         has_kth_child.push_back(j);
                     }
                 }
+                timer->Stop("s-clq-col-pre");
 
                 /**
                  * then, inside this loop (k), the following operations are similar to before:
@@ -1210,25 +1214,6 @@ void JunctionTree::Collect(int num_threads, Timer *timer) {
                 CliqueLevelCollection(i, has_kth_child, k, num_threads, timer);
             }
         }
-
-        /**
-         * there are some issues with datasets munin2, munin3, munin4
-         * after debugging -- caused by table multiplication
-         * don't have enough precision so it may cause 0 prob after multiplication
-         * therefore, I add a normalization after collection of each level
-         * we can remove this part for other datasets
-         */
-        timer->Start("norm");
-        omp_set_num_threads(num_threads);
-#pragma omp parallel for
-        for (int i = 0; i < tree->vector_clique_ptr_container.size(); ++i) {
-            tree->vector_clique_ptr_container[i]->p_table.Normalize();
-        }
-#pragma omp parallel for
-        for (int i = 0; i < tree->vector_separator_ptr_container.size(); ++i) {
-            tree->vector_separator_ptr_container[i]->p_table.Normalize();
-        }
-        timer->Stop("norm");
     }
 }
 
@@ -1264,10 +1249,8 @@ PotentialTable JunctionTree::CalculateMarginalProbability(int query_index) {
     int min_size = INT32_MAX;
     Clique *selected_clique = nullptr;
 
-    // Find the clique that contains this variable,
-    // whose size of potentials table is the smallest,
+    // Find the clique that contains this variable, whose size of potentials table is the smallest,
     // which can reduce the number of sum operation.
-    // TODO: find from separator
     for (auto &c : tree->vector_clique_ptr_container) {
 
         set<int> rv;
@@ -1295,18 +1278,11 @@ PotentialTable JunctionTree::CalculateMarginalProbability(int query_index) {
         return selected_clique->p_table;
     }
 
-//    set<int> other_vars;
-//    for (int i = 0; i < selected_clique->p_table.num_variables; ++i) {
-//        other_vars.insert(selected_clique->p_table.vec_related_variables[i]);
-//    }
-//    other_vars.erase(query_index);
-
     int dim = dynamic_cast<DiscreteNode*>(network->FindNodePtrByIndex(query_index))->GetDomainSize();
 
     PotentialTable pt = selected_clique->p_table;
     pt.TableMarginalization(vector<int>(1, query_index), vector<int>(1, dim));
-//    pt.TableMarginalization(other_vars);
-//    pt.Normalize(); // todo: no need to do normalization, because we do normalization for each clique in message passing
+    pt.Normalize();
 
     return pt;
 }
@@ -1339,10 +1315,8 @@ void JunctionTree::GetProbabilitiesOneNode(const DiscreteConfig &E, int index) {
     int min_size = INT32_MAX;
     Clique *selected_clique = nullptr;
 
-    // Find the clique that contains this variable,
-    // whose size of potentials table is the smallest,
+    // Find the clique that contains this variable, whose size of potentials table is the smallest,
     // which can reduce the number of sum operation.
-    // TODO: find from separator
     for (auto &c : tree->vector_clique_ptr_container) {
 
         set<int> rv;
@@ -1366,17 +1340,10 @@ void JunctionTree::GetProbabilitiesOneNode(const DiscreteConfig &E, int index) {
         exit(1);
     }
 
-//    set<int> other_vars;
-//    for (int i = 0; i < selected_clique->p_table.num_variables; ++i) {
-//        other_vars.insert(selected_clique->p_table.vec_related_variables[i]);
-//    }
-//    other_vars.erase(query_index);
-
     int dim = dynamic_cast<DiscreteNode*>(network->FindNodePtrByIndex(query_index))->GetDomainSize();
 
     PotentialTable pt = selected_clique->p_table;
     pt.TableMarginalization(vector<int>(1, query_index), vector<int>(1, dim));
-//    pt.TableMarginalization(other_vars);
     pt.Normalize();
 
     for (int i = 0; i < pt.table_size; ++i) {
@@ -1427,7 +1394,6 @@ int JunctionTree::PredictUseJTInfer(const DiscreteConfig &E, int num_threads, Ti
     ResetJunctionTree();
     timer->Stop("reset");
 
-//    cout << label_predict << endl;
     return label_predict;
 }
 
