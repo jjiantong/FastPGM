@@ -1166,11 +1166,8 @@ void JunctionTree::SeparatorLevelCollectionOptimized(int i, int num_threads, Tim
     vector<PotentialTable> div_pt;
     div_pt.resize(size);
 
-    // store number_variables and cum_levels of the original table
-    // rather than storing the whole potential table
-    int *nv_old = new int[size];
-    vector<vector<int>> cl_old;
-    cl_old.reserve(size);
+    // used to store the common variable dims (which is the table size of the separator)
+    int *common_dims = new int[size];
 
     int *cum_sum = new int[size];
     int final_sum = 0;
@@ -1181,10 +1178,6 @@ void JunctionTree::SeparatorLevelCollectionOptimized(int i, int num_threads, Tim
     vector<int> vector_marginalization;
     vector_marginalization.reserve(size);
 
-    // set of arrays, showing the locations of the variables of the new table in the old table
-    int **loc_in_old = new int*[size];
-    int **full_config = new int*[size];
-    int **partial_config = new int*[size];
     int **table_index = new int*[size];
 
     /**
@@ -1205,24 +1198,14 @@ void JunctionTree::SeparatorLevelCollectionOptimized(int i, int num_threads, Tim
             // get this table's location -- it is currently the last one
             int last = vector_marginalization.size() - 1;
 
-            nv_old[last] = clique->p_table.num_variables;
-            cl_old.push_back(clique->p_table.cum_levels);
+            common_dims[last] = separator->p_table.table_size;
 
             PotentialTable pt;
             pt.TableMarginalizationPre(separator->p_table.vec_related_variables, separator->old_ptable.var_dims);
 
-            // generate an array showing the locations of the variables of the new table in the old table
-            loc_in_old[last] = new int[separator->p_table.num_variables];
-            for (int k = 0; k < separator->p_table.num_variables; ++k) {
-                loc_in_old[last][k] = clique->p_table.TableReductionPre(pt.vec_related_variables[k]);
-            }
             table_index[last] = new int[clique->p_table.table_size];
 
             tmp_pt.push_back(pt);
-
-            // malloc in pre-, not to parallelize
-            full_config[last] = new int[clique->p_table.table_size * clique->p_table.num_variables];
-            partial_config[last] = new int[clique->p_table.table_size * separator->p_table.num_variables];
 
             // update sum
             cum_sum[last] = final_sum;
@@ -1239,8 +1222,7 @@ void JunctionTree::SeparatorLevelCollectionOptimized(int i, int num_threads, Tim
     for (int s = 0; s < final_sum; ++s) {
         int j, k;
         Compute2DIndex(j, k, s, size_m, cum_sum); // compute j and k
-        table_index[j][k] = tmp_pt[j].TableMarginalizationMain(k, full_config[j], partial_config[j],
-                                                               nv_old[j], cl_old[j], loc_in_old[j]);
+        table_index[j][k] = k % common_dims[j];
     }
     timer->Stop("p-sep-col-main");
 
@@ -1264,17 +1246,11 @@ void JunctionTree::SeparatorLevelCollectionOptimized(int i, int num_threads, Tim
         final_sum2 += div_pt[j].table_size;
     }
     for (int l = 0; l < size_m; ++l) {
-        SAFE_DELETE_ARRAY(loc_in_old[l]);
-        SAFE_DELETE_ARRAY(full_config[l]);
-        SAFE_DELETE_ARRAY(partial_config[l]);
         SAFE_DELETE_ARRAY(table_index[l]);
     }
-    SAFE_DELETE_ARRAY(loc_in_old);
-    SAFE_DELETE_ARRAY(full_config);
-    SAFE_DELETE_ARRAY(partial_config);
+    SAFE_DELETE_ARRAY(common_dims);
     SAFE_DELETE_ARRAY(table_index);
     SAFE_DELETE_ARRAY(cum_sum);
-    SAFE_DELETE_ARRAY(nv_old);
     timer->Stop("s-sep-col-post");
 
     timer->Start("p-div");
@@ -1305,11 +1281,8 @@ void JunctionTree::CliqueLevelDistributionOptimized(int i, int num_threads, Time
     vector<PotentialTable> multi_pt;
     multi_pt.resize(size);
 
-    // store number_variables and cum_levels of the original table
-    // rather than storing the whole potential table
-    int *nv_old = new int[size];
-    vector<vector<int>> cl_old;
-    cl_old.reserve(size);
+    // used to store the common variable dims (which is the table size of the separator)
+    int *common_dims = new int[size];
 
     int *cum_sum = new int[size];
     int final_sum = 0;
@@ -1320,10 +1293,6 @@ void JunctionTree::CliqueLevelDistributionOptimized(int i, int num_threads, Time
     vector<int> vector_extension;
     vector_extension.reserve(size);
 
-    // set of arrays, showing the locations of the variables of the new table in the old table
-    int **loc_in_new = new int*[size];
-    int **full_config = new int*[size];
-    int **partial_config = new int*[size];
     int **table_index = new int*[size];
 
     /**
@@ -1344,24 +1313,14 @@ void JunctionTree::CliqueLevelDistributionOptimized(int i, int num_threads, Time
             // get this table's location -- it is currently the last one
             int last = vector_extension.size() - 1;
 
-            nv_old[last] = separator->p_table.num_variables;
-            cl_old.push_back(separator->p_table.cum_levels);
+            common_dims[last] = separator->p_table.table_size;
 
             PotentialTable pt;
             pt.TableExtensionPre(clique->p_table.vec_related_variables, clique->p_table.var_dims);
 
-            // generate an array showing the locations of the variables of the new table in the old table
-            loc_in_new[last] = new int[separator->p_table.num_variables];
-            for (int k = 0; k < separator->p_table.num_variables; ++k) {
-                loc_in_new[last][k] = pt.TableReductionPre(separator->p_table.vec_related_variables[k]);
-            }
             table_index[last] = new int[pt.table_size];
 
             tmp_pt.push_back(pt);
-
-            // malloc in pre-, not to parallelize
-            full_config[last] = new int[pt.table_size * pt.num_variables];
-            partial_config[last] = new int[pt.table_size * separator->p_table.num_variables];
 
             // update sum
             cum_sum[last] = final_sum;
@@ -1378,8 +1337,7 @@ void JunctionTree::CliqueLevelDistributionOptimized(int i, int num_threads, Time
     for (int s = 0; s < final_sum; ++s) {
         int j, k;
         Compute2DIndex(j, k, s, size_e, cum_sum); // compute j and k
-        table_index[j][k] = tmp_pt[j].TableExtensionMain(k, full_config[j], partial_config[j],
-                                                         nv_old[j], cl_old[j], loc_in_new[j]);
+        table_index[j][k] = k % common_dims[j];
     }
     timer->Stop("p-clq-dis-main");
 
@@ -1404,17 +1362,11 @@ void JunctionTree::CliqueLevelDistributionOptimized(int i, int num_threads, Time
     }
 
     for (int l = 0; l < size_e; ++l) {
-        SAFE_DELETE_ARRAY(loc_in_new[l]);
-        SAFE_DELETE_ARRAY(full_config[l]);
-        SAFE_DELETE_ARRAY(partial_config[l]);
         SAFE_DELETE_ARRAY(table_index[l]);
     }
-    SAFE_DELETE_ARRAY(loc_in_new);
-    SAFE_DELETE_ARRAY(full_config);
-    SAFE_DELETE_ARRAY(partial_config);
+    SAFE_DELETE_ARRAY(common_dims);
     SAFE_DELETE_ARRAY(table_index);
     SAFE_DELETE_ARRAY(cum_sum);
-    SAFE_DELETE_ARRAY(nv_old);
     timer->Stop("s-clq-dis-post");
 
     timer->Start("p-mul");
