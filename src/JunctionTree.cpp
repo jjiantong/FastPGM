@@ -1397,6 +1397,7 @@ void JunctionTree::Collect(int num_threads, Timer *timer) {
              * collect msg from its child (a clique) to it (a separator)
              * do marginalization + division for separator levels
              */
+//            SeparatorLevelCollection(i, num_threads, timer);
             SeparatorLevelCollectionOptimized(i, num_threads, timer);
         }
         else {
@@ -1468,6 +1469,7 @@ void JunctionTree::Distribute(int num_threads, Timer *timer) {
              * distribute msg from its parent (a separator) to it (a clique)
              * do extension + multiplication for clique levels
              */
+//            CliqueLevelDistribution(i, num_threads, timer);
             CliqueLevelDistributionOptimized(i, num_threads, timer);
         }
     }
