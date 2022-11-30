@@ -1,11 +1,11 @@
-# Bayesian-network
+# FastBN
 
 
 # How to use
 
 Clone the repo.
 ```
-git clone https://github.com/jjiantong/Bayesian-network
+git clone https://github.com/jjiantong/FastBN.git
 cd Bayesian-network/lib
 #under the directory of lib
 git submodule init ARFF && git submodule init googletest && git submodule init tinyxml2 && git submodule init stats && git submodule init gcem && git submodule update
