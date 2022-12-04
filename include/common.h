@@ -18,6 +18,17 @@
 #define SAFE_DELETE(p) do { if(p) { delete (p); (p) = nullptr; } } while(0)
 #define SAFE_DELETE_ARRAY(p) do { if(p) { delete[] (p); (p) = nullptr; } } while(0)
 
+#define ALGPCSTABLE 0
+#define ALGBF 1
+#define ALGJT 2
+#define ALGVE 3
+#define ALGPLS 4
+#define ALGLW 5
+#define ALGEPISBN 6
+#define ALGLBP 7
+#define ALGSIS 8
+#define ALGAISBN 9
+
 using namespace std;
 typedef set< pair<int, int> > DiscreteConfig;//[variable id, variable value]
 
@@ -111,4 +122,19 @@ vector<string> Split(string &s, string delimiter);
 
 vector<vector<int>> NaryCount(vector<int> vec_range_each_digit);
 
+
+class Parameter{
+public:
+    int algorithm;
+    string dataset;
+    int num_samples; // for approximate inference
+    int num_updating; // for approximate inference
+    int group_size; // for PC-Stable
+    int num_threads; //for OpenMp
+
+    Parameter();
+    void read_input_parameters(int argc, char *argv[]);
+};
+
 #endif //BAYESIANNETWORK_COMMON_H
+
