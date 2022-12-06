@@ -52,4 +52,6 @@ public:
     double CalculateHellingerDistance(const vector<vector<double>> &approximate_distribution, int instance_index);
 };
 
+double Round(double number, unsigned int bits);
+
 #endif //BAYESIANNETWORK_INFERENCE_H

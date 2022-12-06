@@ -23,6 +23,8 @@ JunctionTree::JunctionTree(Network *net, Dataset *dts, bool is_dense) : Inferenc
     BackUpJunctionTree();
     cout << "finish BackUpJunctionTree" << endl;
 
+    probs_one_sample.resize(network->num_nodes);
+
     timer->Stop("construct jt");
     cout << "==================================================";
     cout << endl; timer->Print("construct jt"); cout << endl;
@@ -39,6 +41,8 @@ JunctionTree::~JunctionTree() {
  * @brief: test the Junction Tree given a data set
  */
 double JunctionTree::EvaluateAccuracy(string path, int num_threads) {
+
+    LoadGroundTruthProbabilityTable(path);
 
     cout << "==================================================" << '\n'
          << "Begin testing the trained network." << endl;
@@ -1477,10 +1481,9 @@ void JunctionTree::Distribute(int num_threads, Timer *timer) {
 
 /**
  * @brief: compute the marginal distribution for a query variable
- * @param query_index the index of query variable TODO: here only support one query variable
  * @return a potential table (factor) representing the marginal of the query variable
  **/
-PotentialTable JunctionTree::CalculateMarginalProbability(int query_index) {
+PotentialTable JunctionTree::CalculateMarginalProbability() {
 
     int min_size = INT32_MAX;
     Clique *selected_clique = nullptr;
@@ -1529,11 +1532,16 @@ PotentialTable JunctionTree::CalculateMarginalProbability(int query_index) {
 void JunctionTree::GetProbabilitiesAllNodes(const DiscreteConfig &E) {
     for (int i = 0; i < network->num_nodes; ++i) {
         GetProbabilitiesOneNode(E, i);
-        cout << endl;
+//        cout << endl;
     }
 }
 
 void JunctionTree::GetProbabilitiesOneNode(const DiscreteConfig &E, int index) {
+    int dim = dynamic_cast<DiscreteNode*>(network->FindNodePtrByIndex(index))->GetDomainSize();
+
+    vector<double> prob(dim, 0.0);
+    probs_one_sample[index] = prob;
+
     for (auto &e: E) {
         if (index == e.first) {
             /**
@@ -1555,18 +1563,20 @@ void JunctionTree::GetProbabilitiesOneNode(const DiscreteConfig &E, int index) {
     // which can reduce the number of sum operation.
     for (auto &c : tree->vector_clique_ptr_container) {
 
+        if (c->p_table.num_variables >= min_size) {
+            continue;
+        }
+
         set<int> rv;
         for (int i = 0; i < c->p_table.num_variables; ++i) { // for each related variable
             rv.insert(c->p_table.vec_related_variables[i]);
         }
-        if (rv.size() >= min_size) {
-            continue;
-        }
+
         if (rv.find(index) == rv.end()) { // cannot find the query variable
             continue;
         }
 
-        min_size = c->p_table.vec_related_variables.size();
+        min_size = c->p_table.num_variables;
         selected_clique = c;
     }
 
@@ -1576,23 +1586,26 @@ void JunctionTree::GetProbabilitiesOneNode(const DiscreteConfig &E, int index) {
         exit(1);
     }
 
-    int dim = dynamic_cast<DiscreteNode*>(network->FindNodePtrByIndex(query_index))->GetDomainSize();
-
     PotentialTable pt = selected_clique->p_table;
-    pt.TableMarginalization(vector<int>(1, query_index), vector<int>(1, dim));
+
+    if (min_size > 1) {
+        pt.TableMarginalization(vector<int>(1, index), vector<int>(1, dim));
+    }
+
     pt.Normalize();
 
     for (int i = 0; i < pt.table_size; ++i) {
-        cout << pt.potentials[i] << " ";
+        probs_one_sample[index][i] = pt.potentials[i];
+//        printf("%.7f ", pt.potentials[i]) ;
     }
 }
 
 /**
  * @brief: predict the label for a given variable.
  */
-int JunctionTree::InferenceUsingJT(int &query_index) {
+int JunctionTree::InferenceUsingJT() {
 
-    PotentialTable pt = CalculateMarginalProbability(query_index);
+    PotentialTable pt = CalculateMarginalProbability();
 
     // find the maximum probability
     // "pt" has only one related variable, which is exactly the query variable,
@@ -1604,7 +1617,7 @@ int JunctionTree::InferenceUsingJT(int &query_index) {
  * @brief: predict label given evidence E and target variable id Y_index
  * @return label of the target variable
  */
-int JunctionTree::PredictUseJTInfer(const DiscreteConfig &E, int num_threads, Timer *timer) {
+int JunctionTree::PredictUseJTInfer(const DiscreteConfig &E, int instance_index, double &mse, double &hd, int num_threads, Timer *timer) {
     timer->Start("load evidence");
     //update a clique using the evidence
     LoadDiscreteEvidence(E, num_threads, timer);
@@ -1622,8 +1635,10 @@ int JunctionTree::PredictUseJTInfer(const DiscreteConfig &E, int num_threads, Ti
     timer->Stop("msg passing");
 
     timer->Start("predict");
-//    GetProbabilitiesAllNodes(E); // todo: used for print probabilities of all values of all non-evidence nodes
-    int label_predict = InferenceUsingJT(query_index);
+    int label_predict = InferenceUsingJT();
+    GetProbabilitiesAllNodes(E);
+    mse += CalculateMSE(probs_one_sample, instance_index);
+    hd += CalculateHellingerDistance(probs_one_sample, instance_index);
     timer->Stop("predict");
 
     timer->Start("reset");
@@ -1643,6 +1658,8 @@ vector<int> JunctionTree::PredictUseJTInfer(int num_threads, Timer *timer) {
     int progress = 0;
 
     vector<int> results(num_instances, 0);
+    double mse = 0.0;
+    double hd = 0.0;
 
     for (int i = 0; i < num_instances; ++i) {
         ++progress;
@@ -1653,8 +1670,12 @@ vector<int> JunctionTree::PredictUseJTInfer(int num_threads, Timer *timer) {
             fflush(stdout);
         }
 
-        int label_predict = PredictUseJTInfer(evidences.at(i), num_threads, timer);
+        int label_predict = PredictUseJTInfer(evidences.at(i), i, mse, hd, num_threads, timer);
         results.at(i) = label_predict;
     }
+
+    cout << "average MSE = " << mse/num_instances << endl;
+    cout << "average HD = " << hd/num_instances << endl;
+
     return results;
 }

@@ -154,14 +154,14 @@ double Inference::CalculateMSE(const vector<vector<double>> &approximate_distrib
     // the exact distribution
     vector<vector<double>> exact_distribution = ground_truth_probability_tables[instance_index];
 
-    double num = 0.0;
+    int num = 0;
     double error = 0.0;
     for (int i = 0; i < network->num_nodes; ++i) {
         if (exact_distribution[i][0] > 0) { // for non-evidence nodes
             int dim = dynamic_cast<DiscreteNode*>(network->FindNodePtrByIndex(i))->GetDomainSize();
             num += dim;
             for (int j = 0; j < dim; ++j) {
-                error += (approximate_distribution[i][j] - exact_distribution[i][j]) * (approximate_distribution[i][j] - exact_distribution[i][j]);
+                error += pow((Round(approximate_distribution[i][j], 7) - exact_distribution[i][j]), 2);
             }
         }
     }
@@ -178,17 +178,29 @@ double Inference::CalculateHellingerDistance(const vector<vector<double>> &appro
     // the exact distribution
     vector<vector<double>> exact_distribution = ground_truth_probability_tables[instance_index];
 
-    double num = 0.0;
+    int num = 0;
     double error = 0.0;
     for (int i = 0; i < network->num_nodes; ++i) {
         if (exact_distribution[i][0] > 0) { // for non-evidence nodes
             int dim = dynamic_cast<DiscreteNode*>(network->FindNodePtrByIndex(i))->GetDomainSize();
             num += dim;
             for (int j = 0; j < dim; ++j) {
-                error += (sqrt(approximate_distribution[i][j]) - sqrt(exact_distribution[i][j])) *
-                        (sqrt(approximate_distribution[i][j]) - sqrt(exact_distribution[i][j]));
+                error += pow(sqrt(Round(approximate_distribution[i][j], 7)) - sqrt(exact_distribution[i][j]), 2);
             }
         }
     }
     return sqrt(error/num);
+}
+
+double Round(double number, unsigned int bits) {
+	long long integerpart = number;
+	number -= integerpart;
+	for (unsigned int i = 0; i < bits; ++i) {
+		number *= 10;
+	}
+	number = (long long)(number + 0.5);
+	for (unsigned int i=0;i<bits;++i) {
+		number /= 10;
+	}
+	return integerpart + number;
 }
