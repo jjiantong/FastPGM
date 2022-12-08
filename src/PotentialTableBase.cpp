@@ -112,14 +112,13 @@ void PotentialTableBase::GetReducedPotentials(vector<double> &result, const vect
     }
 
     /**
-     * compute the dimensionality of its parents dp
-     * which is table size / dim of the node
+     * the dimensionality of its parents dp
      */
-    int dp = this->table_size / this->var_dims[0];
+    int dp = this->cum_levels[0];
 
     /**
      * compute the parent configuration location lp
-     * according to the parent configuration, we can compute the relative index, or say, partial index?
+     * according to the parent configuration, we can compute the relative index, or say, partial index? parent config index?
      */
     int *par_config = new int[this->num_variables - 1];
     // store the evidence into parent configuration
@@ -132,14 +131,22 @@ void PotentialTableBase::GetReducedPotentials(vector<double> &result, const vect
     SAFE_DELETE_ARRAY(par_config);
 
     /**
-     * find the values of the indexes satisfying index % dp == lp
+     * the indexes should satisfy index % dp == lp
+     * so the first index is lp, then lp + dp, then lp + dp + dp, ...
      */
-    int j = 0;
-    for (int i = 0; i < this->table_size; ++i) {
-        if (i % dp == lp) {
-            result[j++] = this->potentials[i];
-        }
+    int index = lp;
+    result[0] = this->potentials[index];
+    for (int i = 1; i < this->var_dims[0]; ++i) {
+        index += dp;
+        result[i] = this->potentials[index];
     }
+
+//    int j = 0;
+//    for (int i = 0; i < this->table_size; ++i) {
+//        if (i % dp == lp) {
+//            result[j++] = this->potentials[i];
+//        }
+//    }
 }
 
 /**
