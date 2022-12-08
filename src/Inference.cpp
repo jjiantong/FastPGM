@@ -154,15 +154,25 @@ double Inference::CalculateMSE(const vector<vector<double>> &approximate_distrib
     // the exact distribution
     vector<vector<double>> exact_distribution = ground_truth_probability_tables[instance_index];
 
+//    cout << "calculate instance " << instance_index;
+
     int num = 0;
     double error = 0.0;
     for (int i = 0; i < network->num_nodes; ++i) {
         if (exact_distribution[i][0] > 0) { // for non-evidence nodes
+//            cout << "is non-evi" << endl;
+//            cout << "app and exa: ";
+
             int dim = dynamic_cast<DiscreteNode*>(network->FindNodePtrByIndex(i))->GetDomainSize();
             num += dim;
             for (int j = 0; j < dim; ++j) {
                 error += pow((Round(approximate_distribution[i][j], 7) - exact_distribution[i][j]), 2);
+
+//                cout << Round(approximate_distribution[i][j], 7) << ", " << exact_distribution[i][j] << "... ";
+//                cout << "error now = " << error;
             }
+
+//            cout << endl;
         }
     }
     return sqrt(error/num);
