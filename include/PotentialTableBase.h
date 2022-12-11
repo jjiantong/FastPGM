@@ -57,9 +57,11 @@ public:
      * potential table operation: table addition
      */
     void TableAddition(const PotentialTableBase &second_table);
+    void TableAdditionAndNormalization(const PotentialTableBase &second_table);
     void TableSubtraction(const PotentialTableBase &second_table);
 
     void Normalize();
+    void NormalizeCPT();
 
     void UniformDistribution();
 

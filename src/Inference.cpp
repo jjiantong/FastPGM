@@ -169,7 +169,7 @@ double Inference::CalculateMSE(const vector<vector<double>> &approximate_distrib
                 error += pow((Round(approximate_distribution[i][j], 7) - exact_distribution[i][j]), 2);
 
 //                cout << Round(approximate_distribution[i][j], 7) << ", " << exact_distribution[i][j] << "... ";
-//                cout << "error now = " << error;
+//                cout << "error now = " << error << " ";
             }
 
 //            cout << endl;
