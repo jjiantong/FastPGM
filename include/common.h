@@ -131,6 +131,7 @@ public:
     int num_updating; // for approximate inference
     int group_size; // for PC-Stable
     int num_threads; //for OpenMp
+    int lbp_iter; // for epis-bn and lbp
 
     Parameter();
     void read_input_parameters(int argc, char *argv[]);
