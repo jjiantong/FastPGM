@@ -127,11 +127,15 @@ class Parameter{ // TODO: it's different from that in FastBN
 public:
     int algorithm;
     string dataset;
+    int num_threads; //for OpenMP
+
+    int group_size; // for PC-Stable
+
     int num_samples; // for approximate inference
     int num_updating; // for approximate inference
-    int group_size; // for PC-Stable
-    int num_threads; //for OpenMp
     int lbp_iter; // for epis-bn and lbp
+    bool enable_heuristic_uniform_distribution;
+    bool enable_heuristic_theta_cutoff;
 
     Parameter();
     void read_input_parameters(int argc, char *argv[]);
