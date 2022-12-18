@@ -1596,6 +1596,7 @@ void JunctionTree::GetProbabilitiesOneNode(const DiscreteConfig &E, int index) {
 
     for (int i = 0; i < pt.table_size; ++i) {
         probs_one_sample[index][i] = pt.potentials[i];
+//        cout << pt.potentials[i] << " ";
 //        printf("%.7f ", pt.potentials[i]) ;
     }
 }

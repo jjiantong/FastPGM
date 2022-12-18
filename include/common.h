@@ -132,8 +132,9 @@ public:
     int group_size; // for PC-Stable
 
     int num_samples; // for approximate inference
-    int num_updating; // for approximate inference
-    int lbp_iter; // for epis-bn and lbp
+    int max_updating; // for approximate inference
+    int updating_interval;
+    int propagation_length; // for epis-bn and lbp
     bool enable_heuristic_uniform_distribution;
     bool enable_heuristic_theta_cutoff;
 
