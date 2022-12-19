@@ -38,7 +38,6 @@ public:
     void GetReducedPotentials(vector<double> &result, const vector<int> &evidence, int num_threads);
     double GetReducedPotential(const vector<int> &evidence, int num_threads);
     double GetReducedIndexAndPotential(const vector<int> &evidence, int &index, int num_threads);
-    int GetReducedTableIndex(const vector<int> &evidence, int num_threads);
 
     /**
      * potential table operation: table marginalization
