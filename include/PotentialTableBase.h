@@ -22,6 +22,11 @@ class PotentialTableBase {//this is used only for discrete nodes;
 public:
     vector<int> vec_related_variables; // the variables involved in this factor/potential table
     vector<double> potentials; // the potential table
+    /**
+     * it is used in sampling based approximate inference algorithms
+     * where potentials is CPT and potentialICPT is ICPT
+     */
+    vector<double> potentialsICPT;
 
     vector<int> var_dims; // the dimension of each related variable
     vector<int> cum_levels; // the helper array used to transfer between table index and the config (in array format)
