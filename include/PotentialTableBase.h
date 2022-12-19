@@ -41,6 +41,7 @@ public:
      * potential table operation: table reduction
      */
     void GetReducedPotentials(vector<double> &result, const vector<int> &evidence, int num_threads);
+    void GetReducedICPTPotentials(vector<double> &result, const vector<int> &evidence, int num_threads);
     double GetReducedPotential(const vector<int> &evidence, int num_threads);
     double GetReducedIndexAndPotential(const vector<int> &evidence, int &index, int num_threads);
 

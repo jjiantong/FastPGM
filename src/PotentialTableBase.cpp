@@ -153,6 +153,54 @@ void PotentialTableBase::GetReducedPotentials(vector<double> &result, const vect
 //    SAFE_DELETE_ARRAY(full_config);
 }
 
+void PotentialTableBase::GetReducedICPTPotentials(vector<double> &result, const vector<int> &evidence, int num_threads) {
+    if (this->num_variables == 1) { // if the node has no parent, directly return its table
+        result = this->potentialsICPT;
+        return;
+    }
+
+    /**
+     * the dimensionality of its parents dp
+     */
+    int dp = this->cum_levels[0];
+
+    /**
+     * compute the parent configuration location lp
+     * according to the parent configuration, we can compute the relative index, or say, partial index? parent config index?
+     */
+    int *par_config = new int[this->num_variables - 1];
+    // store the evidence into parent configuration
+    for (int i = 1; i < this->vec_related_variables.size(); ++i) {
+        par_config[i - 1] = evidence[this->vec_related_variables[i]];
+    }
+    // find the relative location
+    int lp = GetRelativeIndexByConfigValue(par_config);
+
+    SAFE_DELETE_ARRAY(par_config);
+
+    /**
+     * the indexes should satisfy index % dp == lp
+     * so the first index is lp, then lp + dp, then lp + dp + dp, ...
+     */
+    int index = lp;
+    result[0] = this->potentialsICPT[index];
+    for (int i = 1; i < this->var_dims[0]; ++i) {
+        index += dp;
+        result[i] = this->potentialsICPT[index];
+    }
+
+//    int *full_config = new int[this->num_variables];
+//    for (int i = 1; i < this->vec_related_variables.size(); ++i) {
+//        full_config[i] = evidence[this->vec_related_variables[i]];
+//    }
+//    for (int i = 0; i < this->var_dims[0]; ++i) {
+//        full_config[0] = i;
+//        int table_index = GetTableIndexByConfigValue(full_config);
+//        result[i] = this->potentialsICPT[table_index];
+//    }
+//    SAFE_DELETE_ARRAY(full_config);
+}
+
 /**
  * just like the above method, the difference is that now we also know the value of this node, and thus this method returns one value
  */
@@ -262,6 +310,7 @@ void PotentialTableBase::TableMarginalizationOneVariablePost(const PotentialTabl
 
 /**
  * @brief: get the marginalized potential tables simplified version (must satisfy some specific conditions!!!)
+ * NOTE: it is now only used in Heuristic Uniform Distribution in Importance Sampling
  * @param result the resulting table values (marginalized pt.potentials)
  * @param node_index the node that the reduced table corresponding to
  * conditions here:
@@ -274,13 +323,13 @@ void PotentialTableBase::TableMarginalizationOneVariablePost(const PotentialTabl
  */
 void PotentialTableBase::GetMarginalizedProbabilities(vector<double> &result, int num_threads) {
     if (this->num_variables == 1) { // if the node has no parent, directly return its potential table
-        result = this->potentials;
+        result = this->potentialsICPT;
         return;
     }
 
     for (int i = 0; i < this->table_size; ++i) {
         int id = i / this->cum_levels[0];
-        result[id] += this->potentials[i];
+        result[id] += this->potentialsICPT[i];
     }
 }
 
@@ -438,11 +487,12 @@ void PotentialTableBase::NormalizeCPT() {
  * under each possible parent configuration, the sum of probabilities should be 1
  * which means the total probabilities of the table should be p_dim, rather than 1
  * so each value should be 1/dim, rather than 1/tab_size
+ * NOTE: it is now only used in Heuristic Uniform Distribution in Importance Sampling
  */
 void PotentialTableBase::UniformDistribution() {
     double value = 1.0 / this->var_dims[0];
     for (int i = 0; i < this->table_size; ++i) {
-        potentials[i] = value;
+        potentialsICPT[i] = value;
     }
 }
 
