@@ -140,13 +140,6 @@ void PotentialTableBase::GetReducedPotentials(vector<double> &result, const vect
         index += dp;
         result[i] = this->potentials[index];
     }
-
-//    int j = 0;
-//    for (int i = 0; i < this->table_size; ++i) {
-//        if (i % dp == lp) {
-//            result[j++] = this->potentials[i];
-//        }
-//    }
 }
 
 /**
@@ -166,6 +159,22 @@ double PotentialTableBase::GetReducedPotential(const vector<int> &evidence, int 
     SAFE_DELETE_ARRAY(config);
 
     return this->potentials[table_index];
+}
+
+double PotentialTableBase::GetReducedIndexAndPotential(const vector<int> &evidence, int &index, int num_threads) {
+
+    int *config = new int[this->num_variables];
+    /**
+     * construct the config with evidence and the value of this node
+     */
+    for (int i = 0; i < this->num_variables; ++i) {
+        config[i] = evidence[this->vec_related_variables[i]];
+    }
+
+    index = GetTableIndexByConfigValue(config); // find the table index of this config
+    SAFE_DELETE_ARRAY(config);
+
+    return this->potentials[index];
 }
 
 /**
