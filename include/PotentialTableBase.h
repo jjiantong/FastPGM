@@ -27,6 +27,10 @@ public:
      * where potentials is CPT and potentialICPT is ICPT
      */
     vector<double> potentialsICPT;
+    /**
+     * it is used in sampling based approximate inference algorithms that need to update importance function
+     */
+    vector<double> pt_scores;
 
     vector<int> var_dims; // the dimension of each related variable
     vector<int> cum_levels; // the helper array used to transfer between table index and the config (in array format)
@@ -62,13 +66,14 @@ public:
     /**
      * potential table operation: table addition
      */
-    void TableAddition(const PotentialTableBase &second_table);
-    void TableAdditionAndNormalization(const PotentialTableBase &second_table);
-    void TableSubtraction(const PotentialTableBase &second_table);
+//    void TableAddition();
+//    void TableAdditionAndNormalization();
+//    void TableSubtraction();
 
     void Normalize();
     void NormalizeCPT();
     void NormalizeICPT();
+    void NormalizePtScore();
 
     void UniformDistribution();
 

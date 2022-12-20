@@ -418,37 +418,38 @@ void PotentialTableBase::TableMultiplicationOneVariable(const PotentialTableBase
     }
 }
 
-/**
- * @brief table operation 6: table addition
- * NOTE: it is now only used in AIS-BN when updating importance function
- * @param second_table should have the same structure as this table, the only difference should be the values in potentials
- */
-void PotentialTableBase::TableAddition(const PotentialTableBase &second_table) {
-    for (int i = 0; i < this->table_size; ++i) {
-        this->potentialsICPT[i] += second_table.potentials[i];
-    }
-}
+///**
+// * @brief table operation 6: table addition
+// * NOTE: it is now only used in AIS-BN when updating importance function
+// * @param second_table should have the same structure as this table, the only difference should be the values in potentials
+// */
+//void PotentialTableBase::TableAddition() {
+//    for (int i = 0; i < this->table_size; ++i) {
+//        this->potentialsICPT[i] += this->pt_scores[i];
+//    }
+//}
 
-/**
- * we suppose that the two tables are normalized
- * so after addition, /2 to normalize the resulting table
- * NOTE: it is now only used in SIS when updating importance function
- */
-void PotentialTableBase::TableAdditionAndNormalization(const PotentialTableBase &second_table) {
-    for (int i = 0; i < this->table_size; ++i) {
-        this->potentialsICPT[i] = (this->potentialsICPT[i] + second_table.potentials[i]) / 2;
-    }
-}
+///**
+// * we suppose that the two tables are normalized
+// * so after addition, /2 to normalize the resulting table
+// * NOTE: it is now only used in SIS when updating importance function
+// */
+//void PotentialTableBase::TableAdditionAndNormalization() {
+//    for (int i = 0; i < this->table_size; ++i) {
+//        this->potentialsICPT[i] = (this->potentialsICPT[i] + this->pt_scores[i]) / 2;
+//        this->pt_scores[i] = 0.0;
+//    }
+//}
 
-/**
- * NOTE: it is now only used in AIS-BN when updating importance function
- * @param second_table use its icpt
- */
-void PotentialTableBase::TableSubtraction(const PotentialTableBase &second_table) {
-    for (int i = 0; i < this->table_size; ++i) {
-        this->potentials[i] -= second_table.potentialsICPT[i];
-    }
-}
+///**
+// * NOTE: it is now only used in AIS-BN when updating importance function
+// * @param second_table use its icpt
+// */
+//void PotentialTableBase::TableSubtraction() {
+//    for (int i = 0; i < this->table_size; ++i) {
+//        this->pt_scores[i] -= this->potentialsICPT[i];
+//    }
+//}
 
 void PotentialTableBase::Normalize() {
     double denominator = 0;
@@ -471,39 +472,61 @@ void PotentialTableBase::Normalize() {
  *       so we do the judgement
  */
 void PotentialTableBase::NormalizeCPT() {
-    double *denominator =  new double[cum_levels[0]]; // p_dim
-    for (int i = 0; i < cum_levels[0]; ++i) {
-        denominator[i] = 0.0;
-    }
+    // do normalization p_dim times
+    int p_dim = cum_levels[0];
+    int n_dim = var_dims[0];
+    for (int i = 0; i < p_dim; ++i) {
+        double denominator = 0.0;
+        for (int j = 0; j < n_dim; ++j) {
+            int index = i + j * p_dim;
+            denominator += potentials[index];
+        }
 
-    for (int i = 0; i < table_size; ++i) {
-        int index = i % cum_levels[0];
-        denominator[index] += potentials[i];
-    }
-
-    for (int i = 0; i < table_size; ++i) {
-        int index = i % cum_levels[0];
-        if (denominator[index] > 0) {
-            potentials[i] /= denominator[index];
+        if (denominator > 0) {
+            for (int j = 0; j < n_dim; ++j) {
+                int index = i + j * p_dim;
+                potentials[index] /= denominator;
+            }
         }
     }
 }
 
 void PotentialTableBase::NormalizeICPT() {
-    double *denominator =  new double[cum_levels[0]]; // p_dim
-    for (int i = 0; i < cum_levels[0]; ++i) {
-        denominator[i] = 0.0;
-    }
+    // do normalization p_dim times
+    int p_dim = cum_levels[0];
+    int n_dim = var_dims[0];
+    for (int i = 0; i < p_dim; ++i) {
+        double denominator = 0.0;
+        for (int j = 0; j < n_dim; ++j) {
+            int index = i + j * p_dim;
+            denominator += potentialsICPT[index];
+        }
 
-    for (int i = 0; i < table_size; ++i) {
-        int index = i % cum_levels[0];
-        denominator[index] += potentialsICPT[i];
+        if (denominator > 0) {
+            for (int j = 0; j < n_dim; ++j) {
+                int index = i + j * p_dim;
+                potentialsICPT[index] /= denominator;
+            }
+        }
     }
+}
 
-    for (int i = 0; i < table_size; ++i) {
-        int index = i % cum_levels[0];
-        if (denominator[index] > 0) {
-            potentialsICPT[i] /= denominator[index];
+void PotentialTableBase::NormalizePtScore() {
+    // do normalization p_dim times
+    int p_dim = cum_levels[0];
+    int n_dim = var_dims[0];
+    for (int i = 0; i < p_dim; ++i) {
+        double denominator = 0.0;
+        for (int j = 0; j < n_dim; ++j) {
+            int index = i + j * p_dim;
+            denominator += pt_scores[index];
+        }
+
+        if (denominator > 0) {
+            for (int j = 0; j < n_dim; ++j) {
+                int index = i + j * p_dim;
+                pt_scores[index] /= denominator;
+            }
         }
     }
 }
