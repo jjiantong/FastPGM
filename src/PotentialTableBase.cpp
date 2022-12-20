@@ -420,27 +420,33 @@ void PotentialTableBase::TableMultiplicationOneVariable(const PotentialTableBase
 
 /**
  * @brief table operation 6: table addition
+ * NOTE: it is now only used in AIS-BN when updating importance function
  * @param second_table should have the same structure as this table, the only difference should be the values in potentials
  */
 void PotentialTableBase::TableAddition(const PotentialTableBase &second_table) {
     for (int i = 0; i < this->table_size; ++i) {
-        this->potentials[i] += second_table.potentials[i];
+        this->potentialsICPT[i] += second_table.potentials[i];
     }
 }
 
 /**
  * we suppose that the two tables are normalized
  * so after addition, /2 to normalize the resulting table
+ * NOTE: it is now only used in SIS when updating importance function
  */
 void PotentialTableBase::TableAdditionAndNormalization(const PotentialTableBase &second_table) {
     for (int i = 0; i < this->table_size; ++i) {
-        this->potentials[i] = (this->potentials[i] + second_table.potentials[i]) / 2;
+        this->potentialsICPT[i] = (this->potentialsICPT[i] + second_table.potentials[i]) / 2;
     }
 }
 
+/**
+ * NOTE: it is now only used in AIS-BN when updating importance function
+ * @param second_table use its icpt
+ */
 void PotentialTableBase::TableSubtraction(const PotentialTableBase &second_table) {
     for (int i = 0; i < this->table_size; ++i) {
-        this->potentials[i] -= second_table.potentials[i];
+        this->potentials[i] -= second_table.potentialsICPT[i];
     }
 }
 
@@ -479,6 +485,25 @@ void PotentialTableBase::NormalizeCPT() {
         int index = i % cum_levels[0];
         if (denominator[index] > 0) {
             potentials[i] /= denominator[index];
+        }
+    }
+}
+
+void PotentialTableBase::NormalizeICPT() {
+    double *denominator =  new double[cum_levels[0]]; // p_dim
+    for (int i = 0; i < cum_levels[0]; ++i) {
+        denominator[i] = 0.0;
+    }
+
+    for (int i = 0; i < table_size; ++i) {
+        int index = i % cum_levels[0];
+        denominator[index] += potentialsICPT[i];
+    }
+
+    for (int i = 0; i < table_size; ++i) {
+        int index = i % cum_levels[0];
+        if (denominator[index] > 0) {
+            potentialsICPT[i] /= denominator[index];
         }
     }
 }

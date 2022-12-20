@@ -68,6 +68,7 @@ public:
 
     void Normalize();
     void NormalizeCPT();
+    void NormalizeICPT();
 
     void UniformDistribution();
 
