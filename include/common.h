@@ -14,6 +14,8 @@
 #include <iostream>
 #include <cmath>
 #include <cfloat>
+#include <random>
+#include <ctime>
 
 #define SAFE_DELETE(p) do { if(p) { delete (p); (p) = nullptr; } } while(0)
 #define SAFE_DELETE_ARRAY(p) do { if(p) { delete[] (p); (p) = nullptr; } } while(0)
@@ -121,6 +123,8 @@ string TrimRightComma(string s);
 vector<string> Split(string &s, string delimiter);
 
 vector<vector<int>> NaryCount(vector<int> vec_range_each_digit);
+
+int RandomByWeight(const vector<double> &weights);
 
 
 class Parameter{ // TODO: it's different from that in FastBN
