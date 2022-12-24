@@ -17,32 +17,36 @@ PotentialTableBase::PotentialTableBase(DiscreteNode *disc_node, Network *net) {
     int node_index = disc_node->GetNodeIndex();
     int node_dim = disc_node->GetDomainSize();
 
-    vec_related_variables.push_back(node_index); // related_variables is empty initially, because this is a constructor
-
     if (!disc_node->HasParents()) {
         // if this disc_node has no parents. then the potential table only contains 1 variable
         num_variables = 1;
-        var_dims.reserve(num_variables);
-        var_dims.push_back(node_dim);
-        cum_levels.reserve(num_variables);
-        cum_levels.push_back(1);
+        vec_related_variables.resize(1);
+        var_dims.resize(1);
+        cum_levels.resize(1);
+
+        vec_related_variables[0] = node_index;
+        var_dims[0] = node_dim;
+        cum_levels[0] = 1;
         table_size = node_dim;
 
-        potentials.reserve(table_size);
+        potentials.resize(table_size);
         DiscreteConfig empty_par_config;
         for (int i = 0; i < table_size; ++i) {
             // potentials[i]
-            potentials.push_back(disc_node->GetProbability(i, empty_par_config));
+            potentials[i] = disc_node->GetProbability(i, empty_par_config);
         }
     } else { // if this disc_node has parents
+        num_variables = disc_node->set_parent_indexes.size() + 1;
+        vec_related_variables.resize(num_variables);
+        vec_related_variables[0] = node_index;
+        int vi = 1;
         for (auto &p: disc_node->set_parent_indexes) {
-            vec_related_variables.push_back(p);
+            vec_related_variables[vi++] = p;
         }
-        num_variables = vec_related_variables.size();
 
         ConstructVarDimsAndCumLevels(net);
 
-        potentials.reserve(table_size);
+        potentials.resize(table_size);
         for (int i = 0; i < table_size; ++i) {
             // find the discrete config by the table index, the config contains its parents
             DiscreteConfig parent_config;
@@ -59,7 +63,7 @@ PotentialTableBase::PotentialTableBase(DiscreteNode *disc_node, Network *net) {
             SAFE_DELETE_ARRAY(config_value);
 
             // potentials[i]
-            potentials.push_back(disc_node->GetProbability(node_value, parent_config));
+            potentials[i] = disc_node->GetProbability(node_value, parent_config);
         }
     }//end has parents
 }
@@ -75,10 +79,10 @@ PotentialTableBase::PotentialTableBase(DiscreteNode *disc_node, int observed_val
 
     vec_related_variables.push_back(node_index); // related_variables is empty initially, because this is a constructor
     num_variables = 1;
-    var_dims.reserve(num_variables);
-    var_dims.push_back(node_dim);
-    cum_levels.reserve(num_variables);
-    cum_levels.push_back(1);
+    var_dims.resize(1);
+    var_dims[0] = node_dim;
+    cum_levels.resize(1);
+    cum_levels[0] = 1;
     table_size = node_dim;
 
     potentials.resize(table_size);
@@ -602,9 +606,10 @@ int PotentialTableBase::GetRelativeIndexByConfigValue(int *config_value) {
  * it is used in the constructor of PotentialTable
  */
 void PotentialTableBase::ConstructVarDimsAndCumLevels(Network *net){
-    var_dims.reserve(num_variables);
-    for (auto &node_idx: vec_related_variables) { // for each node
-        var_dims.push_back(dynamic_cast<DiscreteNode*>(net->FindNodePtrByIndex(node_idx))->GetDomainSize());
+    var_dims.resize(num_variables);
+    for (int i = 0; i < num_variables; ++i) {
+        int node_idx = vec_related_variables[i];
+        var_dims[i] = dynamic_cast<DiscreteNode*>(net->FindNodePtrByIndex(node_idx))->GetDomainSize();
     }
 
     ConstructCumLevels();
