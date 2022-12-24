@@ -1,0 +1,9 @@
+SMILE build information:
+product edition: ACADEMIC
+library version: 2.0.10
+release date: 2022-12-22
+commit: 8fc4651c837e
+compiler version: gcc (Ubuntu 11.2.0-19ubuntu1) 11.2.0
+compiler flags: -DNDEBUG -O3 -ffast-math -fPIC
+built on: Thu, 22 Dec 2022 13:47:28 +0000
+operating system: Linux x86_64

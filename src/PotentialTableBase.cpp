@@ -175,7 +175,6 @@ void PotentialTableBase::GetReducedICPTPotentials(vector<double> &result, const 
     }
     // find the relative location
     int lp = GetRelativeIndexByConfigValue(par_config);
-
     SAFE_DELETE_ARRAY(par_config);
 
     /**
