@@ -289,12 +289,14 @@ void PotentialTableBase::TableMarginalizationOneVariablePre(int ext_variable, Po
         new_table.cum_levels = vector<int>();
         new_table.table_size = 1;
     } else {
-        new_table.vec_related_variables.reserve(new_table.num_variables);
-        new_table.var_dims.reserve(new_table.num_variables);
+        new_table.vec_related_variables.resize(new_table.num_variables);
+        new_table.var_dims.resize(new_table.num_variables);
+
+        int index = 0;
         for (int i = 0; i < this->num_variables; ++i) {
             if (this->vec_related_variables[i] != ext_variable) {
-                new_table.vec_related_variables.push_back(this->vec_related_variables[i]);
-                new_table.var_dims.push_back(this->var_dims[i]);
+                new_table.vec_related_variables[index] = this->vec_related_variables[i];
+                new_table.var_dims[index++] = this->var_dims[i];
             }
         }
         new_table.ConstructCumLevels();
