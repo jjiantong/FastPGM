@@ -430,39 +430,6 @@ void PotentialTableBase::TableMultiplicationOneVariable(const PotentialTableBase
     }
 }
 
-///**
-// * @brief table operation 6: table addition
-// * NOTE: it is now only used in AIS-BN when updating importance function
-// * @param second_table should have the same structure as this table, the only difference should be the values in potentials
-// */
-//void PotentialTableBase::TableAddition() {
-//    for (int i = 0; i < this->table_size; ++i) {
-//        this->potentialsICPT[i] += this->pt_scores[i];
-//    }
-//}
-
-///**
-// * we suppose that the two tables are normalized
-// * so after addition, /2 to normalize the resulting table
-// * NOTE: it is now only used in SIS when updating importance function
-// */
-//void PotentialTableBase::TableAdditionAndNormalization() {
-//    for (int i = 0; i < this->table_size; ++i) {
-//        this->potentialsICPT[i] = (this->potentialsICPT[i] + this->pt_scores[i]) / 2;
-//        this->pt_scores[i] = 0.0;
-//    }
-//}
-
-///**
-// * NOTE: it is now only used in AIS-BN when updating importance function
-// * @param second_table use its icpt
-// */
-//void PotentialTableBase::TableSubtraction() {
-//    for (int i = 0; i < this->table_size; ++i) {
-//        this->pt_scores[i] -= this->potentialsICPT[i];
-//    }
-//}
-
 void PotentialTableBase::Normalize() {
     double denominator = 0;
 
