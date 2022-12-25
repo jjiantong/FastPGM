@@ -110,10 +110,10 @@ PotentialTableBase::PotentialTableBase(DiscreteNode *disc_node, int observed_val
  *      then we can find the values of the indexes satisfying index % dp == lp
  */
 void PotentialTableBase::GetReducedPotentials(vector<double> &result, const vector<int> &evidence, int num_threads) {
-    if (this->num_variables == 1) { // if the node has no parent, directly return its table
-        result = this->potentials;
-        return;
-    }
+//    if (this->num_variables == 1) { // if the node has no parent, directly return its table
+//        result = this->potentials;
+//        return;
+//    }
 
     /**
      * the dimensionality of its parents dp
@@ -158,10 +158,10 @@ void PotentialTableBase::GetReducedPotentials(vector<double> &result, const vect
 }
 
 void PotentialTableBase::GetReducedICPTPotentials(vector<double> &result, const vector<int> &evidence, int num_threads) {
-    if (this->num_variables == 1) { // if the node has no parent, directly return its table
-        result = this->potentialsICPT;
-        return;
-    }
+//    if (this->num_variables == 1) { // if the node has no parent, directly return its table
+//        result = this->potentialsICPT;
+//        return;
+//    }
 
     /**
      * the dimensionality of its parents dp
@@ -208,6 +208,9 @@ void PotentialTableBase::GetReducedICPTPotentials(vector<double> &result, const 
  * just like the above method, the difference is that now we also know the value of this node, and thus this method returns one value
  */
 double PotentialTableBase::GetReducedPotential(const vector<int> &evidence, int num_threads) {
+//    if (this->num_variables == 1) { // if the node has no parent, directly return its table
+//        return this->potentials[evidence[this->vec_related_variables[0]]];
+//    }
 
     int *config = new int[this->num_variables];
     /**
@@ -224,6 +227,10 @@ double PotentialTableBase::GetReducedPotential(const vector<int> &evidence, int 
 }
 
 double PotentialTableBase::GetReducedIndexAndPotential(const vector<int> &evidence, int &index, int num_threads) {
+//    if (this->num_variables == 1) {
+//        index = evidence[this->vec_related_variables[0]];
+//        return this->potentials[index];
+//    }
 
     int *config = new int[this->num_variables];
     /**
