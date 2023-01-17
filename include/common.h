@@ -14,8 +14,6 @@
 #include <iostream>
 #include <cmath>
 #include <cfloat>
-#include <random>
-#include <ctime>
 
 #define SAFE_DELETE(p) do { if(p) { delete (p); (p) = nullptr; } } while(0)
 #define SAFE_DELETE_ARRAY(p) do { if(p) { delete[] (p); (p) = nullptr; } } while(0)
@@ -124,23 +122,20 @@ vector<string> Split(string &s, string delimiter);
 
 vector<vector<int>> NaryCount(vector<int> vec_range_each_digit);
 
-int RandomByWeight(const vector<double> &weights);
 
-
-class Parameter{ // TODO: it's different from that in FastBN
+class Parameter{
 public:
     int algorithm;
-    string dataset;
-    int num_threads; //for OpenMP
-
-    int group_size; // for PC-Stable
-
     int num_samples; // for approximate inference
-    int max_updating; // for approximate inference
-    int updating_interval;
-    int propagation_length; // for epis-bn and lbp
-    bool enable_heuristic_uniform_distribution;
-    bool enable_heuristic_theta_cutoff;
+    int num_updating; // for approximate inference
+    int group_size; // for PC-Stable
+    int num_threads; //for OpenMp
+
+    string net_file_path;
+    string test_set_file_path;
+    string prob_tab_file_path;
+    string train_set_file_path;
+    string ref_net_path;
 
     Parameter();
     void read_input_parameters(int argc, char *argv[]);
