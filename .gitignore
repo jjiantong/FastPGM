@@ -3,4 +3,3 @@ bin/
 build/
 cmake-build-*
 eigen
-dataset
