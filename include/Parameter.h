@@ -18,7 +18,9 @@
 #define ALGEPISBN 6
 #define ALGLBP 7
 #define ALGSIS 8
-#define ALGAISBN 9
+#define ALGSISV1 9
+#define ALGAISBN 10
+#define FUNCSAMPSET 11
 
 class Parameter{
 public:
