@@ -3,3 +3,6 @@ bin/
 build/
 cmake-build-*
 eigen
+# dataset
+dataset
+!alarm
