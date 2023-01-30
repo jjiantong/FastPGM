@@ -21,7 +21,7 @@ class JunctionTree: public Inference {
 public:
 //    Network *network;//the learned network which can be used for inference
     JunctionTreeStructure *tree;
-    Clique *arb_root;
+    Clique *jt_root;
 
     vector<vector<Clique*>> nodes_by_level;
     vector<vector<Separator*>> separators_by_level;
@@ -43,6 +43,7 @@ protected:
     Clique* clique_backup; // use an array to backup cliques
     Separator* separator_backup; // use an array to backup separators
 
+    int GetMaxLevel(Clique *root);
     void MarkLevel();
     void ReorganizeTableStorage(int num_threads);
     void BackUpJunctionTree();

@@ -41,7 +41,7 @@ void Dataset::LoadLIBSVMData(string data_file_path, set<int> cont_vars) {
         fprintf(stderr, "Unable to open file %s!", data_file_path.c_str());
         exit(1);
     }
-    cout << "Data file opened. Begin to load data. " << endl;
+//    cout << "Data file opened. Begin to load data. " << endl;
 
     // the first element is the class variable in the LibSVN format
     class_var_index = 0;
@@ -152,8 +152,8 @@ void Dataset::LoadLIBSVMData(string data_file_path, set<int> cont_vars) {
         RowMajor2ColumnMajor();
     }
 
-    cout << "Finish loading data. " << '\n'
-         << "Number of instances: " << num_instance << ". \n"
+    cout << "Finish loading data. "
+         << "Number of instances: " << num_instance << ". "
          << "Number of features: " << max_index_occurred << ". " << endl;
 
     in_file.close();
@@ -168,7 +168,7 @@ void Dataset::LoadLIBSVMDataKnownNetwork(string data_file_path, int num_nodes, s
         fprintf(stderr, "Unable to open file %s!", data_file_path.c_str());
         exit(1);
     }
-    cout << "Data file opened. Begin to load data. " << endl;
+//    cout << "Data file opened. Begin to load data. " << endl;
 
     class_var_index = 0;
     string sample;
@@ -254,8 +254,8 @@ void Dataset::LoadLIBSVMDataKnownNetwork(string data_file_path, int num_nodes, s
 //        RowMajor2ColumnMajor();
 //    }
 
-    cout << "Finish loading data. " << '\n'
-         << "Number of instances: " << num_instance << ". \n"
+    cout << "Finish loading data. "
+         << "Number of instances: " << num_instance << ". "
             << "Number of features: " << num_vars << ". " << endl;
 
     in_file.close();
@@ -273,7 +273,7 @@ void Dataset::LoadCSVData(string data_file_path, bool header, bool str_val, int 
         fprintf(stderr, "Unable to open file %s!", data_file_path.c_str());
         exit(1);
     }
-    cout << "Data file opened. Begin to load data. " << endl;
+//    cout << "Data file opened. Begin to load data. " << endl;
 
     // we need to specify the variable interested for the CSV format
     this->class_var_index = cls_var_id;
@@ -406,8 +406,8 @@ void Dataset::LoadCSVData(string data_file_path, bool header, bool str_val, int 
         RowMajor2ColumnMajor();
     }
 
-    cout << "Finish loading data. " << '\n'
-         << "Number of instances: " << num_instance << ".\n"
+    cout << "Finish loading data. "
+         << "Number of instances: " << num_instance << ". "
          << "Number of variables: " << num_vars << "." << endl;
 
     in_file.close();

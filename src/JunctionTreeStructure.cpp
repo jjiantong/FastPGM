@@ -15,16 +15,16 @@ JunctionTreeStructure::JunctionTreeStructure(Network *net) : network(net) {
     vector_separator_ptr_container.reserve(network->num_nodes - 1);
 
     int **direc_adjac_matrix = network->ConvertDAGNetworkToAdjacencyMatrix();
-    cout << "finish ConvertDAGNetworkToAdjacencyMatrix" << endl;
+//    cout << "Finish ConvertDAGNetworkToAdjacencyMatrix" << endl;
 
     Moralize(direc_adjac_matrix, network->num_nodes);
     int **moral_graph_adjac_matrix = direc_adjac_matrix;
-    cout << "finish Moralize" << endl;
+//    cout << "Finish Moralize" << endl;
 
     vector<bool> has_processed(network->num_nodes);
     //construct a clique for each node in the network
     Triangulate(network, moral_graph_adjac_matrix, has_processed);
-    cout << "finish Triangulate, number of cliques = " << vector_clique_ptr_container.size() << endl;
+//    cout << "Finish Triangulate, number of cliques = " << vector_clique_ptr_container.size() << endl;
 
     for (int i = 0; i < network->num_nodes; ++i) {
         delete[] direc_adjac_matrix[i];
@@ -32,18 +32,18 @@ JunctionTreeStructure::JunctionTreeStructure(Network *net) : network(net) {
     delete[] direc_adjac_matrix;
 
     FormJunctionTree();//for discrete nodes
-    cout << "finish FormJunctionTree, number of cliques = " << vector_clique_ptr_container.size()
+    cout << "Finish FormJunctionTree, number of cliques = " << vector_clique_ptr_container.size()
          << ", number of separators = " << vector_separator_ptr_container.size() << endl;
 
     AssignPotentials();
-    cout << "finish AssignPotentials" << endl;
+//    cout << "Finish AssignPotentials" << endl;
 
     /**
      * it is used to compute mean of clique size
      */
     int max_size = 0;
     float mean_size = GetAveAndMaxCliqueSize(max_size);
-    cout << "finish GetAveAndMaxCliqueSize, ave clique size = " << mean_size << ", max size = " << max_size << endl;
+    cout << "Finish GetAveAndMaxCliqueSize, ave clique size = " << mean_size << ", max size = " << max_size << endl;
 }
 
 JunctionTreeStructure::~JunctionTreeStructure() {
