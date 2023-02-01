@@ -167,20 +167,6 @@ int PotentialTable::GetTableIndexByConfigValue(int *config_value, int num_variab
     return table_index;
 }
 
-/*!
- * @brief: get the location of one variable in the related_variables
- * @param variable: one variable in the "related_variables"
- * @return the location of the variable in the "related_variables"
- */
-int PotentialTable::GetVariableIndex(const int &variable) {
-    for (int i = 0; i < num_variables; ++i) {
-        if (vec_related_variables[i] == variable) {
-            return i;
-        }
-    }
-    return num_variables;
-}
-
 /**
  * @brief: table operation: table re-organization - re-organize the configuration order of the potential table
  * the related variables remain the same, but their order is changed

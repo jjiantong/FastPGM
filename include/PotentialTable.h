@@ -81,8 +81,6 @@ public:
      */
     void TableDivision(const PotentialTable &second_table);
 
-    int GetVariableIndex(const int &variable);
-
 protected:
     void GetConfigValueByTableIndex(const int &table_index, int *config_value, int num_variables, const vector<int> &cum_levels);
     int GetTableIndexByConfigValue(int *config_value, int num_variables, const vector<int> &cum_levels);
