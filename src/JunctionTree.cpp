@@ -91,8 +91,7 @@ double JunctionTree::EvaluateAccuracy(string path, int num_threads) {
     cout << endl;
 
 //    timer->Print("s-sep-dis-pre");
-    timer->Print("p-sep-dis-main-mar");
-    timer->Print("p-sep-dis-main-reo");
+    timer->Print("p-sep-dis-main");
 //    timer->Print("s-sep-dis-post");
     cout << endl;
 
@@ -498,27 +497,16 @@ void JunctionTree::SeparatorLevelCollection(int i, int num_threads, Timer *timer
     int size = separators_by_level[i/2].size();
     // used to store the (clique) potential tables that are needed to be marginalized
     vector<PotentialTable> tmp_pt;
-    tmp_pt.reserve(size);
-
-    // used to store the (clique) potential tables that are used to be divided
-    // it is different from "tmp_pt" because not all the tables are needed to be marginalized
-    vector<PotentialTable> div_pt;
-    div_pt.resize(size);
+    tmp_pt.resize(size);
 
     // store number_variables and cum_levels of the original table
     // rather than storing the whole potential table
     int *nv_old = new int[size];
     vector<vector<int>> cl_old;
-    cl_old.reserve(size);
+    cl_old.resize(size);
 
     int *cum_sum = new int[size];
     int final_sum = 0;
-
-    // not all tables need to do the marginalization
-    // there are "size" tables in total
-    // use a vector to show which tables need to do the marginalization
-    vector<int> vector_marginalization;
-    vector_marginalization.reserve(size);
 
     // set of arrays, showing the locations of the variables of the new table in the old table
     int **loc_in_old = new int*[size];
@@ -533,51 +521,44 @@ void JunctionTree::SeparatorLevelCollection(int i, int num_threads, Timer *timer
         auto separator = separators_by_level[i/2][j];
         Clique *clique = separator->ptr_downstream_cliques[0]; // there is only one child for each separator
 
-        div_pt[j] = clique->p_table;
-
         // store the old table before marginalization, used for division
         separator->old_ptable = separator->p_table;
 
-        if (clique->p_table.num_variables - separator->p_table.num_variables != 0) {
-            // record the index (that requires to do the marginalization)
-            vector_marginalization.push_back(j);
-            // get this table's location -- it is currently the last one
-            int last = vector_marginalization.size() - 1;
+        nv_old[j] = clique->p_table.num_variables;
+        cl_old[j] = clique->p_table.cum_levels;
 
-            nv_old[last] = clique->p_table.num_variables;
-            cl_old.push_back(clique->p_table.cum_levels);
-
-            PotentialTable pt;
-            pt.TableMarginalizationPre(separator->p_table.vec_related_variables, separator->old_ptable.var_dims);
-
-            // generate an array showing the locations of the variables of the new table in the old table
-            loc_in_old[last] = new int[separator->p_table.num_variables];
-            for (int k = 0; k < separator->p_table.num_variables; ++k) {
-                loc_in_old[last][k] = clique->p_table.TableReductionPre(pt.vec_related_variables[k]);
-            }
-            table_index[last] = new int[clique->p_table.table_size];
-
-            tmp_pt.push_back(pt);
-
-            // malloc in pre-, not to parallelize
-            full_config[last] = new int[clique->p_table.table_size * clique->p_table.num_variables];
-            partial_config[last] = new int[clique->p_table.table_size * separator->p_table.num_variables];
-
-            // update sum
-            cum_sum[last] = final_sum;
-            final_sum += clique->p_table.table_size;
+        PotentialTable pt = separator->p_table;
+        for (int k = 0; k < pt.table_size; ++k) {
+            pt.potentials[k] = 0;
         }
+//        pt.TableMarginalizationPre(separator->p_table.vec_related_variables, separator->old_ptable.var_dims);
+
+        // generate an array showing the locations of the variables of the new table in the old table
+        loc_in_old[j] = new int[separator->p_table.num_variables];
+        for (int k = 0; k < separator->p_table.num_variables; ++k) {
+            loc_in_old[j][k] = clique->p_table.TableReductionPre(pt.vec_related_variables[k]);
+        }
+        table_index[j] = new int[clique->p_table.table_size];
+
+        tmp_pt[j] = pt;
+
+        // malloc in pre-, not to parallelize
+        full_config[j] = new int[clique->p_table.table_size * clique->p_table.num_variables];
+        partial_config[j] = new int[clique->p_table.table_size * separator->p_table.num_variables];
+
+        // update sum
+        cum_sum[j] = final_sum;
+        final_sum += clique->p_table.table_size;
     }
 //    timer->Stop("s-sep-col-pre");
 
     timer->Start("p-sep-col-main");
-    int size_m = vector_marginalization.size(); // the number of variables to be marginalized
     // the main loop
     omp_set_num_threads(num_threads);
 #pragma omp parallel for
     for (int s = 0; s < final_sum; ++s) {
         int j, k;
-        Compute2DIndex(j, k, s, size_m, cum_sum); // compute j and k
+        Compute2DIndex(j, k, s, size, cum_sum); // compute j and k
         table_index[j][k] = tmp_pt[j].TableMarginalizationMain(k, full_config[j], partial_config[j],
                                                                nv_old[j], cl_old[j], loc_in_old[j]);
     }
@@ -588,26 +569,21 @@ void JunctionTree::SeparatorLevelCollection(int i, int num_threads, Timer *timer
     int *cum_sum2 = new int[size];
     int final_sum2 = 0;
 
-    int l = 0;
     for (int j = 0; j < size; ++j) {
         auto separator = separators_by_level[i/2][j];
         Clique *clique = separator->ptr_downstream_cliques[0]; // there is only one child for each separator
 
-        if (l < size_m && j == vector_marginalization[l]) { // index j have done the marginalization
-            tmp_pt[l].TableMarginalizationPost(clique->p_table, table_index[l]);
-            div_pt[j] = tmp_pt[l];
-            l++;
-        }
+        tmp_pt[j].TableMarginalizationPost(clique->p_table, table_index[j]);
 
         cum_sum2[j] = final_sum2;
-        final_sum2 += div_pt[j].table_size;
+        final_sum2 += tmp_pt[j].table_size;
+
+        SAFE_DELETE_ARRAY(loc_in_old[j]);
+        SAFE_DELETE_ARRAY(full_config[j]);
+        SAFE_DELETE_ARRAY(partial_config[j]);
+        SAFE_DELETE_ARRAY(table_index[j]);
     }
-    for (int l = 0; l < size_m; ++l) {
-        SAFE_DELETE_ARRAY(loc_in_old[l]);
-        SAFE_DELETE_ARRAY(full_config[l]);
-        SAFE_DELETE_ARRAY(partial_config[l]);
-        SAFE_DELETE_ARRAY(table_index[l]);
-    }
+
     SAFE_DELETE_ARRAY(loc_in_old);
     SAFE_DELETE_ARRAY(full_config);
     SAFE_DELETE_ARRAY(partial_config);
@@ -625,7 +601,7 @@ void JunctionTree::SeparatorLevelCollection(int i, int num_threads, Timer *timer
         if (separators_by_level[i/2][j]->old_ptable.potentials[k] == 0) {
             separators_by_level[i/2][j]->p_table.potentials[k] = 0;
         } else {
-            separators_by_level[i/2][j]->p_table.potentials[k] = div_pt[j].potentials[k] / separators_by_level[i/2][j]->old_ptable.potentials[k];
+            separators_by_level[i/2][j]->p_table.potentials[k] = tmp_pt[j].potentials[k] / separators_by_level[i/2][j]->old_ptable.potentials[k];
         }
     }
     SAFE_DELETE_ARRAY(cum_sum2);
@@ -637,46 +613,22 @@ void JunctionTree::SeparatorLevelDistribution(int i, int num_threads, Timer *tim
     int size = separators_by_level[i/2].size();
     // used to store the (clique) potential tables that are needed to be marginalized
     vector<PotentialTable> tmp_pt;
-    tmp_pt.reserve(size);
-    // used to store the potential tables that are needed to be re-organized
-    vector<PotentialTable> tmp_pt2;
-    tmp_pt2.reserve(size);
-
-    // used to store the (clique) potential tables that are used to be divided
-    // it is different from "tmp_pt" because not all the tables are needed to be marginalized
-    vector<PotentialTable> div_pt;
-    div_pt.resize(size);
+    tmp_pt.resize(size);
 
     // store number_variables and cum_levels of the original table
     // rather than storing the whole potential table
     int *nv_old = new int[size];
     vector<vector<int>> cl_old;
-    cl_old.reserve(size);
-    vector<vector<int>> cl_old2;
-    cl_old2.reserve(size);
+    cl_old.resize(size);
 
     int *cum_sum = new int[size];
     int final_sum = 0;
-    int *cum_sum2 = new int[size];
-    int final_sum2 = 0;
-
-    // not all tables need to do the marginalization
-    // there are "size" tables in total
-    // use a vector to show which tables need to do the marginalization
-    vector<int> vector_marginalization;
-    vector_marginalization.reserve(size);
-    vector<int> vector_reorganization;
-    vector_reorganization.reserve(size);
 
     // set of arrays, showing the locations of the variables of the new table in the old table
     int **loc_in_old = new int*[size];
     int **full_config = new int*[size];
     int **partial_config = new int*[size];
     int **table_index = new int*[size];
-    int **locations = new int*[size];
-    int **config1 = new int*[size];
-    int **config2 = new int*[size];
-    int **table_index2 = new int*[size];
 
     /**
      * pre computing
@@ -685,164 +637,90 @@ void JunctionTree::SeparatorLevelDistribution(int i, int num_threads, Timer *tim
         auto separator = separators_by_level[i/2][j];
         Clique *clique = separator->ptr_upstream_clique;
 
-        div_pt[j] = clique->p_table;
-
         // store the old table before marginalization, used for division
         separator->old_ptable = separator->p_table;
 
-        if (clique->p_table.num_variables - separator->p_table.num_variables != 0) {
-            // record the index (that requires to do the marginalization)
-            vector_marginalization.push_back(j);
-            // get this table's location -- it is currently the last one
-            int last = vector_marginalization.size() - 1;
+        nv_old[j] = clique->p_table.num_variables;
+        cl_old[j] = clique->p_table.cum_levels;
 
-            nv_old[last] = clique->p_table.num_variables;
-            cl_old.push_back(clique->p_table.cum_levels);
-
-            PotentialTable pt;
-            pt.TableMarginalizationPre(separator->p_table.vec_related_variables, separator->old_ptable.var_dims);
-
-            // generate an array showing the locations of the variables of the new table in the old table
-            loc_in_old[last] = new int[separator->p_table.num_variables];
-            for (int k = 0; k < separator->p_table.num_variables; ++k) {
-                loc_in_old[last][k] = clique->p_table.TableReductionPre(pt.vec_related_variables[k]);
-            }
-            table_index[last] = new int[clique->p_table.table_size];
-
-            tmp_pt.push_back(pt);
-
-            // malloc in pre-, not to parallelize
-            full_config[last] = new int[clique->p_table.table_size * clique->p_table.num_variables];
-            partial_config[last] = new int[clique->p_table.table_size * separator->p_table.num_variables];
-
-            // update sum
-            cum_sum[last] = final_sum;
-            final_sum += clique->p_table.table_size;
-        } else {
-            if (clique->p_table.vec_related_variables != separator->p_table.vec_related_variables) {
-                // if they have same size but different order, change the order to the separator's order
-                // record the index (that requires to do the re-organization)
-                vector_reorganization.push_back(j);
-                // get this table's location -- it is currently the last one
-                int last = vector_reorganization.size() - 1;
-
-                cl_old2.push_back(clique->p_table.cum_levels);
-
-                // all things except for potentials are maintained
-                PotentialTable pt = separator->p_table;
-                // the locations of the elements in the old table
-                // e.g., locations[0] means the locations of pt.vec_related_variables[0] in clique->p_table.vec_related_variables
-                // i.e., pt.vec_related_variables[0] = clique->p_table.vec_related_variables[locations[0]]
-                locations[last] = new int[pt.num_variables];
-                for (int k = 0; k < pt.num_variables; ++k) { // for each new table's related variable
-                    locations[last][k] = clique->p_table.GetVariableIndex(pt.vec_related_variables[k]);
-                }
-                table_index2[last] = new int[clique->p_table.table_size];
-
-                tmp_pt2.push_back(pt);
-
-                config1[last] = new int[clique->p_table.table_size * clique->p_table.num_variables];
-                config2[last] = new int[clique->p_table.table_size * pt.num_variables];
-
-                // update sum
-                cum_sum2[last] = final_sum2;
-                final_sum2 += clique->p_table.table_size;
-            }
-
+        PotentialTable pt = separator->p_table;
+        for (int k = 0; k < pt.table_size; ++k) {
+            pt.potentials[k] = 0;
         }
+//        pt.TableMarginalizationPre(separator->p_table.vec_related_variables, separator->old_ptable.var_dims);
+
+        // generate an array showing the locations of the variables of the new table in the old table
+        loc_in_old[j] = new int[separator->p_table.num_variables];
+        for (int k = 0; k < separator->p_table.num_variables; ++k) {
+            loc_in_old[j][k] = clique->p_table.TableReductionPre(pt.vec_related_variables[k]);
+        }
+        table_index[j] = new int[clique->p_table.table_size];
+
+        tmp_pt[j] = pt;
+
+        // malloc in pre-, not to parallelize
+        full_config[j] = new int[clique->p_table.table_size * clique->p_table.num_variables];
+        partial_config[j] = new int[clique->p_table.table_size * separator->p_table.num_variables];
+
+        // update sum
+        cum_sum[j] = final_sum;
+        final_sum += clique->p_table.table_size;
     }
 //    timer->Stop("s-sep-dis-pre");
 
-    timer->Start("p-sep-dis-main-mar");
-    int size_m = vector_marginalization.size(); // the number of variables to be marginalized
+    timer->Start("p-sep-dis-main");
     // the main loop
     omp_set_num_threads(num_threads);
 #pragma omp parallel for
     for (int s = 0; s < final_sum; ++s) {
         int j, k;
-        Compute2DIndex(j, k, s, size_m, cum_sum); // compute j and k
+        Compute2DIndex(j, k, s, size, cum_sum); // compute j and k
         table_index[j][k] = tmp_pt[j].TableMarginalizationMain(k, full_config[j], partial_config[j],
                                                                nv_old[j], cl_old[j], loc_in_old[j]);
     }
-    timer->Stop("p-sep-dis-main-mar");
-
-    timer->Start("p-sep-dis-main-reo");
-    int size_r = vector_reorganization.size();
-#pragma omp parallel for
-    for (int s = 0; s < final_sum2; ++s) {
-        int j, k;
-        Compute2DIndex(j, k, s, size_r, cum_sum2); // compute j and k
-        table_index2[j][k] = tmp_pt2[j].TableReorganizationMain(k, config1[j], config2[j],
-                                                                cl_old2[j], locations[j]);
-    }
-    timer->Stop("p-sep-dis-main-reo");
+    timer->Stop("p-sep-dis-main");
 
 //    timer->Start("s-sep-dis-post");
     // post-computing
-    int *cum_sum3 = new int[size];
-    int final_sum3 = 0;
+    int *cum_sum2 = new int[size];
+    int final_sum2 = 0;
 
-    int p = 0, q = 0;
     for (int j = 0; j < size; ++j) {
         auto separator = separators_by_level[i/2][j];
         Clique *clique = separator->ptr_upstream_clique;
 
-        if (p < size_m && j == vector_marginalization[p]) { // index j have done the marginalization
-            tmp_pt[p].TableMarginalizationPost(clique->p_table, table_index[p]);
-            div_pt[j] = tmp_pt[p];
-            p++;
-        } else {
-            if (q < size_r && j == vector_reorganization[q]) { // index j have done the re-organization
-                tmp_pt2[q].TableReorganizationPost(clique->p_table, table_index2[q]);
-                div_pt[j] = tmp_pt2[q];
-                q++;
-            }
-        }
+        tmp_pt[j].TableMarginalizationPost(clique->p_table, table_index[j]);
 
-        cum_sum3[j] = final_sum3;
-        final_sum3 += div_pt[j].table_size;
+        cum_sum2[j] = final_sum2;
+        final_sum2 += tmp_pt[j].table_size;
+
+        SAFE_DELETE_ARRAY(loc_in_old[j]);
+        SAFE_DELETE_ARRAY(full_config[j]);
+        SAFE_DELETE_ARRAY(partial_config[j]);
+        SAFE_DELETE_ARRAY(table_index[j]);
     }
 
-    for (int p = 0; p < size_m; ++p) {
-        SAFE_DELETE_ARRAY(loc_in_old[p]);
-        SAFE_DELETE_ARRAY(full_config[p]);
-        SAFE_DELETE_ARRAY(partial_config[p]);
-        SAFE_DELETE_ARRAY(table_index[p]);
-    }
-    for (int q = 0; q < size_r; ++q) {
-        SAFE_DELETE_ARRAY(locations[q]);
-        SAFE_DELETE_ARRAY(config1[q]);
-        SAFE_DELETE_ARRAY(config2[q]);
-        SAFE_DELETE_ARRAY(table_index2[q]);
-    }
     SAFE_DELETE_ARRAY(loc_in_old);
     SAFE_DELETE_ARRAY(full_config);
     SAFE_DELETE_ARRAY(partial_config);
     SAFE_DELETE_ARRAY(table_index);
     SAFE_DELETE_ARRAY(cum_sum);
     SAFE_DELETE_ARRAY(nv_old);
-    SAFE_DELETE_ARRAY(locations);
-    SAFE_DELETE_ARRAY(config1);
-    SAFE_DELETE_ARRAY(config2);
-    SAFE_DELETE_ARRAY(table_index2);
-    SAFE_DELETE_ARRAY(cum_sum2);
 //    timer->Stop("s-sep-dis-post");
 
     timer->Start("p-div");
-    omp_set_num_threads(num_threads);
 #pragma omp parallel for
-    for (int s = 0; s < final_sum3; ++s) {
+    for (int s = 0; s < final_sum2; ++s) {
         int j, k;
-        Compute2DIndex(j, k, s, size, cum_sum3); // compute j and k
+        Compute2DIndex(j, k, s, size, cum_sum2); // compute j and k
 
         if (separators_by_level[i/2][j]->old_ptable.potentials[k] == 0) {
             separators_by_level[i/2][j]->p_table.potentials[k] = 0;
         } else {
-            separators_by_level[i/2][j]->p_table.potentials[k] = div_pt[j].potentials[k] / separators_by_level[i/2][j]->old_ptable.potentials[k];
+            separators_by_level[i/2][j]->p_table.potentials[k] = tmp_pt[j].potentials[k] / separators_by_level[i/2][j]->old_ptable.potentials[k];
         }
     }
-
-    SAFE_DELETE_ARRAY(cum_sum3);
+    SAFE_DELETE_ARRAY(cum_sum2);
     timer->Stop("p-div");
 }
 
@@ -1458,8 +1336,8 @@ void JunctionTree::Collect(int num_threads, Timer *timer) {
              * collect msg from its child (a clique) to it (a separator)
              * do marginalization + division for separator levels
              */
-//            SeparatorLevelCollection(i, num_threads, timer);
-            SeparatorLevelCollectionOptimized(i, num_threads, timer);
+            SeparatorLevelCollection(i, num_threads, timer);
+//            SeparatorLevelCollectionOptimized(i, num_threads, timer);
         }
         else {
             /**
