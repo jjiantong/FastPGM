@@ -788,7 +788,7 @@ void JunctionTree::CliqueLevelCollection(int i, const vector<int> &has_kth_child
     }
 //    timer->Stop("s-clq-col-pre");
 
-    timer->Start("p-clq-col-main-ext");
+    timer->Start("p-clq-col-main");
 
     // the main loop
     omp_set_num_threads(num_threads);
@@ -799,7 +799,7 @@ void JunctionTree::CliqueLevelCollection(int i, const vector<int> &has_kth_child
         table_index[j][k] = tmp_pt[j].TableExtensionMain(k, full_config[j], partial_config[j],
                                                          nv_old[j], cl_old[j], loc_in_new[j]);
     }
-    timer->Stop("p-clq-col-main-ext");
+    timer->Stop("p-clq-col-main");
 
 //    timer->Start("s-clq-col-post");
     // post-computing
