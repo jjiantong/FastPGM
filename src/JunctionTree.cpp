@@ -392,8 +392,8 @@ void JunctionTree::LoadEvidenceToNodes(vector<Clique *> &vector_reduced_node_ptr
         final_sum += clique_ptr->p_table.table_size;
     }
 
-    omp_set_num_threads(num_threads);
-#pragma omp parallel for
+//    omp_set_num_threads(num_threads);
+//#pragma omp parallel for
     for (int k = 0; k < red_size; ++k) {
         auto clique_ptr = vector_reduced_node_ptr[k];
         full_config[k] = new int[clique_ptr->p_table.table_size * clique_ptr->p_table.num_variables];
@@ -420,8 +420,8 @@ void JunctionTree::LoadEvidenceToNodes(vector<Clique *> &vector_reduced_node_ptr
     /**
      * post-computing
      */
-    omp_set_num_threads(num_threads);
-#pragma omp parallel for
+//    omp_set_num_threads(num_threads);
+//#pragma omp parallel for
     for (int k = 0; k < red_size; ++k) {
         auto clique_ptr = vector_reduced_node_ptr[k];
 
@@ -467,8 +467,8 @@ void JunctionTree::LoadEvidenceToNodesOptimized(vector<Clique*> &vector_reduced_
         final_sum += clique_ptr->p_table.table_size;
     }
 
-    omp_set_num_threads(num_threads);
-#pragma omp parallel for
+//    omp_set_num_threads(num_threads);
+//#pragma omp parallel for
     for (int k = 0; k < red_size; ++k) {
         auto clique_ptr = vector_reduced_node_ptr[k];
         full_config[k] = new int[clique_ptr->p_table.table_size * clique_ptr->p_table.num_variables];
@@ -496,8 +496,8 @@ void JunctionTree::LoadEvidenceToNodesOptimized(vector<Clique*> &vector_reduced_
     /**
      * post-computing
      */
-    omp_set_num_threads(num_threads);
-#pragma omp parallel for
+//    omp_set_num_threads(num_threads);
+//#pragma omp parallel for
     for (int k = 0; k < red_size; ++k) {
         auto clique_ptr = vector_reduced_node_ptr[k];
         clique_ptr->p_table.TableReductionPost(index, value_index, v_index[k], e_loc[k]);
@@ -667,7 +667,7 @@ void JunctionTree::SeparatorLevelCollection(int i, int num_threads, Timer *timer
 //    timer->Stop("s-sep-col-post");
 
     timer->Start("p-div");
-#pragma omp parallel for
+//#pragma omp parallel for
     for (int s = 0; s < final_sum2; ++s) {
         int j, k;
         Compute2DIndex(j, k, s, size, cum_sum2); // compute j and k
@@ -783,7 +783,7 @@ void JunctionTree::SeparatorLevelDistribution(int i, int num_threads, Timer *tim
 //    timer->Stop("s-sep-dis-post");
 
     timer->Start("p-div");
-#pragma omp parallel for
+//#pragma omp parallel for
     for (int s = 0; s < final_sum2; ++s) {
         int j, k;
         Compute2DIndex(j, k, s, size, cum_sum2); // compute j and k
@@ -976,6 +976,7 @@ void JunctionTree::CliqueLevelDistribution(int i, int num_threads, Timer *timer)
 
     timer->Start("p-clq-dis-main");
     // the main loop
+    omp_set_num_threads(num_threads);
 #pragma omp parallel for
     for (int s = 0; s < final_sum; ++s) {
         int j, k;
@@ -1108,7 +1109,7 @@ void JunctionTree::SeparatorLevelCollectionOptimized(int i, int num_threads, Tim
 //    timer->Stop("s-sep-col-post");
 
     timer->Start("p-div");
-#pragma omp parallel for
+//#pragma omp parallel for
     for (int s = 0; s < final_sum2; ++s) {
         int j, k;
         Compute2DIndex(j, k, s, size, cum_sum2); // compute j and k
