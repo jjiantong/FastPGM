@@ -353,7 +353,8 @@ void JunctionTree::LoadDiscreteEvidence(const DiscreteConfig &E, int num_threads
         }
 //        timer->Stop("sp-evi-pre");
 
-        LoadEvidenceToNodes(vector_reduced_clique_and_separator_ptr, index, value, num_threads, timer);
+        LoadEvidenceToNodesOptimized(vector_reduced_clique_and_separator_ptr, index, value, num_threads, timer);
+//        LoadEvidenceToNodes(vector_reduced_clique_and_separator_ptr, index, value, num_threads, timer);
     }
 
 //    /**
@@ -369,8 +370,81 @@ void JunctionTree::LoadDiscreteEvidence(const DiscreteConfig &E, int num_threads
 }
 
 
-void JunctionTree::LoadEvidenceToNodes(vector<Clique*> &vector_reduced_node_ptr,
-                                       int index, int value_index, int num_threads, Timer *timer) {
+void JunctionTree::LoadEvidenceToNodes(vector<Clique *> &vector_reduced_node_ptr, int index, int value_index,
+                                       int num_threads, Timer *timer) {
+    int red_size = vector_reduced_node_ptr.size();
+
+    int *e_loc = new int[red_size];
+    int **full_config = new int*[red_size];
+    int **v_index = new int*[red_size];
+
+    int *cum_sum = new int[red_size];
+    int final_sum = 0;
+
+    /**
+     * pre-computing
+     */
+    for (int k = 0; k < red_size; ++k) {
+        auto clique_ptr = vector_reduced_node_ptr[k];
+
+        // update sum
+        cum_sum[k] = final_sum;
+        final_sum += clique_ptr->p_table.table_size;
+    }
+
+    omp_set_num_threads(num_threads);
+#pragma omp parallel for
+    for (int k = 0; k < red_size; ++k) {
+        auto clique_ptr = vector_reduced_node_ptr[k];
+        full_config[k] = new int[clique_ptr->p_table.table_size * clique_ptr->p_table.num_variables];
+        v_index[k] = new int[clique_ptr->p_table.table_size];
+
+        e_loc[k] = clique_ptr->p_table.TableReductionPre(index);
+    }
+//    timer->Stop("sp-evi-pre");
+
+    timer->Start("p-evi-main");
+    // the main loop
+    omp_set_num_threads(num_threads);
+#pragma omp parallel for
+    for (int s = 0; s < final_sum; ++s) {
+        // compute k and i
+        int k, i;
+        Compute2DIndex(k, i, s, red_size, cum_sum);
+
+        v_index[k][i] = vector_reduced_node_ptr[k]->p_table.TableReductionMain(i, full_config[k], e_loc[k]);
+    }
+    timer->Stop("p-evi-main");
+
+//    timer->Start("sp-evi-post");
+    /**
+     * post-computing
+     */
+    omp_set_num_threads(num_threads);
+#pragma omp parallel for
+    for (int k = 0; k < red_size; ++k) {
+        auto clique_ptr = vector_reduced_node_ptr[k];
+
+        for (int i = 0; i < clique_ptr->p_table.table_size; ++i) {
+            // 3. whether it is consistent with the evidence
+            if (v_index[k][i] != value_index) {
+                clique_ptr->p_table.potentials[i] = 0;
+            }
+        }
+
+        SAFE_DELETE_ARRAY(full_config[k]);
+        SAFE_DELETE_ARRAY(v_index[k]);
+    }
+
+    SAFE_DELETE_ARRAY(e_loc);
+    SAFE_DELETE_ARRAY(full_config);
+    SAFE_DELETE_ARRAY(v_index);
+    SAFE_DELETE_ARRAY(cum_sum);
+//    timer->Stop("sp-evi-post");
+}
+
+void JunctionTree::LoadEvidenceToNodesOptimized(vector<Clique*> &vector_reduced_node_ptr,
+                                                int index, int value_index, int num_threads, Timer *timer) {
 
 //    timer->Start("sp-evi-pre");
     int red_size = vector_reduced_node_ptr.size();
@@ -400,6 +474,7 @@ void JunctionTree::LoadEvidenceToNodes(vector<Clique*> &vector_reduced_node_ptr,
         full_config[k] = new int[clique_ptr->p_table.table_size * clique_ptr->p_table.num_variables];
         v_index[k] = new int[clique_ptr->p_table.table_size];
 
+        // table entries in the same pt has the same location of the evidence variable
         e_loc[k] = clique_ptr->p_table.TableReductionPre(index);
     }
 //    timer->Stop("sp-evi-pre");
