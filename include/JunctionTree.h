@@ -30,6 +30,11 @@ public:
     // 1d: number of nodes in the network; 2d: number of possible values of this node
     vector<vector<double>> probs_one_sample;
 
+//    int cnt_sep_col;
+//    int cnt_sep_dis;
+//    int cnt_clq_col;
+//    int cnt_clq_dis;
+
 
     JunctionTree() = default;
     JunctionTree(Network *net, Dataset *dts, bool is_dense);

@@ -38,6 +38,11 @@ JunctionTree::JunctionTree(Network *net, Dataset *dts, bool is_dense) : Inferenc
     cout << "==================================================";
     cout << endl; timer->Print("construct jt"); cout << endl;
     SAFE_DELETE(timer);
+
+//    cnt_clq_col = 0;
+//    cnt_clq_dis = 0;
+//    cnt_sep_col = 0;
+//    cnt_sep_dis = 0;
 }
 
 JunctionTree::~JunctionTree() {
@@ -87,21 +92,25 @@ double JunctionTree::EvaluateAccuracy(string path, int num_threads) {
 
 //    timer->Print("s-sep-col-pre");
     timer->Print("p-sep-col-main");
+//    cout << " count = " << cnt_sep_col;
 //    timer->Print("s-sep-col-post");
     cout << endl;
 
 //    timer->Print("s-sep-dis-pre");
     timer->Print("p-sep-dis-main");
+//    cout << " count = " << cnt_sep_dis;
 //    timer->Print("s-sep-dis-post");
     cout << endl;
 
 //    timer->Print("s-clq-col-pre");
     timer->Print("p-clq-col-main");
+//    cout << " count = " << cnt_clq_col;
 //    timer->Print("s-clq-col-post");
     cout << endl;
 
 //    timer->Print("s-clq-dis-pre");
     timer->Print("p-clq-dis-main");
+//    cout << "count = " << cnt_clq_dis;
 //    timer->Print("s-clq-dis-post");
     cout << endl;
 
@@ -392,8 +401,8 @@ void JunctionTree::LoadEvidenceToNodes(vector<Clique *> &vector_reduced_node_ptr
         final_sum += clique_ptr->p_table.table_size;
     }
 
-//    omp_set_num_threads(num_threads);
-//#pragma omp parallel for
+    omp_set_num_threads(num_threads);
+#pragma omp parallel for
     for (int k = 0; k < red_size; ++k) {
         auto clique_ptr = vector_reduced_node_ptr[k];
         full_config[k] = new int[clique_ptr->p_table.table_size * clique_ptr->p_table.num_variables];
@@ -420,8 +429,8 @@ void JunctionTree::LoadEvidenceToNodes(vector<Clique *> &vector_reduced_node_ptr
     /**
      * post-computing
      */
-//    omp_set_num_threads(num_threads);
-//#pragma omp parallel for
+    omp_set_num_threads(num_threads);
+#pragma omp parallel for
     for (int k = 0; k < red_size; ++k) {
         auto clique_ptr = vector_reduced_node_ptr[k];
 
@@ -467,8 +476,8 @@ void JunctionTree::LoadEvidenceToNodesOptimized(vector<Clique*> &vector_reduced_
         final_sum += clique_ptr->p_table.table_size;
     }
 
-//    omp_set_num_threads(num_threads);
-//#pragma omp parallel for
+    omp_set_num_threads(num_threads);
+#pragma omp parallel for
     for (int k = 0; k < red_size; ++k) {
         auto clique_ptr = vector_reduced_node_ptr[k];
         full_config[k] = new int[clique_ptr->p_table.table_size * clique_ptr->p_table.num_variables];
@@ -496,8 +505,8 @@ void JunctionTree::LoadEvidenceToNodesOptimized(vector<Clique*> &vector_reduced_
     /**
      * post-computing
      */
-//    omp_set_num_threads(num_threads);
-//#pragma omp parallel for
+    omp_set_num_threads(num_threads);
+#pragma omp parallel for
     for (int k = 0; k < red_size; ++k) {
         auto clique_ptr = vector_reduced_node_ptr[k];
         clique_ptr->p_table.TableReductionPost(index, value_index, v_index[k], e_loc[k]);
@@ -626,6 +635,8 @@ void JunctionTree::SeparatorLevelCollection(int i, int num_threads, Timer *timer
     }
 //    timer->Stop("s-sep-col-pre");
 
+//    cnt_sep_col += final_sum;
+
     timer->Start("p-sep-col-main");
     // the main loop
     omp_set_num_threads(num_threads);
@@ -741,6 +752,8 @@ void JunctionTree::SeparatorLevelDistribution(int i, int num_threads, Timer *tim
         final_sum += clique->p_table.table_size;
     }
 //    timer->Stop("s-sep-dis-pre");
+
+//    cnt_sep_dis += final_sum;
 
     timer->Start("p-sep-dis-main");
     // the main loop
@@ -863,6 +876,8 @@ void JunctionTree::CliqueLevelCollection(int i, const vector<int> &has_kth_child
     }
 //    timer->Stop("s-clq-col-pre");
 
+//    cnt_clq_col += final_sum;
+
     timer->Start("p-clq-col-main");
 
     // the main loop
@@ -974,6 +989,8 @@ void JunctionTree::CliqueLevelDistribution(int i, int num_threads, Timer *timer)
     }
 //    timer->Stop("s-clq-dis-pre");
 
+//    cnt_clq_dis += final_sum;
+
     timer->Start("p-clq-dis-main");
     // the main loop
     omp_set_num_threads(num_threads);
@@ -1075,6 +1092,8 @@ void JunctionTree::SeparatorLevelCollectionOptimized(int i, int num_threads, Tim
     }
 //    timer->Stop("s-sep-col-pre");
 
+//    cnt_sep_col += final_sum;
+
     timer->Start("p-sep-col-main");
     // the main loop
     omp_set_num_threads(num_threads);
@@ -1160,6 +1179,8 @@ void JunctionTree::CliqueLevelDistributionOptimized(int i, int num_threads, Time
         final_sum += pt.table_size;
     }
 //    timer->Stop("s-clq-dis-pre");
+
+//    cnt_clq_dis += final_sum;
 
     timer->Start("p-clq-dis-main");
     // the main loop
