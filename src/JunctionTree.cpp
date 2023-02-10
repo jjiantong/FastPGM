@@ -92,24 +92,28 @@ double JunctionTree::EvaluateAccuracy(string path, int num_threads) {
 
 //    timer->Print("s-sep-col-pre");
     timer->Print("p-sep-col-main");
+    timer->Print("sep-col");
 //    cout << " count = " << cnt_sep_col;
 //    timer->Print("s-sep-col-post");
     cout << endl;
 
 //    timer->Print("s-sep-dis-pre");
     timer->Print("p-sep-dis-main");
+    timer->Print("sep-dis");
 //    cout << " count = " << cnt_sep_dis;
 //    timer->Print("s-sep-dis-post");
     cout << endl;
 
 //    timer->Print("s-clq-col-pre");
     timer->Print("p-clq-col-main");
+    timer->Print("clq-col");
 //    cout << " count = " << cnt_clq_col;
 //    timer->Print("s-clq-col-post");
     cout << endl;
 
 //    timer->Print("s-clq-dis-pre");
     timer->Print("p-clq-dis-main");
+    timer->Print("clq-dis");
 //    cout << "count = " << cnt_clq_dis;
 //    timer->Print("s-clq-dis-post");
     cout << endl;
@@ -412,7 +416,7 @@ void JunctionTree::LoadEvidenceToNodes(vector<Clique *> &vector_reduced_node_ptr
     }
 //    timer->Stop("sp-evi-pre");
 
-    timer->Start("p-evi-main");
+//    timer->Start("p-evi-main");
     // the main loop
     omp_set_num_threads(num_threads);
 #pragma omp parallel for
@@ -423,7 +427,7 @@ void JunctionTree::LoadEvidenceToNodes(vector<Clique *> &vector_reduced_node_ptr
 
         v_index[k][i] = vector_reduced_node_ptr[k]->p_table.TableReductionMain(i, full_config[k], e_loc[k]);
     }
-    timer->Stop("p-evi-main");
+//    timer->Stop("p-evi-main");
 
 //    timer->Start("sp-evi-post");
     /**
@@ -488,7 +492,7 @@ void JunctionTree::LoadEvidenceToNodesOptimized(vector<Clique*> &vector_reduced_
     }
 //    timer->Stop("sp-evi-pre");
 
-    timer->Start("p-evi-main");
+//    timer->Start("p-evi-main");
     // the main loop
     omp_set_num_threads(num_threads);
 #pragma omp parallel for
@@ -499,7 +503,7 @@ void JunctionTree::LoadEvidenceToNodesOptimized(vector<Clique*> &vector_reduced_
 
         v_index[k][i] = vector_reduced_node_ptr[k]->p_table.TableReductionMain(i, full_config[k], e_loc[k]);
     }
-    timer->Stop("p-evi-main");
+//    timer->Stop("p-evi-main");
 
 //    timer->Start("sp-evi-post");
     /**
@@ -637,7 +641,7 @@ void JunctionTree::SeparatorLevelCollection(int i, int num_threads, Timer *timer
 
 //    cnt_sep_col += final_sum;
 
-    timer->Start("p-sep-col-main");
+//    timer->Start("p-sep-col-main");
     // the main loop
     omp_set_num_threads(num_threads);
 #pragma omp parallel for
@@ -647,7 +651,7 @@ void JunctionTree::SeparatorLevelCollection(int i, int num_threads, Timer *timer
         table_index[j][k] = tmp_pt[j].TableMarginalizationMain(k, full_config[j], partial_config[j],
                                                                nv_old[j], cl_old[j], loc_in_old[j]);
     }
-    timer->Stop("p-sep-col-main");
+//    timer->Stop("p-sep-col-main");
 
 //    timer->Start("s-sep-col-post");
     // post-computing
@@ -755,7 +759,7 @@ void JunctionTree::SeparatorLevelDistribution(int i, int num_threads, Timer *tim
 
 //    cnt_sep_dis += final_sum;
 
-    timer->Start("p-sep-dis-main");
+//    timer->Start("p-sep-dis-main");
     // the main loop
     omp_set_num_threads(num_threads);
 #pragma omp parallel for
@@ -765,7 +769,7 @@ void JunctionTree::SeparatorLevelDistribution(int i, int num_threads, Timer *tim
         table_index[j][k] = tmp_pt[j].TableMarginalizationMain(k, full_config[j], partial_config[j],
                                                                nv_old[j], cl_old[j], loc_in_old[j]);
     }
-    timer->Stop("p-sep-dis-main");
+//    timer->Stop("p-sep-dis-main");
 
 //    timer->Start("s-sep-dis-post");
     // post-computing
@@ -878,7 +882,7 @@ void JunctionTree::CliqueLevelCollection(int i, const vector<int> &has_kth_child
 
 //    cnt_clq_col += final_sum;
 
-    timer->Start("p-clq-col-main");
+//    timer->Start("p-clq-col-main");
 
     // the main loop
     omp_set_num_threads(num_threads);
@@ -889,7 +893,7 @@ void JunctionTree::CliqueLevelCollection(int i, const vector<int> &has_kth_child
         table_index[j][k] = tmp_pt[j].TableExtensionMain(k, full_config[j], partial_config[j],
                                                          nv_old[j], cl_old[j], loc_in_new[j]);
     }
-    timer->Stop("p-clq-col-main");
+//    timer->Stop("p-clq-col-main");
 
 //    timer->Start("s-clq-col-post");
     // post-computing
@@ -991,7 +995,7 @@ void JunctionTree::CliqueLevelDistribution(int i, int num_threads, Timer *timer)
 
 //    cnt_clq_dis += final_sum;
 
-    timer->Start("p-clq-dis-main");
+//    timer->Start("p-clq-dis-main");
     // the main loop
     omp_set_num_threads(num_threads);
 #pragma omp parallel for
@@ -1001,7 +1005,7 @@ void JunctionTree::CliqueLevelDistribution(int i, int num_threads, Timer *timer)
         table_index[j][k] = tmp_pt[j].TableExtensionMain(k, full_config[j], partial_config[j],
                                                          nv_old[j], cl_old[j], loc_in_new[j]);
     }
-    timer->Stop("p-clq-dis-main");
+//    timer->Stop("p-clq-dis-main");
 
 //    timer->Start("s-clq-dis-post");
     // post-computing
@@ -1094,7 +1098,7 @@ void JunctionTree::SeparatorLevelCollectionOptimized(int i, int num_threads, Tim
 
 //    cnt_sep_col += final_sum;
 
-    timer->Start("p-sep-col-main");
+//    timer->Start("p-sep-col-main");
     // the main loop
     omp_set_num_threads(num_threads);
 #pragma omp parallel for
@@ -1103,7 +1107,7 @@ void JunctionTree::SeparatorLevelCollectionOptimized(int i, int num_threads, Tim
         Compute2DIndex(j, k, s, size, cum_sum); // compute j and k
         table_index[j][k] = k % common_dims[j];
     }
-    timer->Stop("p-sep-col-main");
+//    timer->Stop("p-sep-col-main");
 
 //    timer->Start("s-sep-col-post");
     // post-computing
@@ -1182,7 +1186,7 @@ void JunctionTree::CliqueLevelDistributionOptimized(int i, int num_threads, Time
 
 //    cnt_clq_dis += final_sum;
 
-    timer->Start("p-clq-dis-main");
+//    timer->Start("p-clq-dis-main");
     // the main loop
     omp_set_num_threads(num_threads);
 #pragma omp parallel for
@@ -1191,7 +1195,7 @@ void JunctionTree::CliqueLevelDistributionOptimized(int i, int num_threads, Time
         Compute2DIndex(j, k, s, size, cum_sum); // compute j and k
         table_index[j][k] = k % common_dims[j];
     }
-    timer->Stop("p-clq-dis-main");
+//    timer->Stop("p-clq-dis-main");
 
 //    timer->Start("s-clq-dis-post");
     // post-computing
@@ -1242,8 +1246,10 @@ void JunctionTree::Collect(int num_threads, Timer *timer) {
              * collect msg from its child (a clique) to it (a separator)
              * do marginalization + division for separator levels
              */
+            timer->Start("sep-col");
 //            SeparatorLevelCollection(i, num_threads, timer);
             SeparatorLevelCollectionOptimized(i, num_threads, timer);
+            timer->Stop("sep-col");
         }
         else {
             /**
@@ -1251,6 +1257,7 @@ void JunctionTree::Collect(int num_threads, Timer *timer) {
              * collect msg from its children (separators) to it (a clique)
              * do extension + multiplication for clique levels
              */
+            timer->Start("clq-col");
 //            timer->Start("s-clq-col-pre");
             int size = nodes_by_level[i].size();
 
@@ -1293,6 +1300,7 @@ void JunctionTree::Collect(int num_threads, Timer *timer) {
                  */
                 CliqueLevelCollection(i, has_kth_child, k, num_threads, timer);
             }
+            timer->Stop("clq-col");
         }
     }
 }
@@ -1306,7 +1314,9 @@ void JunctionTree::Distribute(int num_threads, Timer *timer) {
              * distribute msg from its parent (a clique) to it (a separator)
              * do marginalization + division for separator levels
              */
+            timer->Start("sep-dis");
             SeparatorLevelDistribution(i, num_threads, timer);
+            timer->Stop("sep-dis");
         }
         else {
             /**
@@ -1314,8 +1324,10 @@ void JunctionTree::Distribute(int num_threads, Timer *timer) {
              * distribute msg from its parent (a separator) to it (a clique)
              * do extension + multiplication for clique levels
              */
+            timer->Start("clq-dis");
 //            CliqueLevelDistribution(i, num_threads, timer);
             CliqueLevelDistributionOptimized(i, num_threads, timer);
+            timer->Stop("clq-dis");
         }
     }
 }
