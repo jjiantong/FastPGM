@@ -1,5 +1,7 @@
 # FastBN
 
+Fast and parallel solutions for Bayesian Network structure learning and inference (IPDPS'22, PPoPP'23)
+
 ## Overview
 
 The aim of FastBN is to help users easily and efficiently apply Bayesian Network (BN) models to solve real-world problems. 
@@ -83,13 +85,14 @@ Fast-BNS in IPDPS 2022 ([pdf](https://github.com/jjiantong/FastBN/tree/master/do
 }
 ```
 
-Fast-BNI (to appear) in PPoPP 2023 ([pdf](https://github.com/jjiantong/FastBN/tree/master/docs/papers/bnei_ppopp.pdf)):
+Fast-BNI in PPoPP 2023 ([pdf](https://github.com/jjiantong/FastBN/tree/master/docs/papers/bnei_ppopp.pdf)):
 ```
-@article{jiang2022fast2,
-  title={Fast Parallel Exact Inference on Bayesian Networks: Poster},
+@inproceedings{jiang2023fast,
+  title={Fast Parallel Exact Inference on Bayesian Networks},
   author={Jiang, Jiantong and Wen, Zeyi and Mansoor, Atif and Mian, Ajmal},
-  journal={arXiv preprint arXiv:2212.04241},
-  year={2022}
+  booktitle={Proceedings of the 28th ACM SIGPLAN Annual Symposium on Principles and Practice of Parallel Programming},
+  pages={425--426},
+  year={2023}
 }
 ```
 
