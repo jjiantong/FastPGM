@@ -1,13 +1,13 @@
 //
 // Created by jjt on 12/09/22.
+// checked on 16/10/23.
 //
 
 #include "JunctionTreeStructure.h"
 
 /**
  * the optimized constructor; the original implementation is removed
- * because we optimize triangulation, some parameters, thus some functions, are unnecessary,
- * so simply reduce these unnecessary things and lead to this optimized constructor
+ * because we optimize triangulation, some parameters, thus some functions, are unnecessary
  */
 JunctionTreeStructure::JunctionTreeStructure(Network *net) : network(net) {
 
@@ -22,14 +22,12 @@ JunctionTreeStructure::JunctionTreeStructure(Network *net) : network(net) {
 //    cout << "Finish Moralize" << endl;
 
     vector<bool> has_processed(network->num_nodes);
-    //construct a clique for each node in the network
     Triangulate(network, moral_graph_adjac_matrix, has_processed);
-//    cout << "Finish Triangulate, number of cliques = " << vector_clique_ptr_container.size() << endl;
-
     for (int i = 0; i < network->num_nodes; ++i) {
-        delete[] direc_adjac_matrix[i];
+        SAFE_DELETE_ARRAY(direc_adjac_matrix[i]);
     }
-    delete[] direc_adjac_matrix;
+    SAFE_DELETE_ARRAY(direc_adjac_matrix);
+//    cout << "Finish Triangulate, number of cliques = " << vector_clique_ptr_container.size() << endl;
 
     FormJunctionTree();//for discrete nodes
     cout << "Finish FormJunctionTree, number of cliques = " << vector_clique_ptr_container.size()
@@ -39,7 +37,7 @@ JunctionTreeStructure::JunctionTreeStructure(Network *net) : network(net) {
 //    cout << "Finish AssignPotentials" << endl;
 
     /**
-     * it is used to compute mean of clique size
+     * it is only to compute mean of clique size
      */
     int max_size = 0;
     float mean_size = GetAveAndMaxCliqueSize(max_size);
@@ -49,16 +47,10 @@ JunctionTreeStructure::JunctionTreeStructure(Network *net) : network(net) {
 JunctionTreeStructure::~JunctionTreeStructure() {
     // delete cliques and separators
     for (auto it = vector_clique_ptr_container.begin(); it != vector_clique_ptr_container.end(); it++) {
-        if (*it != nullptr) {
-            delete *it;
-            *it = nullptr;
-        }
+        SAFE_DELETE(*it);
     }
     for (auto it = vector_separator_ptr_container.begin(); it != vector_separator_ptr_container.end(); it++) {
-        if (*it != nullptr) {
-            delete *it;
-            *it = nullptr;
-        }
+        SAFE_DELETE(*it);
     }
 }
 
@@ -93,8 +85,7 @@ void JunctionTreeStructure::Moralize(int **direc_adjac_matrix, int &num_nodes) {
             to_marry.insert(pair<int, int>(parents.at(choice.at(0)), parents.at(choice.at(1))));
             choice = cg->Next();
         }
-        delete cg;
-        cg = nullptr;
+        SAFE_DELETE(cg);
     }
 
     // Making the adjacency matrix undirected.
@@ -298,7 +289,7 @@ void JunctionTreeStructure::FormJunctionTree() {
         if (!(*it)->is_in_jt) { // if this sep is not used
             auto tmp = *it;
             all_possible_seps.erase(it++);
-            delete tmp;
+            SAFE_DELETE(tmp);
         } else {
             it++;
         }
