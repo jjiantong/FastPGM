@@ -16,9 +16,11 @@ PCStable::~PCStable() {
     SAFE_DELETE(network);
 }
 
-void PCStable::StructLearnCompData(Dataset *dts, int group_size, int num_threads, bool print_struct, bool verbose) {
-    cout << "==================================================" << '\n'
-         << "Begin structural learning with PC-stable" << endl;
+void PCStable::StructLearnCompData(Dataset *dts, int group_size, int num_threads, bool print_struct, int verbose) {
+    if (verbose > 0) {
+        cout << "==================================================" << '\n'
+             << "Begin structural learning with PC-stable" << endl;
+    }
 
     Timer *timer = new Timer();
     // record time
@@ -26,31 +28,35 @@ void PCStable::StructLearnCompData(Dataset *dts, int group_size, int num_threads
     AssignNodeInformation(dts);
     StructLearnByPCStable(dts, num_threads, group_size, timer, print_struct, verbose);
     timer->Stop("pc-stable");
-    setlocale(LC_NUMERIC, "");
 
-    cout << "==================================================" << endl;
-    cout << "# of CI-tests is " << num_ci_test << ", # of dependence judgements is " << num_dependence_judgement << endl;
+    if (verbose > 0) {
+        cout << "==================================================" << endl;
+        cout << "# of CI-tests is " << num_ci_test << ", # of dependence judgements is " << num_dependence_judgement << endl;
+        timer->Print("pc-stable step 0"); cout << " (" << timer->time["pc-stable step 0"] / timer->time["pc-stable"] * 100 << "%)";
+        timer->Print("pc-stable step 1"); cout << " (" << timer->time["pc-stable step 1"] / timer->time["pc-stable"] * 100 << "%)" << endl;
+//        timer->Print("pc-stable step 2"); cout << " (" << timer->time["pc-stable step 2"] / timer->time["pc-stable"] * 100 << "%)";
+//        timer->Print("pc-stable step 3"); cout << " (" << timer->time["pc-stable step 3"] / timer->time["pc-stable"] * 100 << "%)";
+//
+//        timer->Print("cg"); cout << " (" << timer->time["cg"] / timer->time["pc-stable step 1"] * 100 << "%)";
+//        timer->Print("ci"); cout << " (" << timer->time["ci"] / timer->time["pc-stable step 1"] * 100 << "%)" << endl;
+//
+//        timer->Print("new & delete"); cout << " (" << timer->time["new & delete"] / timer->time["pc-stable step 1"] * 100 << "%)";
+//        timer->Print("config + count"); cout << " (" << timer->time["config + count"] / timer->time["pc-stable step 1"] * 100 << "%)";
+//        timer->Print("marginals"); cout << " (" << timer->time["marginals"] / timer->time["pc-stable step 1"] * 100 << "%)";
+//        timer->Print("g2 & df + p value"); cout << " (" << timer->time["g2 & df + p value"] / timer->time["pc-stable step 1"] * 100 << "%)" << endl;
+    }
     timer->Print("pc-stable");
-    timer->Print("pc-stable step 0"); cout << " (" << timer->time["pc-stable step 0"] / timer->time["pc-stable"] * 100 << "%)";
-    timer->Print("pc-stable step 1"); cout << " (" << timer->time["pc-stable step 1"] / timer->time["pc-stable"] * 100 << "%)" << endl;
-//    timer->Print("pc-stable step 2"); cout << " (" << timer->time["pc-stable step 2"] / timer->time["pc-stable"] * 100 << "%)";
-//    timer->Print("pc-stable step 3"); cout << " (" << timer->time["pc-stable step 3"] / timer->time["pc-stable"] * 100 << "%)";
 
-//    timer->Print("cg"); cout << " (" << timer->time["cg"] / timer->time["pc-stable step 1"] * 100 << "%)";
-//    timer->Print("ci"); cout << " (" << timer->time["ci"] / timer->time["pc-stable step 1"] * 100 << "%)" << endl;
-
-//    timer->Print("new & delete"); cout << " (" << timer->time["new & delete"] / timer->time["pc-stable step 1"] * 100 << "%)";
-//    timer->Print("config + count"); cout << " (" << timer->time["config + count"] / timer->time["pc-stable step 1"] * 100 << "%)";
-//    timer->Print("marginals"); cout << " (" << timer->time["marginals"] / timer->time["pc-stable step 1"] * 100 << "%)";
-//    timer->Print("g2 & df + p value"); cout << " (" << timer->time["g2 & df + p value"] / timer->time["pc-stable step 1"] * 100 << "%)" << endl;
     SAFE_DELETE(timer);
 }
 
 void PCStable::StructLearnByPCStable(Dataset *dts, int num_threads, int group_size,
-                                     Timer *timer, bool print_struct, bool verbose) {
+                                     Timer *timer, bool print_struct, int verbose) {
 
-    cout << "==================================================" << '\n'
-         << "Generating undirected complete graph" << endl;
+    if (verbose > 0) {
+        cout << "==================================================" << '\n'
+             << "Generating undirected complete graph" << endl;
+    }
 
     timer->Start("pc-stable step 0");
     network->GenerateUndirectedCompleteGraph();
@@ -63,10 +69,12 @@ void PCStable::StructLearnByPCStable(Dataset *dts, int num_threads, int group_si
 //        }
 //    }
     timer->Stop("pc-stable step 0");
-    timer->Print("pc-stable step 0");
 
-    cout << "==================================================" << '\n'
-         << "Begin finding the skeleton" << endl << "Level 0... " << endl;
+    if (verbose > 0) {
+        timer->Print("pc-stable step 0");
+        cout << "==================================================" << '\n'
+             << "Begin finding the skeleton" << endl << "Level 0... " << endl;
+    }
 
     timer->Start("pc-stable step 1");
 
@@ -84,9 +92,8 @@ void PCStable::StructLearnByPCStable(Dataset *dts, int num_threads, int group_si
     for (int i = 0; i < network->num_edges; ++i) {
         int node_idx1 = network->vec_edges[i].GetNode1()->GetNodeIndex();
         int node_idx2 = network->vec_edges[i].GetNode2()->GetNodeIndex();
-        set<int> empty_set;
 
-        if (verbose) {
+        if (verbose > 1) {
             cout << "--------------------------------------------------" << endl
                  << "* investigating " << network->FindNodePtrByIndex(node_idx1)->node_name
                  << " -- " << network->FindNodePtrByIndex(node_idx2)->node_name
@@ -99,7 +106,7 @@ void PCStable::StructLearnByPCStable(Dataset *dts, int num_threads, int group_si
                                                                       "g square", timer);
         SAFE_DELETE(ci_test);
         bool independent = result.is_independent;
-        if (verbose) {
+        if (verbose > 1) {
             cout << "    > node " << network->FindNodePtrByIndex(node_idx1)->node_name << " is ";
             if (independent) {
                 cout << "independent";
@@ -123,8 +130,8 @@ void PCStable::StructLearnByPCStable(Dataset *dts, int num_threads, int group_si
             // 1. delete the edge 2. remove each other from adjacency set
             // (1 and 2 will be done in the loop below)
             // 3. add conditioning set (an empty set for level 0) to sepset
-            sepset.insert(make_pair(make_pair(node_idx1, node_idx2), empty_set));
-//            sepset.insert(make_pair(make_pair(node_idx2, node_idx1), empty_set));
+            sepset.insert(make_pair(make_pair(node_idx1, node_idx2), set<int>()));
+//            sepset.insert(make_pair(make_pair(node_idx2, node_idx1), set<int>()));
         }
     }
 
@@ -146,30 +153,36 @@ void PCStable::StructLearnByPCStable(Dataset *dts, int num_threads, int group_si
         }
     }
 
-    if (verbose) {
+    if (verbose > 1) {
         cout << "* remaining edges:" << endl;
         network->PrintEachEdgeWithName();
     }
 
-    cout << "# of CI-tests is " << num_ci_test << ", # of dependence judgements is " << num_dependence_judgement << endl;
     double tmp = omp_get_wtime();
-    cout << "# remaining edges = " << network->num_edges
-         << ", time = " << tmp - timer->start_time["pc-stable step 1"] << endl;
+    if (verbose > 0) {
+        cout << "# of CI-tests is " << num_ci_test << ", # of dependence judgements is " << num_dependence_judgement << endl;
+        cout << "# remaining edges = " << network->num_edges
+             << ", time = " << tmp - timer->start_time["pc-stable step 1"] << endl;
+    }
 
     for (int d = 1; d < depth; ++d) {
-        cout << "Level " << d << "... " << endl;
+        if (verbose > 0) {
+            cout << "Level " << d << "... " << endl;
+        }
 
         bool more = SearchAtDepth(dts, d, num_threads, timer, group_size, verbose);
 
-        if (verbose) {
+        if (verbose > 1) {
             cout << "* remaining edges:" << endl;
             network->PrintEachEdgeWithName();
         }
 
-        cout << "# of CI-tests is " << num_ci_test << ", # of dependence judgements is " << num_dependence_judgement << endl;
         double tmp = omp_get_wtime();
-        cout << "# remaining edges = " << network->num_edges
-             << ", time = " << tmp - timer->start_time["pc-stable step 1"] << endl;
+        if (verbose > 0) {
+            cout << "# of CI-tests is " << num_ci_test << ", # of dependence judgements is " << num_dependence_judgement << endl;
+            cout << "# remaining edges = " << network->num_edges
+                 << ", time = " << tmp - timer->start_time["pc-stable step 1"] << endl;
+        }
 
         if (!more) {
             break;
@@ -177,16 +190,20 @@ void PCStable::StructLearnByPCStable(Dataset *dts, int num_threads, int group_si
     }
     timer->Stop("pc-stable step 1");
 
-    cout << "\n==================================================" << '\n'
-         << "Begin orienting v-structure" << endl;
+    if (verbose > 0) {
+        cout << "\n==================================================" << '\n'
+             << "Begin orienting v-structure" << endl;
+    }
 
 //    timer->Start("pc-stable step 2");
     OrientVStructure();
 //    timer->Stop("pc-stable step 2");
 
 
-    cout << "==================================================" << '\n'
-         << "Begin orienting other undirected edges" << endl;
+    if (verbose > 0) {
+        cout << "==================================================" << '\n'
+             << "Begin orienting other undirected edges" << endl;
+    }
 
 //    timer->Start("pc-stable step 3");
     OrientImplied();
@@ -206,7 +223,7 @@ void PCStable::StructLearnByPCStable(Dataset *dts, int num_threads, int group_si
  * according to the results, some of the edges will push back again and some will not
  * repeat this process until the stack is empty, which means all edges in this level have been finished
  */
-bool PCStable::SearchAtDepth(Dataset *dts, int c_depth, int num_threads, Timer *timer, int group_size, bool verbose) {
+bool PCStable::SearchAtDepth(Dataset *dts, int c_depth, int num_threads, Timer *timer, int group_size, int verbose) {
     /**
      * the copied adjacency sets of all nodes are used and kept unchanged at each particular level c_depth
      * consequently, an edge deletion at one level does not affect the conditioning sets of the other nodes
@@ -337,11 +354,11 @@ bool PCStable::SearchAtDepth(Dataset *dts, int c_depth, int num_threads, Timer *
  * @return whether the edge need to be pushed or not
  */
 bool PCStable::CheckEdge(Dataset *dts, const map<int, map<int, double>> &adjacencies, int c_depth,
-                         int edge_id, Timer *timer, int group_size, bool verbose) {
+                         int edge_id, Timer *timer, int group_size, int verbose) {
     int x_idx = network->vec_edges[edge_id].GetNode1()->GetNodeIndex();
     int y_idx = network->vec_edges[edge_id].GetNode2()->GetNodeIndex();
 
-    if (verbose) {
+    if (verbose > 1) {
         cout << "--------------------------------------------------" << endl
              << "* investigating " << network->vec_edges[edge_id].GetNode1()->node_name << " -- "
              << network->vec_edges[edge_id].GetNode2()->node_name << ", conditioning sets of size " << c_depth << "." << endl;
@@ -462,7 +479,7 @@ int PCStable::FindAdjacencies(Dataset *dts, const map<int, map<int, double>> &ad
  *            lower p-value indicates stronger dependence and stronger association between the variables
  * @return true if such a Z can be found, which means edge x -- y should be deleted
  */
-bool PCStable::Testing(Dataset *dts, int c_depth, int edge_idx, int x_idx, int y_idx, Timer *timer, int group_size, bool verbose) {
+bool PCStable::Testing(Dataset *dts, int c_depth, int edge_idx, int x_idx, int y_idx, Timer *timer, int group_size, int verbose) {
 //    cout << omp_get_thread_num() << ": current choice: ";
 //    if (!network->vec_edges[edge_idx].cg.choice.empty()) {
 //        for (int i = 0; i < c_depth; ++i) {
@@ -519,7 +536,7 @@ bool PCStable::Testing(Dataset *dts, int c_depth, int edge_idx, int x_idx, int y
             }
             sepset.insert(make_pair(make_pair(node_idx1, node_idx2), conditioning_set));
 
-            if (verbose) {
+            if (verbose > 1) {
                 cout << "    **** finish this group: ";
                 cout << "node " << network->FindNodePtrByIndex(x_idx)->node_name << " is independent";
                 cout << " on " << network->FindNodePtrByIndex(y_idx)->node_name << " given ";
@@ -532,7 +549,7 @@ bool PCStable::Testing(Dataset *dts, int c_depth, int edge_idx, int x_idx, int y
         }
 
         // dependent
-        if (verbose) {
+        if (verbose > 1) {
             cout << "    **** finish this group: ";
             cout << "node " << network->FindNodePtrByIndex(x_idx)->node_name << " is dependent";
             cout << " on " << network->FindNodePtrByIndex(y_idx)->node_name << " in this group." << endl;

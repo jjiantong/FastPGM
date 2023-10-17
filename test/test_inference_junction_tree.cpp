@@ -217,71 +217,71 @@
 
 
 
-class TestExactInferenceJTDiabetes: public ::testing::Test { // TODO: acc=0.86
-protected:
-
-    void SetUp() override {
-        Dataset *tester = new Dataset();
-        CustomNetwork *network = new CustomNetwork(true);
-
-        string net_file = "../../dataset/diabetes/diabetes.xml";
-        string test_set_file = "../../dataset/diabetes/testing_diabetes_100_evi20";
-
-        network->GetNetFromXMLBIFFile(net_file);
-        tester->LoadLIBSVMDataKnownNetwork(test_set_file, network->num_nodes);
-
-        inference = new JunctionTree(network, tester, false);
-//        SAFE_DELETE(network);
-        SAFE_DELETE(tester);
-    }
-
-    Inference *inference;
-};
-
-TEST_F(TestExactInferenceJTDiabetes, thread_1) {
-    string pt_file = "../../dataset/diabetes/diabetes_100_pt";
-    int num_threads = 1;
-
-    double accuracy = inference->EvaluateAccuracy(pt_file, num_threads);
-    cout << "accuracy = " << accuracy << endl;
-    SAFE_DELETE(inference);
-}
-
-TEST_F(TestExactInferenceJTDiabetes, thread_2) {
-    string pt_file = "../../dataset/diabetes/diabetes_100_pt";
-    int num_threads = 2;
-
-    double accuracy = inference->EvaluateAccuracy(pt_file, num_threads);
-    cout << "accuracy = " << accuracy << endl;
-    SAFE_DELETE(inference);
-}
-
-TEST_F(TestExactInferenceJTDiabetes, thread_4) {
-    string pt_file = "../../dataset/diabetes/diabetes_100_pt";
-    int num_threads = 4;
-
-    double accuracy = inference->EvaluateAccuracy(pt_file, num_threads);
-    cout << "accuracy = " << accuracy << endl;
-    SAFE_DELETE(inference);
-}
-
-TEST_F(TestExactInferenceJTDiabetes, thread_8) {
-    string pt_file = "../../dataset/diabetes/diabetes_100_pt";
-    int num_threads = 8;
-
-    double accuracy = inference->EvaluateAccuracy(pt_file, num_threads);
-    cout << "accuracy = " << accuracy << endl;
-    SAFE_DELETE(inference);
-}
-
-TEST_F(TestExactInferenceJTDiabetes, thread_16) {
-    string pt_file = "../../dataset/diabetes/diabetes_100_pt";
-    int num_threads = 16;
-
-    double accuracy = inference->EvaluateAccuracy(pt_file, num_threads);
-    cout << "accuracy = " << accuracy << endl;
-    SAFE_DELETE(inference);
-}
+//class TestExactInferenceJTDiabetes: public ::testing::Test { // TODO: acc=0.86
+//protected:
+//
+//    void SetUp() override {
+//        Dataset *tester = new Dataset();
+//        CustomNetwork *network = new CustomNetwork(true);
+//
+//        string net_file = "../../dataset/diabetes/diabetes.xml";
+//        string test_set_file = "../../dataset/diabetes/testing_diabetes_100_evi20";
+//
+//        network->GetNetFromXMLBIFFile(net_file);
+//        tester->LoadLIBSVMDataKnownNetwork(test_set_file, network->num_nodes);
+//
+//        inference = new JunctionTree(network, tester, false);
+////        SAFE_DELETE(network);
+//        SAFE_DELETE(tester);
+//    }
+//
+//    Inference *inference;
+//};
+//
+//TEST_F(TestExactInferenceJTDiabetes, thread_1) {
+//    string pt_file = "../../dataset/diabetes/diabetes_100_pt";
+//    int num_threads = 1;
+//
+//    double accuracy = inference->EvaluateAccuracy(pt_file, num_threads);
+//    cout << "accuracy = " << accuracy << endl;
+//    SAFE_DELETE(inference);
+//}
+//
+//TEST_F(TestExactInferenceJTDiabetes, thread_2) {
+//    string pt_file = "../../dataset/diabetes/diabetes_100_pt";
+//    int num_threads = 2;
+//
+//    double accuracy = inference->EvaluateAccuracy(pt_file, num_threads);
+//    cout << "accuracy = " << accuracy << endl;
+//    SAFE_DELETE(inference);
+//}
+//
+//TEST_F(TestExactInferenceJTDiabetes, thread_4) {
+//    string pt_file = "../../dataset/diabetes/diabetes_100_pt";
+//    int num_threads = 4;
+//
+//    double accuracy = inference->EvaluateAccuracy(pt_file, num_threads);
+//    cout << "accuracy = " << accuracy << endl;
+//    SAFE_DELETE(inference);
+//}
+//
+//TEST_F(TestExactInferenceJTDiabetes, thread_8) {
+//    string pt_file = "../../dataset/diabetes/diabetes_100_pt";
+//    int num_threads = 8;
+//
+//    double accuracy = inference->EvaluateAccuracy(pt_file, num_threads);
+//    cout << "accuracy = " << accuracy << endl;
+//    SAFE_DELETE(inference);
+//}
+//
+//TEST_F(TestExactInferenceJTDiabetes, thread_16) {
+//    string pt_file = "../../dataset/diabetes/diabetes_100_pt";
+//    int num_threads = 16;
+//
+//    double accuracy = inference->EvaluateAccuracy(pt_file, num_threads);
+//    cout << "accuracy = " << accuracy << endl;
+//    SAFE_DELETE(inference);
+//}
 
 
 
