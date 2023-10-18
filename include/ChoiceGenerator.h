@@ -11,11 +11,11 @@
 using namespace std;
 
 /**
- * @brief: Generates (nonrecursively) all of the combinations of a choose b
- * a, b are nonnegative integers and a >= b, the values of a and b are given in the constructor
- * the sequence of choices is obtained by repeatedly calling the next() method
- * when the sequence is finished, null is returned
- * a valid combination for a choose b is an array x[] of b int i, 0 <= i < a, x[j] < x[j + 1] for each j from 0 to b - 1.
+ * @brief: Generates (non-recursively) all of the combinations of a choose b
+ * a, b are non-negative integers and a >= b, the values of a and b are given in the constructor.
+ * The sequence of choices is obtained by repeatedly calling the next() method. When the sequence
+ * is finished, null is returned. A valid combination for a choose b is an array x[] of b int i,
+ * 0 <= i < a, x[j] < x[j + 1] for each j from 0 to b - 1.
  */
 class ChoiceGenerator {
 public:
@@ -25,8 +25,7 @@ public:
     int diff; // difference between a and b (should be non-negative)
     vector<int> choice; // internally stored choice
 
-//    ChoiceGenerator() {}
-    ChoiceGenerator (int a, int b);
+    ChoiceGenerator(int a, int b);
 
     vector<vector<int>> NextN(int n);
     vector<int> Next();

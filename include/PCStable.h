@@ -24,7 +24,7 @@ class PCStable : public StructureLearning {
 public:
     int depth = 1000; // The maximum number of nodes conditioned on in the search. The default it 1000.
     int num_ci_test;
-    int num_dependence_judgement;
+    int num_dependence;
     double alpha;
     /**
      * Stores a map from pairs of nodes (key) to separating sets (value) --
@@ -44,7 +44,7 @@ public:
 
     bool CheckEdge(Dataset *dts, const map<int, map<int, double>> &adjacencies, int c_depth,
                    int edge_id, Timer *timer, int group_size, int verbose);
-    int FindAdjacencies(Dataset *dts, const map<int, map<int, double>> &adjacencies, int edge_id, int x_idx, int y_idx);
+    int FindAdjacencies(const map<int, map<int, double>> &adjacencies, int edge_id, int x_idx, int y_idx);
     bool Testing(Dataset *dts, int c_depth, int edge_id, int x_idx, int y_idx, Timer *timer, int group_size, int verbose);
     int FreeDegree(const map<int, map<int, double>> &adjacencies);
 

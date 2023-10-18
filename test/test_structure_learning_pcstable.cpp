@@ -586,98 +586,98 @@ TEST_F(TestStructureLearningPCStableMunin1, thread_16) {
 //
 //
 //
-//class TestStructureLearningPCStableMunin2: public ::testing::Test {
-//protected:
-//
-//    void SetUp() override {
-//        trainer = new Dataset();
-//        network = new Network(true);
-//
-//        string train_set_file = "../../dataset/munin2/munin2_s5000.txt";
-//        string ref_set_file = "../../dataset/munin2/munin2.bif";
-//
-//        trainer->LoadCSVData(train_set_file, true, true, 0);
-//        bnsl = new PCStable(network, 0.05);
-//
-//        ref_net = new CustomNetwork();
-//        ref_net->LoadBIFFile(ref_set_file);
-//    }
-//
-//    Dataset *trainer;
-//    Network *network;
-//    CustomNetwork *ref_net;
-//    StructureLearning *bnsl;
-//};
-//
-//TEST_F(TestStructureLearningPCStableMunin2, thread_1) {
-//    int group_size = GROUP_SIZE;
-//    int num_threads = 1;
-//    int verbose  = VERBOSE;
-//    bnsl->StructLearnCompData(trainer, group_size, num_threads, false, verbose);
-//    SAFE_DELETE(trainer);
-//
-//    BNSLComparison comp(ref_net, network);
-//    int shd = comp.GetSHD();
-//    cout << "SHD = " << shd << endl;
-//    SAFE_DELETE(network);
-//    SAFE_DELETE(ref_net);
-//}
-//
-//TEST_F(TestStructureLearningPCStableMunin2, thread_2) {
-//    int group_size = GROUP_SIZE;
-//    int num_threads = 2;
-//    int verbose  = VERBOSE;
-//    bnsl->StructLearnCompData(trainer, group_size, num_threads, false, verbose);
-//    SAFE_DELETE(trainer);
-//
-//    BNSLComparison comp(ref_net, network);
-//    int shd = comp.GetSHD();
-//    cout << "SHD = " << shd << endl;
-//    SAFE_DELETE(network);
-//    SAFE_DELETE(ref_net);
-//}
-//
-//TEST_F(TestStructureLearningPCStableMunin2, thread_4) {
-//    int group_size = GROUP_SIZE;
-//    int num_threads = 4;
-//    int verbose  = VERBOSE;
-//    bnsl->StructLearnCompData(trainer, group_size, num_threads, false, verbose);
-//    SAFE_DELETE(trainer);
-//
-//    BNSLComparison comp(ref_net, network);
-//    int shd = comp.GetSHD();
-//    cout << "SHD = " << shd << endl;
-//    SAFE_DELETE(network);
-//    SAFE_DELETE(ref_net);
-//}
-//
-//TEST_F(TestStructureLearningPCStableMunin2, thread_8) {
-//    int group_size = GROUP_SIZE;
-//    int num_threads = 8;
-//    int verbose  = VERBOSE;
-//    bnsl->StructLearnCompData(trainer, group_size, num_threads, false, verbose);
-//    SAFE_DELETE(trainer);
-//
-//    BNSLComparison comp(ref_net, network);
-//    int shd = comp.GetSHD();
-//    cout << "SHD = " << shd << endl;
-//    SAFE_DELETE(network);
-//    SAFE_DELETE(ref_net);
-//}
-//
-//TEST_F(TestStructureLearningPCStableMunin2, thread_16) {
-//    int group_size = GROUP_SIZE;
-//    int num_threads = 16;
-//    int verbose  = VERBOSE;
-//    bnsl->StructLearnCompData(trainer, group_size, num_threads, false, verbose);
-//    SAFE_DELETE(trainer);
-//
-//    BNSLComparison comp(ref_net, network);
-//    int shd = comp.GetSHD();
-//    cout << "SHD = " << shd << endl;
-//    SAFE_DELETE(network);
-//    SAFE_DELETE(ref_net);
-//}
+class TestStructureLearningPCStableMunin2: public ::testing::Test {
+protected:
+
+    void SetUp() override {
+        trainer = new Dataset();
+        network = new Network(true);
+
+        string train_set_file = "../../dataset/munin2/munin2_s5000.txt";
+        string ref_set_file = "../../dataset/munin2/munin2.bif";
+
+        trainer->LoadCSVData(train_set_file, true, true, 0);
+        bnsl = new PCStable(network, 0.05);
+
+        ref_net = new CustomNetwork();
+        ref_net->LoadBIFFile(ref_set_file);
+    }
+
+    Dataset *trainer;
+    Network *network;
+    CustomNetwork *ref_net;
+    StructureLearning *bnsl;
+};
+
+TEST_F(TestStructureLearningPCStableMunin2, thread_1) {
+    int group_size = GROUP_SIZE;
+    int num_threads = 1;
+    int verbose  = VERBOSE;
+    bnsl->StructLearnCompData(trainer, group_size, num_threads, false, verbose);
+    SAFE_DELETE(trainer);
+
+    BNSLComparison comp(ref_net, network);
+    int shd = comp.GetSHD();
+    cout << "SHD = " << shd << endl;
+    SAFE_DELETE(network);
+    SAFE_DELETE(ref_net);
+}
+
+TEST_F(TestStructureLearningPCStableMunin2, thread_2) {
+    int group_size = GROUP_SIZE;
+    int num_threads = 2;
+    int verbose  = VERBOSE;
+    bnsl->StructLearnCompData(trainer, group_size, num_threads, false, verbose);
+    SAFE_DELETE(trainer);
+
+    BNSLComparison comp(ref_net, network);
+    int shd = comp.GetSHD();
+    cout << "SHD = " << shd << endl;
+    SAFE_DELETE(network);
+    SAFE_DELETE(ref_net);
+}
+
+TEST_F(TestStructureLearningPCStableMunin2, thread_4) {
+    int group_size = GROUP_SIZE;
+    int num_threads = 4;
+    int verbose  = VERBOSE;
+    bnsl->StructLearnCompData(trainer, group_size, num_threads, false, verbose);
+    SAFE_DELETE(trainer);
+
+    BNSLComparison comp(ref_net, network);
+    int shd = comp.GetSHD();
+    cout << "SHD = " << shd << endl;
+    SAFE_DELETE(network);
+    SAFE_DELETE(ref_net);
+}
+
+TEST_F(TestStructureLearningPCStableMunin2, thread_8) {
+    int group_size = GROUP_SIZE;
+    int num_threads = 8;
+    int verbose  = VERBOSE;
+    bnsl->StructLearnCompData(trainer, group_size, num_threads, false, verbose);
+    SAFE_DELETE(trainer);
+
+    BNSLComparison comp(ref_net, network);
+    int shd = comp.GetSHD();
+    cout << "SHD = " << shd << endl;
+    SAFE_DELETE(network);
+    SAFE_DELETE(ref_net);
+}
+
+TEST_F(TestStructureLearningPCStableMunin2, thread_16) {
+    int group_size = GROUP_SIZE;
+    int num_threads = 16;
+    int verbose  = VERBOSE;
+    bnsl->StructLearnCompData(trainer, group_size, num_threads, false, verbose);
+    SAFE_DELETE(trainer);
+
+    BNSLComparison comp(ref_net, network);
+    int shd = comp.GetSHD();
+    cout << "SHD = " << shd << endl;
+    SAFE_DELETE(network);
+    SAFE_DELETE(ref_net);
+}
 //
 //
 //

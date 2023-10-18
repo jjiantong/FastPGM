@@ -7,7 +7,7 @@
 PCStable::PCStable(Network *net, double a, int d) {
     network = net;
     num_ci_test = 0;
-    num_dependence_judgement = 0;
+    num_dependence = 0;
     depth = d;
     alpha = a;
 }
@@ -31,19 +31,27 @@ void PCStable::StructLearnCompData(Dataset *dts, int group_size, int num_threads
 
     if (verbose > 0) {
         cout << "==================================================" << endl;
-        cout << "# of CI-tests is " << num_ci_test << ", # of dependence judgements is " << num_dependence_judgement << endl;
-        timer->Print("pc-stable step 0"); cout << " (" << timer->time["pc-stable step 0"] / timer->time["pc-stable"] * 100 << "%)";
-        timer->Print("pc-stable step 1"); cout << " (" << timer->time["pc-stable step 1"] / timer->time["pc-stable"] * 100 << "%)" << endl;
-//        timer->Print("pc-stable step 2"); cout << " (" << timer->time["pc-stable step 2"] / timer->time["pc-stable"] * 100 << "%)";
-//        timer->Print("pc-stable step 3"); cout << " (" << timer->time["pc-stable step 3"] / timer->time["pc-stable"] * 100 << "%)";
+        cout << "# of CI-tests is " << num_ci_test << ", # of dependence judgements is " << num_dependence << endl;
+        timer->Print("pc-stable step 0");
+        cout << " (" << timer->time["pc-stable step 0"] / timer->time["pc-stable"] * 100 << "%)";
+        timer->Print("pc-stable step 1");
+        cout << " (" << timer->time["pc-stable step 1"] / timer->time["pc-stable"] * 100 << "%)" << endl;
+//        timer->Print("pc-stable step 2");
+//        cout << " (" << timer->time["pc-stable step 2"] / timer->time["pc-stable"] * 100 << "%)";
+//        timer->Print("pc-stable step 3");
+//        cout << " (" << timer->time["pc-stable step 3"] / timer->time["pc-stable"] * 100 << "%)";
 //
 //        timer->Print("cg"); cout << " (" << timer->time["cg"] / timer->time["pc-stable step 1"] * 100 << "%)";
 //        timer->Print("ci"); cout << " (" << timer->time["ci"] / timer->time["pc-stable step 1"] * 100 << "%)" << endl;
 //
-//        timer->Print("new & delete"); cout << " (" << timer->time["new & delete"] / timer->time["pc-stable step 1"] * 100 << "%)";
-//        timer->Print("config + count"); cout << " (" << timer->time["config + count"] / timer->time["pc-stable step 1"] * 100 << "%)";
-//        timer->Print("marginals"); cout << " (" << timer->time["marginals"] / timer->time["pc-stable step 1"] * 100 << "%)";
-//        timer->Print("g2 & df + p value"); cout << " (" << timer->time["g2 & df + p value"] / timer->time["pc-stable step 1"] * 100 << "%)" << endl;
+//        timer->Print("new & delete");
+//        cout << " (" << timer->time["new & delete"] / timer->time["pc-stable step 1"] * 100 << "%)";
+//        timer->Print("config + count");
+//        cout << " (" << timer->time["config + count"] / timer->time["pc-stable step 1"] * 100 << "%)";
+//        timer->Print("marginals");
+//        cout << " (" << timer->time["marginals"] / timer->time["pc-stable step 1"] * 100 << "%)";
+//        timer->Print("g2 & df + p value");
+//        cout << " (" << timer->time["g2 & df + p value"] / timer->time["pc-stable step 1"] * 100 << "%)" << endl;
     }
     timer->Print("pc-stable");
 
@@ -118,7 +126,7 @@ void PCStable::StructLearnByPCStable(Dataset *dts, int num_threads, int group_si
         }
 
         if (!independent) { // the edge remains
-            num_dependence_judgement++;
+            num_dependence++;
             //-------------------------------- heuristic ---------------------------------//
             // store the p value - smaller means a stronger association
 //            network->adjacencies[node_idx1][node_idx2] = result.p_value;
@@ -160,7 +168,7 @@ void PCStable::StructLearnByPCStable(Dataset *dts, int num_threads, int group_si
 
     double tmp = omp_get_wtime();
     if (verbose > 0) {
-        cout << "# of CI-tests is " << num_ci_test << ", # of dependence judgements is " << num_dependence_judgement << endl;
+        cout << "# of CI-tests is " << num_ci_test << ", # of dependence judgements is " << num_dependence << endl;
         cout << "# remaining edges = " << network->num_edges
              << ", time = " << tmp - timer->start_time["pc-stable step 1"] << endl;
     }
@@ -179,7 +187,7 @@ void PCStable::StructLearnByPCStable(Dataset *dts, int num_threads, int group_si
 
         double tmp = omp_get_wtime();
         if (verbose > 0) {
-            cout << "# of CI-tests is " << num_ci_test << ", # of dependence judgements is " << num_dependence_judgement << endl;
+            cout << "# of CI-tests is " << num_ci_test << ", # of dependence judgements is " << num_dependence << endl;
             cout << "# remaining edges = " << network->num_edges
                  << ", time = " << tmp - timer->start_time["pc-stable step 1"] << endl;
         }
@@ -249,7 +257,8 @@ bool PCStable::SearchAtDepth(Dataset *dts, int c_depth, int num_threads, Timer *
 
 #pragma omp parallel for num_threads(num_threads)
         for (int i = 0; i < 128; ++i) {
-            need_to_push[i] = CheckEdge(dts, adjacencies_copy, c_depth, processing_edge_id[i], timer, group_size, verbose);
+            need_to_push[i] = CheckEdge(dts, adjacencies_copy, c_depth, processing_edge_id[i],
+                                        timer, group_size, verbose);
         }
 
         for (int i = 127; i >= 0; --i) {
@@ -270,7 +279,8 @@ bool PCStable::SearchAtDepth(Dataset *dts, int c_depth, int num_threads, Timer *
         int p = (size > num_threads) ? num_threads : size;
 #pragma omp parallel for num_threads(p)
         for (int i = 0; i < size; ++i) {
-            need_to_push[i] = CheckEdge(dts, adjacencies_copy, c_depth, processing_edge_id[i], timer, group_size, verbose);
+            need_to_push[i] = CheckEdge(dts, adjacencies_copy, c_depth, processing_edge_id[i],
+                                        timer, group_size, verbose);
         }
 
         for (int i = size - 1; i >= 0; --i) {
@@ -331,7 +341,8 @@ bool PCStable::SearchAtDepth(Dataset *dts, int c_depth, int num_threads, Timer *
         if (network->vec_edges[i].need_remove) {
             // the edge x -- y should be removed
             // 1. delete the edge
-            // note that using "DeleteUndirectedEdge(x->GetNodeIndex(), y->GetNodeIndex())" will cause some (slight) extra computations
+            // note that using "DeleteUndirectedEdge(x->GetNodeIndex(), y->GetNodeIndex())"
+            // will cause some (slight) extra computations
             network->vec_edges.erase(network->vec_edges.begin() + i);
             --network->num_edges;
             // 2. remove each other from adjacency set
@@ -361,7 +372,8 @@ bool PCStable::CheckEdge(Dataset *dts, const map<int, map<int, double>> &adjacen
     if (verbose > 1) {
         cout << "--------------------------------------------------" << endl
              << "* investigating " << network->vec_edges[edge_id].GetNode1()->node_name << " -- "
-             << network->vec_edges[edge_id].GetNode2()->node_name << ", conditioning sets of size " << c_depth << "." << endl;
+             << network->vec_edges[edge_id].GetNode2()->node_name << ", conditioning sets of size "
+             << c_depth << "." << endl;
     }
 
 //    timer->Start("cg");
@@ -375,7 +387,7 @@ bool PCStable::CheckEdge(Dataset *dts, const map<int, map<int, double>> &adjacen
          *          no need to push, no need to remove, process = NO
          */
         // get the neighbors of node x
-        int num_adj = FindAdjacencies(dts, adjacencies, edge_id, x_idx, y_idx);
+        int num_adj = FindAdjacencies(adjacencies, edge_id, x_idx, y_idx);
 
         // prepare to generate choice and set "process" = NODE1
         if (num_adj >= c_depth) {
@@ -383,7 +395,7 @@ bool PCStable::CheckEdge(Dataset *dts, const map<int, map<int, double>> &adjacen
             network->vec_edges[edge_id].process = NODE1;
         } else {
             // get the neighbors of node y
-            int num_adj = FindAdjacencies(dts, adjacencies, edge_id, y_idx, x_idx);
+            int num_adj = FindAdjacencies(adjacencies, edge_id, y_idx, x_idx);
 
             // prepare to generate choice and set "process" = NODE2
             if (num_adj >= c_depth) {
@@ -403,7 +415,7 @@ bool PCStable::CheckEdge(Dataset *dts, const map<int, map<int, double>> &adjacen
          *          no need to push, no need to remove, process = NO
          */
         // get the neighbors of node y
-        int num_adj = FindAdjacencies(dts, adjacencies, edge_id, y_idx, x_idx);
+        int num_adj = FindAdjacencies(adjacencies, edge_id, y_idx, x_idx);
 
         // prepare to generate choice and set "process" = NODE2
         if (num_adj >= c_depth) {
@@ -453,7 +465,7 @@ bool PCStable::CheckEdge(Dataset *dts, const map<int, map<int, double>> &adjacen
  * find the adjacent nodes of node "x_idx" except for node "y_idx"
  * store them in its "vec_adj" and return the number of its adjacent nodes
  */
-int PCStable::FindAdjacencies(Dataset *dts, const map<int, map<int, double>> &adjacencies, int edge_id, int x_idx, int y_idx) {
+int PCStable::FindAdjacencies(const map<int, map<int, double>> &adjacencies, int edge_id, int x_idx, int y_idx) {
     // get the neighbors of node x
     set<int> set_adjx;
     for (auto it = adjacencies.at(x_idx).begin(); it != adjacencies.at(x_idx).end(); ++it) {
@@ -479,7 +491,8 @@ int PCStable::FindAdjacencies(Dataset *dts, const map<int, map<int, double>> &ad
  *            lower p-value indicates stronger dependence and stronger association between the variables
  * @return true if such a Z can be found, which means edge x -- y should be deleted
  */
-bool PCStable::Testing(Dataset *dts, int c_depth, int edge_idx, int x_idx, int y_idx, Timer *timer, int group_size, int verbose) {
+bool PCStable::Testing(Dataset *dts, int c_depth, int edge_idx, int x_idx, int y_idx,
+                       Timer *timer, int group_size, int verbose) {
 //    cout << omp_get_thread_num() << ": current choice: ";
 //    if (!network->vec_edges[edge_idx].cg.choice.empty()) {
 //        for (int i = 0; i < c_depth; ++i) {
@@ -515,7 +528,8 @@ bool PCStable::Testing(Dataset *dts, int c_depth, int edge_idx, int x_idx, int y
 
         num_ci_test += i;
         IndependenceTest *ci_test = new IndependenceTest(dts, alpha);
-        IndependenceTest::Result result = ci_test->IndependenceResult(x_idx, y_idx, Z, "g square", timer, i);
+        IndependenceTest::Result result = ci_test->IndependenceResult(x_idx, y_idx, Z, "g square",
+                                                                      timer, i);
         SAFE_DELETE(ci_test);
         bool independent = result.is_independent;
 
@@ -600,7 +614,7 @@ void PCStable::OrientVStructure() {
         if (network->adjacencies[b].size() < 2) {
             continue;
         }
-        ChoiceGenerator cg(network->adjacencies[b].size(), 2); // to find two adjacent nodes of this node and check
+        ChoiceGenerator cg(network->adjacencies[b].size(), 2); // find two adjacent nodes of this node
         vector<int> combination;
 
         while (!(combination = cg.Next()).empty()) {
@@ -627,14 +641,14 @@ void PCStable::OrientVStructure() {
 //                    network->DeleteUndirectedEdge(c, b)) {
 //                    network->AddDirectedEdge(c, b);
 //                }
-                bool deleted_directed1;   // whether the directed edge b->a exists and being deleted
-                bool deleted_undirected1; // whether the undirected edge a--b exists and being deleted
-                bool to_add1; // whether the directed edge a->b should be added
-                bool added1;  // whether the directed edge a->b is successfully added (which means it does not cause a circle)
-                bool deleted_directed2;   // whether the directed edge b->c exists and being deleted
-                bool deleted_undirected2; // whether the undirected edge c--b exists and being deleted
-                bool to_add2; // whether the directed edge c->b should be added
-                bool added2;  // whether the directed edge c->b is successfully added (which means it does not cause a circle)
+                bool deleted_directed1;   // if the directed edge b->a exists and being deleted
+                bool deleted_undirected1; // if the undirected edge a--b exists and being deleted
+                bool to_add1; // if the directed edge a->b should be added
+                bool added1;  // if the directed edge a->b is successfully added (i.e., it does not cause a circle)
+                bool deleted_directed2;   // if the directed edge b->c exists and being deleted
+                bool deleted_undirected2; // if the undirected edge c--b exists and being deleted
+                bool to_add2; // if the directed edge c->b should be added
+                bool added2;  // if the directed edge c->b is successfully added (i.e., it does not cause a circle)
 
                 deleted_directed1 = network->DeleteDirectedEdge(b, a);
                 if (!deleted_directed1) { // b->a does not exist, check a--b
@@ -710,7 +724,8 @@ void PCStable::OrientImplied() {
             int x_idx = (*edge_it).GetNode1()->GetNodeIndex();
             int y_idx = (*edge_it).GetNode2()->GetNodeIndex();
 
-            if (network->IsUndirectedFromTo(x_idx, y_idx)) { // if the edge is undirected, check the 3 rules
+            // if the edge is undirected, check the 3 rules
+            if (network->IsUndirectedFromTo(x_idx, y_idx)) {
                 if (Rule1(x_idx, y_idx) ||
                     Rule1(y_idx, x_idx) ||
                     Rule2(x_idx, y_idx) ||
@@ -743,8 +758,7 @@ bool PCStable::Direct(int a, int c) {
 //        network->AddDirectedEdge(a, c);
 //        return true;
 //    }
-    bool to_add; // whether the undirected edge a--c exists and being deleted,
-                 // which also means whether the directed edge a->c should be added
+    bool to_add; // if the undirected edge a--c exists and being deleted, i.e., the directed edge a->c should be added
     bool added;  // whether the directed edge a->c is successfully added (which means it does not cause a circle)
 
     to_add = network->DeleteUndirectedEdge(a, c); // TODO: to add is always true
@@ -805,7 +819,8 @@ bool PCStable::Rule2(int a_idx, int c_idx) {
     set<int> common_idx = GetCommonAdjacents(a_idx, c_idx);
 
     for (const int &b_idx : common_idx) { // check every common neighbor b of a and c
-        if (network->IsDirectedFromTo(a_idx, b_idx) && network->IsDirectedFromTo(b_idx, c_idx)) { // a->b && b->c
+        if (network->IsDirectedFromTo(a_idx, b_idx) &&
+            network->IsDirectedFromTo(b_idx, c_idx)) { // a->b && b->c
             if (Direct(a_idx, c_idx)) { // then a->c
                 return true;
             }
