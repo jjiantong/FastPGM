@@ -112,42 +112,42 @@
 //
 //
 //
-//class TestStructureLearningPCStableInsurance: public ::testing::Test {
-//protected:
-//
-//    void SetUp() override {
-//        trainer = new Dataset();
-//        network = new Network(true);
-//
-//        string train_set_file = "../../dataset/insurance/insurance_s5000.txt";
-//        string ref_set_file = "../../dataset/insurance/insurance.bif";
-//
-//        trainer->LoadCSVData(train_set_file, true, true, 0);
-//        bnsl = new PCStable(network, 0.05);
-//
-//        ref_net = new CustomNetwork();
-//        ref_net->LoadBIFFile(ref_set_file);
-//    }
-//
-//    Dataset *trainer;
-//    Network *network;
-//    CustomNetwork *ref_net;
-//    StructureLearning *bnsl;
-//};
-//
-//TEST_F(TestStructureLearningPCStableInsurance, thread_1) {
-//    int group_size = GROUP_SIZE;
-//    int num_threads = 1;
-//    int verbose  = VERBOSE;
-//    bnsl->StructLearnCompData(trainer, group_size, num_threads, false, verbose);
-//    SAFE_DELETE(trainer);
-//
-//    BNSLComparison comp(ref_net, network);
-//    int shd = comp.GetSHD();
-//    cout << "SHD = " << shd << endl;
-//    SAFE_DELETE(network);
-//    SAFE_DELETE(ref_net);
-//}
+class TestStructureLearningPCStableInsurance: public ::testing::Test {
+protected:
+
+    void SetUp() override {
+        trainer = new Dataset();
+        network = new Network(true);
+
+        string train_set_file = "../../dataset/insurance/insurance_s5000.txt";
+        string ref_set_file = "../../dataset/insurance/insurance.bif";
+
+        trainer->LoadCSVData(train_set_file, true, true, 0);
+        bnsl = new PCStable(network, 0.05);
+
+        ref_net = new CustomNetwork();
+        ref_net->LoadBIFFile(ref_set_file);
+    }
+
+    Dataset *trainer;
+    Network *network;
+    CustomNetwork *ref_net;
+    StructureLearning *bnsl;
+};
+
+TEST_F(TestStructureLearningPCStableInsurance, thread_1) {
+    int group_size = GROUP_SIZE;
+    int num_threads = 1;
+    int verbose  = VERBOSE;
+    bnsl->StructLearnCompData(trainer, group_size, num_threads, false, verbose);
+    SAFE_DELETE(trainer);
+
+    BNSLComparison comp(ref_net, network);
+    int shd = comp.GetSHD();
+    cout << "SHD = " << shd << endl;
+    SAFE_DELETE(network);
+    SAFE_DELETE(ref_net);
+}
 //
 //TEST_F(TestStructureLearningPCStableInsurance, thread_2) {
 //    int group_size = GROUP_SIZE;

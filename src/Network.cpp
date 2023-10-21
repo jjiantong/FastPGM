@@ -178,6 +178,18 @@ int Network::GetDirectedEdgeFromEdgeOrder(Node *node1, Node *node2) {
     }
 }
 
+int Network::GetEdge(Node *node1, Node *node2) {
+    Edge edge;
+    int position;
+    if ((position = GetUndirectedEdge(node1, node2)) == -1 &&
+        (position = GetDirectedEdge(node1, node2)) == -1 &&
+        (position = GetDirectedEdge(node2, node1)) == -1) {
+        return -1;
+    } else {
+        return position;
+    }
+}
+
 void Network::PrintEachEdgeWithIndex() {
     for (int i = 0; i < num_edges; ++i) {
         cout << i << ". ";
@@ -210,18 +222,6 @@ void Network::PrintEachEdgeWithName() {
     cout << "num edges = " << num_edges << endl;
 }
 
-int Network::GetEdge(Node *node1, Node *node2) {
-    Edge edge;
-    int position;
-    if ((position = GetUndirectedEdge(node1, node2)) == -1 &&
-        (position = GetDirectedEdge(node1, node2)) == -1 &&
-        (position = GetDirectedEdge(node2, node1)) == -1) {
-        return -1;
-    } else {
-        return position;
-    }
-}
-
 /**
  * @brief: add an edge/arc to the network
  * @return true if not form a circle; false if form a circle (also delete the added arc)
@@ -238,22 +238,15 @@ bool Network::AddDirectedEdge(int p_index, int c_index) {
     Node* node2 = FindNodePtrByIndex(c_index);
     SetParentChild(node1, node2); // set parent and child relationship
 
-    Edge edge(node1, node2, TAIL, ARROW);
-    vec_edges.push_back(edge);
-//    ++num_edges;
-
-//    if (GetDirectedEdge(node1, node2) == -1) { //TODO
-//        // vec_edges does not contain edge: add edge
-//        Edge edge(node1, node2, TAIL, ARROW);
-//        vec_edges.push_back(edge);
-//        ++num_edges;
-//    }
-
     bool contain_circle = ContainCircle();
     // the edge/arc shouldn't be added, because it leads to loops in the network.
     if (contain_circle) {
-        DeleteDirectedEdge(p_index, c_index);
+        RemoveParentChild(node1, node2);
+    } else {
+        Edge edge(node1, node2, TAIL, ARROW);
+        vec_edges.push_back(edge);
     }
+
     return !contain_circle;
 }
 

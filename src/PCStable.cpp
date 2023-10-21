@@ -642,56 +642,48 @@ void PCStable::OrientVStructure() {
 //                    network->AddDirectedEdge(c, b);
 //                }
                 bool deleted_directed1;   // if the directed edge b->a exists and being deleted
-                bool deleted_undirected1; // if the undirected edge a--b exists and being deleted
+                bool deleted_undirected1 = false; // if the undirected edge a--b exists and being deleted
                 bool to_add1; // if the directed edge a->b should be added
-                bool added1;  // if the directed edge a->b is successfully added (i.e., it does not cause a circle)
+                bool added1 = false;  // if the directed edge a->b is successfully added without causing a circle
                 bool deleted_directed2;   // if the directed edge b->c exists and being deleted
-                bool deleted_undirected2; // if the undirected edge c--b exists and being deleted
+                bool deleted_undirected2 = false; // if the undirected edge c--b exists and being deleted
                 bool to_add2; // if the directed edge c->b should be added
-                bool added2;  // if the directed edge c->b is successfully added (i.e., it does not cause a circle)
+                bool added2 = false;  // if the directed edge c->b is successfully added without causing a circle
 
                 deleted_directed1 = network->DeleteDirectedEdge(b, a);
                 if (!deleted_directed1) { // b->a does not exist, check a--b
                     deleted_undirected1 = network->DeleteUndirectedEdge(a, b);
-                } else { // b->a exists and being deleted, a--b cannot exist
-                    deleted_undirected1 = false;
                 }
                 to_add1 = deleted_directed1 | deleted_undirected1;
                 deleted_directed2 = network->DeleteDirectedEdge(b, c);
                 if (!deleted_directed2) { // b->c does not exist, check c--b
                     deleted_undirected2 = network->DeleteUndirectedEdge(c, b);
-                } else { // b->c exists, c--b cannot exist
-                    deleted_undirected2 = false;
                 }
                 to_add2 = deleted_directed2 | deleted_undirected2;
 
                 if (to_add1) { // a->b should be added
                     added1 = network->AddDirectedEdge(a, b);
-                } else {
-                    added1 = false;
                 }
                 if (to_add2) { // c->b should be added
                     added2 = network->AddDirectedEdge(c, b);
-                } else {
-                    added2 = false;
                 }
 
-                // if a->b should be added but is not successfully added,
-                // find which edge is deleted and then add it back
-                if (to_add1 && !added1) {
-                    if (deleted_directed1) { // b->a is deleted, then add b->a
-                        network->AddDirectedEdge(b, a);
-                    } else { // a--b is deleted, then add a--b
-                        network->AddUndirectedEdge(a, b);
+                // if a->b should be added but is not successfully added, or
+                // c->b should be added but is not successfully added, add them back
+                if (to_add1 && !added1 || to_add2 && !added2) {
+                    if (to_add1) {
+                        if (deleted_directed1) { // b->a is deleted, then add b->a
+                            network->AddDirectedEdge(b, a);
+                        } else { // a--b is deleted, then add a--b
+                            network->AddUndirectedEdge(a, b);
+                        }
                     }
-                }
-                // if c->b should be added but is not successfully added,
-                // find which edge is deleted and then add it back
-                if (to_add2 && !added2) {
-                    if (deleted_directed2) { // b->c is deleted, then add b->c
-                        network->AddDirectedEdge(b, c);
-                    } else { // c--b is deleted, then add c--b
-                        network->AddUndirectedEdge(c, b);
+                    if (to_add2) {
+                        if (deleted_directed2) { // b->c is deleted, then add b->c
+                            network->AddDirectedEdge(b, c);
+                        } else { // c--b is deleted, then add c--b
+                            network->AddUndirectedEdge(c, b);
+                        }
                     }
                 }
             }
@@ -716,7 +708,7 @@ void PCStable::OrientImplied() {
     while (oriented) {
         oriented = false;
         /**
-         * note that the for loop does not have "edge_it++", "edge_it++" only happens when (*edge_it) is not erased
+         * note that the for loop does not have "edge_it++", "edge_it++" only happens when (*edge_it) is not erased.
          * for the case of erasing (*edge_it), the iterator will point to the next edge after erasing the current edge
          * (erasing operation is in Network::DeleteUndirectedEdge)
          */
