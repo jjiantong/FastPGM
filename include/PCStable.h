@@ -56,6 +56,8 @@ public:
     bool Rule2(int a_idx, int c_idx);
     bool Rule3(int d_idx, int a_idx);
     bool R3Helper(int a_idx, int d_idx, int b_idx, int c_idx);
+
+    void DirectLeftEdges();
 };
 
 #endif //BAYESIANNETWORK_PCSTABLE_H

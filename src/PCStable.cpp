@@ -222,6 +222,14 @@ void PCStable::StructLearnByPCStable(Dataset *dts, int num_threads, int group_si
         network->PrintEachEdgeWithIndex();
 //        network->PrintEachEdgeWithName();
     }
+
+    DirectLeftEdges();
+
+    if (print_struct) {
+        cout << endl;
+        network->PrintEachEdgeWithIndex();
+//        network->PrintEachEdgeWithName();
+    }
 }
 
 /**
@@ -852,5 +860,36 @@ bool PCStable::R3Helper(int a_idx, int d_idx, int b_idx, int c_idx) {
         oriented = Direct(d_idx, a_idx);
     }
     return oriented;
+}
+
+void PCStable::DirectLeftEdges() {
+    random_device rd;
+    mt19937 gen(rd());
+    uniform_int_distribution<int> distribution(0, 1);
+
+    for (auto edge_it = network->vec_edges.begin(); edge_it != network->vec_edges.end();) {
+        int x_idx = (*edge_it).GetNode1()->GetNodeIndex();
+        int y_idx = (*edge_it).GetNode2()->GetNodeIndex();
+
+        // if the edge is undirected, direct it
+        if (network->IsUndirected(x_idx, y_idx)) {
+            bool direct;
+            if (distribution(gen) == 0) {
+                direct = Direct(x_idx, y_idx);
+            } else { // if the undirected edge x--y remains
+                direct = Direct(y_idx, x_idx);
+            }
+            if (!direct) {
+                cerr << "Error: randomly directing causes unexpected loop. " << endl;
+                exit(1);
+            }
+        } else { // if the edge is not undirected
+            // Instead of checking the next edge, here we just jump out this loop, because in our implementation,
+            // the directed edges are always behind the undirected ones in `vec_edges`. Thus, if we meet a directed
+            // edge, we don't need to check the following edges.
+            break;
+//                edge_it++;
+        }
+    } // finish checking all edges
 }
 
