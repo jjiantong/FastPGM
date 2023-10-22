@@ -44,7 +44,7 @@ TEST_F(TestStructureLearningPCStableAlarm, thread_1) {
     int group_size = GROUP_SIZE;
     int num_threads = 1;
     int verbose  = VERBOSE;
-    bnsl->StructLearnCompData(trainer, group_size, num_threads, false, verbose);
+    bnsl->StructLearnCompData(trainer, group_size, num_threads, true, verbose);
     SAFE_DELETE(trainer);
 
     BNSLComparison comp(ref_net, network);
@@ -139,7 +139,7 @@ TEST_F(TestStructureLearningPCStableInsurance, thread_1) {
     int group_size = GROUP_SIZE;
     int num_threads = 1;
     int verbose  = VERBOSE;
-    bnsl->StructLearnCompData(trainer, group_size, num_threads, false, verbose);
+    bnsl->StructLearnCompData(trainer, group_size, num_threads, true, verbose);
     SAFE_DELETE(trainer);
 
     BNSLComparison comp(ref_net, network);
@@ -234,7 +234,7 @@ TEST_F(TestStructureLearningPCStableHepar2, thread_1) {
     int group_size = GROUP_SIZE;
     int num_threads = 1;
     int verbose  = VERBOSE;
-    bnsl->StructLearnCompData(trainer, group_size, num_threads, false, verbose);
+    bnsl->StructLearnCompData(trainer, group_size, num_threads, true, verbose);
     SAFE_DELETE(trainer);
 
     BNSLComparison comp(ref_net, network);

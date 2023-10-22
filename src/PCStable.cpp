@@ -219,8 +219,8 @@ void PCStable::StructLearnByPCStable(Dataset *dts, int num_threads, int group_si
 
     if (print_struct) {
         cout << endl;
-//        network->PrintEachEdgeWithIndex();
-        network->PrintEachEdgeWithName();
+        network->PrintEachEdgeWithIndex();
+//        network->PrintEachEdgeWithName();
     }
 }
 
@@ -728,8 +728,12 @@ void PCStable::OrientImplied() {
                 } else { // if the undirected edge x--y remains
                     edge_it++;
                 }
-            } else { // if the edge is not undirected, go to check the next edge
-                edge_it++;
+            } else { // if the edge is not undirected
+                // Instead of checking the next edge, here we just jump out this loop, because in our implementation,
+                // the directed edges are always behind the undirected ones in `vec_edges`. Thus, if we meet a directed
+                // edge, we don't need to check the following edges.
+                break;
+//                edge_it++;
             }
         } // finish checking all edges
     }
