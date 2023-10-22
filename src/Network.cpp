@@ -316,7 +316,7 @@ bool Network::DeleteUndirectedEdge(int p_index, int c_index) {
 //        exit(1);
 //    }
 
-    // then check the order
+    // check the order
     if (p_index > c_index) {
         int tmp = p_index;
         p_index = c_index;
@@ -385,7 +385,7 @@ bool Network::IsDirectedFromTo(int node_idx1, int node_idx2) {
  *      2) node1 is not a parent of node2 (via IsDirectedFromTo)
  *      3) node2 is not a parent of node1 (via IsDirectedFromTo)
  */
-bool Network::IsUndirectedFromTo(int node_idx1, int node_idx2) {
+bool Network::IsUndirected(int node_idx1, int node_idx2) {
     return (IsAdjacentTo(node_idx1, node_idx2) &&
             !IsDirectedFromTo(node_idx1, node_idx2) &&
             !IsDirectedFromTo(node_idx2, node_idx1));
@@ -454,11 +454,20 @@ void Network::RemoveParentChild(Node *p, Node *c) {
  */
 set<Node*> Network::GetParentPtrsOfNode(int node_index) {
   set<Node*> set_par_ptrs;
-  Node *node = map_idx_node_ptr.at(node_index); // TODO: function "FindNodePtrByIndex"
+  Node *node = FindNodePtrByIndex(node_index);
   for (const auto &idx : node->set_parent_indexes) { // "set_parent_indexes" contains both discrete and continuous parents
     set_par_ptrs.insert(map_idx_node_ptr.at(idx));
   }
   return set_par_ptrs;
+}
+
+set<int> Network::GetParentIdxesOfNode(int node_index) {
+    set<int> set_par_idxes;
+    Node *node = FindNodePtrByIndex(node_index);
+    for (const auto &idx : node->set_parent_indexes) { // "set_parent_indexes" contains both discrete and continuous parents
+        set_par_idxes.insert(idx);
+    }
+    return set_par_idxes;
 }
 
 /**
@@ -466,7 +475,7 @@ set<Node*> Network::GetParentPtrsOfNode(int node_index) {
  */
 set<Node*> Network::GetChildrenPtrsOfNode(int node_index) {
   set<Node*> set_chi_ptrs;
-  Node *node = map_idx_node_ptr.at(node_index); // TODO: function "FindNodePtrByIndex"
+  Node *node = FindNodePtrByIndex(node_index);
   for (const auto &idx : node->set_children_indexes) {
     set_chi_ptrs.insert(map_idx_node_ptr.at(idx));
   }
@@ -475,7 +484,7 @@ set<Node*> Network::GetChildrenPtrsOfNode(int node_index) {
 
 set<int> Network::GetChildrenIdxesOfNode(int node_index) {
     set<int> set_chi_idxes;
-    Node *node = map_idx_node_ptr.at(node_index); // TODO: function "FindNodePtrByIndex"
+    Node *node = FindNodePtrByIndex(node_index);
     for (const auto &idx : node->set_children_indexes) {
         set_chi_idxes.insert(idx);
     }

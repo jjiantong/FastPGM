@@ -51,7 +51,7 @@ public:
     void OrientVStructure();
     void OrientImplied();
     bool Direct(int a, int c);
-    set<int> GetCommonAdjacents(int x_idx, int y_idx);
+    vector<int> GetCommonAdjacents(int x_idx, int y_idx);
     bool Rule1(int b_idx, int c_idx);
     bool Rule2(int a_idx, int c_idx);
     bool Rule3(int d_idx, int a_idx);

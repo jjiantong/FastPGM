@@ -83,7 +83,7 @@ public:
     bool IsDirectedFromTo(int node_idx1, int node_idx2);
     // whether an edge node1--node2 exists, or say,
     // whether node1 is adjacent to node2 && node1 is not a parent of node2 && node2 is not a parent of node1
-    bool IsUndirectedFromTo(int node_idx1, int node_idx2);
+    bool IsUndirected(int node_idx1, int node_idx2);
 
     double CalcuExtraScoreWithModifiedEdge(int p_index, int c_index, Dataset *dts,
                                            const string &modification, const string &score_metric);
@@ -95,6 +95,7 @@ public:
     void RemoveParentChild(Node *par, Node *chi);
 
     set<Node*> GetParentPtrsOfNode(int node_index);
+    set<int> GetParentIdxesOfNode(int node_index);
     set<Node*> GetChildrenPtrsOfNode(int node_index);
     set<int> GetChildrenIdxesOfNode(int node_index);
 

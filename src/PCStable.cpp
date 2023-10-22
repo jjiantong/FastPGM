@@ -692,7 +692,7 @@ void PCStable::OrientVStructure() {
 }
 
 /**
- * @brief: orient remaining undirected edge as much as possible according to 3 rules
+ * @brief: orient remaining undirected edge as many as possible according to 3 rules
  *      1) if a->b, b--c, and a is not adj to c, then b->c (to avoid v-structures)
  *      2) if a->b->c, a--c, then a->c (to avoid circles)
  *      3) if d--a, d--b, d--c, b->a, c->a, b and c are not adjacent, then orient d->a
@@ -717,7 +717,7 @@ void PCStable::OrientImplied() {
             int y_idx = (*edge_it).GetNode2()->GetNodeIndex();
 
             // if the edge is undirected, check the 3 rules
-            if (network->IsUndirectedFromTo(x_idx, y_idx)) {
+            if (network->IsUndirected(x_idx, y_idx)) {
                 if (Rule1(x_idx, y_idx) ||
                     Rule1(y_idx, x_idx) ||
                     Rule2(x_idx, y_idx) ||
@@ -739,28 +739,18 @@ void PCStable::OrientImplied() {
  * @brief: direct the edge (direction: from a to c)
  *      1, delete undirected edge a--c
  *      2, add directed edge a->c
+ * It is ensured that a--c exists.
  */
 bool PCStable::Direct(int a, int c) {
-    /**
-     * the original code causes problems when adding a new edge generates a circle,
-     * then the added edge will be deleted, but the related deleted edge is not added,
-     * so the total number of edge is changed.
-     */
-//    if (network->DeleteUndirectedEdge(a, c)) {
-//        network->AddDirectedEdge(a, c);
-//        return true;
-//    }
-    bool to_add; // if the undirected edge a--c exists and being deleted, i.e., the directed edge a->c should be added
-    bool added;  // whether the directed edge a->c is successfully added (which means it does not cause a circle)
-
-    to_add = network->DeleteUndirectedEdge(a, c); // TODO: to add is always true
-    added = network->AddDirectedEdge(a, c);
-
-    // if a->c is not successfully added, add back the undirected edge
-    if (!added) {
-        network->AddUndirectedEdge(a, c);
+    // Instead of deleting undirected edge -> adding directed edge and checking loop
+    // -> if loop exists, deleting undirected edge, we can just adding directed edge
+    // and checking loop -> if loop doesn't exist, adding undirected edge. This is
+    // because checking circle doesn't need `vec_edges` and deleting undirected edge
+    // only affects `vec_edges`.
+    bool added = network->AddDirectedEdge(a, c);
+    if (added) {
+        network->DeleteUndirectedEdge(a, c);
     }
-
     return added;
 }
 
@@ -770,11 +760,8 @@ bool PCStable::Direct(int a, int c) {
  * @param y_idx index of node y
  * @return common neighbor set
  */
-set<int> PCStable::GetCommonAdjacents(int x_idx, int y_idx) {
-//    set<int> adjacent_x = network->adjacencies[x_idx];
-//    set<int> adjacent_y = network->adjacencies[y_idx];
-//    set<int> common_idx;
-    set<int> adjacent_x, adjacent_y, common_idx;
+vector<int> PCStable::GetCommonAdjacents(int x_idx, int y_idx) {
+    set<int> adjacent_x, adjacent_y, set_common_idx;
     for (auto it = network->adjacencies[x_idx].begin(); it != network->adjacencies[x_idx].end(); ++it) {
         adjacent_x.insert((*it).first);
     }
@@ -783,17 +770,16 @@ set<int> PCStable::GetCommonAdjacents(int x_idx, int y_idx) {
     }
     set_intersection(adjacent_x.begin(), adjacent_x.end(),
                      adjacent_y.begin(), adjacent_y.end(),
-                     inserter(common_idx, common_idx.begin()));
+                     inserter(set_common_idx, set_common_idx.begin()));
+    vector<int> common_idx(set_common_idx.begin(), set_common_idx.end());
     return common_idx;
 }
 
 /**
  * orientation rule1: if a->b, b--c, and a is not adj to c, then b->c (to avoid v-structures)
- * note that the edge between b and c is undirected (such that the rule will be checked)
  */
 bool PCStable::Rule1(int b_idx, int c_idx) {
-    for (const Node* a : network->GetParentPtrsOfNode(b_idx)) { // for every parent a of b
-        int a_idx = a->GetNodeIndex();
+    for (const auto &a_idx: network->GetParentIdxesOfNode(b_idx)) { // for every parent a of b
         if (network->IsAdjacentTo(c_idx, a_idx)) continue; // skip the case if a is adjacent to c
         if (Direct(b_idx, c_idx)) { // then b->c
             return true;
@@ -804,11 +790,10 @@ bool PCStable::Rule1(int b_idx, int c_idx) {
 
 /**
  * orientation rule2: if a->b->c, a--c, then a->c (to avoid circles)
- * note that the edge between a and c is undirected (such that the rule will be checked)
  */
 bool PCStable::Rule2(int a_idx, int c_idx) {
     // get common neighbors of a and c
-    set<int> common_idx = GetCommonAdjacents(a_idx, c_idx);
+    vector<int> common_idx = GetCommonAdjacents(a_idx, c_idx);
 
     for (const int &b_idx : common_idx) { // check every common neighbor b of a and c
         if (network->IsDirectedFromTo(a_idx, b_idx) &&
@@ -823,19 +808,20 @@ bool PCStable::Rule2(int a_idx, int c_idx) {
 
 /**
  * orientation rule3: if d--a, d--b, d--c, b->a, c->a, b and c are not adjacent, then orient d->a
- * note that the edge between d and a is undirected (such that the rule will be checked)
  */
 bool PCStable::Rule3(int d_idx, int a_idx) {
     // get common neighbors of a and d
-    set<int> common_idx = GetCommonAdjacents(a_idx, d_idx);
+    vector<int> common_idx = GetCommonAdjacents(a_idx, d_idx);
 
     if (common_idx.size() < 2) {
         return false;
     }
     // a and d has more than or equal to 2 common adjacents
-    for (int b_idx = 0; b_idx < common_idx.size(); ++b_idx) {
-        for (int c_idx = b_idx + 1; c_idx < common_idx.size(); ++c_idx) {
+    for (int i = 0; i < common_idx.size(); ++i) {
+        for (int j = i + 1; j < common_idx.size(); ++j) {
             // find two adjacents b and c, b and c are not adjacent
+            int b_idx = common_idx[i];
+            int c_idx = common_idx[j];
             if (!network->IsAdjacentTo(b_idx, c_idx)) {
                 if (R3Helper(a_idx, d_idx, b_idx, c_idx)) {
                     return true;
@@ -847,16 +833,14 @@ bool PCStable::Rule3(int d_idx, int a_idx) {
 }
 
 /**
- * @brief: R3Helper is to check the following 5 edges' direction:
- * d--a, d--b, d--c, b->a, c->a
- * orient d->a if all 5 edges satisfy the condition
+ * @brief: R3Helper is to check the following 4 edges' direction:
+ * d--b, d--c, b->a, c->a
  */
 bool PCStable::R3Helper(int a_idx, int d_idx, int b_idx, int c_idx) {
     bool oriented = false;
 
-//    bool b4 = network->IsUndirectedFromTo(d_idx, a_idx);
-    bool b5 = network->IsUndirectedFromTo(d_idx, b_idx);
-    bool b6 = network->IsUndirectedFromTo(d_idx, c_idx);
+    bool b5 = network->IsUndirected(d_idx, b_idx);
+    bool b6 = network->IsUndirected(d_idx, c_idx);
     bool b7 = network->IsDirectedFromTo(b_idx, a_idx);
     bool b8 = network->IsDirectedFromTo(c_idx, a_idx);
 
