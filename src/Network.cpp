@@ -179,15 +179,13 @@ int Network::GetDirectedEdgeFromEdgeOrder(Node *node1, Node *node2) {
 }
 
 int Network::GetEdge(Node *node1, Node *node2) {
-    Edge edge;
-    int position;
-    if ((position = GetUndirectedEdge(node1, node2)) == -1 &&
-        (position = GetDirectedEdge(node1, node2)) == -1 &&
-        (position = GetDirectedEdge(node2, node1)) == -1) {
-        return -1;
-    } else {
-        return position;
+    for (int i = 0; i < vec_edges.size(); ++i) {
+        if (vec_edges.at(i).GetNode1() == node1 && vec_edges.at(i).GetNode2() == node2 ||
+            vec_edges.at(i).GetNode2() == node1 && vec_edges.at(i).GetNode1() == node2) {
+            return i;
+        }
     }
+    return -1;
 }
 
 void Network::PrintEachEdgeWithIndex() {
@@ -220,6 +218,18 @@ void Network::PrintEachEdgeWithName() {
     }
     cout << "num nodes = " << num_nodes << endl;
     cout << "num edges = " << num_edges << endl;
+}
+
+void Network::CheckEdges() { // todo: move to test
+    int parents = 0;
+    int children = 0;
+    for (const auto &i_n_ptr : map_idx_node_ptr) {
+        auto n_ptr = i_n_ptr.second;
+        parents += n_ptr->set_parent_indexes.size();
+        children += n_ptr->set_children_indexes.size();
+    }
+    cout << "num edges from parents = " << parents << endl;
+    cout << "num edges from children = " << children << endl;
 }
 
 /**
@@ -869,13 +879,18 @@ void Network::FindCompelled() {
     }
 }
 
+/**
+ * check if the underlying graph is a DAG or not, i.e., if the underlying graph contains undirected edges or not.
+ * important note: in our implementation (of pc-stable), all the undirected edges are located before the directed
+ * ones in `vec_edges`, so here we only check the first edge. if using other implementations that do not satisfy
+ * the condition, we need to change the implementation of this method accordingly by checking every edge.
+ */
 bool Network::IsDAG() {
-    for (Edge edge : vec_edges) {
-        if (!edge.IsDirected()) {
-            return false;
-        }
+    if (vec_edges.at(0).IsDirected()) {
+        return true;
+    } else {
+        return false;
     }
-    return true;
 }
 
 

@@ -229,6 +229,7 @@ void PCStable::StructLearnByPCStable(Dataset *dts, int num_threads, int group_si
         cout << endl;
         network->PrintEachEdgeWithIndex();
 //        network->PrintEachEdgeWithName();
+        network->CheckEdges();
     }
 }
 

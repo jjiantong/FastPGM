@@ -10,56 +10,25 @@ BNSLComparison::BNSLComparison(Network *true_graph, Network *learned_graph) {
 }
 
 int BNSLComparison::GetSHD() {
-    true_graph->OrderEdge();
-    true_graph->FindCompelled();
+    if (!learned_graph->IsDAG()) { // see notes in IsDAG()
+        // if the learned graph is a CPDAG, we need to first change the true DAG to CPDAG
+        true_graph->OrderEdge();
+        true_graph->FindCompelled();
 
-//    cout << "size of edge order = " << true_graph->edge_order.size() << endl;
-//    cout << "capacity of edge order = " << true_graph->edge_order.capacity() << endl;
-//    for (int i = 0; i < true_graph->num_edges; ++i) {
-//        Edge edge = true_graph->vec_edges.at(i);
-//        if (edge.GetEndPoint1() == ARROW){
-//            cout << edge.GetNode2()->GetNodeIndex() << " -> " << edge.GetNode1()->GetNodeIndex();
-//        } else {
-//            cout << edge.GetNode1()->GetNodeIndex() << " -> " << edge.GetNode2()->GetNodeIndex();
-//        }
-//        if (edge.label == COMPELLED) {
-//            cout << ": COMPELLED" << endl;
-//        } else {
-//            cout << ": REVERSIBLE" << endl;
-//        }
-//    }
-//    cout << "num edges = " << true_graph->num_edges << endl;
-
-    for (int i = 0; i < true_graph->num_edges; ++i) {
-        Edge edge = true_graph->vec_edges.at(i);
-        if (edge.label == REVERSIBLE) {
-            // if reversible, convert the directed edge to undirected edge
-            Node* node1 = edge.GetNode1();
-            Node* node2 = edge.GetNode2();
-            Edge new_edge = Edge(node1, node2);
-            true_graph->vec_edges.at(i) = new_edge;
+        for (int i = 0; i < true_graph->num_edges; ++i) {
+            Edge edge = true_graph->vec_edges.at(i);
+            if (edge.label == REVERSIBLE) {
+                // if reversible, convert the directed edge to undirected edge
+                Node* node1 = edge.GetNode1();
+                Node* node2 = edge.GetNode2();
+                Edge new_edge = Edge(node1, node2);
+                true_graph->vec_edges.at(i) = new_edge;
+            }
         }
-    }
 
 //    cout << "true cpdag: " << endl;
 //    true_graph->PrintEachEdgeWithIndex();
-
-// TODO: just remove because we only use pc-stable now
-//    if (learned_graph->IsDAG()) {
-//        learned_graph->OrderEdge();
-//        learned_graph->FindCompelled();
-//
-//        for (int i = 0; i < learned_graph->num_edges; ++i) {
-//            Edge edge = learned_graph->vec_edges.at(i);
-//            if (edge.label == REVERSIBLE) {
-//                // if reversible, convert the directed edge to undirected edge
-//                Node* node1 = edge.GetNode1();
-//                Node* node2 = edge.GetNode2();
-//                Edge new_edge = Edge(node1, node2);
-//                learned_graph->vec_edges.at(i) = new_edge;
-//            }
-//        }
-//    }
+    }
 
     int error = 0;
     // check every pair of nodes
@@ -82,41 +51,23 @@ int BNSLComparison::GetSHDOneEdge(int index1, int index2) {
     int pos2 = learned_graph->GetEdge(node2_1, node2_2);
 
     if (pos1 == -1 && pos2 == -1) {
-//        cout << "both edges are not existed" << endl;
         return 0;
     } else if (pos1 != -1 && pos2 != -1) {
         Edge e1  = true_graph->vec_edges.at(pos1);
         Edge e2  = learned_graph->vec_edges.at(pos2);
 
+        // important note: in our implementation (of pc-stable), for undirected edges, the ordering of the two nodes
+        // fixed; for directed edges, the former node (i.e., node1) is always the parent node while the latter one is
+        // always the child node, and thus endpoint1 and endpoint2 are always TAIL and ARROW respectively.
+        // if using other implementations that do not satisfy the conditions, change the if statement condition here.
         if (e1.GetNode1()->GetNodeIndex() == e2.GetNode1()->GetNodeIndex() &&
             e1.GetNode2()->GetNodeIndex() == e2.GetNode2()->GetNodeIndex() &&
-            e1.GetEndPoint1() == e2.GetEndPoint1() && e1.GetEndPoint2() == e2.GetEndPoint2()) {
+            e1.GetEndPoint2() == e2.GetEndPoint2()) {
             return 0;
         } else {
-//            cout << "edge in the true graph:    ";
-//            if (!e1.IsDirected()) {
-//                cout << e1.GetNode1()->GetNodeIndex() << " -- " << e1.GetNode2()->GetNodeIndex() << endl;
-//            } else if (e1.GetEndPoint1() == ARROW){
-//                cout << e1.GetNode2()->GetNodeIndex() << " -> " << e1.GetNode1()->GetNodeIndex() << endl;
-//            } else {
-//                cout << e1.GetNode1()->GetNodeIndex() << " -> " << e1.GetNode2()->GetNodeIndex() << endl;
-//            }
-//            cout << "edge in the learned graph: ";
-//            if (!e2.IsDirected()) {
-//                cout << e2.GetNode1()->GetNodeIndex() << " -- " << e2.GetNode2()->GetNodeIndex() << endl;
-//            } else if (e2.GetEndPoint1() == ARROW){
-//                cout << e2.GetNode2()->GetNodeIndex() << " -> " << e2.GetNode1()->GetNodeIndex() << endl;
-//            } else {
-//                cout << e2.GetNode1()->GetNodeIndex() << " -> " << e2.GetNode2()->GetNodeIndex() << endl;
-//            }
             return 1;
         }
     } else {
-//        if (pos1 == -1) {
-//            cout << "edge between " << index1 << " and " << index2 << " exists only in the learned graph" << endl;
-//        } else {
-//            cout << "edge between " << index1 << " and " << index2 << " exists only in the true graph" << endl;
-//        }
         return 1;
     }
 }

@@ -69,6 +69,7 @@ public:
     int GetDirectedEdgeFromEdgeOrder(Node* node1, Node* node2);
     void PrintEachEdgeWithIndex();
     void PrintEachEdgeWithName();
+    void CheckEdges();
 
     bool AddDirectedEdge(int p_index, int c_index);
     bool DeleteDirectedEdge(int p_index, int c_index);
