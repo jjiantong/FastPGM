@@ -308,15 +308,18 @@ void Dataset::LoadCSVData(string data_file_path, bool header, bool str_val, int 
      * 2, read the data file and store with the representation of std::vector.
      */
     /**
-     * are used if some discrete variables contain string values
-     *   - map<int, set<string>> map_disc_vars_string_values
-     *     key: discrete variable id; value: a set of possible string values
-     *     value is set<string>, used to check whether the string is repeated or not, by just inserting into the set
-     *   - vector<int> counter
-     *     size = num_vars, used to map the string values with different numbers
-     *   - vector<map<string, int>> map_string_values_numbers
-     *     for each variable, use a map to map string values with different numbers
-     *     todo: move to class variable if required for post-processing
+     * if some discrete variables contain string values (i.e., str_val == true), use:
+     *   - map<int, set<string>> map_disc_vars_string_values:
+     *     key: discrete variable id; value: a set of possible string values. value is set<string>, which is also used
+     *     to check if the string has been already inserted, by just inserting the string into the set.
+     *   - vector<int> counter:
+     *     size = num_vars. counter is used to map the string values with different numbers.
+     *   - vector<map<string, int>> map_string_values_numbers:
+     *     for each variable, use a map to map string values with different numbers.
+     * VarVal: pair<int, Value>; Value is a struct to support both discrete and continuous cases.
+     * for each instance, traverse each variable to get an `var_value`, which is variable id-value pair; push all the
+     * pairs to `single_sample_vector` to construct the vector for one instance; push all the vectors to
+     * `vector_dataset_all_vars` to record the whole dataset
      */
     map<int, set<string>> map_disc_vars_string_values;
     vector<int> counter(num_vars, -1);
@@ -326,7 +329,7 @@ void Dataset::LoadCSVData(string data_file_path, bool header, bool str_val, int 
     while (!in_file.eof()) { // for all instances
         vector<string> parsed_sample = Split(sample, ",");
         vector<VarVal> single_sample_vector;
-        for (int i = 0; i < num_vars; ++i) {
+        for (int i = 0; i < num_vars; ++i) { // for each variable
             Value v;
             int value;
             // check whether the variable is continuous
@@ -335,7 +338,7 @@ void Dataset::LoadCSVData(string data_file_path, bool header, bool str_val, int 
                     string s_value = parsed_sample[i];
                     // insert successfully -- it is a new possible value
                     if (map_disc_vars_string_values[i].insert(s_value).second) {
-                        value = ++counter[i]; // get a new int value
+                        value = ++counter[i]; // get a new int value for the new possible value
                         map_string_values_numbers[i].insert(pair<string, int> (s_value, value)); // map
                     } else { // failed to insert -- it is an old value
                         value = map_string_values_numbers[i][s_value];
@@ -398,8 +401,7 @@ void Dataset::LoadCSVData(string data_file_path, bool header, bool str_val, int 
     }
 
     /**
-     * 3, convert vector "vector_dataset_all_vars" into array "dataset_all_vars"
-     * (does not erase "vector_dataset_all_vars").
+     * 3, convert vector "vector_dataset_all_vars" into array "dataset_all_vars". (`vector_dataset_all_vars` remains.)
      */
     if (cont_vars.empty()) {
         Vector2IntArray();
@@ -545,6 +547,7 @@ void Dataset::SamplesToCSVFile(vector<Configuration> &samples, string &file, vec
 /**
  * @brief: convert from vector ("vector_dataset_all_vars") to array ("dataset_all_vars")
  * this function is used if the data set only contains discrete variables
+ * TODO: we may try to avoid using it, or keep it but only for comparison purposes.
  */
 void Dataset::Vector2IntArray() {//storing the data set using int only
     // Initialize to be all zero. (dataset_all_vars: int **)
@@ -562,8 +565,10 @@ void Dataset::Vector2IntArray() {//storing the data set using int only
 }
 
 /**
- * @brief: convert from row-major storage ("dataset_all_vars") to column-major storage ("dataset_columns")
- * this function is used if the data set only contains discrete variables
+ * @brief: convert from row-major storage ("dataset_all_vars") to column-major storage ("dataset_columns").
+ * this function is used if the data set only contains discrete variables.
+ * using `dataset_columns` is often more efficient than using `dataset_all_vars`.
+ * TODO: `dataset_columns` can be directly generated without firstly generating `dataset_all_vars`.
  */
 void Dataset::RowMajor2ColumnMajor() {
     // Initialize to be all zero. (dataset_columns: int **)

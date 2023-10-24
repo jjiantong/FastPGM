@@ -19,7 +19,7 @@ PCStable::~PCStable() {
 void PCStable::StructLearnCompData(Dataset *dts, int group_size, int num_threads, bool print_struct, int verbose) {
     if (verbose > 0) {
         cout << "==================================================" << '\n'
-             << "Begin structural learning with PC-stable" << endl;
+             << "Begin structure learning with PC-stable" << endl;
     }
 
     Timer *timer = new Timer();

@@ -31,7 +31,7 @@ public:
     map<int,set<int>> map_disc_vars_possible_values;
     vector<int> num_of_possible_values_of_disc_vars;
 
-    int **dataset_all_vars;//a matrix storing the whole data set; [#samples][#features] TODO: the matrix is used; need to be replaced to improve quality
+    int **dataset_all_vars;//a matrix storing the whole data set; [#samples][#features]
     int **dataset_columns; // column-major storage; it is the transposed matrix of "dataset_all_vars"
     vector<vector<VarVal>> vector_dataset_all_vars;//a vector storing the whole data set, label + features
 

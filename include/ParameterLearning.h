@@ -8,6 +8,7 @@
 #include "Network.h"
 #include "Dataset.h"
 #include "DiscreteNode.h"
+#include "Timer.h"
 
 
 class ParameterLearning {
@@ -16,8 +17,7 @@ public:
 
     ParameterLearning(Network *net) {network = net;};
 
-    // TODO: check algorithms for parameter learning
-    void LearnParamsKnowStructCompData(const Dataset *dts, int alpha=1, bool print_params=true);
+    void LearnParamsKnowStructCompData(const Dataset *dts, int alpha, int verbose);
 };
 
 
