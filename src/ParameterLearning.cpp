@@ -33,7 +33,7 @@ void ParameterLearning::LearnParamsKnowStructCompData(const Dataset *dts, int al
         for (int s = 0; s < dts->num_instance; ++s) { // for each instance
             // create the vector "values" by copying the array "dts->dataset_all_vars[s]"
             vector<int> values = vector<int>(dts->dataset_all_vars[s], dts->dataset_all_vars[s] + dts->num_vars);
-            //convert an instance to discrete configuration
+            // convert an instance to discrete configuration
             DiscreteConfig instance; //set<pair<int, int> >
             for (int j = 0; j < values.size(); ++j) { // for each variable of this instance
                 instance.insert(pair<int, int>(j, values.at(j)));
