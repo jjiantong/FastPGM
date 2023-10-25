@@ -7,14 +7,6 @@
 #include "gtest/gtest.h"
 
 #include "Dataset.h"
-#include "Network.h"
-#include "CustomNetwork.h"
-#include "StructureLearning.h"
-#include "PCStable.h"
-#include "BNSLComparison.h"
-
-#define GROUP_SIZE 1
-#define VERBOSE 1
 
 
 class TestCSVLoading : public ::testing::Test {

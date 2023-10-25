@@ -7,41 +7,40 @@
 #include "gtest/gtest.h"
 
 #include "Dataset.h"
-#include "Network.h"
 #include "CustomNetwork.h"
 #include "Inference.h"
 #include "JunctionTree.h"
 
 
-//class TestExactInferenceJTAlarm: public ::testing::Test {
-//protected:
-//
-//    void SetUp() override {
-//        Dataset *tester = new Dataset();
-//        CustomNetwork *network = new CustomNetwork(true);
-//
-//        string net_file = "../../dataset/alarm/alarm.xml";
-//        string test_set_file = "../../dataset/alarm/testing_alarm_1k_p20";
-//
-//        network->GetNetFromXMLBIFFile(net_file);
-//        tester->LoadLIBSVMDataKnownNetwork(test_set_file, network->num_nodes);
-//
-//        inference = new JunctionTree(network, tester, false);
-////        SAFE_DELETE(network);
-//        SAFE_DELETE(tester);
-//    }
-//
-//    Inference *inference;
-//};
-//
-//TEST_F(TestExactInferenceJTAlarm, thread_1) {
-//    string pt_file = "../../dataset/alarm/alarm_1k_pt";
-//    int num_threads = 1;
-//
-//    double accuracy = inference->EvaluateAccuracy(pt_file, num_threads);
-//    cout << "accuracy = " << accuracy << endl;
-//    SAFE_DELETE(inference);
-//}
+class TestExactInferenceJTAlarm: public ::testing::Test {
+protected:
+
+    void SetUp() override {
+        Dataset *tester = new Dataset();
+        CustomNetwork *network = new CustomNetwork(true);
+
+        string net_file = "../../dataset/alarm/alarm.xml";
+        string test_set_file = "../../dataset/alarm/testing_alarm_1k_p20";
+
+        network->GetNetFromXMLBIFFile(net_file);
+        tester->LoadLIBSVMDataKnownNetwork(test_set_file, network->num_nodes);
+
+        inference = new JunctionTree(network, tester, false);
+//        SAFE_DELETE(network);
+        SAFE_DELETE(tester);
+    }
+
+    Inference *inference;
+};
+
+TEST_F(TestExactInferenceJTAlarm, thread_1) {
+    string pt_file = "../../dataset/alarm/alarm_1k_pt";
+    int num_threads = 1;
+
+    double accuracy = inference->EvaluateAccuracy(pt_file, num_threads);
+    cout << "accuracy = " << accuracy << endl;
+    SAFE_DELETE(inference);
+}
 //
 //TEST_F(TestExactInferenceJTAlarm, thread_2) {
 //    string pt_file = "../../dataset/alarm/alarm_1k_pt";
