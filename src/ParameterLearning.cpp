@@ -14,7 +14,7 @@ void ParameterLearning::LearnParamsKnowStructCompData(const Dataset *dts, int al
     }
 
     Timer *timer = new Timer();
-    timer->Start("param");
+    timer->Start("parameter_learning");
 
     int num_cores = omp_get_num_procs();
     omp_set_num_threads(num_cores);
@@ -50,6 +50,6 @@ void ParameterLearning::LearnParamsKnowStructCompData(const Dataset *dts, int al
         }
     }
 
-    timer->Stop("param");
-    timer->Print("param");
+    timer->Stop("parameter_learning");
+    timer->Print("parameter_learning");
 }
