@@ -49,11 +49,13 @@ vector<Node*> XMLBIFParser::GetUnconnectedNodes() const {
             n_p->node_name = name;
 
             XMLElement *xml_val_ptr = xvp->FirstChildElement("VALUE");
+            int value_id = 0;
             while (xml_val_ptr != nullptr) {
-                n_p->vec_str_potential_vals.push_back(((string)xml_val_ptr->GetText()));
+//                n_p->vec_str_potential_vals.push_back(((string)xml_val_ptr->GetText()));
+                n_p->possible_values_ids[((string)xml_val_ptr->GetText())] = value_id++;
                 xml_val_ptr = xml_val_ptr->NextSiblingElement("VALUE");
             }
-            n_p->SetDomainSize(n_p->vec_str_potential_vals.size());
+            n_p->SetDomainSize(n_p->possible_values_ids.size());
 
             vec_node_ptrs.push_back(n_p);
         } else {  // if the "TYPE" is "continuous"

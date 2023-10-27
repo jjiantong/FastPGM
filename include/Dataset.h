@@ -28,7 +28,8 @@ public:
 
     // key: discrete variable id
     // value: a set of the possible values or mapped numbers of the variable
-    map<int,set<int>> map_disc_vars_possible_values;
+//    map<int,set<int>> map_disc_vars_possible_values;
+    vector<map<string, int>> vars_possible_values_ids;
     vector<int> num_of_possible_values_of_disc_vars;
 
     int **dataset_all_vars;//a matrix storing the whole data set; [#samples][#features]

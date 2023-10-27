@@ -72,9 +72,9 @@ TEST_F(TestLearning, alarm) {
         cout << "  is_discrete = " << node->is_discrete << endl;
 
         DiscreteNode* disc_node = (DiscreteNode*)node;
-        cout << "  vector_str_potential_vals: ";
-        for (int i = 0; i < disc_node->vec_str_potential_vals.size(); i++) {
-            cout << disc_node->vec_str_potential_vals[i] << " ";
+        cout << "  possible_values_ids: ";
+        for (const auto &val_id: disc_node->possible_values_ids) {
+            cout << val_id.first << ", " << val_id.second << "; ";
         }
         cout << endl;
 

@@ -38,12 +38,21 @@
 //    }
 //    cout << endl;
 //
-//    cout << "map_disc_vars_possible_values: " << endl;
-//    for (const auto &p: trainer->map_disc_vars_possible_values) {
-//        cout << p.first << ": ";
-//        set<int> p2 = p.second;
-//        for(const auto &s: p2) {
-//            cout << s << ", ";
+////    cout << "map_disc_vars_possible_values: " << endl;
+////    for (const auto &p: trainer->map_disc_vars_possible_values) {
+////        cout << p.first << ": ";
+////        set<int> p2 = p.second;
+////        for(const auto &s: p2) {
+////            cout << s << ", ";
+////        }
+////        cout << endl;
+////    }
+//
+//    cout << "vars_possible_values_ids: " << endl;
+//    for (int i = 0; i < trainer->vars_possible_values_ids.size(); i++) {
+//        cout << i << ": ";
+//        for (const auto &m: trainer->vars_possible_values_ids[i]) {
+//            cout << m.first << ", " << m.second << "; ";
 //        }
 //        cout << endl;
 //    }

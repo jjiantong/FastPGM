@@ -15,7 +15,8 @@ using namespace std;
 
 class DiscreteNode : public Node {//the parent nodes of DiscreteNode must be discrete variables.
 public:
-    vector<string> vec_str_potential_vals;//the values of some variables are strings (e.g., gender = "male" or "female"); can be improved.
+    // `possible_values_ids` is not used in any algorithm, but the map of possible values and ids should be recorded.
+    map<string, int> possible_values_ids;
 
     // =============== refactor like Weka ===============
     // Keep the count instead of probability.

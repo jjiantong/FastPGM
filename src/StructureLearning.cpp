@@ -23,6 +23,9 @@ void StructureLearning::AssignNodeInformation(Dataset *dts) {
             node_ptr->node_name = to_string(i);//use id as name
         }
 
+        // copy `vars_possible_values`_ids from dts
+        node_ptr->possible_values_ids = dts->vars_possible_values_ids[i];
+
         //set the potential values for this node
         int domain_size = dts->num_of_possible_values_of_disc_vars[i];
         node_ptr->SetDomainSize(domain_size);
