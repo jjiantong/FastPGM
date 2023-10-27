@@ -315,8 +315,8 @@ void Dataset::LoadCSVData(string data_file_path, bool header, bool str_val, int 
      *     to check if the string has been already inserted, by just inserting the string into the set.
      *   - vector<int> counter:
      *     size = num_vars. counter is used to map the string values with different numbers.
-     *   - vector<map<string, int>> map_string_values_numbers:
-     *     for each variable, use a map to map string values with different numbers.
+     *   - vector<map<string, int>> vars_possible_values_ids:
+     *     for each variable, use a map to map string values with different ids.
      * VarVal: pair<int, Value>; Value is a struct to support both discrete and continuous cases.
      * for each instance, traverse each variable to get an `var_value`, which is variable id-value pair; push all the
      * pairs to `single_sample_vector` to construct the vector for one instance; push all the vectors to
@@ -324,7 +324,6 @@ void Dataset::LoadCSVData(string data_file_path, bool header, bool str_val, int 
      */
     map<int, set<string>> map_disc_vars_string_values;
     vector<int> counter(num_vars, -1);
-//    vector<map<string, int>> map_string_values_numbers;
     vars_possible_values_ids.resize(num_vars);
 
     while (!in_file.eof()) { // for all instances
@@ -366,7 +365,8 @@ void Dataset::LoadCSVData(string data_file_path, bool header, bool str_val, int 
     vector<VarVal> single_sample_vector;
     for (int i = 0; i < num_vars; ++i) {
         Value v;
-        int value;
+        int value; // each possible value (string) corresponds to an integer type `value`. the following algorithms
+                   // are all running on the integer type values.
         // check whether the variable is continuous
         if (cont_vars.find(i) == cont_vars.end()) { //the label is discrete (i.e., classification task)
             if (str_val) { // if some discrete variables contain string values

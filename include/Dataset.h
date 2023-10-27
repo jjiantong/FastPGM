@@ -1,7 +1,3 @@
-//
-// Created by Linjian Li on 2018/11/29.
-//
-
 #ifndef BAYESIANNETWORK_DATASET_H
 #define BAYESIANNETWORK_DATASET_H
 
@@ -26,9 +22,6 @@ public:
     vector<bool> is_vars_discrete;
     vector<string> vec_var_names;
 
-    // key: discrete variable id
-    // value: a set of the possible values or mapped numbers of the variable
-//    map<int,set<int>> map_disc_vars_possible_values;
     vector<map<string, int>> vars_possible_values_ids;
     vector<int> num_of_possible_values_of_disc_vars;
 

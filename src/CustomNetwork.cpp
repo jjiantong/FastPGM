@@ -36,8 +36,6 @@ void CustomNetwork::GetNetFromXMLBIFFile(string file_path) {//XMLBIF is the xml 
   for (auto &node_ptr : connected_nodes) {
     map_idx_node_ptr[node_ptr->GetNodeIndex()] = node_ptr;
   }
-
-  GenTopoOrd();
 }
 
 /**
