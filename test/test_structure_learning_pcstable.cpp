@@ -15,6 +15,7 @@
 //
 //#define GROUP_SIZE 1
 //#define VERBOSE 1
+//#define ALPHA 0.05
 //
 //
 //class TestStructureLearningPCStableAlarm : public ::testing::Test {
@@ -28,7 +29,7 @@
 //        string ref_set_file = "../../dataset/alarm/alarm.bif";
 //
 //        trainer->LoadCSVData(train_set_file, true, true, 0);
-//        bnsl = new PCStable(network, 0.05);
+//        bnsl = new PCStable(network, ALPHA);
 //
 //        ref_net = new CustomNetwork();
 //        ref_net->LoadBIFFile(ref_set_file);
@@ -123,7 +124,7 @@
 //        string ref_set_file = "../../dataset/insurance/insurance.bif";
 //
 //        trainer->LoadCSVData(train_set_file, true, true, 0);
-//        bnsl = new PCStable(network, 0.05);
+//        bnsl = new PCStable(network, ALPHA);
 //
 //        ref_net = new CustomNetwork();
 //        ref_net->LoadBIFFile(ref_set_file);
@@ -218,7 +219,7 @@
 //        string ref_set_file = "../../dataset/hepar2/hepar2.bif";
 //
 //        trainer->LoadCSVData(train_set_file, true, true, 0);
-//        bnsl = new PCStable(network, 0.05);
+//        bnsl = new PCStable(network, ALPHA);
 //
 //        ref_net = new CustomNetwork();
 //        ref_net->LoadBIFFile(ref_set_file);
@@ -312,7 +313,7 @@
 //        string ref_set_file = "../../dataset/munin1/munin1.bif";
 //
 //        trainer->LoadCSVData(train_set_file, true, true, 0);
-//        bnsl = new PCStable(network, 0.05);
+//        bnsl = new PCStable(network, ALPHA);
 //
 //        ref_net = new CustomNetwork();
 //        ref_net->LoadBIFFile(ref_set_file);
@@ -407,7 +408,7 @@
 ////        string ref_set_file = "../../dataset/diabetes/diabetes.bif";
 ////
 ////        trainer->LoadCSVData(train_set_file, true, true, 0);
-////        bnsl = new PCStable(network, 0.05);
+////        bnsl = new PCStable(network, ALPHA);
 ////
 ////        ref_net = new CustomNetwork();
 ////        ref_net->LoadBIFFile(ref_set_file);
@@ -502,7 +503,7 @@
 ////        string ref_set_file = "../../dataset/link/link.bif";
 ////
 ////        trainer->LoadCSVData(train_set_file, true, true, 0);
-////        bnsl = new PCStable(network, 0.05);
+////        bnsl = new PCStable(network, ALPHA);
 ////
 ////        ref_net = new CustomNetwork();
 ////        ref_net->LoadBIFFile(ref_set_file);
@@ -597,7 +598,7 @@
 //        string ref_set_file = "../../dataset/munin2/munin2.bif";
 //
 //        trainer->LoadCSVData(train_set_file, true, true, 0);
-//        bnsl = new PCStable(network, 0.05);
+//        bnsl = new PCStable(network, ALPHA);
 //
 //        ref_net = new CustomNetwork();
 //        ref_net->LoadBIFFile(ref_set_file);
@@ -692,7 +693,7 @@
 ////        string ref_set_file = "../../dataset/munin3/munin3.bif";
 ////
 ////        trainer->LoadCSVData(train_set_file, true, true, 0);
-////        bnsl = new PCStable(network, 0.05);
+////        bnsl = new PCStable(network, ALPHA);
 ////
 ////        ref_net = new CustomNetwork();
 ////        ref_net->LoadBIFFile(ref_set_file);

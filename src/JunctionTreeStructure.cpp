@@ -6,8 +6,11 @@
 #include "JunctionTreeStructure.h"
 
 /**
- * the optimized constructor; the original implementation is removed
- * because we optimize triangulation, some parameters, thus some functions, are unnecessary
+ * @brief: convert BN into a junction tree.
+ * following the original paper of the junction tree algorithm:
+ *      Local Computations with Probabilities on Graphical Structures and their Application to Expert Systems, 1988.
+ * this is an optimized constructor; the original implementation is removed. because we optimize triangulation, some
+ * parameters, thus some functions, are unnecessary
  */
 JunctionTreeStructure::JunctionTreeStructure(Network *net) : network(net) {
 
@@ -28,10 +31,18 @@ JunctionTreeStructure::JunctionTreeStructure(Network *net) : network(net) {
     }
     SAFE_DELETE_ARRAY(direc_adjac_matrix);
 //    cout << "Finish Triangulate, number of cliques = " << vector_clique_ptr_container.size() << endl;
+//    for (int i = 0; i < vector_clique_ptr_container.size(); ++i) {
+//        cout << i << ": ";
+//        Clique* clq = vector_clique_ptr_container[i];
+//        for (const int &v: clq->clique_variables) {
+//            cout << v << ", ";
+//        }
+//        cout << endl;
+//    }
 
     FormJunctionTree();//for discrete nodes
-    cout << "Finish FormJunctionTree, number of cliques = " << vector_clique_ptr_container.size()
-         << ", number of separators = " << vector_separator_ptr_container.size() << endl;
+//    cout << "Finish FormJunctionTree, number of cliques = " << vector_clique_ptr_container.size()
+//         << ", number of separators = " << vector_separator_ptr_container.size() << endl;
 
     AssignPotentials();
 //    cout << "Finish AssignPotentials" << endl;
@@ -41,7 +52,7 @@ JunctionTreeStructure::JunctionTreeStructure(Network *net) : network(net) {
      */
     int max_size = 0;
     float mean_size = GetAveAndMaxCliqueSize(max_size);
-    cout << "Finish GetAveAndMaxCliqueSize, ave clique size = " << mean_size << ", max size = " << max_size << endl;
+//    cout << "Finish GetAveAndMaxCliqueSize, ave clique size = " << mean_size << ", max size = " << max_size << endl;
 }
 
 JunctionTreeStructure::~JunctionTreeStructure() {

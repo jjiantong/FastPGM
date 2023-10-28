@@ -757,7 +757,7 @@ void PCStable::OrientImplied() {
 bool PCStable::Direct(int a, int c) {
     // Instead of deleting undirected edge -> adding directed edge and checking loop
     // -> if loop exists, deleting undirected edge, we can just adding directed edge
-    // and checking loop -> if loop doesn't exist, adding undirected edge. This is
+    // and checking loop -> if loop doesn't exist, deleting undirected edge. This is
     // because checking circle doesn't need `vec_edges` and deleting undirected edge
     // only affects `vec_edges`.
     bool added = network->AddDirectedEdge(a, c);
@@ -877,11 +877,19 @@ void PCStable::DirectLeftEdges() {
             bool direct;
             if (distribution(gen) == 0) {
                 direct = Direct(x_idx, y_idx);
+                if (!direct) {
+                    cout << "Randomly directing causes unexpected loop, trying to direct again... " << endl;
+                    direct = Direct(y_idx, x_idx);
+                }
             } else { // if the undirected edge x--y remains
                 direct = Direct(y_idx, x_idx);
+                if (!direct) {
+                    cout << "Randomly directing causes unexpected loop, trying to direct again... " << endl;
+                    direct = Direct(x_idx, y_idx);
+                }
             }
             if (!direct) {
-                cerr << "Error: randomly directing causes unexpected loop. " << endl;
+                cerr << "Error: randomly directing causes loop anyway. " << endl;
                 exit(1);
             }
         } else { // if the edge is not undirected
