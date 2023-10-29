@@ -107,7 +107,7 @@ public:
 
     set<int> GetMarkovBlanketIndexesOfNode(Node *node_ptr);
 
-    int** ConvertDAGNetworkToAdjacencyMatrix();
+    int** ConvertDAGToAdjacencyMatrix();
     bool ContainCircle();
 
     virtual vector<int> SimplifyDefaultElimOrd(DiscreteConfig evidence);

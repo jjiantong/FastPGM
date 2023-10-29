@@ -11,6 +11,7 @@
 #include "StructureLearning.h"
 #include "ParameterLearning.h"
 #include "PCStable.h"
+#include "Timer.h"
 
 #define GROUP_SIZE 1
 #define VERBOSE 1
@@ -42,6 +43,19 @@ TEST_F(TestLearning, alarm) {
     trainer->LoadCSVData(train_set_file, true, true, 0);
 
     bnsl->StructLearnCompData(trainer, group_size, num_threads, true, verbose);
+
+    cout << endl;
+    cout << "generating topo order..." << endl;
+    Timer *timer = new Timer();
+    timer->Start("test");
+    network->GetTopoOrd();
+    timer->Stop("test");
+    timer->Print("test");
+    for (int i = 0; i < network->topo_ord.size(); ++i) {
+        cout << network->topo_ord[i] << ", ";
+    }
+    cout << endl;
+
     bnpl->LearnParamsKnowStructCompData(trainer, 1, verbose); // todo: alpha = 1
     SAFE_DELETE(trainer);
 

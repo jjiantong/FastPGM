@@ -19,25 +19,16 @@ map<int, int> DiscreteConfigToMap(DiscreteConfig &disc_cfg) {
 }
 
 /**
- * @brief: for structure learning; check whether a directed graph has a cycle.
- * (This function uses BFS, but other graph traversal algorithms can work as well)
- * use topological ordering: if there are left nodes after topological ordering, then return true
+ * @brief: for structure learning; check if a directed graph has a cycle.
+ * use the same idea of `TopoSortOfDAGZeroInDegreeFirst` to get the topological ordering: iteratively handling the nodes
+ * with zero in-degree and reducing the in-degree of its children by 1. if there are no left node after this process,
+ * return false, which means the graph does not contain a circle.
+ * we didn't merge this function with `TopoSortOfDAGZeroInDegreeFirst` because this function doesn't need to maintain
+ * a vector<int> type `result`.
  */
-// TODO: can be merge with "TopoSortOfDAGZeroInDegreeFirst"
-bool DirectedGraphContainsCircleByBFS(int **graph, int num_nodes) {
+bool DirectedGraphContainsCircle(int **graph, int *in_degrees, int num_nodes) {
     int visited_count = 0;
     queue<int> que;
-
-    // Calculate the in-degrees of all nodes.
-    // TODO: calculate the in-degrees in "ConvertDAGNetworkToAdjacencyMatrix"
-    int *in_degrees = new int[num_nodes](); // The parentheses at end will initialize the array to be all zeros.
-    for (int i = 0; i < num_nodes; ++i) {
-        for (int j = 0; j < num_nodes; ++j) {
-            if (graph[i][j] == 1) {
-                ++in_degrees[j];
-            }
-        }
-    }
 
     for (int i = 0; i < num_nodes; ++i) {
         if (in_degrees[i] == 0) {
@@ -58,7 +49,6 @@ bool DirectedGraphContainsCircleByBFS(int **graph, int num_nodes) {
         ++visited_count;
     }
 
-    delete[] in_degrees;
     return (visited_count != num_nodes); // check whether all nodes have been visited
 }
 
@@ -67,20 +57,9 @@ bool DirectedGraphContainsCircleByBFS(int **graph, int num_nodes) {
  * @param graph: 2-d array representation of the adjacency matrix of the graph
  * @param num_nodes: number of the nodes in the graph
  */
-// TODO: may not need to use the directed adjacency matrix
-// just use in-degree array and "set_children_indexes" to generate the ordering
-vector<int> TopoSortOfDAGZeroInDegreeFirst(int **graph, int num_nodes) {
+vector<int> TopoSortOfDAGZeroInDegreeFirst(int **graph, int *in_degrees, int num_nodes) {
     vector<int> result;
     queue<int> que;
-
-    // Calculate the in-degrees of all nodes.
-    // TODO: move this computation to "GenTopoOrd"
-    int *in_degrees = new int[num_nodes](); // The parentheses at end will initialize the array to be all zeros.
-    for (int i = 0; i < num_nodes; ++i) {
-        for (int j = 0; j < num_nodes; ++j) {
-            if (graph[i][j] == 1) { ++in_degrees[j]; }
-        }
-    }
 
     for (int i = 0; i < num_nodes; ++i) {
         // the first is the node with in-degree = 0
@@ -103,7 +82,6 @@ vector<int> TopoSortOfDAGZeroInDegreeFirst(int **graph, int num_nodes) {
         result.push_back(que.front());
         que.pop();
     }
-    delete[] in_degrees;
     return result;
 }
 

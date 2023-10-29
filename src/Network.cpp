@@ -538,156 +538,165 @@ vector<int> Network::GetReverseTopoOrd() {
  */
 // TODO: maybe not need to generate a directed adjacency matrix
 // just use in-degree array and "set_children_indexes" to generate the ordering
-// TODO: potential bug in "TopoSortOfDAGZeroInDegreeFirst" -> "TopoSortOfDAGZeroInDegreeFirst"
 vector<int> Network::GenTopoOrd() {
 
-  if (this->pure_discrete) {
+    if (this->pure_discrete) {
+        // convert the network to a directed adjacency matrix (n*n)
+        // direct: p->c (i.e., graph[p][c] = 1)
+        int **graph = new int*[num_nodes];
+        for (int i=0; i<num_nodes; ++i) {
+            graph[i] = new int[num_nodes]();
+        }
+        int *in_degrees = new int[num_nodes]();
+        for (int i = 0; i < num_nodes; ++i) {
+            in_degrees[i] = 0;
+        }
 
-    // convert the network to a directed adjacency matrix (n*n)
-    // direct: p->c (i.e., graph[p][c] = 1)
-    // TODO: use function "ConvertDAGNetworkToAdjacencyMatrix"
-    // TODO: adjacency matrix or adjacency list? more memory for adjacency matrix
-    int **graph = new int*[num_nodes];
-    for (int i=0; i<num_nodes; ++i) {
-      graph[i] = new int[num_nodes]();
-    }
+        for (auto &i_n_p : map_idx_node_ptr) { // for each node
+            auto n_i = i_n_p.first;
+            for (const auto &c_i : GetChildrenIdxesOfNode(n_i)) {
+                graph[n_i][c_i] = 1;
+                in_degrees[c_i] += 1;
+            }
+        }
 
-    // TODO: calculate the in-degrees here instead of in "TopoSortOfDAGZeroInDegreeFirst"
-    for (auto &i_n_p : map_idx_node_ptr) { // for each node
-      auto n_p = i_n_p.second;
-      for (const auto &c_p : GetChildrenPtrsOfNode(n_p->GetNodeIndex())) { // TODO: use "GetChildrenIdxesOfNode"
-        // TODO: each time assigning 1, add 1 to the in-degree of "c_p->GetNodeIndex()"
-        graph[n_p->GetNodeIndex()][c_p->GetNodeIndex()] = 1;
-      }
-    }
+        topo_ord = TopoSortOfDAGZeroInDegreeFirst(graph, in_degrees, num_nodes);
 
-    topo_ord = TopoSortOfDAGZeroInDegreeFirst(graph, num_nodes);
-
-    for (int i=0; i<num_nodes; ++i) {
-        SAFE_DELETE_ARRAY(graph[i]);
+        for (int i=0; i<num_nodes; ++i) {
+            SAFE_DELETE_ARRAY(graph[i]);
+        }
+        SAFE_DELETE_ARRAY(graph);
+        SAFE_DELETE_ARRAY(in_degrees);
     }
-      SAFE_DELETE_ARRAY(graph);
-  }
-  else { // TODO: double-check, not check for the continuous cases
-
-    // If the network is not pure discrete, then it is conditional Gaussian.
-    // Discrete nodes should not have continuous parents.
-    // Continuous nodes can have both discrete and continuous parents.
-    // In topological ordering, all discrete nodes should occur before any continuous node.
-    // todo: test correctness of the case of Gaussian network
-
-    set<Node*> set_disc_node_ptr, set_cont_node_ptr;
-    for (const auto &i_n_p : map_idx_node_ptr) {
-      auto n_p = i_n_p.second;
-      if (n_p->is_discrete) {
-        set_disc_node_ptr.insert(n_p);
-      } else {
-        set_cont_node_ptr.insert(n_p);
-      }
-    }
-    int **graph_disc = new int*[set_disc_node_ptr.size()];
-    int **graph_cont = new int*[set_cont_node_ptr.size()];
-    for (int i=0; i<set_disc_node_ptr.size(); ++i) {
-      graph_disc[i] = new int[set_disc_node_ptr.size()]();
-    }
-    for (int i=0; i<set_cont_node_ptr.size(); ++i) {
-      graph_disc[i] = new int[set_disc_node_ptr.size()]();
-      graph_cont[i] = new int[set_cont_node_ptr.size()]();
-    }
-
-    // Generate the ordering for discrete nodes.
-    map<int, int> disc_order_index, disc_index_order;
-    int disc_ord = 0;
-    for (const auto &n_p : set_disc_node_ptr) {
-      disc_order_index[disc_ord] = n_p->GetNodeIndex();
-      disc_index_order[n_p->GetNodeIndex()] = disc_ord;
-      ++disc_ord;
-    }
-    for (const auto &n_p : set_disc_node_ptr) {
-      for (const auto &c_p : GetChildrenPtrsOfNode(n_p->GetNodeIndex())) {
-        if (!c_p->is_discrete) { continue; }
-        graph_disc[ disc_index_order[n_p->GetNodeIndex()] ]
-                  [ disc_index_order[c_p->GetNodeIndex()] ] = 1;
-      }
-    }
-    vector<int> topo_ord_disc = TopoSortOfDAGZeroInDegreeFirst(graph_disc, set_disc_node_ptr.size());
-
-    // Generate the ordering for continuous nodes.
-    map<int, int> cont_order_index, cont_index_order;
-    int cont_ord = 0;
-    for (const auto &n_p : set_cont_node_ptr) {
-      cont_order_index[cont_ord] = n_p->GetNodeIndex();
-      cont_index_order[n_p->GetNodeIndex()] = cont_ord;
-      ++cont_ord;
-    }
-    for (const auto &n_p : set_cont_node_ptr) {
-      for (const auto &c_p : GetChildrenPtrsOfNode(n_p->GetNodeIndex())) { // TODO: use "GetChildrenIdxesOfNode"
-        graph_cont[ cont_index_order[n_p->GetNodeIndex()] ]
-                  [ cont_index_order[c_p->GetNodeIndex()] ] = 1;
-      }
-    }
-    vector<int> topo_ord_cont = TopoSortOfDAGZeroInDegreeFirst(graph_cont, set_cont_node_ptr.size());
-    // Restore the index from the ordering.
-    for (auto &o : topo_ord_cont) {
-      o = cont_order_index[o];
-    }
-
-    // Concatinate topo_ord_disc and topo_ord_cont.
-    topo_ord_disc.insert(topo_ord_disc.end(), topo_ord_cont.begin(), topo_ord_cont.end());
-    this->topo_ord = topo_ord_disc;
-
-    for (int i=0; i<set_disc_node_ptr.size(); ++i) {
-        SAFE_DELETE_ARRAY(graph_disc[i]);
-    }
-    for (int i=0; i<set_cont_node_ptr.size(); ++i) {
-        SAFE_DELETE_ARRAY(graph_cont[i]);
-    }
-      SAFE_DELETE_ARRAY(graph_disc);
-      SAFE_DELETE_ARRAY(graph_cont);
-  }
+//  else { // TODO: double-check, not check for the continuous cases
+//
+//    // If the network is not pure discrete, then it is conditional Gaussian.
+//    // Discrete nodes should not have continuous parents.
+//    // Continuous nodes can have both discrete and continuous parents.
+//    // In topological ordering, all discrete nodes should occur before any continuous node.
+//    // todo: test correctness of the case of Gaussian network
+//
+//    set<Node*> set_disc_node_ptr, set_cont_node_ptr;
+//    for (const auto &i_n_p : map_idx_node_ptr) {
+//      auto n_p = i_n_p.second;
+//      if (n_p->is_discrete) {
+//        set_disc_node_ptr.insert(n_p);
+//      } else {
+//        set_cont_node_ptr.insert(n_p);
+//      }
+//    }
+//    int **graph_disc = new int*[set_disc_node_ptr.size()];
+//    int **graph_cont = new int*[set_cont_node_ptr.size()];
+//    for (int i=0; i<set_disc_node_ptr.size(); ++i) {
+//      graph_disc[i] = new int[set_disc_node_ptr.size()]();
+//    }
+//    for (int i=0; i<set_cont_node_ptr.size(); ++i) {
+//      graph_disc[i] = new int[set_disc_node_ptr.size()]();
+//      graph_cont[i] = new int[set_cont_node_ptr.size()]();
+//    }
+//
+//    // Generate the ordering for discrete nodes.
+//    map<int, int> disc_order_index, disc_index_order;
+//    int disc_ord = 0;
+//    for (const auto &n_p : set_disc_node_ptr) {
+//      disc_order_index[disc_ord] = n_p->GetNodeIndex();
+//      disc_index_order[n_p->GetNodeIndex()] = disc_ord;
+//      ++disc_ord;
+//    }
+//    for (const auto &n_p : set_disc_node_ptr) {
+//      for (const auto &c_p : GetChildrenPtrsOfNode(n_p->GetNodeIndex())) {
+//        if (!c_p->is_discrete) { continue; }
+//        graph_disc[ disc_index_order[n_p->GetNodeIndex()] ]
+//                  [ disc_index_order[c_p->GetNodeIndex()] ] = 1;
+//      }
+//    }
+//    vector<int> topo_ord_disc = TopoSortOfDAGZeroInDegreeFirst(graph_disc, set_disc_node_ptr.size());
+//
+//    // Generate the ordering for continuous nodes.
+//    map<int, int> cont_order_index, cont_index_order;
+//    int cont_ord = 0;
+//    for (const auto &n_p : set_cont_node_ptr) {
+//      cont_order_index[cont_ord] = n_p->GetNodeIndex();
+//      cont_index_order[n_p->GetNodeIndex()] = cont_ord;
+//      ++cont_ord;
+//    }
+//    for (const auto &n_p : set_cont_node_ptr) {
+//      for (const auto &c_p : GetChildrenPtrsOfNode(n_p->GetNodeIndex())) { // TODO: use "GetChildrenIdxesOfNode"
+//        graph_cont[ cont_index_order[n_p->GetNodeIndex()] ]
+//                  [ cont_index_order[c_p->GetNodeIndex()] ] = 1;
+//      }
+//    }
+//    vector<int> topo_ord_cont = TopoSortOfDAGZeroInDegreeFirst(graph_cont, set_cont_node_ptr.size());
+//    // Restore the index from the ordering.
+//    for (auto &o : topo_ord_cont) {
+//      o = cont_order_index[o];
+//    }
+//
+//    // Concatinate topo_ord_disc and topo_ord_cont.
+//    topo_ord_disc.insert(topo_ord_disc.end(), topo_ord_cont.begin(), topo_ord_cont.end());
+//    this->topo_ord = topo_ord_disc;
+//
+//    for (int i=0; i<set_disc_node_ptr.size(); ++i) {
+//        SAFE_DELETE_ARRAY(graph_disc[i]);
+//    }
+//    for (int i=0; i<set_cont_node_ptr.size(); ++i) {
+//        SAFE_DELETE_ARRAY(graph_cont[i]);
+//    }
+//      SAFE_DELETE_ARRAY(graph_disc);
+//      SAFE_DELETE_ARRAY(graph_cont);
+//  }
   return topo_ord;
 }
 
 /**
  * @brief: convert network to a dense directed adjacency matrix (n*n)
  */
-int** Network::ConvertDAGNetworkToAdjacencyMatrix() {
-  int **matrix = new int* [num_nodes];
-  for (int i=0; i<num_nodes; ++i) {
-    matrix[i] = new int[num_nodes]();
-  }
-
-  // TODO: calculate the in-degrees here
-  // TODO: instead of in "TopoSortOfDAGZeroInDegreeFirst" and "DirectedGraphContainsCircleByBFS"
-  // direct: node_ptr->child_ptr (i.e., graph[node_ptr][child_ptr] = 1)
-  for (const auto &id_node_ptr : map_idx_node_ptr) { // for each node
-    auto node_ptr = id_node_ptr.second;
-    auto node_idx = id_node_ptr.first;
-
-    for (const auto &child_ptr : GetChildrenPtrsOfNode(node_ptr->GetNodeIndex())) { // TODO: use "GetChildrenIdxesOfNode"
-      // TODO: each time assigning 1, add 1 to the in-degree of "child_ptr->GetNodeIndex()"
-      matrix[node_ptr->GetNodeIndex()][child_ptr->GetNodeIndex()] = 1;
+int** Network::ConvertDAGToAdjacencyMatrix() {
+    int **matrix = new int* [num_nodes];
+    for (int i=0; i<num_nodes; ++i) {
+        matrix[i] = new int[num_nodes]();
     }
-//      for (const auto &child_idx : GetChildrenIdxesOfNode(node_idx)) {
-//          // TODO: each time assigning 1, add 1 to the in-degree of "child_ptr->GetNodeIndex()"
-//          matrix[node_idx][child_idx] = 1;
-//      }
-  }
-  return matrix;
+
+    // direct: node_ptr->child_ptr (i.e., graph[node_ptr][child_ptr] = 1)
+    for (const auto &id_node_ptr : map_idx_node_ptr) { // for each node
+        int node_idx = id_node_ptr.first;
+
+        for (const auto &child_idx : GetChildrenIdxesOfNode(node_idx)) {
+            matrix[node_idx][child_idx] = 1;
+        }
+    }
+    return matrix;
 }
 
 /**
  * @brief: check if network has loops.
  */
 bool Network::ContainCircle() {
-  int **graph = ConvertDAGNetworkToAdjacencyMatrix();
-  bool result = DirectedGraphContainsCircleByBFS(graph, num_nodes);
+    int **graph = new int*[num_nodes];
+    for (int i=0; i<num_nodes; ++i) {
+        graph[i] = new int[num_nodes]();
+    }
+    int *in_degrees = new int[num_nodes]();
+    for (int i = 0; i < num_nodes; ++i) {
+        in_degrees[i] = 0;
+    }
 
-  for (int i = 0; i < num_nodes; ++i) {
-      SAFE_DELETE_ARRAY(graph[i]);
-  }
+    for (auto &i_n_p : map_idx_node_ptr) { // for each node
+        auto n_i = i_n_p.first;
+        for (const auto &c_i : GetChildrenIdxesOfNode(n_i)) {
+            graph[n_i][c_i] = 1;
+            in_degrees[c_i] += 1;
+        }
+    }
+
+    bool result = DirectedGraphContainsCircle(graph, in_degrees, num_nodes);
+
+    for (int i = 0; i < num_nodes; ++i) {
+        SAFE_DELETE_ARRAY(graph[i]);
+    }
     SAFE_DELETE_ARRAY(graph);
-  return result;
+    SAFE_DELETE_ARRAY(in_degrees);
+    return result;
 }
 
 /**

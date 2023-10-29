@@ -17,7 +17,7 @@ JunctionTreeStructure::JunctionTreeStructure(Network *net) : network(net) {
     vector_clique_ptr_container.reserve(network->num_nodes);
     vector_separator_ptr_container.reserve(network->num_nodes - 1);
 
-    int **direc_adjac_matrix = network->ConvertDAGNetworkToAdjacencyMatrix();
+    int **direc_adjac_matrix = network->ConvertDAGToAdjacencyMatrix();
 //    cout << "Finish ConvertDAGNetworkToAdjacencyMatrix" << endl;
 
     Moralize(direc_adjac_matrix, network->num_nodes);

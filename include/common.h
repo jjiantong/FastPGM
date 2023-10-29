@@ -96,8 +96,8 @@ set<set<T>> GenAllCombinationsFromSets(set<set<T>> *set_of_sets) {//checked 11/A
 
 map<int, int> DiscreteConfigToMap(DiscreteConfig &disc_cfg);
 
-bool DirectedGraphContainsCircleByBFS(int **graph, int num_nodes);
-vector<int> TopoSortOfDAGZeroInDegreeFirst(int **graph, int num_nodes);
+bool DirectedGraphContainsCircle(int **graph, int *in_degrees, int num_nodes);
+vector<int> TopoSortOfDAGZeroInDegreeFirst(int **graph, int *in_degrees, int num_nodes);
 
 
 bool Conflict(const DiscreteConfig *cfg1, const DiscreteConfig *cfg2);
