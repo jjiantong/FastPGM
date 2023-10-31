@@ -72,13 +72,13 @@ vector<Node*> XMLBIFParser::GetUnconnectedNodes() const {
 /**
  * @brief: read the probabilities and construct parent-child relationship.
  */
-void XMLBIFParser::AssignProbsToNodes(vector<Node*> vec_nodes_ptr) {
+void XMLBIFParser::AssignProbsToNodes(vector<Node*> vec_node_ptrs) {
     for (auto &xpp : vec_xml_probs_ptr) { // Parse each "PROBABILITY" element.
         // Parse "FOR"
         string str_for = (xpp->FirstChildElement("FOR")->GetText());
         DiscreteNode* for_np = nullptr;
         // Find the variable corresponding to this probability.
-        for (auto &vnp : vec_nodes_ptr) {
+        for (auto &vnp : vec_node_ptrs) {
             if (vnp->node_name == str_for) {
                 for_np = dynamic_cast<DiscreteNode*>(vnp);
                 break;
@@ -99,7 +99,7 @@ void XMLBIFParser::AssignProbsToNodes(vector<Node*> vec_nodes_ptr) {
         while (xg != nullptr) { // find each of its parents
             string str_given = (string)(xg->GetText());
             Node *given_np = nullptr;
-            for (auto &vnp : vec_nodes_ptr) {
+            for (auto &vnp : vec_node_ptrs) {
                 if (vnp->node_name == str_given) {
                     given_np = vnp;
                     break;

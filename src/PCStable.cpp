@@ -902,3 +902,82 @@ void PCStable::DirectLeftEdges() {
     } // finish checking all edges
 }
 
+/**
+ * find a root for each connected sub-graph of the resulting DAG.
+ * sometimes pc-stable results in a DAG that contains multiple connected sub-graphs that are independent with each
+ * other. this method is to identify each of the sub-graphs and return the roots for them.
+ */
+vector<int> PCStable::FindRootsInDAGForest() {
+    vector<int> roots;
+    vector<bool> visited(network->num_nodes, false);
+    queue<int> que;
+
+    // compute the in-degrees for each node
+    int *in_degrees = new int[network->num_nodes];
+    for (auto &i_n_p : network->map_idx_node_ptr) { // for each node
+        auto node_idx = i_n_p.first;
+        in_degrees[node_idx] = network->GetParentIdxesOfNode(node_idx).size();
+    }
+
+    while (1) {
+        // find the node that has the most children from all the unvisited nodes with in-degree = 0
+        int max_children = -1;
+        int root = -1;
+        for (int i = 0; i < network->num_nodes; ++i) {
+            if (in_degrees[i] == 0 && visited[i] == false) {
+                int num_children = network->GetChildrenIdxesOfNode(i).size();
+                if (num_children > max_children) {
+                    max_children = network->GetChildrenIdxesOfNode(i).size();
+                    root = i;
+                }
+            }
+        }
+        // while loop exit condition: no unvisited node with in-degree = 0
+        if (max_children == -1) {
+            break;
+        }
+        visited[root] = true;
+        que.push(root);
+        roots.push_back(root);
+
+        // do a bfs based on the root above, resulting in one of the sub-graph
+        while (!que.empty()) {
+            int current = que.front();
+            que.pop();
+
+            for (const int &child: network->GetChildrenIdxesOfNode(current)) {
+                if (!visited[child]) {
+                    visited[child] = true;
+                    que.push(child);
+                }
+            }
+            for (const int &parent: network->GetParentIdxesOfNode(current)) {
+                if (!visited[parent]) {
+                    visited[parent] = true;
+                    que.push(parent);
+                }
+            }
+        }
+    }
+
+    SAFE_DELETE_ARRAY(in_degrees);
+    return roots;
+}
+
+///**
+// * @brief: add a root node.
+// * this method is used if the resulting network structure contains more than 1 connected sub-graphs. we add a `ROOT`
+// * node to be the parent of each sub-graph's root identified by `FindRootsInDAGForest`.
+// *      id: network->num_nodes
+// *      name: ROOT
+// *      type: discrete
+// *      possible values: 0, 1
+// */
+//void PCStable::AddRootNode(vector<int> &sub_roots) {
+//    // I think the added node should be discrete node
+//    DiscreteNode *root = new DiscreteNode(network->num_nodes);
+//    root->node_name = "ROOT";
+//    root->possible_values_ids["0"] = 0;
+//    root->possible_values_ids["1"] = 1;
+//    root->SetDomainSize(root->possible_values_ids.size());
+//}

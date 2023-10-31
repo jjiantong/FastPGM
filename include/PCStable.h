@@ -58,6 +58,8 @@ public:
     bool R3Helper(int a_idx, int d_idx, int b_idx, int c_idx);
 
     void DirectLeftEdges();
+    vector<int> FindRootsInDAGForest();
+    void AddRootNode(vector<int> &sub_roots);
 };
 
 #endif //BAYESIANNETWORK_PCSTABLE_H

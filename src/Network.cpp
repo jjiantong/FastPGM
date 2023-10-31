@@ -548,9 +548,6 @@ vector<int> Network::GenTopoOrd() {
             graph[i] = new int[num_nodes]();
         }
         int *in_degrees = new int[num_nodes]();
-        for (int i = 0; i < num_nodes; ++i) {
-            in_degrees[i] = 0;
-        }
 
         for (auto &i_n_p : map_idx_node_ptr) { // for each node
             auto n_i = i_n_p.first;
