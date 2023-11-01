@@ -168,9 +168,9 @@ int Network::GetDirectedEdge(Node *node1, Node *node2) {
     }
 }
 
-int Network::GetDirectedEdgeFromEdgeOrder(Node *node1, Node *node2) {
+int Network::GetDirectedEdgeFromEdgeOrder(const vector<Edge> &edge_order, Node *node1, Node *node2) {
     Edge edge(node1, node2, TAIL, ARROW);
-    vector<Edge>::iterator it = find(edge_order.begin(), edge_order.end(), edge);
+    auto it = find(edge_order.begin(), edge_order.end(), edge);
     if (it == edge_order.end()) {
         return -1;
     } else {
@@ -730,8 +730,8 @@ set<int> Network::GetMarkovBlanketIndexesOfNode(Node *node_ptr) {
  * @brief: order the edges based on the topological order of the nodes
  * according to Chickering, "A Transformational Characterization of Equivalent Bayesian Network Structures", 1995
  */
-void Network::OrderEdge() {
-    vector<Edge> tmp_edge_order;
+vector<Edge> Network::OrderEdge() {
+    vector<Edge> edge_order;
 
     // Perform a topological sort on the NODES in g
     vector<int> topo_order = GetTopoOrd();
@@ -754,18 +754,18 @@ void Network::OrderEdge() {
                     int edge_pos = GetDirectedEdge(x, y);
                     if (!vec_edges.at(edge_pos).is_ordered) { // find unordered edge x->y
                         vec_edges.at(edge_pos).is_ordered = true;
-                        tmp_edge_order.push_back(vec_edges.at(edge_pos));
+                        edge_order.push_back(vec_edges.at(edge_pos));
                     }
                 }
             }
         }
     }
-    if (tmp_edge_order.size() != vec_edges.size()) {
+    if (edge_order.size() != vec_edges.size()) {
         fprintf(stderr, "Error in function %s! \nnum of edges = %d but num of ordered edges = %d!", __FUNCTION__,
-                vec_edges.size(), tmp_edge_order.size());
+                vec_edges.size(), edge_order.size());
         exit(1);
     }
-    edge_order = tmp_edge_order;
+    return edge_order;
 }
 
 /**
@@ -773,7 +773,7 @@ void Network::OrderEdge() {
  * change the reversible edges to undirected edges
  * according to Chickering, "A Transformational Characterization of Equivalent Bayesian Network Structures", 1995
  */
-void Network::FindCompelled() {
+void Network::FindCompelled(vector<Edge> &edge_order) {
     /*
      * Label every edge in g as "unknown"
      * every edge in "edge_order" is considered to be UNKNOWN
@@ -804,7 +804,7 @@ void Network::FindCompelled() {
                     // 2. every edge incident into y
                     for (const int &par_y_idx : y->set_parent_indexes) {
                         Node* par_y = FindNodePtrByIndex(par_y_idx);
-                        int pos_edge_order = GetDirectedEdgeFromEdgeOrder(par_y, y);
+                        int pos_edge_order = GetDirectedEdgeFromEdgeOrder(edge_order, par_y, y);
                         if (pos_edge_order != -1) { // this edge has not been labeled
                             vec_edges.at(GetDirectedEdge(par_y, y)).label = COMPELLED;
                             edge_order.erase(edge_order.begin() + pos_edge_order);
@@ -815,7 +815,7 @@ void Network::FindCompelled() {
                     break;
                 } else {
                     // Else label w->y with "compelled"
-                    int pos_edge_order = GetDirectedEdgeFromEdgeOrder(w, y);
+                    int pos_edge_order = GetDirectedEdgeFromEdgeOrder(edge_order, w, y);
                     if (pos_edge_order != -1) { // this edge has not been labeled
                         vec_edges.at(GetDirectedEdge(w, y)).label = COMPELLED;
                         edge_order.erase(edge_order.begin() + pos_edge_order);
@@ -841,7 +841,7 @@ void Network::FindCompelled() {
                         // 2. every "unknown" edge incident into y
                         for (const int &par_y_idx : y->set_parent_indexes) {
                             Node* par_y = FindNodePtrByIndex(par_y_idx);
-                            int pos_edge_order = GetDirectedEdgeFromEdgeOrder(par_y, y);
+                            int pos_edge_order = GetDirectedEdgeFromEdgeOrder(edge_order, par_y, y);
                             if (pos_edge_order != -1) { // this edge has not been labeled
                                 vec_edges.at(GetDirectedEdge(par_y, y)).label = COMPELLED;
                                 edge_order.erase(edge_order.begin() + pos_edge_order);
@@ -858,7 +858,7 @@ void Network::FindCompelled() {
                 // 2. every "unknown" edge incident into y
                 for (const int &par_y_idx : y->set_parent_indexes) {
                     Node* par_y = FindNodePtrByIndex(par_y_idx);
-                    int pos_edge_order = GetDirectedEdgeFromEdgeOrder(par_y, y);
+                    int pos_edge_order = GetDirectedEdgeFromEdgeOrder(edge_order, par_y, y);
                     if (pos_edge_order != -1) { // this edge has not been labeled
                         vec_edges.at(GetDirectedEdge(par_y, y)).label = REVERSIBLE;
                         edge_order.erase(edge_order.begin() + pos_edge_order);

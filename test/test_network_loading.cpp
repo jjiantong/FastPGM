@@ -122,16 +122,5 @@
 //    }
 //
 //    cout << "vec_edges: size = " << network->vec_edges.size() << endl;
-//    cout << "edge_order: size = " << network->edge_order.size() << endl;
-//
-//    cout << "adjacencies: " << endl;
-//    for (const auto &m: network->adjacencies) {
-//        cout << m.first << ": ";
-//        map<int, double> adj = m.second;
-//        for (const auto &a: adj) {
-//            cout << a.first << ", " << a.second << "; ";
-//        }
-//        cout << endl;
-//    }
 //}
 //

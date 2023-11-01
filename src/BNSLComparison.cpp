@@ -12,8 +12,8 @@ BNSLComparison::BNSLComparison(Network *true_graph, Network *learned_graph) {
 int BNSLComparison::GetSHD() {
     if (!learned_graph->IsDAG()) { // see notes in IsDAG()
         // if the learned graph is a CPDAG, we need to first change the true DAG to CPDAG
-        true_graph->OrderEdge();
-        true_graph->FindCompelled();
+        vector<Edge> edge_order = true_graph->OrderEdge();
+        true_graph->FindCompelled(edge_order);
 
         for (int i = 0; i < true_graph->num_edges; ++i) {
             Edge edge = true_graph->vec_edges.at(i);

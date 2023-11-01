@@ -34,8 +34,6 @@ public:
     map<int, Node*> map_idx_node_ptr;  // Key: node index. Value: node pointer. This map is a helper for FindNodePtrByIndex.
     vector<Edge> vec_edges;  // edges in the network
 
-    vector<Edge> edge_order;
-
     Network();
     explicit Network(bool pure_disc);
     Network(Network &net);
@@ -57,7 +55,7 @@ public:
     int GetUndirectedEdge(Node* node1, Node* node2);
     int GetDirectedEdge(Node* node1, Node* node2);
     int GetEdge(Node* node1, Node* node2);
-    int GetDirectedEdgeFromEdgeOrder(Node* node1, Node* node2);
+    int GetDirectedEdgeFromEdgeOrder(const vector<Edge> &edge_order, Node* node1, Node* node2);
     void PrintEachEdgeWithIndex();
     void PrintEachEdgeWithName();
     void CheckEdges();
@@ -109,8 +107,8 @@ public:
      *      1. order the edges
      *      2. label each edge as either compelled or reversible
      */
-    void OrderEdge();
-    void FindCompelled();
+    vector<Edge> OrderEdge();
+    void FindCompelled(vector<Edge> &edge_order);
     bool IsDAG();
 
 protected:
