@@ -86,6 +86,12 @@ void PCStable::StructLearnByPCStable(Dataset *dts, int num_threads, int group_si
 
     timer->Start("pc-stable step 1");
 
+    /**
+     * key is node index, value is a map, contains the set of neighbor node indexes of the node and their weights. the
+     * weight refers to the strength of association between the node and its neighbor, which is in fact the p-value
+     * obtained from the level 0 of PC alg. step 1, smaller weight means stronger association. however, the strength is
+     * not used in the current implementation.
+     */
     map<int, map<int, double>> adjacencies;
     for (int i = 0; i < network->num_nodes; ++i) { // find neighbor set of each node i
         map<int, double> adjacency;

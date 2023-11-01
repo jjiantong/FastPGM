@@ -34,13 +34,6 @@ public:
     map<int, Node*> map_idx_node_ptr;  // Key: node index. Value: node pointer. This map is a helper for FindNodePtrByIndex.
     vector<Edge> vec_edges;  // edges in the network
 
-    /**
-     * key is node index, value is a map, contains the set of neighbor node indexes of the node and their weights
-     * the weight refers to the strength of association between the node and its neighbor,
-     * it is in fact the p-value obtained from the level 0 of PC alg. step 1, smaller weight means stronger association
-     */
-//    map<int, map<int, double>> adjacencies;
-
     vector<Edge> edge_order;
 
     Network();
