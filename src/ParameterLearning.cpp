@@ -42,13 +42,13 @@ void ParameterLearning::LearnParamsKnowStructCompData(const Dataset *dts, int al
         }
     }
 
-    if (verbose > 1) {
-        cout << "==================================================" << '\n'
-             << "Each node's conditional probability table: " << endl;
-        for (const auto &id_node_ptr : network->map_idx_node_ptr) {  // For each node
-            dynamic_cast<DiscreteNode*>(id_node_ptr.second)->PrintProbabilityTable();
-        }
-    }
+//    if (verbose > 1) {
+//        cout << "==================================================" << '\n'
+//             << "Each node's conditional probability table: " << endl;
+//        for (const auto &id_node_ptr : network->map_idx_node_ptr) {  // For each node
+//            dynamic_cast<DiscreteNode*>(id_node_ptr.second)->PrintProbabilityTable();
+//        }
+//    }
 
     timer->Stop("parameter_learning");
     timer->Print("parameter_learning");

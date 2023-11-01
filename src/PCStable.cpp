@@ -86,6 +86,7 @@ void PCStable::StructLearnByPCStable(Dataset *dts, int num_threads, int group_si
 
     timer->Start("pc-stable step 1");
 
+    map<int, map<int, double>> adjacencies;
     for (int i = 0; i < network->num_nodes; ++i) { // find neighbor set of each node i
         map<int, double> adjacency;
         for (int j = 0; j < network->num_nodes; ++j) { // all nodes except for i itself are neighbors of i
@@ -93,7 +94,7 @@ void PCStable::StructLearnByPCStable(Dataset *dts, int num_threads, int group_si
                 continue;
             adjacency.insert(make_pair(j, 1.0));
         }
-        network->adjacencies.insert(make_pair(i, adjacency));
+        adjacencies.insert(make_pair(i, adjacency));
     }
 
 #pragma omp parallel for num_threads(num_threads)
@@ -129,8 +130,8 @@ void PCStable::StructLearnByPCStable(Dataset *dts, int num_threads, int group_si
             num_dependence++;
             //-------------------------------- heuristic ---------------------------------//
             // store the p value - smaller means a stronger association
-//            network->adjacencies[node_idx1][node_idx2] = result.p_value;
-//            network->adjacencies[node_idx2][node_idx1] = result.p_value;
+//            adjacencies[node_idx1][node_idx2] = result.p_value;
+//            adjacencies[node_idx2][node_idx1] = result.p_value;
             //-------------------------------- heuristic ---------------------------------//
         } else {
             network->vec_edges[i].need_remove = true;
@@ -154,8 +155,8 @@ void PCStable::StructLearnByPCStable(Dataset *dts, int num_threads, int group_si
             network->vec_edges.erase(network->vec_edges.begin() + i);
             --network->num_edges;
             // 2. remove each other from adjacency set
-            network->adjacencies[node_idx1].erase(node_idx2);
-            network->adjacencies[node_idx2].erase(node_idx1);
+            adjacencies[node_idx1].erase(node_idx2);
+            adjacencies[node_idx2].erase(node_idx1);
             // 3. add conditioning set (an empty set for level 0) to sepset (is done in the loop above)
             i--;
         }
@@ -178,7 +179,7 @@ void PCStable::StructLearnByPCStable(Dataset *dts, int num_threads, int group_si
             cout << "Level " << d << "... " << endl;
         }
 
-        bool more = SearchAtDepth(dts, d, num_threads, timer, group_size, verbose);
+        bool more = SearchAtDepth(dts, d, num_threads, adjacencies, timer, group_size, verbose);
 
         if (verbose > 1) {
             cout << "* remaining edges:" << endl;
@@ -204,7 +205,7 @@ void PCStable::StructLearnByPCStable(Dataset *dts, int num_threads, int group_si
     }
 
 //    timer->Start("pc-stable step 2");
-    OrientVStructure();
+    OrientVStructure(adjacencies);
 //    timer->Stop("pc-stable step 2");
 
 
@@ -214,7 +215,7 @@ void PCStable::StructLearnByPCStable(Dataset *dts, int num_threads, int group_si
     }
 
 //    timer->Start("pc-stable step 3");
-    OrientImplied();
+    OrientImplied(adjacencies);
 //    timer->Stop("pc-stable step 3");
 
     if (print_struct) {
@@ -223,7 +224,7 @@ void PCStable::StructLearnByPCStable(Dataset *dts, int num_threads, int group_si
 //        network->PrintEachEdgeWithName();
     }
 
-    DirectLeftEdges();
+    DirectLeftEdges(adjacencies);
 
     if (print_struct) {
         cout << endl;
@@ -240,13 +241,14 @@ void PCStable::StructLearnByPCStable(Dataset *dts, int num_threads, int group_si
  * according to the results, some of the edges will push back again and some will not
  * repeat this process until the stack is empty, which means all edges in this level have been finished
  */
-bool PCStable::SearchAtDepth(Dataset *dts, int c_depth, int num_threads, Timer *timer, int group_size, int verbose) {
+bool PCStable::SearchAtDepth(Dataset *dts, int c_depth, int num_threads, map<int, map<int, double>> &adjacencies,
+                             Timer *timer, int group_size, int verbose) {
     /**
      * the copied adjacency sets of all nodes are used and kept unchanged at each particular level c_depth
      * consequently, an edge deletion at one level does not affect the conditioning sets of the other nodes
      * and thus the output is independent with the variable ordering, called PC-stable
      */
-    map<int, map<int, double>> adjacencies_copy = network->adjacencies;
+    map<int, map<int, double>> adjacencies_copy = adjacencies;
 
     // push all edges into stack
     stack<int> stack_edge_id;
@@ -355,13 +357,13 @@ bool PCStable::SearchAtDepth(Dataset *dts, int c_depth, int num_threads, Timer *
             network->vec_edges.erase(network->vec_edges.begin() + i);
             --network->num_edges;
             // 2. remove each other from adjacency set
-            network->adjacencies[node_idx1].erase(node_idx2);
-            network->adjacencies[node_idx2].erase(node_idx1);
+            adjacencies[node_idx1].erase(node_idx2);
+            adjacencies[node_idx2].erase(node_idx1);
             // 3. add conditioning set (an empty set for level 0) to sepset (is done in the loop above)
             i--;
         }
     }
-    return (FreeDegree(network->adjacencies) > c_depth);
+    return (FreeDegree(adjacencies) > c_depth);
 }
 
 /**
@@ -613,17 +615,17 @@ int PCStable::FreeDegree(const map<int, map<int, double>> &adjacencies) {
  * conflicting edges are simply overwritten
  * this means that the orientation of one conflicting edge is determined by the v-structure that is last considered
  */
-void PCStable::OrientVStructure() {
+void PCStable::OrientVStructure(const map<int, map<int, double>> &adjacencies) {
     for (int b = 0; b < network->num_nodes; ++b) { // for all nodes in the graph
         vector<int> vec_adjacent_nodes;
-        for (const auto &adj_w : network->adjacencies[b]) {
+        for (const auto &adj_w : adjacencies.at(b)) {
             vec_adjacent_nodes.push_back(adj_w.first);
         }
 
-        if (network->adjacencies[b].size() < 2) {
+        if (adjacencies.at(b).size() < 2) {
             continue;
         }
-        ChoiceGenerator cg(network->adjacencies[b].size(), 2); // find two adjacent nodes of this node
+        ChoiceGenerator cg(adjacencies.at(b).size(), 2); // find two adjacent nodes of this node
         vector<int> combination;
 
         while (!(combination = cg.Next()).empty()) {
@@ -631,7 +633,7 @@ void PCStable::OrientVStructure() {
             int c = vec_adjacent_nodes[combination[1]];
 
             // 1) a is not adjacent to c; skip if a is adjacent to c
-            if (network->IsAdjacentTo(a, c)) {
+            if (network->IsAdjacentTo(adjacencies, a, c)) {
                 continue;
             }
             // 2) b is not in the sepset of (a, c)
@@ -708,7 +710,7 @@ void PCStable::OrientVStructure() {
  *
  * note that for PC-stable, the skeleton is estimated order-independently but not the edge orientations!
  */
-void PCStable::OrientImplied() {
+void PCStable::OrientImplied(const map<int, map<int, double>> &adjacencies) {
     bool oriented = true;
     /**
      * in each iteration we traverse all undirected edges and try to orient it
@@ -726,13 +728,13 @@ void PCStable::OrientImplied() {
             int y_idx = (*edge_it).GetNode2()->GetNodeIndex();
 
             // if the edge is undirected, check the 3 rules
-            if (network->IsUndirected(x_idx, y_idx)) {
-                if (Rule1(x_idx, y_idx) ||
-                    Rule1(y_idx, x_idx) ||
-                    Rule2(x_idx, y_idx) ||
-                    Rule2(y_idx, x_idx) ||
-                    Rule3(x_idx, y_idx) ||
-                    Rule3(y_idx, x_idx)) {
+            if (network->IsUndirected(adjacencies, x_idx, y_idx)) {
+                if (Rule1(adjacencies, x_idx, y_idx) ||
+                    Rule1(adjacencies, y_idx, x_idx) ||
+                    Rule2(adjacencies, x_idx, y_idx) ||
+                    Rule2(adjacencies, y_idx, x_idx) ||
+                    Rule3(adjacencies, x_idx, y_idx) ||
+                    Rule3(adjacencies, y_idx, x_idx)) {
                     oriented = true;
                 } else { // if the undirected edge x--y remains
                     edge_it++;
@@ -773,12 +775,12 @@ bool PCStable::Direct(int a, int c) {
  * @param y_idx index of node y
  * @return common neighbor set
  */
-vector<int> PCStable::GetCommonAdjacents(int x_idx, int y_idx) {
+vector<int> PCStable::GetCommonAdjacents(const map<int, map<int, double>> &adjacencies, int x_idx, int y_idx) {
     set<int> adjacent_x, adjacent_y, set_common_idx;
-    for (auto it = network->adjacencies[x_idx].begin(); it != network->adjacencies[x_idx].end(); ++it) {
+    for (auto it = adjacencies.at(x_idx).begin(); it != adjacencies.at(x_idx).end(); ++it) {
         adjacent_x.insert((*it).first);
     }
-    for (auto it = network->adjacencies[y_idx].begin(); it != network->adjacencies[y_idx].end(); ++it) {
+    for (auto it = adjacencies.at(y_idx).begin(); it != adjacencies.at(y_idx).end(); ++it) {
         adjacent_y.insert((*it).first);
     }
     set_intersection(adjacent_x.begin(), adjacent_x.end(),
@@ -791,9 +793,9 @@ vector<int> PCStable::GetCommonAdjacents(int x_idx, int y_idx) {
 /**
  * orientation rule1: if a->b, b--c, and a is not adj to c, then b->c (to avoid v-structures)
  */
-bool PCStable::Rule1(int b_idx, int c_idx) {
+bool PCStable::Rule1(const map<int, map<int, double>> &adjacencies, int b_idx, int c_idx) {
     for (const auto &a_idx: network->GetParentIdxesOfNode(b_idx)) { // for every parent a of b
-        if (network->IsAdjacentTo(c_idx, a_idx)) continue; // skip the case if a is adjacent to c
+        if (network->IsAdjacentTo(adjacencies, c_idx, a_idx)) continue; // skip the case if a is adjacent to c
         if (Direct(b_idx, c_idx)) { // then b->c
             return true;
         }
@@ -804,9 +806,9 @@ bool PCStable::Rule1(int b_idx, int c_idx) {
 /**
  * orientation rule2: if a->b->c, a--c, then a->c (to avoid circles)
  */
-bool PCStable::Rule2(int a_idx, int c_idx) {
+bool PCStable::Rule2(const map<int, map<int, double>> &adjacencies, int a_idx, int c_idx) {
     // get common neighbors of a and c
-    vector<int> common_idx = GetCommonAdjacents(a_idx, c_idx);
+    vector<int> common_idx = GetCommonAdjacents(adjacencies, a_idx, c_idx);
 
     for (const int &b_idx : common_idx) { // check every common neighbor b of a and c
         if (network->IsDirectedFromTo(a_idx, b_idx) &&
@@ -822,9 +824,9 @@ bool PCStable::Rule2(int a_idx, int c_idx) {
 /**
  * orientation rule3: if d--a, d--b, d--c, b->a, c->a, b and c are not adjacent, then orient d->a
  */
-bool PCStable::Rule3(int d_idx, int a_idx) {
+bool PCStable::Rule3(const map<int, map<int, double>> &adjacencies, int d_idx, int a_idx) {
     // get common neighbors of a and d
-    vector<int> common_idx = GetCommonAdjacents(a_idx, d_idx);
+    vector<int> common_idx = GetCommonAdjacents(adjacencies, a_idx, d_idx);
 
     if (common_idx.size() < 2) {
         return false;
@@ -835,8 +837,8 @@ bool PCStable::Rule3(int d_idx, int a_idx) {
             // find two adjacents b and c, b and c are not adjacent
             int b_idx = common_idx[i];
             int c_idx = common_idx[j];
-            if (!network->IsAdjacentTo(b_idx, c_idx)) {
-                if (R3Helper(a_idx, d_idx, b_idx, c_idx)) {
+            if (!network->IsAdjacentTo(adjacencies, b_idx, c_idx)) {
+                if (R3Helper(adjacencies, a_idx, d_idx, b_idx, c_idx)) {
                     return true;
                 }
             }
@@ -849,11 +851,11 @@ bool PCStable::Rule3(int d_idx, int a_idx) {
  * @brief: R3Helper is to check the following 4 edges' direction:
  * d--b, d--c, b->a, c->a
  */
-bool PCStable::R3Helper(int a_idx, int d_idx, int b_idx, int c_idx) {
+bool PCStable::R3Helper(const map<int, map<int, double>> &adjacencies, int a_idx, int d_idx, int b_idx, int c_idx) {
     bool oriented = false;
 
-    bool b5 = network->IsUndirected(d_idx, b_idx);
-    bool b6 = network->IsUndirected(d_idx, c_idx);
+    bool b5 = network->IsUndirected(adjacencies, d_idx, b_idx);
+    bool b6 = network->IsUndirected(adjacencies, d_idx, c_idx);
     bool b7 = network->IsDirectedFromTo(b_idx, a_idx);
     bool b8 = network->IsDirectedFromTo(c_idx, a_idx);
 
@@ -863,7 +865,7 @@ bool PCStable::R3Helper(int a_idx, int d_idx, int b_idx, int c_idx) {
     return oriented;
 }
 
-void PCStable::DirectLeftEdges() {
+void PCStable::DirectLeftEdges(const map<int, map<int, double>> &adjacencies) {
     random_device rd;
     mt19937 gen(rd());
     uniform_int_distribution<int> distribution(0, 1);
@@ -873,7 +875,7 @@ void PCStable::DirectLeftEdges() {
         int y_idx = (*edge_it).GetNode2()->GetNodeIndex();
 
         // if the edge is undirected, direct it
-        if (network->IsUndirected(x_idx, y_idx)) {
+        if (network->IsUndirected(adjacencies, x_idx, y_idx)) {
             bool direct;
             if (distribution(gen) == 0) {
                 direct = Direct(x_idx, y_idx);

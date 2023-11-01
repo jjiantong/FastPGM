@@ -365,17 +365,13 @@ void Network::GenerateUndirectedCompleteGraph() {
  * @brief: to check whether two nodes are adjacent
  * which also means whether an edge (either directed and undirected) between two nodes exists
  */
-bool Network::IsAdjacentTo(int node_idx1, int node_idx2) {
-//    set<int> adjacent_nodes = adjacencies[node_idx1];
+bool Network::IsAdjacentTo(const map<int, map<int, double>> &adjacencies, int node_idx1, int node_idx2) {
     set<int> adjacent_nodes;
-    for (auto it = adjacencies[node_idx1].begin(); it != adjacencies[node_idx1].end(); ++it) {
+    for (auto it = adjacencies.at(node_idx1).begin(); it != adjacencies.at(node_idx1).end(); ++it) {
         adjacent_nodes.insert((*it).first);
     }
-    if (adjacent_nodes.find(node_idx2) == adjacent_nodes.end()) {
-        return false;
-    } else {
-        return true;
-    }
+
+    return adjacent_nodes.find(node_idx2) != adjacent_nodes.end();
 }
 
 /**
@@ -395,8 +391,8 @@ bool Network::IsDirectedFromTo(int node_idx1, int node_idx2) {
  *      2) node1 is not a parent of node2 (via IsDirectedFromTo)
  *      3) node2 is not a parent of node1 (via IsDirectedFromTo)
  */
-bool Network::IsUndirected(int node_idx1, int node_idx2) {
-    return (IsAdjacentTo(node_idx1, node_idx2) &&
+bool Network::IsUndirected(const map<int, map<int, double>> &adjacencies, int node_idx1, int node_idx2) {
+    return (IsAdjacentTo(adjacencies, node_idx1, node_idx2) &&
             !IsDirectedFromTo(node_idx1, node_idx2) &&
             !IsDirectedFromTo(node_idx2, node_idx1));
 }
@@ -694,18 +690,6 @@ bool Network::ContainCircle() {
     SAFE_DELETE_ARRAY(graph);
     SAFE_DELETE_ARRAY(in_degrees);
     return result;
-}
-
-/**
- * @brief: get the number of parameters of the network, based on probability tables
- *         (and other parameters in continuous variables)
- */
-int Network::GetNumParams() const {
-  int result = 0;
-  for (const auto &i_n : map_idx_node_ptr) { // TODO: function "FindNodePtrByIndex"
-    result += i_n.second->GetNumParams(); // TODO: Node::GetNumParams is a virtual function
-  }
-  return result;
 }
 
 /**

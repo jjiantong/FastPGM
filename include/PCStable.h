@@ -40,7 +40,8 @@ public:
     virtual void StructLearnCompData(Dataset *dts, int group_size, int num_threads, bool print_struct, int verbose);
     void StructLearnByPCStable(Dataset *dts, int num_threads, int group_size,
                                Timer *timer, bool print_struct, int verbose);
-    bool SearchAtDepth(Dataset *dts, int c_depth, int num_threads, Timer *timer, int group_size, int verbose);
+    bool SearchAtDepth(Dataset *dts, int c_depth, int num_threads, map<int, map<int, double>> &adjacencies,
+                       Timer *timer, int group_size, int verbose);
 
     bool CheckEdge(Dataset *dts, const map<int, map<int, double>> &adjacencies, int c_depth,
                    int edge_id, Timer *timer, int group_size, int verbose);
@@ -48,16 +49,16 @@ public:
     bool Testing(Dataset *dts, int c_depth, int edge_id, int x_idx, int y_idx, Timer *timer, int group_size, int verbose);
     int FreeDegree(const map<int, map<int, double>> &adjacencies);
 
-    void OrientVStructure();
-    void OrientImplied();
+    void OrientVStructure(const map<int, map<int, double>> &adjacencies);
+    void OrientImplied(const map<int, map<int, double>> &adjacencies);
     bool Direct(int a, int c);
-    vector<int> GetCommonAdjacents(int x_idx, int y_idx);
-    bool Rule1(int b_idx, int c_idx);
-    bool Rule2(int a_idx, int c_idx);
-    bool Rule3(int d_idx, int a_idx);
-    bool R3Helper(int a_idx, int d_idx, int b_idx, int c_idx);
+    vector<int> GetCommonAdjacents(const map<int, map<int, double>> &adjacencies, int x_idx, int y_idx);
+    bool Rule1(const map<int, map<int, double>> &adjacencies, int b_idx, int c_idx);
+    bool Rule2(const map<int, map<int, double>> &adjacencies, int a_idx, int c_idx);
+    bool Rule3(const map<int, map<int, double>> &adjacencies, int d_idx, int a_idx);
+    bool R3Helper(const map<int, map<int, double>> &adjacencies, int a_idx, int d_idx, int b_idx, int c_idx);
 
-    void DirectLeftEdges();
+    void DirectLeftEdges(const map<int, map<int, double>> &adjacencies);
     vector<int> FindRootsInDAGForest();
     void AddRootNode(vector<int> &sub_roots);
 };

@@ -1,7 +1,3 @@
-//
-// Created by LinjianLi on 2019/2/9.
-//
-
 #ifndef BAYESIANNETWORK_CONTINUOUSNODE_H
 #define BAYESIANNETWORK_CONTINUOUSNODE_H
 
@@ -50,11 +46,8 @@ class ContinuousNode : public Node {//the parent nodes of ContinuousNode can be 
   ContinuousNode(ContinuousNode &n) = default;
   void AddChild(Node *node_ptr) override;
   void RemoveParent(Node *node_ptr) override;
-  int GetNumParams() override;
 //  void ClearParams() override;
 
- private:
-  void IdentifyContPar();
 };
 
 

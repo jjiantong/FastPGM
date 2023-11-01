@@ -11,8 +11,6 @@
 
 using namespace std;
 
-//class Network;  // Forward declaration.
-
 class DiscreteNode : public Node {//the parent nodes of DiscreteNode must be discrete variables.
 public:
     // `possible_values_ids` is not used in any algorithm, but the map of possible values and ids should be recorded.
@@ -51,8 +49,6 @@ public:
     int GetDomainSize() const;
     void SetDomainSize(int size);
     void AddParent(Node *node_ptr) override;
-    int GetNumParams() override;
-    void PrintProbabilityTable();
 
     int GetNumPotentialVals();
 

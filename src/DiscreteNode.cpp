@@ -47,44 +47,6 @@ void DiscreteNode::AddParent(Node *p) {
 //  }
 }
 
-/**
- * @brief: obtain the number of probability values in the conditional probability table
- * i.e., (# of potential values of the child) * (# of parent configurations)
- */
-int DiscreteNode::GetNumParams() {
-  int scale = this->GetNumParentsConfig();//the size of all parent combination (i.e., # of columns of the table)
-  return this->GetDomainSize() * scale;
-}
-
-void DiscreteNode::PrintProbabilityTable() {//checked
-  cout << GetNodeIndex() << ":\t";
-
-  if (this->HasParents()) {    // If this node has parents
-
-    for(int i = 0; i<GetDomainSize(); ++i) {    // For each head variable of CPT (i.e., value of child)
-        int query = i;
-      auto it = set_discrete_parents_combinations.begin();
-      for (int j = 0; j < GetNumParentsConfig(); ++j){  // For tail variables of CPT (i.e., parent configuration)
-        DiscreteConfig parcfg = *it;
-        string condition = "parent_config_" + to_string(j);
-        cout << "P(" << query << '|' << condition << ")=" << GetProbability(query, parcfg) << '\t';
-        ++it;
-      }
-    }
-    cout << endl;
-
-  } else {
-
-    DiscreteConfig parcfg;
-    for(int i = 0; i < GetDomainSize(); ++i) {    // For each row of CPT
-        int query = i;
-      cout << "P(" << query << ")=" << GetProbability(query, parcfg) << '\t';
-    }
-    cout << endl;
-
-  }
-}
-
 void DiscreteNode::SetLaplaceSmooth(double alpha) {
   this->laplace_smooth = alpha;
 }

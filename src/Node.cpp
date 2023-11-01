@@ -39,21 +39,6 @@ int Node::GetNumChildren() const {
 }
 
 /**
- * @brief: get the total number of parent combinations
- */
-int Node::GetNumParentsConfig() {
-  if (num_parents_config < 0) {
-    num_parents_config = 1;
-    for (auto const &par : vec_disc_parent_indexes) {
-      // If the node has no parent, this for loop will not be executed.
-      // And the number of parents config will be 1.
-      num_parents_config *= map_disc_parents_domain_size[par];
-    }
-  }
-  return num_parents_config;
-}
-
-/**
  * @brief: similar to GetDiscParConfigGivenAllVarValue(vector<int> &all_var_val).
  * get parents given a set of [variable id, variable value].
  * This function is similar to a filter - filters out the variables and values which are not the parents of the current node.
@@ -149,18 +134,16 @@ void Node::AddParent(Node *p) {
  * @brief: add a parent p to the node
  * update:  "set_parent_indexes",
  *          "vec_disc_parent_indexes",
- *          "map_disc_parents_domain_size",
  *          "set_discrete_parents_combinations"
  */
 void Node::AddDiscreteParent(Node *p) {
     int p_idx = p->GetNodeIndex();//get the id of the parent p
     if (set_parent_indexes.find(p_idx) == set_parent_indexes.end()) {
         // If p is not in the parent set.
-        // update "set_parent_indexes", "vec_disc_parent_indexes", "map_disc_parents_domain_size"
+        // update "set_parent_indexes", "vec_disc_parent_indexes"
         set_parent_indexes.insert(p_idx);
         auto dp = (DiscreteNode *) p;//dp stands for "discrete parent"
         vec_disc_parent_indexes.push_back(p_idx);
-        map_disc_parents_domain_size[p_idx] = dp->GetDomainSize();
 
         // Update possible parent configurations
         set<DiscreteConfig> new_par_combs;
@@ -234,7 +217,6 @@ void Node::RemoveChild(Node *c) {
  * @attention: this function needs to use with RemoveChild
  * update:  "set_parent_indexes",
  *          "vec_disc_parent_indexes",
- *          "map_disc_parents_domain_size",
  *          "set_discrete_parents_combinations"
  *          "contin_par_indexes"
  */
@@ -250,7 +232,6 @@ void Node::RemoveParent(Node *p) {
 
   if (p->is_discrete) {
     vec_disc_parent_indexes.erase(std::find(vec_disc_parent_indexes.begin(), vec_disc_parent_indexes.end(), p_idx));
-    map_disc_parents_domain_size.erase(p_idx);
 
     // Update possible parent configurations
     auto dp = (DiscreteNode*) p;
@@ -340,7 +321,6 @@ void Node::GenDiscParCombs(set<Node*> set_parent_ptrs) {
  * @brief: possibly only used in structure learning
  * clear:   "set_parent_indexes",
  *          "vec_disc_parent_indexes",
- *          "map_disc_parents_domain_size",
  *          "set_discrete_parents_combinations"
  */
 void Node::ClearParents() {
@@ -350,7 +330,6 @@ void Node::ClearParents() {
 
   vec_disc_parent_indexes.clear();
   set_parent_indexes.clear();
-  map_disc_parents_domain_size.clear();
 }
 
 void Node::ClearChildren() {
