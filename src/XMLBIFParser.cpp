@@ -117,6 +117,7 @@ void XMLBIFParser::AssignProbsToNodes(vector<Node*> vec_node_ptrs) {
         // store the node2node relationships:
         // store the parent-child relationship, but didn't store the edge
         for (auto &gvp : vec_given_vars_ptrs) {
+            // (network)SetParentChild(node1, node2); // set parent and child relationship
             for_np->AddParent(gvp);
             gvp->AddChild(for_np);
         }

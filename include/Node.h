@@ -62,10 +62,8 @@ class Node {
   bool IsParentOfThisNode(Node *node_ptr);
   void RemoveChild(Node *node_ptr);
   virtual void RemoveParent(Node *node_ptr);
-  void GenDiscParCombs(set<Node*> set_parent_ptrs);
   void ClearParents();
   void ClearChildren();
-//  virtual void ClearParams() = 0;
 };
 
 

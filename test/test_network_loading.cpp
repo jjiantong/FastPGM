@@ -46,7 +46,7 @@
 //        cout << "  node_index = " << node->GetNodeIndex() << endl;
 //        cout << "  node_name = " << node->node_name << endl;
 //        cout << "  is_discrete = " << node->is_discrete << endl;
-//        cout << "  set_discrete_parents_combinations: " << endl;
+//        cout << "  set_discrete_parents_combinations: size = " << node->set_discrete_parents_combinations.size() << endl;
 //        for (const auto &config: node->set_discrete_parents_combinations) {
 //            cout << "  ";
 //            for (const auto &varval: config) {

@@ -279,43 +279,6 @@ void Node::RemoveParent(Node *p) {
 //    }
 //}
 
-/**
- * @brief: generate all the possible parent configurations ("set_discrete_parents_combinations")
- * @param: set_parent_ptrs: the set of parents of the current node.
- */
-void Node::GenDiscParCombs(set<Node*> set_parent_ptrs) {
-  set_discrete_parents_combinations.clear();
-
-  // If the node has no parent, then it should have ONE empty parent configuration.
-  if (set_parent_ptrs.empty()) {
-    DiscreteConfig empty_config;
-    set_discrete_parents_combinations.insert(empty_config);
-    return;
-  }
-
-  // Preprocess. Construct set of sets.
-  set<DiscreteConfig> all_config_of_each_parent;
-
-  for (const auto &par_ptr : set_parent_ptrs) {
-    if (!par_ptr->is_discrete) { //no parent configuration for continuous nodes
-      continue;
-    }
-
-    DiscreteConfig all_config_of_a_parent;
-    pair<int, int> varId_val;
-    DiscreteNode *d_par_ptr = (DiscreteNode*)(par_ptr);//convert a generic node to a discrete node
-
-    for (int i = 0; i < d_par_ptr->GetDomainSize(); ++i) {
-      varId_val.first = par_ptr->node_index;
-      varId_val.second = i;
-      all_config_of_a_parent.insert(varId_val);
-    }
-    all_config_of_each_parent.insert(all_config_of_a_parent);
-  }
-
-  // Generate
-  set_discrete_parents_combinations = GenAllCombinationsFromSets(&all_config_of_each_parent);
-}
 
 /**
  * @brief: possibly only used in structure learning

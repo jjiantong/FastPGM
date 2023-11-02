@@ -972,20 +972,30 @@ vector<int> PCStable::FindRootsInDAGForest() {
     return roots;
 }
 
-///**
-// * @brief: add a root node.
-// * this method is used if the resulting network structure contains more than 1 connected sub-graphs. we add a `ROOT`
-// * node to be the parent of each sub-graph's root identified by `FindRootsInDAGForest`.
-// *      id: network->num_nodes
-// *      name: ROOT
-// *      type: discrete
-// *      possible values: 0, 1
-// */
-//void PCStable::AddRootNode(vector<int> &sub_roots) {
-//    // I think the added node should be discrete node
-//    DiscreteNode *root = new DiscreteNode(network->num_nodes);
-//    root->node_name = "ROOT";
-//    root->possible_values_ids["0"] = 0;
-//    root->possible_values_ids["1"] = 1;
-//    root->SetDomainSize(root->possible_values_ids.size());
-//}
+/**
+ * @brief: add a root node.
+ * this method is used if the resulting network structure contains more than 1 connected sub-graphs. we add a `ROOT`
+ * node to be the parent of each sub-graph's root identified by `FindRootsInDAGForest`.
+ *      id: network->num_nodes
+ *      name: ROOT
+ *      type: discrete
+ *      possible values: 0, 1
+ */
+void PCStable::AddRootNode(vector<int> &sub_roots) {
+    // I think the added node should be discrete node
+    DiscreteNode *root = new DiscreteNode(network->num_nodes);
+    root->node_name = "ROOT";
+    root->possible_values_ids["0"] = 0;
+    root->possible_values_ids["1"] = 1;
+    root->SetDomainSize(2);
+
+    // set parent - child relationships. set `ROOT` as the parent of the variables in `sub_roots`
+    for (const int &child_index: sub_roots) {
+        Node* child_ptr = network->FindNodePtrByIndex(child_index);
+        network->SetParentChild(root, child_ptr);
+        network->num_edges++;
+    }
+
+    network->map_idx_node_ptr[network->num_nodes] = root;
+    network->num_nodes++;
+}

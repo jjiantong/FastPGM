@@ -89,7 +89,7 @@ public:
     set<Node*> GetChildrenPtrsOfNode(int node_index);
     set<int> GetChildrenIdxesOfNode(int node_index);
 
-    void GenDiscParCombsForAllNodes();
+//    void GenDiscParCombsForAllNodes();
 
     vector<int> GetTopoOrd();
     vector<int> GetReverseTopoOrd();

@@ -421,8 +421,8 @@ void Network::SetParentChild(int p_index, int c_index) {
  * add c to p as a child, and add p to c as a parent
  */
 void Network::SetParentChild(Node *p, Node *c) {
-  p->AddChild(c);
-  c->AddParent(p);
+    p->AddChild(c);
+    c->AddParent(p);
 }
 
 /**
@@ -495,16 +495,6 @@ set<int> Network::GetChildrenIdxesOfNode(int node_index) {
         set_chi_idxes.insert(idx);
     }
     return set_chi_idxes;
-}
-
-/**
- * @brief: generate all the configurations of the parents for each node
- */
-void Network::GenDiscParCombsForAllNodes() {
-  for (const auto &id_np : this->map_idx_node_ptr) { // for each node (id-node_ptr pair) in the network
-    auto np = id_np.second;
-    np->GenDiscParCombs(GetParentPtrsOfNode(np->GetNodeIndex()));
-  }
 }
 
 /**
