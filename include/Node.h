@@ -42,7 +42,7 @@ class Node {
   set<int> set_parent_indexes; // note: this set contains both discrete parents and continuous parents
   set<int> set_children_indexes;
 
-  DiscreteConfig GetDiscParConfigGivenAllVarValue(DiscreteConfig &all_var_val);
+  DiscreteConfig GetDiscParConfigGivenAllVarValue(DiscreteConfig &all_var_val, int root_idx);
   DiscreteConfig GetDiscParConfigGivenAllVarValue(vector<int> &all_var_val);
   // ==================================================
 

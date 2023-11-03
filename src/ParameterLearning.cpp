@@ -16,16 +16,8 @@ void ParameterLearning::LearnParamsKnowStructCompData(const Dataset *dts, int al
     Timer *timer = new Timer();
     timer->Start("parameter_learning");
 
-    int num_cores = omp_get_num_procs();
-    omp_set_num_threads(num_cores);
-    int max_work_per_thread = (dts->num_vars + num_cores - 1) / num_cores;
-    int thread_id = omp_get_thread_num();
-
-//    // a thread for one or more nodes
-//    for (int i = max_work_per_thread * thread_id;
-//         i < max_work_per_thread * (thread_id + 1) && i < dts->num_vars;
-//         ++i) {
-    for (int i=0; i<dts->num_vars; ++i) {
+    int root_idx = (network->num_nodes == dts->num_vars) ? -1: dts->num_vars;
+    for (int i = 0; i < dts->num_vars; ++i) {
         // for each variable/node, update probability table of (node | parent configurations)
         DiscreteNode *this_node = dynamic_cast<DiscreteNode*>(network->FindNodePtrByIndex(i));   // todo: support continuous node
         this_node->SetLaplaceSmooth(alpha);
@@ -38,9 +30,20 @@ void ParameterLearning::LearnParamsKnowStructCompData(const Dataset *dts, int al
             for (int j = 0; j < values.size(); ++j) { // for each variable of this instance
                 instance.insert(pair<int, int>(j, values.at(j)));
             }
-            this_node->AddInstanceOfVarVal(instance);//an instance affects all the nodes in the network, because the instance here is dense.
+            this_node->AddInstanceOfVarVal(instance, root_idx);
+            //an instance affects all the nodes in the network, because the instance here is dense.
         }
     }
+
+    // separately handle the virtual ROOT if it exists.
+    if (root_idx != -1) {
+        // ROOT has no parent. suppose that ROOT has two values, each of which has the same probability.
+        DiscreteConfig empty_config;
+        DiscreteNode *root = dynamic_cast<DiscreteNode*>(network->FindNodePtrByIndex(root_idx));
+        root->AddCount(0, empty_config, 0.5 * dts->num_instance);
+        root->AddCount(1, empty_config, 0.5 * dts->num_instance);
+    }
+
 
 //    if (verbose > 1) {
 //        cout << "==================================================" << '\n'

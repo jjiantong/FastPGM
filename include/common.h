@@ -111,6 +111,8 @@ vector<string> Split(string &s, string delimiter);
 
 vector<vector<int>> NaryCount(vector<int> vec_range_each_digit);
 
+int Random01();
+
 
 #endif //BAYESIANNETWORK_COMMON_H
 

@@ -1,6 +1,7 @@
 //
 // Created by jjt on 18/09/22.
 //
+#include <random>
 #include "common.h"
 
 /**
@@ -209,4 +210,10 @@ vector<vector<int>> NaryCount(vector<int> vec_range_each_digit) {//checked on 11
     return result_counts;
 }
 
+int Random01() {
+    random_device rd;
+    mt19937 gen(rd());
+    uniform_int_distribution<int> distribution(0, 1);
+    return distribution(gen);
+}
 

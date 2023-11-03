@@ -872,9 +872,6 @@ bool PCStable::R3Helper(const map<int, map<int, double>> &adjacencies, int a_idx
 }
 
 void PCStable::DirectLeftEdges(const map<int, map<int, double>> &adjacencies) {
-    random_device rd;
-    mt19937 gen(rd());
-    uniform_int_distribution<int> distribution(0, 1);
 
     for (auto edge_it = network->vec_edges.begin(); edge_it != network->vec_edges.end();) {
         int x_idx = (*edge_it).GetNode1()->GetNodeIndex();
@@ -883,7 +880,7 @@ void PCStable::DirectLeftEdges(const map<int, map<int, double>> &adjacencies) {
         // if the edge is undirected, direct it
         if (network->IsUndirected(adjacencies, x_idx, y_idx)) {
             bool direct;
-            if (distribution(gen) == 0) {
+            if (Random01() == 0) {
                 direct = Direct(x_idx, y_idx);
                 if (!direct) {
                     cout << "Randomly directing causes unexpected loop, trying to direct again... " << endl;
@@ -993,6 +990,8 @@ void PCStable::AddRootNode(vector<int> &sub_roots) {
     for (const int &child_index: sub_roots) {
         Node* child_ptr = network->FindNodePtrByIndex(child_index);
         network->SetParentChild(root, child_ptr);
+        Edge edge(root, child_ptr, TAIL, ARROW);
+        network->vec_edges.push_back(edge);
         network->num_edges++;
     }
 
