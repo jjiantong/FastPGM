@@ -56,7 +56,7 @@ JunctionTree::~JunctionTree() {
  */
 double JunctionTree::EvaluateAccuracy(string path, int num_threads) {
 
-    LoadGroundTruthProbabilityTable(path);
+//    LoadGroundTruthProbabilityTable(path);
 
     cout << "==================================================" << '\n'
          << "Begin testing the trained network." << endl;
@@ -1490,8 +1490,8 @@ int JunctionTree::PredictUseJTInfer(const DiscreteConfig &E, int instance_index,
     timer->Start("predict");
     int label_predict = InferenceUsingJT();
     GetProbabilitiesAllNodes(E);
-    mse += CalculateMSE(probs_one_sample, instance_index);
-    hd += CalculateHellingerDistance(probs_one_sample, instance_index);
+//    mse += CalculateMSE(probs_one_sample, instance_index);
+//    hd += CalculateHellingerDistance(probs_one_sample, instance_index);
     timer->Stop("predict");
 
     timer->Start("reset");
