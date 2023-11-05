@@ -25,7 +25,7 @@ protected:
         network->GetNetFromXMLBIFFile(net_file);
         tester->LoadLIBSVMDataKnownNetwork(test_set_file, network->num_nodes);
 
-        inference = new JunctionTree(network, tester, false);
+        inference = new JunctionTree(false, network, tester, false);
 //        SAFE_DELETE(network);
         SAFE_DELETE(tester);
     }
@@ -38,7 +38,7 @@ TEST_F(TestExactInferenceJTAlarm, thread_1) {
     int num_threads = 1;
 
     double accuracy = inference->EvaluateAccuracy(pt_file, num_threads);
-    cout << "accuracy = " << accuracy << endl;
+//    cout << "accuracy = " << accuracy << endl;
     SAFE_DELETE(inference);
 }
 //
@@ -93,7 +93,7 @@ TEST_F(TestExactInferenceJTAlarm, thread_1) {
 //        network->GetNetFromXMLBIFFile(net_file);
 //        tester->LoadLIBSVMDataKnownNetwork(test_set_file, network->num_nodes);
 //
-//        inference = new JunctionTree(network, tester, false);
+//        inference = new JunctionTree(false, network, tester, false);
 ////        SAFE_DELETE(network);
 //        SAFE_DELETE(tester);
 //    }
@@ -161,7 +161,7 @@ TEST_F(TestExactInferenceJTAlarm, thread_1) {
 //        network->GetNetFromXMLBIFFile(net_file);
 //        tester->LoadLIBSVMDataKnownNetwork(test_set_file, network->num_nodes);
 //
-//        inference = new JunctionTree(network, tester, false);
+//        inference = new JunctionTree(false, network, tester, false);
 ////        SAFE_DELETE(network);
 //        SAFE_DELETE(tester);
 //    }
@@ -229,7 +229,7 @@ TEST_F(TestExactInferenceJTAlarm, thread_1) {
 //        network->GetNetFromXMLBIFFile(net_file);
 //        tester->LoadLIBSVMDataKnownNetwork(test_set_file, network->num_nodes);
 //
-//        inference = new JunctionTree(network, tester, false);
+//        inference = new JunctionTree(false, network, tester, false);
 ////        SAFE_DELETE(network);
 //        SAFE_DELETE(tester);
 //    }
@@ -297,7 +297,7 @@ TEST_F(TestExactInferenceJTAlarm, thread_1) {
 //        network->GetNetFromXMLBIFFile(net_file);
 //        tester->LoadLIBSVMDataKnownNetwork(test_set_file, network->num_nodes);
 //
-//        inference = new JunctionTree(network, tester, false);
+//        inference = new JunctionTree(false, network, tester, false);
 ////        SAFE_DELETE(network);
 //        SAFE_DELETE(tester);
 //    }
@@ -365,7 +365,7 @@ TEST_F(TestExactInferenceJTAlarm, thread_1) {
 //        network->GetNetFromXMLBIFFile(net_file);
 //        tester->LoadLIBSVMDataKnownNetwork(test_set_file, network->num_nodes);
 //
-//        inference = new JunctionTree(network, tester, false);
+//        inference = new JunctionTree(false, network, tester, false);
 ////        SAFE_DELETE(network);
 //        SAFE_DELETE(tester);
 //    }
@@ -433,7 +433,7 @@ TEST_F(TestExactInferenceJTAlarm, thread_1) {
 //        network->GetNetFromXMLBIFFile(net_file);
 //        tester->LoadLIBSVMDataKnownNetwork(test_set_file, network->num_nodes);
 //
-//        inference = new JunctionTree(network, tester, false);
+//        inference = new JunctionTree(false, network, tester, false);
 ////        SAFE_DELETE(network);
 //        SAFE_DELETE(tester);
 //    }

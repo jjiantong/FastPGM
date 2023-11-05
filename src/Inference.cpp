@@ -10,7 +10,11 @@
  * @param dts the testing set
  * @param is_dense whether we need to fill zero for the evidences
  */
-Inference::Inference(Network *net, Dataset *dts, bool is_dense): network(net), num_instances(dts->num_instance), query_index(dts->class_var_index) {
+Inference::Inference(bool classification, Network *net, Dataset *dts, bool is_dense):
+            classification_mode(classification), network(net), num_instances(dts->num_instance),
+            query_index(dts->class_var_index) {
+    // TODO: double check this function if the dataset for inference problem is changed. e.g., we don't need \
+    //  `query_index` or `ground_truth` for inference mode.
 
     evidences.reserve(num_instances);
     ground_truths.reserve(num_instances);
@@ -37,11 +41,30 @@ Inference::Inference(Network *net, Dataset *dts, bool is_dense): network(net), n
 
         // construct the ground truth
         int g = vec_instance.at(query_index).second.GetInt();
-        ground_truths.push_back(g);
+        if (classification_mode) {
+            ground_truths.push_back(g);
+        }
     }
 }
 
 Inference::Inference(Network *net): network(net) {}
+
+double Inference::EvaluateAccuracy(string path, int num_threads) {
+    if (!classification_mode) {
+        LoadGroundTruthProbabilityTable(path);
+    }
+
+    cout << "==================================================" << '\n'
+         << "Begin testing the trained network." << endl;
+    vector<int> predictions = Predict(num_threads); // pure virtual function
+
+    if (classification_mode) {
+        double accuracy = Accuracy(predictions);
+        return accuracy;
+    } else {
+        return -1;
+    }
+}
 
 double Inference::Accuracy(vector<int> predictions) {
     int size = ground_truths.size(),

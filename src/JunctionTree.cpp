@@ -1,6 +1,7 @@
 #include "JunctionTree.h"
 
-JunctionTree::JunctionTree(Network *net, Dataset *dts, bool is_dense) : Inference(net, dts, is_dense) {
+JunctionTree::JunctionTree(bool classification, Network *net, Dataset *dts, bool is_dense) :
+                            Inference(classification, net, dts, is_dense) {
 
     Timer *timer = new Timer();
     // record time
@@ -49,83 +50,6 @@ JunctionTree::~JunctionTree() {
     SAFE_DELETE(tree);
     SAFE_DELETE_ARRAY(clique_backup);
     SAFE_DELETE_ARRAY(separator_backup);
-}
-
-/**
- * @brief: test the Junction Tree given a data set
- */
-double JunctionTree::EvaluateAccuracy(string path, int num_threads) {
-
-//    LoadGroundTruthProbabilityTable(path);
-
-    cout << "==================================================" << '\n'
-         << "Begin testing the trained network." << endl;
-
-    Timer *timer = new Timer();
-    // record time
-    timer->Start("jt");
-
-    // predict the labels of the test instances
-    vector<int> predictions = PredictUseJTInfer(num_threads, timer);
-
-    double accuracy = Accuracy(predictions);
-
-    timer->Stop("jt");
-    setlocale(LC_NUMERIC, "");
-
-    cout << "==================================================" << endl;
-    timer->Print("jt");
-    cout << "removing reset: " << timer->time["jt"] - timer->time["reset"] << " s ";
-    cout << "removing norm: " << timer->time["jt"] - timer->time["reset"] - timer->time["norm"] << " s ";
-
-    timer->Print("load evidence"); cout << "(" << timer->time["load evidence"] / timer->time["jt"] * 100 << "%) ";
-    timer->Print("msg passing"); cout << "(" << timer->time["msg passing"] / timer->time["jt"] * 100 << "%) ";
-    timer->Print("reset"); cout << "(" << timer->time["reset"] / timer->time["jt"] * 100 << "%) ";
-    timer->Print("predict"); cout << "(" << timer->time["predict"] / timer->time["jt"] * 100 << "%)" << endl;
-
-//    timer->Print("upstream"); timer->Print("downstream"); cout << endl << endl;
-
-//    timer->Print("sp-evi-pre");
-    timer->Print("p-evi-main");
-//    timer->Print("sp-evi-post");
-    cout << endl;
-
-//    timer->Print("s-sep-col-pre");
-    timer->Print("p-sep-col-main");
-    timer->Print("sep-col");
-//    cout << " count = " << cnt_sep_col;
-//    timer->Print("s-sep-col-post");
-    cout << endl;
-
-//    timer->Print("s-sep-dis-pre");
-    timer->Print("p-sep-dis-main");
-    timer->Print("sep-dis");
-//    cout << " count = " << cnt_sep_dis;
-//    timer->Print("s-sep-dis-post");
-    cout << endl;
-
-//    timer->Print("s-clq-col-pre");
-    timer->Print("p-clq-col-main");
-    timer->Print("clq-col");
-//    cout << " count = " << cnt_clq_col;
-//    timer->Print("s-clq-col-post");
-    cout << endl;
-
-//    timer->Print("s-clq-dis-pre");
-    timer->Print("p-clq-dis-main");
-    timer->Print("clq-dis");
-//    cout << "count = " << cnt_clq_dis;
-//    timer->Print("s-clq-dis-post");
-    cout << endl;
-
-    timer->Print("p-div");
-    timer->Print("p-mul"); cout << endl;
-
-    timer->Print("norm"); cout << endl << endl;
-
-    SAFE_DELETE(timer);
-
-    return accuracy;
 }
 
 /**
@@ -1488,15 +1412,22 @@ int JunctionTree::PredictUseJTInfer(const DiscreteConfig &E, int instance_index,
     timer->Stop("msg passing");
 
     timer->Start("predict");
-    int label_predict = InferenceUsingJT();
-    GetProbabilitiesAllNodes(E);
-//    mse += CalculateMSE(probs_one_sample, instance_index);
-//    hd += CalculateHellingerDistance(probs_one_sample, instance_index);
+    int label_predict = -1;
+    if (classification_mode) {
+        label_predict = InferenceUsingJT();
+    } else {
+        GetProbabilitiesAllNodes(E);
+    }
     timer->Stop("predict");
 
     timer->Start("reset");
     ResetJunctionTree();
     timer->Stop("reset");
+
+    if (!classification_mode) {
+        mse += CalculateMSE(probs_one_sample, instance_index);
+        hd += CalculateHellingerDistance(probs_one_sample, instance_index);
+    }
 
     return label_predict;
 }
@@ -1505,7 +1436,11 @@ int JunctionTree::PredictUseJTInfer(const DiscreteConfig &E, int instance_index,
  * @brief: predict the labels given different evidences
  * it just repeats the function above multiple times, and print the progress at the meantime
  */
-vector<int> JunctionTree::PredictUseJTInfer(int num_threads, Timer *timer) {
+vector<int> JunctionTree::Predict(int num_threads) {
+    Timer *timer = new Timer();
+    // record time
+    timer->Start("jt");
+
     cout << "Progress indicator: ";
     int every_1_of_20 = num_instances / 20; // used to print, print 20 times in total
     int progress = 0;
@@ -1513,6 +1448,9 @@ vector<int> JunctionTree::PredictUseJTInfer(int num_threads, Timer *timer) {
     vector<int> results(num_instances, 0);
     double mse = 0.0;
     double hd = 0.0;
+    if (!classification_mode) {
+        results.resize(num_instances);
+    }
 
     for (int i = 0; i < num_instances; ++i) {
         ++progress;
@@ -1524,11 +1462,66 @@ vector<int> JunctionTree::PredictUseJTInfer(int num_threads, Timer *timer) {
         }
 
         int label_predict = PredictUseJTInfer(evidences.at(i), i, mse, hd, num_threads, timer);
-        results.at(i) = label_predict;
+        if (classification_mode) {
+            results.at(i) = label_predict;
+        }
     }
 
     cout << "average MSE = " << mse/num_instances << endl;
     cout << "average HD = " << hd/num_instances << endl;
 
+    timer->Stop("jt");
+
+    cout << "==================================================" << endl;
+    timer->Print("jt");
+    cout << "removing reset: " << timer->time["jt"] - timer->time["reset"] << " s ";
+    cout << "removing norm: " << timer->time["jt"] - timer->time["reset"] - timer->time["norm"] << " s ";
+
+    timer->Print("load evidence"); cout << "(" << timer->time["load evidence"] / timer->time["jt"] * 100 << "%) ";
+    timer->Print("msg passing"); cout << "(" << timer->time["msg passing"] / timer->time["jt"] * 100 << "%) ";
+    timer->Print("reset"); cout << "(" << timer->time["reset"] / timer->time["jt"] * 100 << "%) ";
+    timer->Print("predict"); cout << "(" << timer->time["predict"] / timer->time["jt"] * 100 << "%)" << endl;
+
+//    timer->Print("upstream"); timer->Print("downstream"); cout << endl << endl;
+
+//    timer->Print("sp-evi-pre");
+    timer->Print("p-evi-main");
+//    timer->Print("sp-evi-post");
+    cout << endl;
+
+//    timer->Print("s-sep-col-pre");
+    timer->Print("p-sep-col-main");
+    timer->Print("sep-col");
+//    cout << " count = " << cnt_sep_col;
+//    timer->Print("s-sep-col-post");
+    cout << endl;
+
+//    timer->Print("s-sep-dis-pre");
+    timer->Print("p-sep-dis-main");
+    timer->Print("sep-dis");
+//    cout << " count = " << cnt_sep_dis;
+//    timer->Print("s-sep-dis-post");
+    cout << endl;
+
+//    timer->Print("s-clq-col-pre");
+    timer->Print("p-clq-col-main");
+    timer->Print("clq-col");
+//    cout << " count = " << cnt_clq_col;
+//    timer->Print("s-clq-col-post");
+    cout << endl;
+
+//    timer->Print("s-clq-dis-pre");
+    timer->Print("p-clq-dis-main");
+    timer->Print("clq-dis");
+//    cout << "count = " << cnt_clq_dis;
+//    timer->Print("s-clq-dis-post");
+    cout << endl;
+
+    timer->Print("p-div");
+    timer->Print("p-mul"); cout << endl;
+
+    timer->Print("norm"); cout << endl << endl;
+
+    SAFE_DELETE(timer);
     return results;
 }

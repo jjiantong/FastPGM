@@ -37,10 +37,10 @@ public:
 
 
     JunctionTree() = default;
-    JunctionTree(Network *net, Dataset *dts, bool is_dense);
+    JunctionTree(bool classification, Network *net, Dataset *dts, bool is_dense);
     ~JunctionTree();
 
-    virtual double EvaluateAccuracy(string path, int num_threads);
+    virtual vector<int> Predict(int num_threads);
 
     void ResetJunctionTree();
 
@@ -77,7 +77,6 @@ protected:
 
     int InferenceUsingJT();
     int PredictUseJTInfer(const DiscreteConfig &E, int instance_index, double &mse, double &hd, int num_threads, Timer *timer);
-    vector<int> PredictUseJTInfer(int num_threads, Timer *timer);
 
     /**
      * @brief: compute 2d index (j,k) according to 1d index s
