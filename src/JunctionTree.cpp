@@ -33,8 +33,6 @@ JunctionTree::JunctionTree(bool classification, Network *net, Dataset *dts, bool
     BackUpJunctionTree();
 //    cout << "Finish BackUpJunctionTree" << endl;
 
-    probs_one_sample.resize(network->num_nodes);
-
     timer->Stop("construct jt");
     cout << "==================================================";
     cout << endl; timer->Print("construct jt"); cout << endl;
@@ -1307,24 +1305,20 @@ PotentialTable JunctionTree::CalculateMarginalProbability() {
  * @brief: get probabilities for all possible values of all non-evidence nodes
  */
 void JunctionTree::GetProbabilitiesAllNodes(const DiscreteConfig &E) {
+    probs_one_sample.resize(network->num_nodes);
     for (int i = 0; i < network->num_nodes; ++i) {
         GetProbabilitiesOneNode(E, i);
-//        cout << endl;
     }
 }
 
 void JunctionTree::GetProbabilitiesOneNode(const DiscreteConfig &E, int index) {
-    int dim = dynamic_cast<DiscreteNode*>(network->FindNodePtrByIndex(index))->GetDomainSize();
-
-    vector<double> prob(dim, 0.0);
-    probs_one_sample[index] = prob;
-
     for (auto &e: E) {
         if (index == e.first) {
             /**
              * case 1: the node is evidence node
-             * do nothing
              */
+            vector<double> prob(1, -1);
+            probs_one_sample[index] = prob;
             return;
         }
     }
@@ -1333,6 +1327,9 @@ void JunctionTree::GetProbabilitiesOneNode(const DiscreteConfig &E, int index) {
      * case 2: the node is non-evidence node, do the sampling like pls; has two steps:
      * output the probabilities by finding a clique containing this node
      */
+    int dim = dynamic_cast<DiscreteNode*>(network->FindNodePtrByIndex(index))->GetDomainSize();
+    probs_one_sample[index].resize(dim);
+
     int min_size = INT32_MAX;
     Clique *selected_clique = nullptr;
 
