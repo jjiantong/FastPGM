@@ -129,13 +129,14 @@ int Inference::ArgMax(const vector<double> &array) {
  * they are computed by JT and saved in a file
  */
 void Inference::LoadGroundTruthProbabilityTable(string file_path) {
+    int size = 0;
+    for (int i = 0; i < network->num_nodes; ++i) {
+        size += dynamic_cast<DiscreteNode*>(network->FindNodePtrByIndex(i))->GetDomainSize();
+    }
+
     ground_truth_probability_tables.resize(num_instances);
     for (int i = 0; i < num_instances; ++i) {
-        ground_truth_probability_tables[i].resize(network->num_nodes);
-        for (int j = 0; j < network->num_nodes; ++j) {
-            int dim = dynamic_cast<DiscreteNode*>(network->FindNodePtrByIndex(j))->GetDomainSize();
-            ground_truth_probability_tables[i][j].resize(dim);
-        }
+        ground_truth_probability_tables[i].resize(size);
     }
 
     ifstream in_file;
@@ -150,18 +151,19 @@ void Inference::LoadGroundTruthProbabilityTable(string file_path) {
 
     string line;
     for (int i = 0; i < num_instances; ++i) { // for each test case
+        int l = 0;
         for (int j = 0; j < network->num_nodes; ++j) { // for each node
             // the file has #instances * #nodes lines in total
             getline(in_file, line);
             line = TrimRight(line);
             if (line.empty()) {
-                ground_truth_probability_tables[i][j][0] = -1; // just mark for the evidence nodes
+                ground_truth_probability_tables[i][l++] = -1; // just mark for the evidence nodes
             } else {
                 vector<string> parsed_line = Split(line, " ");
 
                 int dim = dynamic_cast<DiscreteNode*>(network->FindNodePtrByIndex(j))->GetDomainSize();
                 for (int k = 0; k < dim; ++k) {
-                    ground_truth_probability_tables[i][j][k] = stod(parsed_line[k]);
+                    ground_truth_probability_tables[i][l++] = stod(parsed_line[k]);
                 }
             }
         }
@@ -173,19 +175,16 @@ void Inference::LoadGroundTruthProbabilityTable(string file_path) {
  * refer to AIS-BN paper for the MSE formula
  * @param approximate_distribution the approximate distribution
  */
-double Inference::CalculateMSE(const vector<vector<double>> &approximate_distribution, int instance_index) {
+double Inference::CalculateMSE(const vector<double> &approximate_distribution, int instance_index) {
     // the exact distribution
-    vector<vector<double>> exact_distribution = ground_truth_probability_tables[instance_index];
+    vector<double> exact_distribution = ground_truth_probability_tables[instance_index];
 
     int num = 0;
     double error = 0.0;
-    for (int i = 0; i < network->num_nodes; ++i) {
-        if (exact_distribution[i][0] > 0) { // for non-evidence nodes
-            int dim = dynamic_cast<DiscreteNode*>(network->FindNodePtrByIndex(i))->GetDomainSize();
-            num += dim;
-            for (int j = 0; j < dim; ++j) {
-                error += pow((Round(approximate_distribution[i][j], 7) - exact_distribution[i][j]), 2);
-            }
+    for (int i = 0; i < exact_distribution.size(); ++i) {
+        if (exact_distribution[i] > 0) {
+            num++;
+            error += pow((Round(approximate_distribution[i], 7) - exact_distribution[i]), 2);
         }
     }
     return sqrt(error/num);
@@ -196,20 +195,18 @@ double Inference::CalculateMSE(const vector<vector<double>> &approximate_distrib
  * refer to EPIS-BN paper for the Hellinger's Distance formula
  * @param approximate_distribution the approximate distribution
  */
-double Inference::CalculateHellingerDistance(const vector<vector<double>> &approximate_distribution,
+double Inference::CalculateHellingerDistance(const vector<double> &approximate_distribution,
                                              int instance_index) {
     // the exact distribution
-    vector<vector<double>> exact_distribution = ground_truth_probability_tables[instance_index];
+    vector<double> exact_distribution = ground_truth_probability_tables[instance_index];
 
     int num = 0;
     double error = 0.0;
-    for (int i = 0; i < network->num_nodes; ++i) {
-        if (exact_distribution[i][0] > 0) { // for non-evidence nodes
-            int dim = dynamic_cast<DiscreteNode*>(network->FindNodePtrByIndex(i))->GetDomainSize();
-            num += dim;
-            for (int j = 0; j < dim; ++j) {
-                error += pow(sqrt(Round(approximate_distribution[i][j], 7)) - sqrt(exact_distribution[i][j]), 2);
-            }
+    for (int i = 0; i < exact_distribution.size(); ++i) {
+        if (exact_distribution[i] > 0) {
+            num++;
+            error += pow(sqrt(Round(approximate_distribution[i], 7))
+                    - sqrt(exact_distribution[i]), 2);
         }
     }
     return sqrt(error/num);

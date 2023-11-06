@@ -27,15 +27,6 @@ public:
     vector<vector<Separator*>> separators_by_level;
     int max_level;
 
-    // 1d: number of nodes in the network; 2d: number of possible values of this node
-    vector<vector<double>> probs_one_sample;
-
-//    int cnt_sep_col;
-//    int cnt_sep_dis;
-//    int cnt_clq_col;
-//    int cnt_clq_dis;
-
-
     JunctionTree() = default;
     JunctionTree(bool classification, Network *net, Dataset *dts, bool is_dense);
     ~JunctionTree();
@@ -72,8 +63,7 @@ protected:
     void CliqueLevelDistributionOptimized(int i, int num_threads, Timer *timer);
 
     PotentialTable CalculateMarginalProbability();
-    void GetProbabilitiesAllNodes(const DiscreteConfig &E);
-    void GetProbabilitiesOneNode(const DiscreteConfig &E, int index);
+    vector<double> GetProbabilitiesAllNodes(const DiscreteConfig &E);
 
     int InferenceUsingJT();
     int PredictUseJTInfer(const DiscreteConfig &E, int instance_index, double &mse, double &hd, int num_threads, Timer *timer);

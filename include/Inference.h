@@ -42,7 +42,7 @@ public:
 
     vector<DiscreteConfig> evidences; // the evidences of each instance in the testing set
     vector<int> ground_truths; // the ground truths of each class variable
-    vector<vector<vector<double>>> ground_truth_probability_tables; // the probabilities for each state of each node, computed by exact inference algorithms
+    vector<vector<double>> ground_truth_probability_tables; // the probabilities for each state of each node, computed by exact inference algorithms
 
     Inference(bool classification, Network *net, Dataset *dts, bool is_dense);
     Inference(Network *net); // it is used only in LBP for EPIS-BN
@@ -57,8 +57,8 @@ public:
     int ArgMax(const vector<double> &array);
 
     void LoadGroundTruthProbabilityTable(string file_path);
-    double CalculateMSE(const vector<vector<double>> &approximate_distribution, int instance_index);
-    double CalculateHellingerDistance(const vector<vector<double>> &approximate_distribution, int instance_index);
+    double CalculateMSE(const vector<double> &approximate_distribution, int instance_index);
+    double CalculateHellingerDistance(const vector<double> &approximate_distribution, int instance_index);
 };
 
 double Round(double number, unsigned int bits);

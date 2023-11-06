@@ -1304,74 +1304,79 @@ PotentialTable JunctionTree::CalculateMarginalProbability() {
 /**
  * @brief: get probabilities for all possible values of all non-evidence nodes
  */
-void JunctionTree::GetProbabilitiesAllNodes(const DiscreteConfig &E) {
-    probs_one_sample.resize(network->num_nodes);
+vector<double> JunctionTree::GetProbabilitiesAllNodes(const DiscreteConfig &E) {
+    int size = 0;
     for (int i = 0; i < network->num_nodes; ++i) {
-        GetProbabilitiesOneNode(E, i);
+        size += dynamic_cast<DiscreteNode*>(network->FindNodePtrByIndex(i))->GetDomainSize();
     }
-}
+    vector<double> probs_one_sample(size, -1);
 
-void JunctionTree::GetProbabilitiesOneNode(const DiscreteConfig &E, int index) {
-    for (auto &e: E) {
-        if (index == e.first) {
+    int l = 0;
+    for (int i = 0; i < network->num_nodes; ++i) {
+
+        bool is_evidence = false;
+        for (auto &e: E) {
+            if (i == e.first) {
+                /**
+                 * case 1: the node is evidence node
+                 */
+                l++;
+                is_evidence = true;
+                break;
+            }
+        }
+
+        if (!is_evidence) {
             /**
-             * case 1: the node is evidence node
+             * case 2: the node is non-evidence node, do the sampling like pls; has two steps:
+             * output the probabilities by finding a clique containing this node
              */
-            vector<double> prob(1, -1);
-            probs_one_sample[index] = prob;
-            return;
+            int dim = dynamic_cast<DiscreteNode*>(network->FindNodePtrByIndex(i))->GetDomainSize();
+            int min_size = INT32_MAX;
+            Clique *selected_clique = nullptr;
+
+            // Find the clique that contains this variable, whose size of potentials table is the smallest,
+            // which can reduce the number of sum operation.
+            for (auto &c : tree->vector_clique_ptr_container) {
+
+                if (c->p_table.num_variables >= min_size) {
+                    continue;
+                }
+
+                set<int> rv;
+                for (int j = 0; j < c->p_table.num_variables; ++j) { // for each related variable
+                    rv.insert(c->p_table.vec_related_variables[j]);
+                }
+
+                if (rv.find(i) == rv.end()) { // cannot find the query variable
+                    continue;
+                }
+
+                min_size = c->p_table.num_variables;
+                selected_clique = c;
+            }
+
+            if (selected_clique == nullptr) {
+                fprintf(stderr, "Error in function [%s]\n"
+                                "Variable [%d] does not appear in any clique!", __FUNCTION__, i);
+                exit(1);
+            }
+
+            PotentialTable pt = selected_clique->p_table;
+
+            if (min_size > 1) {
+                pt.TableMarginalization(vector<int>(1, i), vector<int>(1, dim));
+            }
+
+            pt.Normalize();
+
+            for (int j = 0; j < pt.table_size; ++j) {
+                probs_one_sample[l++] = pt.potentials[j];
+            }
         }
     }
 
-    /**
-     * case 2: the node is non-evidence node, do the sampling like pls; has two steps:
-     * output the probabilities by finding a clique containing this node
-     */
-    int dim = dynamic_cast<DiscreteNode*>(network->FindNodePtrByIndex(index))->GetDomainSize();
-    probs_one_sample[index].resize(dim);
-
-    int min_size = INT32_MAX;
-    Clique *selected_clique = nullptr;
-
-    // Find the clique that contains this variable, whose size of potentials table is the smallest,
-    // which can reduce the number of sum operation.
-    for (auto &c : tree->vector_clique_ptr_container) {
-
-        if (c->p_table.num_variables >= min_size) {
-            continue;
-        }
-
-        set<int> rv;
-        for (int i = 0; i < c->p_table.num_variables; ++i) { // for each related variable
-            rv.insert(c->p_table.vec_related_variables[i]);
-        }
-
-        if (rv.find(index) == rv.end()) { // cannot find the query variable
-            continue;
-        }
-
-        min_size = c->p_table.num_variables;
-        selected_clique = c;
-    }
-
-    if (selected_clique == nullptr) {
-        fprintf(stderr, "Error in function [%s]\n"
-                        "Variable [%d] does not appear in any clique!", __FUNCTION__, index);
-        exit(1);
-    }
-
-    PotentialTable pt = selected_clique->p_table;
-
-    if (min_size > 1) {
-        pt.TableMarginalization(vector<int>(1, index), vector<int>(1, dim));
-    }
-
-    pt.Normalize();
-
-    for (int i = 0; i < pt.table_size; ++i) {
-        probs_one_sample[index][i] = pt.potentials[i];
-//        printf("%.7f ", pt.potentials[i]) ;
-    }
+    return probs_one_sample;
 }
 
 /**
@@ -1413,18 +1418,15 @@ int JunctionTree::PredictUseJTInfer(const DiscreteConfig &E, int instance_index,
     if (classification_mode) {
         label_predict = InferenceUsingJT();
     } else {
-        GetProbabilitiesAllNodes(E);
+        vector<double> probs_one_sample = GetProbabilitiesAllNodes(E);
+        mse += CalculateMSE(probs_one_sample, instance_index);
+        hd += CalculateHellingerDistance(probs_one_sample, instance_index);
     }
     timer->Stop("predict");
 
     timer->Start("reset");
     ResetJunctionTree();
     timer->Stop("reset");
-
-    if (!classification_mode) {
-        mse += CalculateMSE(probs_one_sample, instance_index);
-        hd += CalculateHellingerDistance(probs_one_sample, instance_index);
-    }
 
     return label_predict;
 }
@@ -1463,11 +1465,12 @@ vector<int> JunctionTree::Predict(int num_threads) {
             results.at(i) = label_predict;
         }
     }
-
-    cout << "average MSE = " << mse/num_instances << endl;
-    cout << "average HD = " << hd/num_instances << endl;
-
     timer->Stop("jt");
+
+    if (!classification_mode) {
+        cout << "average MSE = " << mse/num_instances << endl;
+        cout << "average HD = " << hd/num_instances << endl;
+    }
 
     cout << "==================================================" << endl;
     timer->Print("jt");
