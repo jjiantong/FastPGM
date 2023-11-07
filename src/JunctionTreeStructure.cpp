@@ -331,8 +331,10 @@ void JunctionTreeStructure::AssignPotentials() { //checked
             }
 
             // get the variables that in the potential table but not in the clique
+            vector<int> related_variables = pt.vec_related_variables;
+            sort(related_variables.begin(), related_variables.end());
             set<int> diff;
-            set_difference(pt.vec_related_variables.begin(), pt.vec_related_variables.end(),
+            set_difference(related_variables.begin(), related_variables.end(),
                            clique_ptr->clique_variables.begin(), clique_ptr->clique_variables.end(),
                            inserter(diff, diff.begin()));
             // If "diff" is empty, i.e., all the variables in the factor are in the clique,

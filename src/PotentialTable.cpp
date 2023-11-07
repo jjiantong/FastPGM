@@ -11,70 +11,8 @@ PotentialTable::PotentialTable() {
 
 /**
  * @brief: construct a potential table given a node;
- * the table consists of the node and all the existing related_variables, i.e., all its parents.
  */
-PotentialTable::PotentialTable(DiscreteNode *disc_node, Network *net) {
-    int node_index = disc_node->GetNodeIndex();
-    int node_dim = disc_node->GetDomainSize();
-
-    if (!disc_node->HasParents()) {
-        // if this disc_node has no parents. then the potential table only contains 1 variable
-        num_variables = 1;
-        vec_related_variables.push_back(node_index);
-        var_dims.reserve(num_variables);
-        var_dims.push_back(node_dim);
-        cum_levels.reserve(num_variables);
-        cum_levels.push_back(1);
-        table_size = node_dim;
-
-        potentials.reserve(table_size);
-        DiscreteConfig empty_par_config;
-        for (int i = 0; i < table_size; ++i) {
-            // potentials[i]
-            potentials.push_back(disc_node->GetProbability(i, empty_par_config));
-        }
-    } else { // if this disc_node has parents
-        set<int> set_related_variables;
-        set_related_variables.insert(node_index);
-        set_related_variables.insert(disc_node->set_parent_indexes.begin(), disc_node->set_parent_indexes.end());
-        num_variables = set_related_variables.size();
-        vec_related_variables.resize(num_variables);
-        int i = 0;
-        for (auto &rv: set_related_variables) {
-            vec_related_variables[i++] = rv;
-        }
-
-        ConstructVarDimsAndCumLevels(net);
-
-        potentials.reserve(table_size);
-        for (int i = 0; i < table_size; ++i) {
-            // find the discrete config by the table index, the config contains this node and its parents
-            DiscreteConfig parent_config;
-//            GetConfigByTableIndex(i, net, parent_config);
-
-            int *config_value = new int[num_variables];
-            PotentialTableBase::GetConfigValueByTableIndex(i, config_value);
-            int j = 0;
-            for (auto &v: vec_related_variables) {
-                parent_config.insert(pair<int, int>(v, config_value[j++]));
-            }
-            SAFE_DELETE_ARRAY(config_value);
-
-            int node_value;
-            // we need the config for its parents -- remove the node
-            for (auto it = parent_config.begin(); it != parent_config.end();) {
-                if ((*it).first == node_index) { // find the node
-                    node_value = (*it).second; // mark its value
-                    parent_config.erase(it++); // erase from the parent config
-                } else {
-                    it++;
-                }
-            }
-            // potentials[i]
-            potentials.push_back(disc_node->GetProbability(node_value, parent_config));
-        }
-    }//end has parents
-}
+PotentialTable::PotentialTable(DiscreteNode *disc_node, Network *net): PotentialTableBase(disc_node, net) {}
 
 /**
  * @brief: construct a potential table given an evidence node;
@@ -646,7 +584,7 @@ void PotentialTable::TableMultiplication(const PotentialTable &second_table) {
     }
 
     // before multiplication, need to first decide whether the orders are the same
-    if (this->vec_related_variables != second_table.vec_related_variables) {
+    if (this->vec_related_variables != tmp_pt.vec_related_variables) {
         // if not have the same order, change the order to this table's order
         tmp_pt.TableReorganization(*this);
     }

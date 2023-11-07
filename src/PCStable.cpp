@@ -879,20 +879,20 @@ void PCStable::DirectLeftEdges(const map<int, map<int, double>> &adjacencies) {
 
         // if the edge is undirected, direct it
         if (network->IsUndirected(adjacencies, x_idx, y_idx)) {
-            bool direct;
-            if (Random01() == 0) {
+            bool direct; // TODO: just for test here, need to change to Random01()
+//            if (Random01() == 0) {
                 direct = Direct(x_idx, y_idx);
                 if (!direct) {
                     cout << "Randomly directing causes unexpected loop, trying to direct again... " << endl;
                     direct = Direct(y_idx, x_idx);
                 }
-            } else { // if the undirected edge x--y remains
-                direct = Direct(y_idx, x_idx);
-                if (!direct) {
-                    cout << "Randomly directing causes unexpected loop, trying to direct again... " << endl;
-                    direct = Direct(x_idx, y_idx);
-                }
-            }
+//            } else { // if the undirected edge x--y remains
+//                direct = Direct(y_idx, x_idx);
+//                if (!direct) {
+//                    cout << "Randomly directing causes unexpected loop, trying to direct again... " << endl;
+//                    direct = Direct(x_idx, y_idx);
+//                }
+//            }
             if (!direct) {
                 cerr << "Error: randomly directing causes loop anyway. " << endl;
                 exit(1);

@@ -48,7 +48,7 @@ TEST_F(TestClassificationAlarm, thread_1) {
     int num_threads = 1;
     int verbose  = VERBOSE;
 
-    bnsl->StructLearnCompData(trainer, group_size, num_threads, true, verbose);
+    bnsl->StructLearnCompData(trainer, group_size, num_threads, false, verbose);
     auto pc_bnsl = (PCStable*)bnsl;
     vector<int> roots = pc_bnsl->FindRootsInDAGForest();
     pc_bnsl->AddRootNode(roots);
