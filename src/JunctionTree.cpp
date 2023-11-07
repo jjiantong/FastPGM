@@ -183,7 +183,7 @@ void JunctionTree::ReorganizeTableStorage(int num_threads) {
         int *config2 = new int[clique->p_table.num_variables];
         int *table_index = new int[clique->p_table.table_size];
 
-        PotentialTable new_table;
+        PotentialTableBase new_table;
         int *locations = new int[clique->p_table.num_variables];
         clique->p_table.TableReorganizationPre(separator->p_table.vec_related_variables, new_table, locations);
 
@@ -505,7 +505,7 @@ void JunctionTree::SeparatorLevelCollection(int i, int num_threads, Timer *timer
 //    timer->Start("s-sep-col-pre");
     int size = separators_by_level[i/2].size();
     // used to store the (clique) potential tables that are needed to be marginalized
-    vector<PotentialTable> tmp_pt;
+    vector<PotentialTableBase> tmp_pt;
     tmp_pt.resize(size);
 
     // store number_variables and cum_levels of the original table
@@ -536,7 +536,7 @@ void JunctionTree::SeparatorLevelCollection(int i, int num_threads, Timer *timer
         nv_old[j] = clique->p_table.num_variables;
         cl_old[j] = clique->p_table.cum_levels;
 
-        PotentialTable pt = separator->p_table;
+        PotentialTableBase pt = separator->p_table;
         for (int k = 0; k < pt.table_size; ++k) {
             pt.potentials[k] = 0;
         }
@@ -623,7 +623,7 @@ void JunctionTree::SeparatorLevelDistribution(int i, int num_threads, Timer *tim
 //    timer->Start("s-sep-dis-pre");
     int size = separators_by_level[i/2].size();
     // used to store the (clique) potential tables that are needed to be marginalized
-    vector<PotentialTable> tmp_pt;
+    vector<PotentialTableBase> tmp_pt;
     tmp_pt.resize(size);
 
     // store number_variables and cum_levels of the original table
@@ -654,7 +654,7 @@ void JunctionTree::SeparatorLevelDistribution(int i, int num_threads, Timer *tim
         nv_old[j] = clique->p_table.num_variables;
         cl_old[j] = clique->p_table.cum_levels;
 
-        PotentialTable pt = separator->p_table;
+        PotentialTableBase pt = separator->p_table;
         for (int k = 0; k < pt.table_size; ++k) {
             pt.potentials[k] = 0;
         }
@@ -753,7 +753,7 @@ void JunctionTree::CliqueLevelCollection(int i, const vector<int> &has_kth_child
 //    timer->Start("s-clq-col-pre");
     int size = has_kth_child.size();
     // used to store the (separator) potential tables that are needed to be extended
-    vector<PotentialTable> tmp_pt;
+    vector<PotentialTableBase> tmp_pt;
     tmp_pt.resize(size);
 
     // store number_variables and cum_levels of the original table
@@ -781,7 +781,7 @@ void JunctionTree::CliqueLevelCollection(int i, const vector<int> &has_kth_child
         nv_old[j] = separator->p_table.num_variables;
         cl_old[j] = separator->p_table.cum_levels;
 
-        PotentialTable pt = clique->p_table;
+        PotentialTableBase pt = clique->p_table;
 
         // generate an array showing the locations of the variables of the new table in the old table
         loc_in_new[j] = new int[separator->p_table.num_variables];
@@ -866,7 +866,7 @@ void JunctionTree::CliqueLevelDistribution(int i, int num_threads, Timer *timer)
 //    timer->Start("s-clq-dis-pre");
     int size = nodes_by_level[i].size();
     // used to store the (separator) potential tables that are needed to be extended
-    vector<PotentialTable> tmp_pt;
+    vector<PotentialTableBase> tmp_pt;
     tmp_pt.resize(size);
 
     // store number_variables and cum_levels of the original table
@@ -894,7 +894,7 @@ void JunctionTree::CliqueLevelDistribution(int i, int num_threads, Timer *timer)
         nv_old[j] = separator->p_table.num_variables;
         cl_old[j] = separator->p_table.cum_levels;
 
-        PotentialTable pt = clique->p_table;
+        PotentialTableBase pt = clique->p_table;
 
         // generate an array showing the locations of the variables of the new table in the old table
         loc_in_new[j] = new int[separator->p_table.num_variables];
@@ -979,7 +979,7 @@ void JunctionTree::SeparatorLevelCollectionOptimized(int i, int num_threads, Tim
 //    timer->Start("s-sep-col-pre");
     int size = separators_by_level[i/2].size();
     // used to store the (clique) potential tables that are needed to be marginalized
-    vector<PotentialTable> tmp_pt;
+    vector<PotentialTableBase> tmp_pt;
     tmp_pt.resize(size);
 
     // used to store the common variable dims (which is the table size of the separator)
@@ -1073,7 +1073,7 @@ void JunctionTree::CliqueLevelDistributionOptimized(int i, int num_threads, Time
 //    timer->Start("s-clq-dis-pre");
     int size = nodes_by_level[i].size();
     // used to store the (separator) potential tables that are needed to be extended
-    vector<PotentialTable> tmp_pt;
+    vector<PotentialTableBase> tmp_pt;
     tmp_pt.resize(size);
 
     // used to store the common variable dims (which is the table size of the separator)
@@ -1093,7 +1093,7 @@ void JunctionTree::CliqueLevelDistributionOptimized(int i, int num_threads, Time
 
         common_dims[j] = separator->p_table.table_size;
 
-        PotentialTable pt = clique->p_table;
+        PotentialTableBase pt = clique->p_table;
 //            pt.TableExtensionPre(clique->p_table.vec_related_variables, clique->p_table.var_dims);
 
         table_index[j] = new int[pt.table_size];
@@ -1258,7 +1258,7 @@ void JunctionTree::Distribute(int num_threads, Timer *timer) {
  * @brief: compute the marginal distribution for a query variable
  * @return a potential table (factor) representing the marginal of the query variable
  **/
-PotentialTable JunctionTree::CalculateMarginalProbability() {
+PotentialTableBase JunctionTree::CalculateMarginalProbability() {
 
     int min_size = INT32_MAX;
     Clique *selected_clique = nullptr;
@@ -1294,7 +1294,7 @@ PotentialTable JunctionTree::CalculateMarginalProbability() {
 
     int dim = dynamic_cast<DiscreteNode*>(network->FindNodePtrByIndex(query_index))->GetDomainSize();
 
-    PotentialTable pt = selected_clique->p_table;
+    PotentialTableBase pt = selected_clique->p_table;
     pt.TableMarginalization(vector<int>(1, query_index), vector<int>(1, dim));
     pt.Normalize();
 
@@ -1362,7 +1362,7 @@ vector<double> JunctionTree::GetProbabilitiesAllNodes(const DiscreteConfig &E) {
                 exit(1);
             }
 
-            PotentialTable pt = selected_clique->p_table;
+            PotentialTableBase pt = selected_clique->p_table;
 
             if (min_size > 1) {
                 pt.TableMarginalization(vector<int>(1, i), vector<int>(1, dim));
@@ -1384,7 +1384,7 @@ vector<double> JunctionTree::GetProbabilitiesAllNodes(const DiscreteConfig &E) {
  */
 int JunctionTree::InferenceUsingJT() {
 
-    PotentialTable pt = CalculateMarginalProbability();
+    PotentialTableBase pt = CalculateMarginalProbability();
 
     // find the maximum probability
     // "pt" has only one related variable, which is exactly the query variable,

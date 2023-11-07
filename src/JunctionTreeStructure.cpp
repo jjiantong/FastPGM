@@ -313,13 +313,13 @@ void JunctionTreeStructure::FormJunctionTree() {
  */
 void JunctionTreeStructure::AssignPotentials() { //checked
 
-    vector<PotentialTable> potential_tables;
+    vector<PotentialTableBase> potential_tables;
 
     for (auto &id_node_ptr : network->map_idx_node_ptr) { // for each node of the network
         auto node_ptr = id_node_ptr.second;
         if (node_ptr->is_discrete) {
             // add the factor that consists of this node and its parents
-            potential_tables.push_back(PotentialTable(dynamic_cast<DiscreteNode*>(node_ptr), this->network));
+            potential_tables.push_back(PotentialTableBase(dynamic_cast<DiscreteNode*>(node_ptr), this->network));
         }
     }
 

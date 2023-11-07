@@ -11,9 +11,9 @@ Separator::Separator(set<int> set_node_index, Network *net): Clique(set_node_ind
 /**
  * merge the above two methods
  */
-void Separator::UpdateMessage(const PotentialTable &pt) {
+void Separator::UpdateMessage(const PotentialTableBase &pt) {
     old_ptable = p_table;
-    PotentialTable tmp_pt = pt;
+    PotentialTableBase tmp_pt = pt;
 
     if (pt.num_variables - this->old_ptable.num_variables != 0) {
         // need to do the marginalization

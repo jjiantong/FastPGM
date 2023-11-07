@@ -8,7 +8,7 @@
 #include <queue>
 #include "Node.h"
 #include "Network.h"
-#include "PotentialTable.h"
+#include "PotentialTableBase.h"
 #include "Timer.h"
 #include "omp.h"
 
@@ -18,7 +18,7 @@ class Clique {
 public:
 //    bool pure_discrete;
     set <int> clique_variables;
-    PotentialTable p_table;
+    PotentialTableBase p_table;
     set<Clique*> set_neighbours_ptr; // neighbor cliques
 
     /**
@@ -47,10 +47,10 @@ public:
     void Distribute2();
     void Distribute3(vector<vector<Clique*>> &cliques, int max_level, int num_threads);
 
-    virtual void UpdateMessage(const PotentialTable &pt);
+    virtual void UpdateMessage(const PotentialTableBase &pt);
 
 protected:
-    void Distribute2(PotentialTable &pt);
+    void Distribute2(PotentialTableBase &pt);
 };
 
 #endif //BAYESIANNETWORK_CLIQUE_H

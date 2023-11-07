@@ -18,6 +18,7 @@
 
 using namespace std;
 
+// TODO: change to PotentialTable after integrating approximate inference algorithms, and also simplify this class
 class PotentialTableBase {//this is used only for discrete nodes;
 public:
     vector<int> vec_related_variables; // the variables involved in this factor/potential table
@@ -40,18 +41,39 @@ public:
     PotentialTableBase();
     PotentialTableBase(DiscreteNode *disc_node, Network *net);
     PotentialTableBase(DiscreteNode *disc_node, int observed_value);
+    void ConstructEmptyPotentialTable(const set<int> &set_node_index, Network *net);
 
     /**
-     * potential table operation: table reduction
+     * potential table optimization: table reorganization
      */
+    void TableReorganization(const PotentialTableBase &refer_table);
+    void TableReorganizationPre(const vector<int> &common_variables, PotentialTableBase &new_table, int *locations);
+    int TableReorganizationMain(int k, int *config1, int *config2, PotentialTableBase &old_table, int *locations);
+    int TableReorganizationMain(int k, int *config1, int *config2, const vector<int> &cl, int *locations);
+    void TableReorganizationPost(const PotentialTableBase &pt, int *table_index);
+
+    /**
+     * potential table operation 1: table reduction
+     */
+    void TableReduction(int e_index, int e_value_index, int num_threads);
+    int TableReductionPre(int e_index);
+    int TableReductionMain(int i, int *full_config, int loc);
+    void TableReductionPost(int index, int value_index, int *v_index, int loc);
     void GetReducedPotentials(vector<double> &result, const vector<int> &evidence, int num_threads);
     void GetReducedICPTPotentials(vector<double> &result, const vector<int> &evidence, int num_threads);
     double GetReducedPotential(const vector<int> &evidence, int num_threads);
     double GetReducedIndexAndPotential(const vector<int> &evidence, int &index, int num_threads);
 
     /**
-     * potential table operation: table marginalization
+     * potential table operation 2: table marginalization
      */
+    void TableMarginalization(const vector<int> &variables, const vector<int> &dims);
+    void TableMarginalizationPre(const vector<int> &variables, const vector<int> &dims);
+    int TableMarginalizationMain(int k, int *full_config, int *partial_config,
+                                 int nv, const vector<int> &cl, int *loc);
+    void TableMarginalizationPost(const PotentialTableBase &pt, int *table_index);
+    void TableMarginalization(int ext_variable);
+    void TableMarginalizationPre(int ext_variable, PotentialTableBase &new_table);
     void TableMarginalizationSimplified();
     void TableMarginalizationOneVariablePost(const PotentialTableBase &pt, int *table_index);
     void TableMarginalizationOneVariable(int ext_variable);
@@ -59,13 +81,29 @@ public:
     void GetMarginalizedProbabilities(vector<double> &result, int num_threads);
 
     /**
-     * potential table operation: table multiplication
+     * potential table operation 3: table extension
      */
+    void TableExtension(const vector<int> &variables, const vector<int> &dims);
+    void TableExtensionPre(const vector<int> &variables, const vector<int> &dims);
+    int TableExtensionMain(int k, int *full_config, int *partial_config,
+                           int nv, const vector<int> &cl, int *loc);
+    void TableExtensionPost(const PotentialTableBase &pt, int *table_index);
+
+    /**
+     * potential table operation 4: table multiplication
+     */
+    void TableMultiplication(const PotentialTableBase &second_table);
+    void TableMultiplicationTwoExtension(PotentialTableBase &second_table);
     void TableMultiplicationOneVariable(const PotentialTableBase &second_table);
 
     /**
-     * potential table operation: table addition
-     */
+    * potential table operation 5: table division
+    */
+    void TableDivision(const PotentialTableBase &second_table);
+
+//    /**
+//     * potential table operation: table addition
+//     */
 //    void TableAddition();
 //    void TableAdditionAndNormalization();
 //    void TableSubtraction();
@@ -80,6 +118,8 @@ public:
     int GetVariableIndex(const int &variable);
 
 protected:
+    void GetConfigValueByTableIndex(const int &table_index, int *config_value, int num_variables, const vector<int> &cum_levels);
+    int GetTableIndexByConfigValue(int *config_value, int num_variables, const vector<int> &cum_levels);
     void GetConfigValueByTableIndex(const int &table_index, int *config_value);
     int GetTableIndexByConfigValue(int *config_value);
     int GetRelativeIndexByConfigValue(int *config_value);

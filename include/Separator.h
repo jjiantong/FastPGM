@@ -10,13 +10,13 @@
 class Separator : public Clique {
 public:
     bool is_in_jt;
-    PotentialTable old_ptable;
+    PotentialTableBase old_ptable;
 
     Separator();
     explicit Separator(set<int>, Network*);
     ~Separator() {};
 
-    void UpdateMessage(const PotentialTable &pt) override;
+    void UpdateMessage(const PotentialTableBase &pt) override;
 };
 
 #endif //BAYESIANNETWORK_SEPARATOR_H

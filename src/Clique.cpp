@@ -44,7 +44,7 @@ void Clique::Collect2() {
         {
             // collect the msg f from downstream
             ptr_child->Collect2();
-            PotentialTable pt = ptr_child->p_table;
+            PotentialTableBase pt = ptr_child->p_table;
             // update the msg by multiplying the current table with pt
             UpdateMessage(pt);
         }
@@ -86,7 +86,7 @@ void Clique::Distribute2() {
     }
 }
 
-void Clique::Distribute2(PotentialTable &pt) {
+void Clique::Distribute2(PotentialTableBase &pt) {
     UpdateMessage(pt);
 
     for (auto &ptr_child : ptr_downstream_cliques) {
@@ -123,8 +123,8 @@ void Clique::Distribute3(vector<vector<Clique*>> &cliques, int max_level, int nu
 /**
  * merging the above two methods
  */
-void Clique::UpdateMessage(const PotentialTable &pt) {
-    PotentialTable tmp_pt = pt;
+void Clique::UpdateMessage(const PotentialTableBase &pt) {
+    PotentialTableBase tmp_pt = pt;
     p_table.TableMultiplication(tmp_pt); // multiply two factors
 
     p_table.Normalize();

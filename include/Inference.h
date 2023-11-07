@@ -10,7 +10,7 @@
 #include "Node.h"
 #include "DiscreteNode.h"
 #include "ContinuousNode.h"
-#include "PotentialTable.h"
+#include "PotentialTableBase.h"
 #include "Timer.h"
 #include <iostream>
 #include <sys/time.h>

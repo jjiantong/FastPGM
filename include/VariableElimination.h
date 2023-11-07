@@ -6,7 +6,7 @@
 //#define BAYESIANNETWORK_VARIABLEELIMINATION_H
 //
 //#include "Inference.h"
-//#include "PotentialTable.h"
+//#include "PotentialTableBase.h"
 //
 //class VariableElimination: public Inference {
 //public:

@@ -62,7 +62,7 @@ protected:
     void SeparatorLevelCollectionOptimized(int i, int num_threads, Timer *timer);
     void CliqueLevelDistributionOptimized(int i, int num_threads, Timer *timer);
 
-    PotentialTable CalculateMarginalProbability();
+    PotentialTableBase CalculateMarginalProbability();
     vector<double> GetProbabilitiesAllNodes(const DiscreteConfig &E);
 
     int InferenceUsingJT();
