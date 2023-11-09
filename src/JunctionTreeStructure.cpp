@@ -12,7 +12,7 @@
  * this is an optimized constructor; the original implementation is removed. because we optimize triangulation, some
  * parameters, thus some functions, are unnecessary
  */
-JunctionTreeStructure::JunctionTreeStructure(Network *net) : network(net) {
+JunctionTreeStructure::JunctionTreeStructure(Network *net, ParameterLearning *pl) : network(net) {
 
     vector_clique_ptr_container.reserve(network->num_nodes);
     vector_separator_ptr_container.reserve(network->num_nodes - 1);
@@ -44,7 +44,7 @@ JunctionTreeStructure::JunctionTreeStructure(Network *net) : network(net) {
 //    cout << "Finish FormJunctionTree, number of cliques = " << vector_clique_ptr_container.size()
 //         << ", number of separators = " << vector_separator_ptr_container.size() << endl;
 
-    AssignPotentials();
+    AssignPotentials(pl);
 //    cout << "Finish AssignPotentials" << endl;
 
     /**
@@ -311,20 +311,22 @@ void JunctionTreeStructure::FormJunctionTree() {
  * @brief: each clique has a potential;
  * the potentials of continuous and discrete cliques are computed differently
  */
-void JunctionTreeStructure::AssignPotentials() { //checked
+void JunctionTreeStructure::AssignPotentials(ParameterLearning *pl) { //checked
 
-    vector<PotentialTableBase> potential_tables;
+//    vector<PotentialTableBase> potential_tables;
+//
+//    for (auto &id_node_ptr : network->map_idx_node_ptr) { // for each node of the network
+//        auto node_ptr = id_node_ptr.second;
+//        if (node_ptr->is_discrete) {
+//            // add the factor that consists of this node and its parents
+//            potential_tables.push_back(PotentialTableBase(dynamic_cast<DiscreteNode*>(node_ptr), this->network));
+//        }
+//    }
 
-    for (auto &id_node_ptr : network->map_idx_node_ptr) { // for each node of the network
-        auto node_ptr = id_node_ptr.second;
-        if (node_ptr->is_discrete) {
-            // add the factor that consists of this node and its parents
-            potential_tables.push_back(PotentialTableBase(dynamic_cast<DiscreteNode*>(node_ptr), this->network));
-        }
-    }
 
+//    // todo: new way
     // For potentials from discrete nodes, they should be assigned to purely discrete cliques.
-    for (auto &pt : potential_tables) { // for each potential table of the network
+    for (auto &pt : pl->pts) { // for each potential table of the network
         for (auto &clique_ptr : vector_clique_ptr_container) { // for each clique of the graph
             if (pt.vec_related_variables.empty() || clique_ptr->clique_variables.empty()) {
                 break;

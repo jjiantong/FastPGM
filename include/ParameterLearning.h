@@ -8,12 +8,14 @@
 #include "Network.h"
 #include "Dataset.h"
 #include "DiscreteNode.h"
+#include "PotentialTableBase.h"
 #include "Timer.h"
 
 
 class ParameterLearning {
 public:
     Network *network; // the network to be learned
+    vector<PotentialTableBase> pts; // potential tables for each node
 
     ParameterLearning(Network *net) {network = net;};
 

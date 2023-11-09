@@ -56,21 +56,6 @@ double DiscreteNode::GetLaplaceSmooth() {
 }
 
 /**
- * @brief: update counter when meeting new training instances
- * @param instance_of_var_val contains the values of all variables for the new instance
- */
-void DiscreteNode::AddInstanceOfVarVal(DiscreteConfig instance_of_var_val, int root_idx) {
-    // filter out the variables and values which are not the parents of the current node.
-    DiscreteConfig parents_config = GetDiscParConfigGivenAllVarValue(instance_of_var_val, root_idx);
-    // store the new instance in a map
-    std::map<int, int> discreteConfigMap = DiscreteConfigToMap(instance_of_var_val);
-    // GetNodeIndex() get the id of the current node, the current node is the query variable
-    int query_value = discreteConfigMap[GetNodeIndex()];
-    //update probability table of the node with the query value
-    AddCount(query_value, parents_config, 1);
-}
-
-/**
  * @brief: initialize the conditional probability table
  */
 void DiscreteNode::InitializeCPT() {

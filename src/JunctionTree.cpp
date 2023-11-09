@@ -1,13 +1,13 @@
 #include "JunctionTree.h"
 
-JunctionTree::JunctionTree(bool classification, Network *net, Dataset *dts, bool is_dense) :
-                            Inference(classification, net, dts, is_dense) {
+JunctionTree::JunctionTree(bool classification, Network *net, ParameterLearning *pl, Dataset *dts, bool is_dense) :
+                            Inference(classification, net, pl, dts, is_dense) {
 
     Timer *timer = new Timer();
     // record time
     timer->Start("construct jt");
 
-    tree = new JunctionTreeStructure(net);
+    tree = new JunctionTreeStructure(net, pl);
 
 //    // Arbitrarily select a clique as the root.
 //    jt_root = tree->vector_clique_ptr_container[0];

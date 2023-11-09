@@ -38,62 +38,6 @@ int Node::GetNumChildren() const {
   return set_children_indexes.size();
 }
 
-/**
- * @brief: similar to GetDiscParConfigGivenAllVarValue(vector<int> &all_var_val).
- * get parents given a set of [variable id, variable value]. this function is similar to a filter - filters out the
- * variables and values which are not the parents of the current node.
- */
-DiscreteConfig Node::GetDiscParConfigGivenAllVarValue(DiscreteConfig &all_var_val, int root_idx) {
-    DiscreteConfig par_var_val;
-
-    if (!HasParents()) {
-        return par_var_val;  // Return an empty config.
-    }
-
-    assert(all_var_val.size() >= GetNumDiscParents());
-
-    // if the node is a child of ROOT, the node only has one parent -- ROOT. Since ROOT is a virtual node, `all_var_val`
-    // doesn't contain its value, so we randomly select 0 or 1 for it.
-    if (find(vec_disc_parent_indexes.begin(), vec_disc_parent_indexes.end(), root_idx)
-        != vec_disc_parent_indexes.end()) {
-        par_var_val.insert(make_pair(root_idx, Random01()));
-    } else {
-        // otherwise, find the required the variable-value pair from `all_var_val`
-        for (auto const var_val : all_var_val) {
-            auto node_id = var_val.first; // get the index
-            // inefficiency: search (from parents) once for each node received by the argument "all_var_val"
-            if (find(vec_disc_parent_indexes.begin(), vec_disc_parent_indexes.end(), node_id)
-                != vec_disc_parent_indexes.end()) {
-                // this node is one of the parent of the current node
-                par_var_val.insert(var_val);
-            }
-        }
-    }
-
-    return par_var_val;
-}
-
-/**
- * @brief: get the parent configuration (i.e., condition) of current node;
- * @param: all_var_val contains the values of each node of the Bayesian network
- */
-DiscreteConfig Node::GetDiscParConfigGivenAllVarValue(vector<int> &all_var_val) {
-  // This version is 2x FASTER than the version that accept DiscreteConfig as argument.
-  DiscreteConfig par_var_val;
-
-  if (!HasParents()) {
-    return par_var_val;  // Return an empty config.
-  }
-
-  assert(all_var_val.size() >= GetNumDiscParents());
-
-  for (auto const par : vec_disc_parent_indexes) { // for all parents(index)
-    int parent_value = all_var_val[par]; // get the value according to the index
-    par_var_val.insert(DiscVarVal(par, parent_value));
-  }
-  return par_var_val;
-}
-
 void Node::SetNodeIndex(int i) {
   if (i<0) {
     fprintf(stderr, "Error in function %s! \nInvalid index!", __FUNCTION__);

@@ -96,6 +96,40 @@ PotentialTableBase::PotentialTableBase(DiscreteNode *disc_node, int observed_val
 }
 
 /**
+ * @brief: it is actually a constructor to construct a potential table with empty potentials.
+ * it is basically similar to the second constructor. it is used in parameter learning.
+ */
+void PotentialTableBase::ConstructPotentialTableWithEmptyPotentials(DiscreteNode *disc_node, Network *net) {
+    int node_index = disc_node->GetNodeIndex();
+    int node_dim = disc_node->GetDomainSize();
+
+    if (!disc_node->HasParents()) {
+        // if this disc_node has no parents. then the potential table only contains 1 variable
+        num_variables = 1;
+        vec_related_variables.resize(1);
+        var_dims.resize(1);
+        cum_levels.resize(1);
+
+        vec_related_variables[0] = node_index;
+        var_dims[0] = node_dim;
+        cum_levels[0] = 1;
+        table_size = node_dim;
+        potentials.resize(table_size);
+    } else { // if this disc_node has parents
+        num_variables = disc_node->set_parent_indexes.size() + 1;
+        vec_related_variables.resize(num_variables);
+        vec_related_variables[0] = node_index;
+        int vi = 1;
+        for (auto &p: disc_node->set_parent_indexes) {
+            vec_related_variables[vi++] = p;
+        }
+
+        ConstructVarDimsAndCumLevels(net);
+        potentials.resize(table_size);
+    }//end has parents
+}
+
+/**
  * @brief: it is actually a constructor to construct a potential table according a set of nodes
  * all entries in the potential table are initialized to 1
  * it is used in class Clique (when constructing a clique)

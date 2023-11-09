@@ -1,21 +1,22 @@
-//#include <iostream>
-//
-//#include "Dataset.h"
-//#include "CustomNetwork.h"
-//#include "Inference.h"
-//#include "BruteForce.h"
-//#include "JunctionTree.h"
-//#include "VariableElimination.h"
-//#include "Network.h"
-//#include "StructureLearning.h"
-//#include "PCStable.h"
-//#include "BNSLComparison.h"
-//#include "Parameter.h"
-//
-//using namespace std;
-//
-//int main(int argc, char** argv) {
-//
+#include <iostream>
+
+#include "Dataset.h"
+#include "CustomNetwork.h"
+#include "Inference.h"
+#include "BruteForce.h"
+#include "JunctionTree.h"
+#include "VariableElimination.h"
+#include "Network.h"
+#include "StructureLearning.h"
+#include "PCStable.h"
+#include "BNSLComparison.h"
+#include "Parameter.h"
+
+using namespace std;
+
+int main(int argc, char** argv) {
+    cout << "Hello world." << endl;
+
 //    Parameter param; // initialize parameters with default settings
 //    param.ParseParameters(argc, argv);
 //
@@ -195,8 +196,8 @@
 //
 //        cout << "This function is under development" << endl;
 //    }
-//
-//
-//    return 0;
-//}
-//
+
+
+    return 0;
+}
+

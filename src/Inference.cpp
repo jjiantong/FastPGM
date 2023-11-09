@@ -10,8 +10,8 @@
  * @param dts the testing set
  * @param is_dense whether we need to fill zero for the evidences
  */
-Inference::Inference(bool classification, Network *net, Dataset *dts, bool is_dense):
-            classification_mode(classification), network(net), num_instances(dts->num_instance),
+Inference::Inference(bool classification, Network *net, ParameterLearning *pl, Dataset *dts, bool is_dense):
+            classification_mode(classification), network(net), pl(pl), num_instances(dts->num_instance),
             query_index(dts->class_var_index) {
     // TODO: double check this function if the dataset for inference problem is changed. e.g., we don't need \
     //  `query_index` or `ground_truth` for inference mode.

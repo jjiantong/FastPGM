@@ -41,6 +41,7 @@ public:
     PotentialTableBase();
     PotentialTableBase(DiscreteNode *disc_node, Network *net);
     PotentialTableBase(DiscreteNode *disc_node, int observed_value);
+    void ConstructPotentialTableWithEmptyPotentials(DiscreteNode *disc_node, Network *net);
     void ConstructEmptyPotentialTable(const set<int> &set_node_index, Network *net);
 
     /**
@@ -117,7 +118,7 @@ public:
 
     int GetVariableIndex(const int &variable);
 
-protected:
+//protected:
     void GetConfigValueByTableIndex(const int &table_index, int *config_value, int num_variables, const vector<int> &cum_levels);
     int GetTableIndexByConfigValue(int *config_value, int num_variables, const vector<int> &cum_levels);
     void GetConfigValueByTableIndex(const int &table_index, int *config_value);

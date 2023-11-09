@@ -33,7 +33,6 @@ public:
     void SetLaplaceSmooth(double alpha);//for smoothness when computing probability
     double GetLaplaceSmooth();
 
-    void AddInstanceOfVarVal(DiscreteConfig instance_of_var_val, int root_idx);
     void AddCount(int query_val, DiscreteConfig &parents_config, int count);
     double GetProbability(int query_val, DiscreteConfig &parents_config);
 
