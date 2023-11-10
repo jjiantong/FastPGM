@@ -64,14 +64,12 @@ void DiscreteNode::InitializeCPT() {
         map_total_count_under_parents_config[par_config] = 0;
         for (int i = 0; i < GetDomainSize(); ++i) {
             map_cond_prob_table_statistics[i][par_config] = 0;
-            map_cond_prob[i][par_config] = -1;
         }
     } else {
         for (const auto &par_config : set_discrete_parents_combinations) {
             map_total_count_under_parents_config[par_config] = 0; // todo
             for (int i = 0; i < GetDomainSize(); ++i) {
                 map_cond_prob_table_statistics[i][par_config] = 0;
-                map_cond_prob[i][par_config] = -1;
             }
         }
     }
@@ -97,14 +95,10 @@ void DiscreteNode::AddCount(int query_val, DiscreteConfig &parents_config, int c
  */
 // TODO: check the algorithm for the case of unseen values (based on a forgotten paper of weka)
 double DiscreteNode:: GetProbability(int query_val, DiscreteConfig &parents_config) {
-    if (map_cond_prob[query_val][parents_config] < 0) {
-        int frequency_count =  map_cond_prob_table_statistics[query_val][parents_config]; // P(AB)
-        int total = map_total_count_under_parents_config[parents_config]; // P(B)
-        map_cond_prob[query_val][parents_config] = (frequency_count + laplace_smooth) / (total + laplace_smooth * GetDomainSize()); // P(A|B) = P(AB) / P(B)
-//        double prob = (frequency_count + laplace_smooth) / (total + laplace_smooth * GetDomainSize()); // P(A|B) = P(AB) / P(B)
-//        return prob;
-    }
-    return map_cond_prob[query_val][parents_config];
+    int frequency_count =  map_cond_prob_table_statistics[query_val][parents_config]; // P(AB)
+    int total = map_total_count_under_parents_config[parents_config]; // P(B)
+    double prob = (frequency_count + laplace_smooth) / (total + laplace_smooth * GetDomainSize()); // P(A|B) = P(AB) / P(B)
+    return prob;
 }
 
 int DiscreteNode::GetNumPotentialVals() {
