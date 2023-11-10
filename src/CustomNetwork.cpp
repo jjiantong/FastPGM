@@ -17,7 +17,7 @@ vector<int> CustomNetwork::SimplifyDefaultElimOrd(DiscreteConfig evidence) {
 /**
  * @brief: construct a network using XML file (cf. dog-problem.xml under "interchange-format-file" folder for an example)
  */
-void CustomNetwork::GetNetFromXMLBIFFile(string file_path) {//XMLBIF is the xml file format; BIF: Interchange Format for Bayesian Network.
+void CustomNetwork::GetNetFromXMLBIFFile(string file_path, int alpha) {//XMLBIF is the xml file format; BIF: Interchange Format for Bayesian Network.
   
   // Check if the file exists.
   FILE *test_f_ptr = fopen(file_path.c_str(),"r");
@@ -29,7 +29,7 @@ void CustomNetwork::GetNetFromXMLBIFFile(string file_path) {//XMLBIF is the xml 
     fclose(test_f_ptr);
 
   XMLBIFParser xbp(file_path);
-  vector<Node*> connected_nodes = xbp.GetConnectedNodes();
+  vector<Node*> connected_nodes = xbp.GetConnectedNodes(alpha);
 
   network_name = xbp.xml_network_name_ptr->GetText();
   num_nodes = connected_nodes.size();

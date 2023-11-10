@@ -11,7 +11,6 @@
 #include "DiscreteNode.h"
 #include "ContinuousNode.h"
 #include "PotentialTableBase.h"
-#include "ParameterLearning.h"
 #include "Timer.h"
 #include <iostream>
 #include <sys/time.h>
@@ -33,7 +32,6 @@ public:
     bool classification_mode; // true for classification mode, false for inference mode
     Network *network; // the learned network which can be used for inference
     int num_instances; // number of instances in the testing set
-    ParameterLearning *pl;
     /**
      * the index of the variable we are interested in (for each instance in the testing set). for the classification
      * problem, typically we have only one class variable to infer, so query_index is only one index. but for inference
@@ -46,7 +44,7 @@ public:
     vector<int> ground_truths; // the ground truths of each class variable
     vector<vector<double>> ground_truth_probability_tables; // the probabilities for each state of each node, computed by exact inference algorithms
 
-    Inference(bool classification, Network *net, ParameterLearning *pl, Dataset *dts, bool is_dense);
+    Inference(bool classification, Network *net, Dataset *dts, bool is_dense);
     Inference(Network *net); // it is used only in LBP for EPIS-BN
 
     virtual ~Inference() {};

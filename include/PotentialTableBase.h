@@ -18,6 +18,7 @@
 
 using namespace std;
 
+class Network;
 // TODO: change to PotentialTable after integrating approximate inference algorithms, and also simplify this class
 class PotentialTableBase {//this is used only for discrete nodes;
 public:

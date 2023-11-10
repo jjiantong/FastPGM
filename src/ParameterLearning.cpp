@@ -17,7 +17,7 @@ void ParameterLearning::LearnParamsKnowStructCompData(const Dataset *dts, int al
     timer->Start("parameter_learning");
 
     int root_idx = (network->num_nodes == dts->num_vars) ? -1: dts->num_vars;
-    pts.reserve(network->num_nodes);
+    network->pts.reserve(network->num_nodes);
 
     for (int i = 0; i < dts->num_vars; ++i) { // for each variable in the network
         DiscreteNode *this_node = dynamic_cast<DiscreteNode*>(network->FindNodePtrByIndex(i));
@@ -77,7 +77,7 @@ void ParameterLearning::LearnParamsKnowStructCompData(const Dataset *dts, int al
             }
             pt.potentials[j] = ((double)num1 + alpha) / ((double)num2 + alpha * pt.var_dims[0]); // P(A|B) = P(AB) / P(B)
         }
-        pts.push_back(pt);
+        network->pts.push_back(pt);
     }
 
     // separately handle the virtual ROOT if it exists.
@@ -95,7 +95,7 @@ void ParameterLearning::LearnParamsKnowStructCompData(const Dataset *dts, int al
         int num2 = dts->num_instance;
         pt.potentials[0] = ((double)num1 + alpha) / ((double)num2 + alpha * pt.var_dims[0]); // P(A|B) = P(AB) / P(B)
         pt.potentials[1] = ((double)num1 + alpha) / ((double)num2 + alpha * pt.var_dims[0]); // P(A|B) = P(AB) / P(B)
-        pts.push_back(pt);
+        network->pts.push_back(pt);
     }
 
     timer->Stop("parameter_learning");

@@ -30,7 +30,7 @@ class CustomNetwork : public Network {//CustomNetwork may be a tree shape graph 
    */
   vector<int> SimplifyDefaultElimOrd(DiscreteConfig evidence) override;
 
-  void GetNetFromXMLBIFFile(string file_path);//construct the network using content from the xml file.
+  void GetNetFromXMLBIFFile(string file_path, int alpha);//construct the network using content from the xml file.
 
   // construct network structure from BIF files
   // todo: can we use xmlbif?

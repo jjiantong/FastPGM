@@ -22,7 +22,7 @@
 //        string net_file = "../../dataset/alarm/alarm.xml";
 //        string test_set_file = "../../dataset/alarm/testing_alarm_1k_p20";
 //
-//        network->GetNetFromXMLBIFFile(net_file);
+//        network->GetNetFromXMLBIFFile(net_file, 1);
 //        tester->LoadLIBSVMDataKnownNetwork(test_set_file, network->num_nodes);
 //
 //        inference = new JunctionTree(false, network, tester, false);

@@ -15,7 +15,6 @@
 class ParameterLearning {
 public:
     Network *network; // the network to be learned
-    vector<PotentialTableBase> pts; // potential tables for each node
 
     ParameterLearning(Network *net) {network = net;};
 

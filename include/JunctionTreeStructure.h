@@ -8,7 +8,6 @@
 #include "Clique.h"
 #include "Separator.h"
 #include "Network.h"
-#include "ParameterLearning.h"
 
 /**
  * @brief: this class is to transform the BN into a secondary structure called junction tree.
@@ -21,7 +20,7 @@ public:
     vector<Separator*> vector_separator_ptr_container;//all the separators in the Junction tree
 
     JunctionTreeStructure() = default;
-    JunctionTreeStructure(Network *net, ParameterLearning *pl);
+    JunctionTreeStructure(Network *net, bool classification_mode);
     ~JunctionTreeStructure();
 
 protected:
@@ -31,7 +30,7 @@ protected:
     static void Moralize(int **direc_adjac_matrix, int &num_nodes);
     void Triangulate(Network *net, int **adjac_matrix, vector<bool> &has_processed);
     void FormJunctionTree();
-    void AssignPotentials(ParameterLearning *pl);
+    void AssignPotentials(bool classification_mode);
     float GetAveAndMaxCliqueSize(int &max_size);
 };
 

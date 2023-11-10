@@ -5,6 +5,7 @@
 #include "Dataset.h"
 #include "Node.h"
 #include "Edge.h"
+#include "PotentialTableBase.h"
 #include <string>
 #include <set>
 #include <queue>
@@ -21,6 +22,7 @@
 
 using namespace std;
 
+class PotentialTableBase;
 class Network {//this class is used by both the customized networks and networks learning from data.
 public:
     string network_name;//a name for each bayesian network (usually an xml file contains a name for the network).
@@ -33,6 +35,8 @@ public:
 
     map<int, Node*> map_idx_node_ptr;  // Key: node index. Value: node pointer. This map is a helper for FindNodePtrByIndex.
     vector<Edge> vec_edges;  // edges in the network
+
+    vector<PotentialTableBase> pts; // potential tables for each node
 
     Network();
     explicit Network(bool pure_disc);

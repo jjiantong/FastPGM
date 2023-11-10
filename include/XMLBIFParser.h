@@ -9,6 +9,7 @@
 #include "Node.h"
 #include "DiscreteNode.h"
 #include "ContinuousNode.h"
+#include "PotentialTableBase.h"
 
 using namespace tinyxml2;
 
@@ -27,9 +28,9 @@ class XMLBIFParser {
   void LoadFile(string &file);
 
   vector<Node*> GetUnconnectedNodes() const;
-  void AssignProbsToNodes(vector<Node*> vec_nodes_ptr);
+  void AssignProbsToNodes(vector<Node*> vec_nodes_ptr, int alpha);
 
-  vector<Node*> GetConnectedNodes();
+  vector<Node*> GetConnectedNodes(int alpha);
 
 };
 

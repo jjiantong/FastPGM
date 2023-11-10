@@ -72,7 +72,10 @@ vector<Node*> XMLBIFParser::GetUnconnectedNodes() const {
 /**
  * @brief: read the probabilities and construct parent-child relationship.
  */
-void XMLBIFParser::AssignProbsToNodes(vector<Node*> vec_node_ptrs) {
+void XMLBIFParser::AssignProbsToNodes(vector<Node*> vec_node_ptrs, int alpha) {
+    vector<PotentialTableBase> pts;
+    pts.reserve(vec_node_ptrs.size());
+
     for (auto &xpp : vec_xml_probs_ptr) { // Parse each "PROBABILITY" element.
         // Parse "FOR"
         string str_for = (xpp->FirstChildElement("FOR")->GetText());
@@ -114,8 +117,7 @@ void XMLBIFParser::AssignProbsToNodes(vector<Node*> vec_node_ptrs) {
             xg = xg->NextSiblingElement("GIVEN");
         }
 
-        // store the node2node relationships:
-        // store the parent-child relationship, but didn't store the edge
+        // store the parent-child relationship, but didn't store the edge.
         for (auto &gvp : vec_given_vars_ptrs) {
             // (network)SetParentChild(node1, node2); // set parent and child relationship
             for_np->AddParent(gvp);
@@ -185,9 +187,9 @@ void XMLBIFParser::AssignProbsToNodes(vector<Node*> vec_node_ptrs) {
  * @brief: first read all the nodes; then read probabilities and construct parent-child relationships.
  * @return
  */
-vector<Node*> XMLBIFParser::GetConnectedNodes() {
+vector<Node*> XMLBIFParser::GetConnectedNodes(int alpha) {
     vector<Node*> unconnected_nodes = GetUnconnectedNodes();
-    AssignProbsToNodes(unconnected_nodes);
+    AssignProbsToNodes(unconnected_nodes, alpha);
     vector<Node*> &connected_nodes = unconnected_nodes; // Just change a name.
 
     /************************* data set generation *************************/

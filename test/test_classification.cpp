@@ -54,14 +54,16 @@ TEST_F(TestClassificationAlarm, thread_1) {
     pc_bnsl->AddRootNode(roots);
 
     bnpl->LearnParamsKnowStructCompData(trainer, 1, verbose); // todo: alpha = 1
-//    SAFE_DELETE(trainer);
+    SAFE_DELETE(trainer);
 
-    Inference *inference = new JunctionTree(true, network, bnpl, tester, false);
-//    SAFE_DELETE(tester);
+    Inference *inference = new JunctionTree(true, network, tester, false);
+    SAFE_DELETE(tester);
 
     string pt_file = "../../dataset/alarm/alarm_1k_pt";
     double accuracy = inference->EvaluateAccuracy(pt_file, num_threads);
     cout << "accuracy = " << accuracy << endl;
-//    SAFE_DELETE(inference);
+    SAFE_DELETE(inference);
+    SAFE_DELETE(bnsl);
+    SAFE_DELETE(bnpl);
 }
 
