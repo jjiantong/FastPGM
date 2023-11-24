@@ -5,13 +5,13 @@
 #ifndef BAYESIANNETWORK_INFERENCE_H
 #define BAYESIANNETWORK_INFERENCE_H
 
-#include "Network.h"
-#include "Dataset.h"
-#include "Node.h"
-#include "DiscreteNode.h"
-#include "ContinuousNode.h"
-#include "PotentialTableBase.h"
-#include "Timer.h"
+#include "fastbo/Network.h"
+#include "fastbo/Dataset.h"
+#include "fastbo/Node.h"
+#include "fastbo/DiscreteNode.h"
+#include "fastbo/ContinuousNode.h"
+#include "fastbo/PotentialTableBase.h"
+#include "fastbo/Timer.h"
 #include <iostream>
 #include <sys/time.h>
 #include <locale.h>

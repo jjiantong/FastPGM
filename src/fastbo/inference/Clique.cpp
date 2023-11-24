@@ -1,4 +1,4 @@
-#include "fastbo/Clique.h"
+#include "fastbo/inference/Clique.h"
 
 Clique::Clique() {
     ptr_upstream_clique = nullptr;

@@ -6,10 +6,10 @@
 #include <utility>
 #include <string>
 #include <queue>
-#include "Node.h"
-#include "Network.h"
-#include "PotentialTableBase.h"
-#include "Timer.h"
+#include "fastbo/Node.h"
+#include "fastbo/Network.h"
+#include "fastbo/PotentialTableBase.h"
+#include "fastbo/Timer.h"
 #include "omp.h"
 
 typedef set< pair<int, int> > DiscreteConfig;

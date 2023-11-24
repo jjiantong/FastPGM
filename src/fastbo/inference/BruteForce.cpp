@@ -1,7 +1,7 @@
 ////
 //// Created by jjt on 6/10/22.
 ////
-//#include "BruteForce.h"
+//#include "fastbo/inference/BruteForce.h"
 //
 //double BruteForce::EvaluateAccuracy(string path, int num_threads) {
 //    cout << "==================================================" << '\n'

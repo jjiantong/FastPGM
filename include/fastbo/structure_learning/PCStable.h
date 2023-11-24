@@ -5,11 +5,11 @@
 #ifndef BAYESIANNETWORK_PCSTABLE_H
 #define BAYESIANNETWORK_PCSTABLE_H
 
-#include "common.h"
+#include "fastbo/common.h"
 #include "StructureLearning.h"
-#include "IndependenceTest.h"
-#include "ChoiceGenerator.h"
-#include "Timer.h"
+#include "fastbo/structure_learning/IndependenceTest.h"
+#include "fastbo/ChoiceGenerator.h"
+#include "fastbo/Timer.h"
 #include <algorithm>
 #include <stack>
 

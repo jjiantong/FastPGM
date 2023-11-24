@@ -3,7 +3,7 @@
 // checked on 16/10/23.
 //
 
-#include "fastbo/JunctionTreeStructure.h"
+#include "fastbo/inference/JunctionTreeStructure.h"
 
 /**
  * @brief: convert BN into a junction tree.

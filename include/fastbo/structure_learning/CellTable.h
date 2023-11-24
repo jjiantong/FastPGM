@@ -5,8 +5,8 @@
 #ifndef BAYESIANNETWORK_CELLTABLE_H
 #define BAYESIANNETWORK_CELLTABLE_H
 
-#include "Dataset.h"
-#include "Timer.h"
+#include "fastbo/Dataset.h"
+#include "fastbo/Timer.h"
 #include <omp.h>
 #include <stdint.h>
 

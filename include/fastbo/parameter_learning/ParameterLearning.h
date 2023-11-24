@@ -5,11 +5,11 @@
 #ifndef BAYESIANNETWORK_PARAMETERLEARNING_H
 #define BAYESIANNETWORK_PARAMETERLEARNING_H
 
-#include "Network.h"
-#include "Dataset.h"
-#include "DiscreteNode.h"
-#include "PotentialTableBase.h"
-#include "Timer.h"
+#include "fastbo/Network.h"
+#include "fastbo/Dataset.h"
+#include "fastbo/DiscreteNode.h"
+#include "fastbo/PotentialTableBase.h"
+#include "fastbo/Timer.h"
 
 
 class ParameterLearning {

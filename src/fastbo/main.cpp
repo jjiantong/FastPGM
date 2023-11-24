@@ -2,14 +2,14 @@
 
 #include "fastbo/Dataset.h"
 #include "fastbo/CustomNetwork.h"
-#include "fastbo/Inference.h"
-#include "fastbo/BruteForce.h"
-#include "fastbo/JunctionTree.h"
-#include "fastbo/VariableElimination.h"
+#include "fastbo/inference/Inference.h"
+#include "fastbo/inference/BruteForce.h"
+#include "fastbo/inference/JunctionTree.h"
+#include "fastbo/inference/VariableElimination.h"
 #include "fastbo/Network.h"
-#include "fastbo/StructureLearning.h"
-#include "fastbo/PCStable.h"
-#include "fastbo/BNSLComparison.h"
+#include "fastbo/structure_learning/StructureLearning.h"
+#include "fastbo/structure_learning/PCStable.h"
+#include "fastbo/structure_learning/BNSLComparison.h"
 #include "fastbo/Parameter.h"
 
 using namespace std;

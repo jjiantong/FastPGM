@@ -12,10 +12,10 @@
 #include <iostream>
 #include <cstdlib>
 #include <ctime>
-#include "Dataset.h"
+#include "fastbo/Dataset.h"
 #include "CellTable.h"
-#include "CombinationGenerator.h"
-#include "Timer.h"
+#include "fastbo/CombinationGenerator.h"
+#include "fastbo/Timer.h"
 
 #include "gcem.hpp"
 #include "stats.hpp"

@@ -1,7 +1,7 @@
 ////
 //// Created by jjt on 6/10/22.
 ////
-//#include "VariableElimination.h"
+//#include "fastbo/inference/VariableElimination.h"
 //
 //VariableElimination::VariableElimination(Network *net, Dataset *dts, bool is_dense): Inference(net, dts, is_dense) {
 //    // TODO: if we need to specify an order, change this part...

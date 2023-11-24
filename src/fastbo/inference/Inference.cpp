@@ -1,7 +1,7 @@
 //
 // Created by jjt on 2021/6/15.
 //
-#include "fastbo/Inference.h"
+#include "fastbo/inference/Inference.h"
 
 /**
  * constructor of Inference

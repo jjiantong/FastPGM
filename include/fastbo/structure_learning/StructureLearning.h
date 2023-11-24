@@ -5,9 +5,9 @@
 #ifndef BAYESIANNETWORK_STRUCTURELEARNING_H
 #define BAYESIANNETWORK_STRUCTURELEARNING_H
 
-#include "Network.h"
-#include "Dataset.h"
-#include "DiscreteNode.h"
+#include "fastbo/Network.h"
+#include "fastbo/Dataset.h"
+#include "fastbo/DiscreteNode.h"
 
 
 class StructureLearning {

@@ -2,7 +2,7 @@
 // Created by jjt on 2021/6/17.
 //
 
-#include "fastbo/StructureLearning.h"
+#include "fastbo/structure_learning/StructureLearning.h"
 
 /**
  * @brief: add each node in the network, contains:

@@ -8,11 +8,11 @@
 
 #include "fastbo/Dataset.h"
 #include "fastbo/Network.h"
-#include "fastbo/StructureLearning.h"
-#include "fastbo/ParameterLearning.h"
-#include "fastbo/PCStable.h"
-#include "fastbo/Inference.h"
-#include "fastbo/JunctionTree.h"
+#include "fastbo/structure_learning/StructureLearning.h"
+#include "fastbo/parameter_learning/ParameterLearning.h"
+#include "fastbo/structure_learning/PCStable.h"
+#include "fastbo/inference/Inference.h"
+#include "fastbo/inference/JunctionTree.h"
 
 #define GROUP_SIZE 1
 #define VERBOSE 1

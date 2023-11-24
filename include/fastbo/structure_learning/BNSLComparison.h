@@ -5,7 +5,7 @@
 #ifndef BAYESIANNETWORK_BNSLCOMPARISON_H
 #define BAYESIANNETWORK_BNSLCOMPARISON_H
 
-#include "Network.h"
+#include "fastbo/Network.h"
 
 /**
  * this class is used to measure the quality of the learned Bayesian Networks

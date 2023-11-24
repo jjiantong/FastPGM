@@ -2,7 +2,7 @@
 // Created by jjt on 2021/6/23.
 //
 
-#include "fastbo/ParameterLearning.h"
+#include "fastbo/parameter_learning/ParameterLearning.h"
 
 /**
  * @brief: get each node's conditional probability table

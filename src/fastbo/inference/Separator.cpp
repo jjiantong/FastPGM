@@ -1,4 +1,4 @@
-#include "fastbo/Separator.h"
+#include "fastbo/inference/Separator.h"
 
 Separator::Separator() {
     is_in_jt = false;

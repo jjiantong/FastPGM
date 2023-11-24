@@ -5,9 +5,9 @@
 #ifndef BAYESIANNETWORK_JUNCTIONTREESTRUCTURE_H
 #define BAYESIANNETWORK_JUNCTIONTREESTRUCTURE_H
 
-#include "Clique.h"
+#include "fastbo/inference/Clique.h"
 #include "Separator.h"
-#include "Network.h"
+#include "fastbo/Network.h"
 
 /**
  * @brief: this class is to transform the BN into a secondary structure called junction tree.

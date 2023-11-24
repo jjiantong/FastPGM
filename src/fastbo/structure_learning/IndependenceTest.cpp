@@ -2,7 +2,7 @@
 // Created by jjt on 2021/6/23.
 //
 
-#include "fastbo/IndependenceTest.h"
+#include "fastbo/structure_learning/IndependenceTest.h"
 
 /**
  * @brief: constructing a test using the given data set and significance level

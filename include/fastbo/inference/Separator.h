@@ -2,7 +2,7 @@
 #define BAYESIANNETWORK_SEPARATOR_H
 
 #include <algorithm>
-#include "Clique.h"
+#include "fastbo/inference/Clique.h"
 
 /**
  * @brief: Separator is used like an edge, and the other none separator cliques are nodes in a network.

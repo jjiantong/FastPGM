@@ -4,10 +4,10 @@
 #include <set>
 #include <vector>
 #include <algorithm>
-#include "common.h"
-#include "Clique.h"
+#include "fastbo/common.h"
+#include "fastbo/inference/Clique.h"
 #include "Separator.h"
-#include "Network.h"
+#include "fastbo/Network.h"
 #include "Inference.h"
 #include "JunctionTreeStructure.h"
 

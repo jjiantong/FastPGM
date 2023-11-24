@@ -2,7 +2,7 @@
 // Created by jjt on 2021/7/10.
 //
 
-#include "fastbo/BNSLComparison.h"
+#include "fastbo/structure_learning/BNSLComparison.h"
 
 BNSLComparison::BNSLComparison(Network *true_graph, Network *learned_graph) {
     this->true_graph = true_graph;
