@@ -19,7 +19,6 @@ public:
     int num_vars;
     int class_var_index = -1;  // "-1" for no specified class variable; used to specify which attribute/variable is class label.
 
-    vector<bool> is_vars_discrete;
     vector<string> vec_var_names;
 
     vector<map<string, int>> vars_possible_values_ids;
@@ -32,8 +31,8 @@ public:
     Dataset();
     ~Dataset();
 
-    void LoadLIBSVMData(string data_file_path, set<int> cont_vars={});
-    void LoadLIBSVMDataKnownNetwork(string data_file_path, int num_nodes, set<int> cont_vars={});
+    void LoadLIBSVMData(string data_file_path, int cls_var_id, set<int> cont_vars={});
+    void LoadLIBSVMDataKnownNetwork(string data_file_path, int num_nodes, int cls_var_id, set<int> cont_vars={});
     void SamplesToLIBSVMFile(vector<DiscreteConfig> &samples, string &file) const;
     void SamplesToLIBSVMFile(vector<Configuration> &samples, string &file) const;
 

@@ -30,7 +30,8 @@ protected:
         trainer->LoadCSVData(train_set_file, true, true, 0);
 
         string test_set_file = "../../dataset/alarm/testing_alarm_1k_p20";
-        tester->LoadLIBSVMDataKnownNetwork(test_set_file, network->num_nodes);
+        tester->LoadLIBSVMDataKnownNetwork(test_set_file, trainer->num_vars,
+                                           network->num_nodes);
 
         bnsl = new PCStable(network, 0.05);
         bnpl = new ParameterLearning(network);

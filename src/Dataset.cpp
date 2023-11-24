@@ -31,9 +31,8 @@ Dataset::~Dataset() {
 // * 2, convert the vector representation into array (does not erase the vector representation).
 // * @param: data_file_path: path to the LIBSVM data file (like a1a)
 // * @param: cont_vars: indexes for continuous variables; need to manually specify which variable is continuous
-// * todo: to use it, must remove `map_disc_vars_possible_values` and add `vars_possible_values_ids`.
 // */
-//void Dataset::LoadLIBSVMData(string data_file_path, set<int> cont_vars) {
+//void Dataset::LoadLIBSVMData(string data_file_path, int cls_var_id, set<int> cont_vars) {
 //
 //    ifstream in_file;
 //    in_file.open(data_file_path);
@@ -45,7 +44,7 @@ Dataset::~Dataset() {
 ////    cout << "Data file opened. Begin to load data. " << endl;
 //
 //    // the first element is the class variable in the LibSVN format
-//    class_var_index = 0;
+//    class_var_index = cls_var_id;
 //    string sample;
 //    int max_index_occurred = -1;
 //    vector<Value> dataset_y_vector;
@@ -120,7 +119,6 @@ Dataset::~Dataset() {
 //    num_instance = vector_dataset_all_vars.size();
 //    num_vars = max_index_occurred + 1;//the number of variables of the data set
 //
-//    is_vars_discrete.reserve(num_vars);
 //    num_of_possible_values_of_disc_vars.reserve(num_vars);
 //
 //    for (int i = 0; i < num_vars; ++i) {
@@ -143,7 +141,6 @@ Dataset::~Dataset() {
 //            }
 //        }
 //        num_of_possible_values_of_disc_vars.push_back(map_disc_vars_possible_values[i].size());
-//        is_vars_discrete.push_back(cont_vars.find(i) == cont_vars.end());
 //    }
 //
 //    // 2, convert vector "vector_dataset_all_vars" into array "dataset_all_vars" (does not erase "vector_dataset_all_vars").
@@ -160,7 +157,7 @@ Dataset::~Dataset() {
 //    in_file.close();
 //}
 
-void Dataset::LoadLIBSVMDataKnownNetwork(string data_file_path, int num_nodes, set<int> cont_vars) {
+void Dataset::LoadLIBSVMDataKnownNetwork(string data_file_path, int num_nodes, int cls_var_id, set<int> cont_vars) {
 
     ifstream in_file;
     in_file.open(data_file_path);
@@ -171,7 +168,7 @@ void Dataset::LoadLIBSVMDataKnownNetwork(string data_file_path, int num_nodes, s
     }
 //    cout << "Data file opened. Begin to load data. " << endl;
 
-    class_var_index = 0;
+    class_var_index = cls_var_id;
     string sample;
     vector<Value> dataset_y_vector;
     vector<vector<VarVal>> dataset_X_vector; // VarVal: pair<int, Value>
@@ -241,13 +238,7 @@ void Dataset::LoadLIBSVMDataKnownNetwork(string data_file_path, int num_nodes, s
     num_instance = vector_dataset_all_vars.size();
     num_vars = num_nodes;//the number of variables of the data set
 
-    is_vars_discrete.reserve(num_vars);
     num_of_possible_values_of_disc_vars.reserve(num_vars);
-
-    // whether a variable is continuous
-    for (int i = 0; i < num_vars; ++i) {
-        is_vars_discrete.push_back(cont_vars.find(i) == cont_vars.end());
-    }
 
 //    // 2, convert vector "vector_dataset_all_vars" into array "dataset_all_vars" (does not erase "vector_dataset_all_vars").
 //    if (cont_vars.empty()) {//the data set only contains discrete variables.
@@ -255,9 +246,9 @@ void Dataset::LoadLIBSVMDataKnownNetwork(string data_file_path, int num_nodes, s
 //        RowMajor2ColumnMajor();
 //    }
 
-    cout << "Finish loading data. "
+    cout << "Finish loading testing data. "
          << "Number of instances: " << num_instance << ". "
-            << "Number of features: " << num_vars << ". " << endl;
+            << "Number of variables: " << num_vars << ". " << endl;
 
     in_file.close();
 }
@@ -289,7 +280,6 @@ void Dataset::LoadCSVData(string data_file_path, bool header, bool str_val, int 
     sample = TrimRight(sample);
     vector<string> parsed_variable = Split(sample, ",");
     num_vars = parsed_variable.size(); // the number of variables of the data set
-    is_vars_discrete.reserve(num_vars);
     num_of_possible_values_of_disc_vars.reserve(num_vars);
 
     if (header) { // the first line contains variable names, it is like the table header
@@ -396,7 +386,6 @@ void Dataset::LoadCSVData(string data_file_path, bool header, bool str_val, int 
 
     for (int i = 0; i < num_vars; ++i) {
         num_of_possible_values_of_disc_vars.push_back(vars_possible_values_ids[i].size());
-        is_vars_discrete.push_back(cont_vars.find(i)==cont_vars.end());
     }
 
     /**
@@ -407,7 +396,7 @@ void Dataset::LoadCSVData(string data_file_path, bool header, bool str_val, int 
         RowMajor2ColumnMajor();
     }
 
-    cout << "Finish loading data. "
+    cout << "Finish loading training data. "
          << "Number of instances: " << num_instance << ". "
          << "Number of variables: " << num_vars << "." << endl;
 
@@ -545,14 +534,12 @@ void Dataset::SamplesToCSVFile(vector<Configuration> &samples, string &file, vec
 
 /**
  * @brief: convert from vector ("vector_dataset_all_vars") to array ("dataset_all_vars")
- * this function is used if the data set only contains discrete variables
- * TODO: we may try to avoid using it, or keep it but only for comparison purposes.
+ * this function is used if the data set only contains discrete variables. note that we avoid using it due to
+ * inefficiency, here we keep it only for comparison purposes.
  */
 void Dataset::Vector2IntArray() {//storing the data set using int only
     // Initialize to be all zero. (dataset_all_vars: int **)
     dataset_all_vars = new int* [num_instance];
-//  dataset_all_vars = new uint8_t* [num_instance];
-//#pragma omp parallel for
     for (int s = 0; s < num_instance; ++s) {
         dataset_all_vars[s] = new int [num_vars]();
         vector<VarVal> vec_instance = vector_dataset_all_vars[s];
@@ -565,18 +552,14 @@ void Dataset::Vector2IntArray() {//storing the data set using int only
 
 /**
  * @brief: convert from row-major storage ("dataset_all_vars") to column-major storage ("dataset_columns").
- * this function is used if the data set only contains discrete variables.
- * using `dataset_columns` is often more efficient than using `dataset_all_vars`.
- * TODO: `dataset_columns` can be directly generated without firstly generating `dataset_all_vars`.
+ * this function is used if the data set only contains discrete variables. note that we always use `dataset_columns`
+ * rather than `dataset_all_vars`.
  */
 void Dataset::RowMajor2ColumnMajor() {
     // Initialize to be all zero. (dataset_columns: int **)
     dataset_columns = new int* [num_vars];
-//    dataset_columns = new uint8_t* [num_vars];
-//#pragma omp parallel for
     for (int i = 0; i < num_vars; ++i) {
         dataset_columns[i] = new int [num_instance];
-//        dataset_columns = new uint8_t* [num_vars];
         for (int j = 0; j < num_instance; ++j) {
             dataset_columns[i][j] = dataset_all_vars[j][i];
         }
