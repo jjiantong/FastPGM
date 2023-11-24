@@ -2,7 +2,7 @@
 // Created by jjt on 2021/6/23.
 //
 
-#include "Edge.h"
+#include "fastbo/Edge.h"
 
 Edge::Edge(Node* node1, Node* node2, EndPoint end_point1, EndPoint end_point2) {
     this->node1 = node1;

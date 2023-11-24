@@ -1,7 +1,7 @@
 //
 // Created by jjt on 8/12/22.
 //
-#include "SampleSetGenerator.h"
+#include "fastbo/SampleSetGenerator.h"
 
 SampleSetGenerator::SampleSetGenerator(Network *net, int num_samples): network(net), num_samples(num_samples) {
     int num_nodes = network->num_nodes;

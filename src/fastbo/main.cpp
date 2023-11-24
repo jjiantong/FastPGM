@@ -1,16 +1,16 @@
 #include <iostream>
 
-#include "Dataset.h"
-#include "CustomNetwork.h"
-#include "Inference.h"
-#include "BruteForce.h"
-#include "JunctionTree.h"
-#include "VariableElimination.h"
-#include "Network.h"
-#include "StructureLearning.h"
-#include "PCStable.h"
-#include "BNSLComparison.h"
-#include "Parameter.h"
+#include "fastbo/Dataset.h"
+#include "fastbo/CustomNetwork.h"
+#include "fastbo/Inference.h"
+#include "fastbo/BruteForce.h"
+#include "fastbo/JunctionTree.h"
+#include "fastbo/VariableElimination.h"
+#include "fastbo/Network.h"
+#include "fastbo/StructureLearning.h"
+#include "fastbo/PCStable.h"
+#include "fastbo/BNSLComparison.h"
+#include "fastbo/Parameter.h"
 
 using namespace std;
 

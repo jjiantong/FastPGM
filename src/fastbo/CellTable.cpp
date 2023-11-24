@@ -2,7 +2,7 @@
 // Created by jjt on 2021/7/2.
 //
 
-#include "CellTable.h"
+#include "fastbo/CellTable.h"
 
 //int Is_exist (int item, const vector<int> &list) {
 //    for (int i = 0; i < list.size(); ++i) {

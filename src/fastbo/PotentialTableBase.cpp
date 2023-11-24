@@ -1,7 +1,7 @@
 //
 // Created by jjt on 7/11/22.
 //
-#include "PotentialTableBase.h"
+#include "fastbo/PotentialTableBase.h"
 
 PotentialTableBase::PotentialTableBase() {
     num_variables = 0;

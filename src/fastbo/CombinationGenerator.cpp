@@ -2,7 +2,7 @@
 // Created by jjt on 2021/7/4.
 //
 
-#include "CombinationGenerator.h"
+#include "fastbo/CombinationGenerator.h"
 
 /**
  * creates a combination set for a set of variables with the given number of max_values

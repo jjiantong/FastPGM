@@ -1,4 +1,4 @@
-#include "DiscreteNode.h"
+#include "fastbo/DiscreteNode.h"
 
 #include <utility>
 

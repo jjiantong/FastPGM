@@ -1,4 +1,4 @@
-#include "JunctionTree.h"
+#include "fastbo/JunctionTree.h"
 
 JunctionTree::JunctionTree(bool classification, Network *net, Dataset *dts, bool is_dense) :
                             Inference(classification, net, dts, is_dense) {

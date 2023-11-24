@@ -6,17 +6,18 @@
 #include <vector>
 #include "gtest/gtest.h"
 
-#include "Dataset.h"
-#include "Network.h"
-#include "StructureLearning.h"
-#include "ParameterLearning.h"
-#include "PCStable.h"
-#include "Inference.h"
-#include "JunctionTree.h"
+#include "fastbo/Dataset.h"
+#include "fastbo/Network.h"
+#include "fastbo/StructureLearning.h"
+#include "fastbo/ParameterLearning.h"
+#include "fastbo/PCStable.h"
+#include "fastbo/Inference.h"
+#include "fastbo/JunctionTree.h"
 
 #define GROUP_SIZE 1
 #define VERBOSE 1
 
+string dataset_path = "../../../dataset/";
 
 class TestClassificationAlarm : public ::testing::Test {
 protected:
@@ -26,10 +27,10 @@ protected:
         tester = new Dataset();
         network = new Network(true);
 
-        string train_set_file = "../../dataset/alarm/alarm_s5000.txt";
+        string train_set_file = dataset_path + "alarm/alarm_s5000.txt";
         trainer->LoadCSVData(train_set_file, true, true, 0);
 
-        string test_set_file = "../../dataset/alarm/testing_alarm_1k_p20";
+        string test_set_file = dataset_path + "alarm/testing_alarm_1k_p20";
         tester->LoadLIBSVMDataKnownNetwork(test_set_file, trainer->num_vars,
                                            network->num_nodes);
 
@@ -60,7 +61,7 @@ TEST_F(TestClassificationAlarm, thread_1) {
     Inference *inference = new JunctionTree(true, network, tester, false);
     SAFE_DELETE(tester);
 
-    string pt_file = "../../dataset/alarm/alarm_1k_pt";
+    string pt_file = dataset_path + "dataset/alarm/alarm_1k_pt";
     double accuracy = inference->EvaluateAccuracy(pt_file, num_threads);
     cout << "accuracy = " << accuracy << endl;
     SAFE_DELETE(inference);

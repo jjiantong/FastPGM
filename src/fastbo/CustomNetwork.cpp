@@ -1,7 +1,7 @@
 #pragma clang diagnostic push
 #pragma ide diagnostic ignored "openmp-use-default-none"
 
-#include "CustomNetwork.h"
+#include "fastbo/CustomNetwork.h"
 
 CustomNetwork::CustomNetwork(): CustomNetwork(true) {}
 

@@ -4,9 +4,9 @@
 // Created by Linjian Li on 2018/11/29.
 //
 
-#include "Node.h"
-#include "DiscreteNode.h"
-#include "ContinuousNode.h"
+#include "fastbo/Node.h"
+#include "fastbo/DiscreteNode.h"
+#include "fastbo/ContinuousNode.h"
 
 Node::Node(int index) : Node(index, to_string(index)){
 

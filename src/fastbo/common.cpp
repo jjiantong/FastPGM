@@ -2,7 +2,7 @@
 // Created by jjt on 18/09/22.
 //
 #include <random>
-#include "common.h"
+#include "fastbo/common.h"
 
 /**
  * @brief: convert a configuration (e.g., a config can be derived from an instance) into a map for fast query

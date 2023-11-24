@@ -1,7 +1,7 @@
 //
 // Created by jjt on 20/01/23.
 //
-#include "Parameter.h"
+#include "fastbo/Parameter.h"
 
 Parameter::Parameter() {
     /**

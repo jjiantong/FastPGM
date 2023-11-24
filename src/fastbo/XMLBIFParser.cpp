@@ -1,4 +1,4 @@
-#include "XMLBIFParser.h"
+#include "fastbo/XMLBIFParser.h"
 
 void XMLBIFParser::LoadFile(string &file) {
     xml_doc.LoadFile(file.c_str());

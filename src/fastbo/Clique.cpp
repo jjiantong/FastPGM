@@ -1,4 +1,4 @@
-#include "Clique.h"
+#include "fastbo/Clique.h"
 
 Clique::Clique() {
     ptr_upstream_clique = nullptr;

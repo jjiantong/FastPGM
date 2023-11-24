@@ -1,9 +1,9 @@
 #pragma clang diagnostic push
 #pragma ide diagnostic ignored "openmp-use-default-none"
 
-#include "Network.h"
-#include "DiscreteNode.h"
-#include "ContinuousNode.h"
+#include "fastbo/Network.h"
+#include "fastbo/DiscreteNode.h"
+#include "fastbo/ContinuousNode.h"
 
 Network::Network(): Network(true) {}
 

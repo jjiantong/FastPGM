@@ -1,4 +1,4 @@
-#include"ContinuousNode.h"
+#include"fastbo/ContinuousNode.h"
 
 ContinuousNode::ContinuousNode(): ContinuousNode(-1) {}
 

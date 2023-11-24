@@ -2,7 +2,7 @@
 // Created by jjt on 2021/6/23.
 //
 
-#include "PCStable.h"
+#include "fastbo/PCStable.h"
 
 PCStable::PCStable(Network *net, double a, int d) {
     network = net;

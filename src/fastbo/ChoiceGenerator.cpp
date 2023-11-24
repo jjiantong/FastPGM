@@ -2,7 +2,7 @@
 // Created by jjt on 2021/6/26.
 //
 
-#include "ChoiceGenerator.h"
+#include "fastbo/ChoiceGenerator.h"
 
 /**
  * @brief: Constructs a new choice generator for a choose b.
