@@ -49,8 +49,9 @@ TEST_F(TestClassificationAlarm, thread_1) {
     tester->vec_var_names = trainer->vec_var_names;
     tester->vars_possible_values_ids = trainer->vars_possible_values_ids;
 
-    string csv_file = dataset_path + "alarm/test.txt";
-    tester->StoreCSVData(csv_file, true, true);
+    string csv_file = dataset_path + "alarm/test_complete.txt";
+//    tester->StoreCSVDataIncompleteDataset(csv_file, true, true);
+    tester->StoreCSVDataCompleteDataset(csv_file, true, true);
 //    int group_size = GROUP_SIZE;
 //    int num_threads = 1;
 //    int verbose  = VERBOSE;
