@@ -9,6 +9,14 @@ Dataset::Dataset() {
     dataset_columns = nullptr;
 }
 
+/**
+ * construct a dataset object from a known object, used to construct the tester from the trainer.
+ */
+Dataset::Dataset(Dataset* dts): vars_possible_values_ids(dts->vars_possible_values_ids), num_vars(dts->num_vars) {
+    dataset_all_vars = nullptr;
+    dataset_columns = nullptr;
+}
+
 Dataset::~Dataset() {
     if (dataset_all_vars) {
         for (int i = 0; i < num_instance; ++i) {
@@ -410,138 +418,98 @@ void Dataset::LoadCSVTrainingData(string data_file_path, bool header, bool str_v
  */
 void Dataset::LoadCSVTestingData(string data_file_path, bool header, bool str_val, int cls_var_id,
                                  set<int> cont_vars) {
-//    if (str_val == true && vars_possible_values_ids.empty()) {
-//        cout << "vars_possible_values_ids is required when loading testing sets." << endl;
-//        exit(1);
-//    }
-//
-//    ifstream in_file;
-//    in_file.open(data_file_path);
-//    if (!in_file.is_open()) {
-//        fprintf(stderr, "Error in function %s!", __FUNCTION__);
-//        fprintf(stderr, "Unable to open file %s!", data_file_path.c_str());
-//        exit(1);
-//    }
-////    cout << "Data file opened. Begin to load data. " << endl;
-//
-//    // we need to specify the variable interested for the CSV format
-//    this->class_var_index = cls_var_id;
-//    string sample;
-//    vector<Value> dataset_y_vector;
-//    vector<vector<VarVal>> dataset_X_vector; // VarVal: pair<int, Value>
-//    /**
-//     * 1, read and parse the first line
-//     * if the first line is the header, do nothing, just getting the next line. because we have parse the header when
-//     * loading training data.
-//     */
-//    getline(in_file, sample);
-//    // If there is a whitespace at the end of each line,
-//    // it will cause a bug if we do not trim it.
-//    sample = TrimRight(sample);
-//
-//    if (header) { // the first line contains variable names, it is like the table header
-//        getline(in_file, sample);
-//        sample = TrimRight(sample);
-//    }
-//
-//    /**
-//     * 2, read the data file and store with the representation of std::vector.
-//     */
-//    /**
-//     * VarVal: pair<int, Value>; Value is a struct to support both discrete and continuous cases.
-//     * for each instance, traverse each variable to get an `var_value`, which is variable id-value pair; push all the
-//     * pairs to `single_sample_vector` to construct the vector for one instance; push all the vectors to
-//     * `vector_dataset_all_vars` to record the whole dataset
-//     */
-//    map<int, set<string>> map_disc_vars_string_values;
-//    vector<int> counter(num_vars, -1);
-//    vars_possible_values_ids.resize(num_vars);
-//
-//    while (!in_file.eof()) { // for all instances
-//        vector<string> parsed_sample = Split(sample, ",");
-//        vector<VarVal> single_sample_vector;
-//        for (int i = 0; i < num_vars; ++i) { // for each variable
-//            Value v;
-//            int value;
-//            // check whether the variable is continuous
-//            if (cont_vars.find(i) == cont_vars.end()) { //the label is discrete (i.e., classification task)
-//                if (str_val) { // if some discrete variables contain string values
-//                    string s_value = parsed_sample[i];
-//                    // insert successfully -- it is a new possible value
-//                    if (map_disc_vars_string_values[i].insert(s_value).second) {
-//                        value = ++counter[i]; // get a new int value for the new possible value
-//                        vars_possible_values_ids[i].insert(pair<string, int> (s_value, value)); // map
-//                    } else { // failed to insert -- it is an old value
-//                        value = vars_possible_values_ids[i][s_value];
-//                    }
-//                } else { // if no variable contains the string value
-//                    value = stoi(parsed_sample[i]); // the value of the variable
-//                }
-//                v.SetInt(value);
-//                // insert the value of one variable the mapped number of one variable of one sample
-//            } else { //the label is continuous (i.e., regression task)
-//                float value = stof(parsed_sample[i]); // the value of the variable
-//                v.SetFloat(value);
-//            }
-//            VarVal var_value(i, v);
-//            single_sample_vector.push_back(var_value);
-//        }
-//        vector_dataset_all_vars.push_back(single_sample_vector);
-//        getline(in_file, sample);
-//        sample = TrimRight(sample);
-//    }
-//
-//    // handle the last sample: the same way for other samples -- copy from the while-loop
-//    vector<string> parsed_sample = Split(sample, ",");
-//    vector<VarVal> single_sample_vector;
-//    for (int i = 0; i < num_vars; ++i) {
-//        Value v;
-//        int value; // each possible value (string) corresponds to an integer type `value`. the following algorithms
-//        // are all running on the integer type values.
-//        // check whether the variable is continuous
-//        if (cont_vars.find(i) == cont_vars.end()) { //the label is discrete (i.e., classification task)
-//            if (str_val) { // if some discrete variables contain string values
-//                string s_value = parsed_sample[i];
-//                // insert successfully -- it is a new possible value
-//                if (map_disc_vars_string_values[i].insert(s_value).second) {
-//                    value = ++counter[i]; // get a new int value
-//                    vars_possible_values_ids[i].insert(pair<string, int> (s_value, value)); // map
-//                } else { // failed to insert -- it is an old value
-//                    value = vars_possible_values_ids[i][s_value];
-//                }
-//            } else { // if no variable contains the string value
-//                value = stoi(parsed_sample[i]); // the value of the variable
-//            }
-//            v.SetInt(value);
-//            // insert the value of one variable the mapped number of one variable of one sample
-//        } else { //the label is continuous (i.e., regression task)
-//            float value = stof(parsed_sample[i]); // the value of the variable
-//            v.SetFloat(value);
-//        }
-//        VarVal var_value(i, v);
-//        single_sample_vector.push_back(var_value);
-//    }
-//    vector_dataset_all_vars.push_back(single_sample_vector);
-//
-//    num_instance = vector_dataset_all_vars.size();
-//
-//    for (int i = 0; i < num_vars; ++i) {
-//        num_of_possible_values_of_disc_vars.push_back(vars_possible_values_ids[i].size());
-//    }
-//
-//    /**
-//     * 3, convert vector "vector_dataset_all_vars" into array "dataset_all_vars". (`vector_dataset_all_vars` remains.)
-//     */
-//    if (cont_vars.empty()) {
-//        Vector2IntArray();
-//        RowMajor2ColumnMajor();
-//    }
-//
-//    cout << "Finish loading training data. "
-//         << "Number of instances: " << num_instance << ". "
-//         << "Number of variables: " << num_vars << "." << endl;
-//
-//    in_file.close();
+    if (str_val == true && vars_possible_values_ids.empty()) {
+        cout << "vars_possible_values_ids is required when loading testing sets." << endl;
+        exit(1);
+    }
+
+    ifstream in_file;
+    in_file.open(data_file_path);
+    if (!in_file.is_open()) {
+        fprintf(stderr, "Error in function %s!", __FUNCTION__);
+        fprintf(stderr, "Unable to open file %s!", data_file_path.c_str());
+        exit(1);
+    }
+//    cout << "Data file opened. Begin to load data. " << endl;
+
+    // we need to specify the variable interested for the CSV format
+    this->class_var_index = cls_var_id;
+    string sample;
+
+    /**
+     * 1, read and parse the first line
+     * if the first line is the header, do nothing, just getting the next line. because we have parse the header when
+     * loading training data.
+     */
+    getline(in_file, sample);
+    if (header) { // the first line contains variable names, it is like the table header
+        getline(in_file, sample);
+    }
+
+    /**
+     * 2, read the data file and store with the representation of std::vector.
+     */
+    /**
+     * VarVal: pair<int, Value>; Value is a struct to support both discrete and continuous cases.
+     * for each instance, traverse each variable to get an `var_value`, which is variable id-value pair; push all the
+     * pairs to `single_sample_vector` to construct the vector for one instance; push all the vectors to
+     * `vector_dataset_all_vars` to record the whole dataset
+     */
+    while (!in_file.eof()) { // for all instances
+        // If there is a whitespace at the end of each line,
+        // it will cause a bug if we do not trim it.
+        sample = TrimRight(sample);
+
+        vector<string> parsed_sample = Split(sample, ",");
+        vector<VarVal> single_sample_vector;
+        for (int i = 0; i < num_vars; ++i) { // for each variable
+            Value v;
+            int value;
+            // check whether the variable is continuous
+            if (cont_vars.find(i) == cont_vars.end()) { //the label is discrete (i.e., classification task)
+                string s_value = parsed_sample[i];
+                if (!s_value.empty()) {
+                    // since the dataset can be incomplete, s_value can be empty. if s_value is not empty:
+                    if (str_val) {
+                        // if some discrete variables contain string values, we need to find its transformed number.
+                        // this can be done through `vars_possible_values_ids`.
+                        if (vars_possible_values_ids[i].find(s_value) != vars_possible_values_ids[i].end()) {
+                            // if s_value can be found in `vars_possible_values_ids`
+                            value = vars_possible_values_ids[i][s_value];
+                        } else {
+                            // if s_value can't be found, it means this value doesn't exist in the training dataset.
+                            // so we just omit it and go to the next variable.
+                            continue;
+                        }
+                    } else { // if no variable contains the string value
+                        value = stoi(parsed_sample[i]); // the value of the variable
+                    }
+                    v.SetInt(value);
+                    // insert the value of one variable the mapped number of one variable of one sample
+                } else {
+                    // if s_value is empty, it means we don't know the value of this variable. so we just omit it and
+                    // go to the next variable.
+                    continue;
+                }
+
+            } else { //the label is continuous (i.e., regression task)
+                float value = stof(parsed_sample[i]); // the value of the variable
+                v.SetFloat(value);
+            }
+            VarVal var_value(i, v);
+            single_sample_vector.push_back(var_value);
+        }
+        vector_dataset_all_vars.push_back(single_sample_vector);
+
+        getline(in_file, sample);
+    }
+
+    num_instance = vector_dataset_all_vars.size();
+
+    cout << "Finish loading testing data. "
+         << "Number of instances: " << num_instance << ". " << endl;
+
+    in_file.close();
 }
 
 /**

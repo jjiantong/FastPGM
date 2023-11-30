@@ -24,16 +24,18 @@ protected:
 
     void SetUp() override {
         trainer = new Dataset();
-        tester = new Dataset();
-        network = new Network(true);
-
         string train_set_file = dataset_path + "alarm/alarm_s5000.txt";
         trainer->LoadCSVTrainingData(train_set_file, true, true, 0);
 
-        string test_set_file = dataset_path + "alarm/testing_alarm_1k_p20";
-        tester->LoadLIBSVMTestingData(test_set_file, trainer->num_vars,
-                                           network->num_nodes);
+//        tester = new Dataset();
+//        string test_set_file = dataset_path + "alarm/testing_alarm_1k_p20";
+//        tester->LoadLIBSVMTestingData(test_set_file, trainer->num_vars, 0);
 
+        tester = new Dataset(trainer);
+        string test_set_file = dataset_path + "alarm/test2.txt";
+        tester->LoadCSVTestingData(test_set_file, true, true, 0);
+
+        network = new Network(true);
         bnsl = new PCStable(network, 0.05);
         bnpl = new ParameterLearning(network);
     }

@@ -29,6 +29,7 @@ public:
     vector<vector<VarVal>> vector_dataset_all_vars;//a vector storing the whole data set, label + features
 
     Dataset();
+    Dataset(Dataset *dts);
     ~Dataset();
 
     void LoadLIBSVMData(string data_file_path, int cls_var_id, set<int> cont_vars={});
