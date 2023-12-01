@@ -213,8 +213,14 @@ void Dataset::LoadLIBSVMTestingData(string data_file_path, int num_nodes, int cl
             vector<string> parsed_feature_val = Split(feature_val, ":");
 
             int index = stoi(parsed_feature_val[0]);
+            if (index >= num_vars) {
+                // if it is an unknown feature, just omit it and go to the next feature index-value pair.
+                // todo: haven't check
+                continue;
+            }
 
-            //same as the processing of label
+            // same as the processing of label.
+            // todo: haven't consider the case of unknown values (it may be addressed in the inference?)
             Value v;
             if (cont_vars.find(index) == cont_vars.end()) {
                 int value = stoi(parsed_feature_val[1]);
@@ -244,19 +250,9 @@ void Dataset::LoadLIBSVMTestingData(string data_file_path, int num_nodes, int cl
     }
 
     num_instance = vector_dataset_all_vars.size();
-    num_vars = num_nodes;//the number of variables of the data set
-
-    num_of_possible_values_of_disc_vars.reserve(num_vars);
-
-    // 2, convert vector "vector_dataset_all_vars" into array "dataset_all_vars" (does not erase "vector_dataset_all_vars").
-    if (cont_vars.empty()) {//the data set only contains discrete variables.
-        Vector2IntArray();
-        RowMajor2ColumnMajor();
-    }
 
     cout << "Finish loading testing data. "
-         << "Number of instances: " << num_instance << ". "
-            << "Number of variables: " << num_vars << ". " << endl;
+         << "Number of instances: " << num_instance << ". " << endl;
 
     in_file.close();
 }
