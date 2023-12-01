@@ -178,8 +178,6 @@ void Dataset::LoadLIBSVMTestingData(string data_file_path, int num_nodes, int cl
 
     class_var_index = cls_var_id;
     string sample;
-    vector<Value> dataset_y_vector;
-    vector<vector<VarVal>> dataset_X_vector; // VarVal: pair<int, Value>
 
     // 1, read the data file and store with the representation of std::vector.
     getline(in_file, sample);
@@ -189,9 +187,21 @@ void Dataset::LoadLIBSVMTestingData(string data_file_path, int num_nodes, int cl
         sample = TrimRight(sample);
 
         vector<string> parsed_sample = Split(sample, " ");
+        vector<VarVal> single_sample_vector(num_vars); // one instance
+        Value v;
+
+        // initialization.
+        for (int i = 0; i < num_vars; ++i) {
+            if (cont_vars.find(i) == cont_vars.end()) {
+                v.SetInt(0);
+            } else {
+                v.SetFloat(0);
+            }
+            single_sample_vector[i] = make_pair(i, v);
+        }
+
         int it = 0;   // id of the label is 0
 
-        Value v; // to insert the value of label of one sample into "dataset_y_vector"
         // check whether the label is continuous
         if (cont_vars.find(0) == cont_vars.end()) {
             //the label is not continuous (i.e., classification task)
@@ -202,11 +212,11 @@ void Dataset::LoadLIBSVMTestingData(string data_file_path, int num_nodes, int cl
             float value = stof(parsed_sample[it]); // the value of label
             v.SetFloat(value);
         }
-        dataset_y_vector.push_back(v); // insert the value of label into "dataset_y_vector"
+        VarVal var_value(class_var_index, v);
+        single_sample_vector[class_var_index] = var_value;
 
-        vector<VarVal> single_sample_vector; // one instance
         for (++it; it < parsed_sample.size(); ++it) {
-            // Each element is in the form of "feature_index:feature_value".
+            // Each element is in the form of `feature_index:feature_value`.
             string feature_val = parsed_sample[it];
 
             // split the feature index and the feature value using ":"
@@ -221,7 +231,6 @@ void Dataset::LoadLIBSVMTestingData(string data_file_path, int num_nodes, int cl
 
             // same as the processing of label.
             // todo: haven't consider the case of unknown values (it may be addressed in the inference?)
-            Value v;
             if (cont_vars.find(index) == cont_vars.end()) {
                 int value = stoi(parsed_feature_val[1]);
                 v.SetInt(value);
@@ -230,23 +239,11 @@ void Dataset::LoadLIBSVMTestingData(string data_file_path, int num_nodes, int cl
                 v.SetFloat(value);
             }
             VarVal var_value(index, v);
-
-            single_sample_vector.push_back(var_value);
+            single_sample_vector[index] = var_value;
         }
-        dataset_X_vector.push_back(single_sample_vector);
+        vector_dataset_all_vars.push_back(single_sample_vector);
 
         getline(in_file, sample);
-    }
-
-    // vector_dataset_all_vars: vector<vector<VarVal>>; label + feature
-    vector_dataset_all_vars = dataset_X_vector;
-
-    //insert label to the beginning of each instance
-    for (int i = 0; i < vector_dataset_all_vars.size(); ++i) {
-        vector_dataset_all_vars[i].insert(
-                vector_dataset_all_vars[i].begin(),
-                VarVal(class_var_index, dataset_y_vector[i])
-        );
     }
 
     num_instance = vector_dataset_all_vars.size();

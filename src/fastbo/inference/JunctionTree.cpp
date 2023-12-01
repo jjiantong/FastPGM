@@ -1,7 +1,7 @@
 #include "fastbo/inference/JunctionTree.h"
 
-JunctionTree::JunctionTree(bool classification, Network *net, Dataset *dts, bool is_dense) :
-                            Inference(classification, net, dts, is_dense) {
+JunctionTree::JunctionTree(bool classification, Network *net, Dataset *dts) :
+                            Inference(classification, net, dts) {
 
     Timer *timer = new Timer();
     // record time

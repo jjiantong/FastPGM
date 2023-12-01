@@ -5,12 +5,14 @@
 
 /**
  * constructor of Inference
- * get evidences, query index and ground truths from the testing set
+ * get evidences, query index and ground truths from the testing set.
+ * @param classification true for classification mode, false for inference mode
  * @param net the network used for inference
  * @param dts the testing set
- * @param is_dense whether we need to fill zero for the evidences
+ * note: i avoid filling zero operations (if necessary) here, because it should be completed when loading data (e.g.
+ * libsvm format)
  */
-Inference::Inference(bool classification, Network *net, Dataset *dts, bool is_dense):
+Inference::Inference(bool classification, Network *net, Dataset *dts):
             classification_mode(classification), network(net), num_instances(dts->num_instance),
             query_index(dts->class_var_index) {
     // TODO: double check this function if the dataset for inference problem is changed. e.g., we don't need \
@@ -34,9 +36,6 @@ Inference::Inference(bool classification, Network *net, Dataset *dts, bool is_de
             e.insert(p);
         }
 
-        if (is_dense) {
-            e = Sparse2Dense(e, network->num_nodes);
-        }
         evidences.push_back(e);
 
         // construct the ground truth
@@ -81,32 +80,6 @@ double Inference::Accuracy(vector<int> predictions) {
     }
     double accuracy = num_of_correct / (double)(num_of_correct+num_of_wrong);
     return accuracy;
-}
-
-/**
- * @brief: convert sparse to dense by filling zero
- */
-DiscreteConfig Inference::Sparse2Dense(DiscreteConfig evidence, int num_nodes) {
-    set<int> existing_index;
-    for (auto &e: evidence) {
-        existing_index.insert(e.first);
-    }
-
-    DiscreteConfig dense_instance = evidence;
-    for (int i = 0; i < num_nodes; i++) {
-        if (i == query_index) { // skip the class variable
-            continue;
-        }
-        // if node index i is not in existing evidence, filling 0
-        if (existing_index.find(i) == existing_index.end()) {
-            pair<int, int> p;
-            p.first = i;
-            p.second = 0;
-            dense_instance.insert(p);
-        }
-    }
-
-    return dense_instance;
 }
 
 /**

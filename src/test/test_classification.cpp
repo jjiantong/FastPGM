@@ -60,7 +60,7 @@ TEST_F(TestClassificationAlarm, thread_1) {
     bnpl->LearnParamsKnowStructCompData(trainer, 1, verbose); // todo: alpha = 1
     SAFE_DELETE(trainer);
 
-    Inference *inference = new JunctionTree(true, network, tester, false);
+    Inference *inference = new JunctionTree(true, network, tester);
     SAFE_DELETE(tester);
 
     string pt_file = dataset_path + "dataset/alarm/alarm_1k_pt";

@@ -28,7 +28,7 @@ public:
     int max_level;
 
     JunctionTree() = default;
-    JunctionTree(bool classification, Network *net, Dataset *dts, bool is_dense);
+    JunctionTree(bool classification, Network *net, Dataset *dts);
     ~JunctionTree();
 
     virtual vector<int> Predict(int num_threads);

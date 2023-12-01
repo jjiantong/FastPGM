@@ -44,7 +44,7 @@ public:
     vector<int> ground_truths; // the ground truths of each class variable
     vector<vector<double>> ground_truth_probability_tables; // the probabilities for each state of each node, computed by exact inference algorithms
 
-    Inference(bool classification, Network *net, Dataset *dts, bool is_dense);
+    Inference(bool classification, Network *net, Dataset *dts);
     Inference(Network *net); // it is used only in LBP for EPIS-BN
 
     virtual ~Inference() {};
@@ -53,7 +53,6 @@ public:
     virtual vector<int> Predict(int num_threads) = 0;
 
     double Accuracy(vector<int> predictions);
-    DiscreteConfig Sparse2Dense(DiscreteConfig evidence, int num_nodes);
     int ArgMax(const vector<double> &array);
 
     void LoadGroundTruthProbabilityTable(string file_path);
