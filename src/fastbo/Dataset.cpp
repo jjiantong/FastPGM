@@ -40,7 +40,7 @@ Dataset::~Dataset() {
 // * @param: data_file_path: path to the LIBSVM data file (like a1a)
 // * @param: cont_vars: indexes for continuous variables; need to manually specify which variable is continuous
 // */
-//void Dataset::LoadLIBSVMData(string data_file_path, int cls_var_id, set<int> cont_vars) {
+//void Dataset::LoadLIBSVMTrainingData(string data_file_path, int cls_var_id, set<int> cont_vars) {
 //
 //    ifstream in_file;
 //    in_file.open(data_file_path);
@@ -54,6 +54,7 @@ Dataset::~Dataset() {
 //    // the first element is the class variable in the LibSVN format
 //    class_var_index = cls_var_id;
 //    string sample;
+//
 //    int max_index_occurred = -1;
 //    vector<Value> dataset_y_vector;
 //    vector<vector<VarVal>> dataset_X_vector; // VarVal: pair<int, Value>
@@ -480,17 +481,15 @@ void Dataset::LoadCSVTestingData(string data_file_path, bool header, bool str_va
 }
 
 /**
- * @brief: store data file with csv format, used for transform (WRONG) libsvm format to csv format.
+ * @brief: store data file with csv format, used for transform another format to the csv format.
  * @requirement: need the class variables, particularly:
  *               1. need `vec_var_names`, the names of the variables in order;
  *               2. need `vars_possible_values_ids`, the mappings of possible values and indexes for the variables.
  *               They should be obtained from either a csv-format dataset or a network file.
- * difference between complete and incomplete dataset: here we use `vector_dataset_all_vars`.
- * currently, since we used the wrong libsvm format (i.e. used it to store the dataset with missing data), we need to
- * transform this wrong libsvm dataset to the right csv format.
- * this method may be used in the future if other formats are explored.
+ * here we use `vector_dataset_all_vars`. so whether the generated csv dataset is complete or incomplete depends on
+ * whether `vector_dataset_all_vars` contains all variables or part of the variables.
  */
-void Dataset::StoreCSVDataIncompleteDataset(std::string data_file_path, bool header, bool str_val, set<int> cont_vars) {
+void Dataset::StoreCSVData(string data_file_path, bool header, bool str_val, set<int> cont_vars) {
     if (vec_var_names.empty() || (str_val == true && vars_possible_values_ids.empty())) {
         cout << "vec_var_names and vars_possible_values_ids are required for the transformation." << endl;
         exit(1);
@@ -554,93 +553,6 @@ void Dataset::StoreCSVDataIncompleteDataset(std::string data_file_path, bool hea
             } else {
                 // if all the discrete variables use values with integers, then just transform integer to string.
                 value[var_id] = to_string(var_num);
-            }
-        }
-
-        // after obtaining all the values, construct the string of this sample.
-        for (int j = 0; j < num_vars; ++j) {
-            sample += value[j] + ",";
-        }
-        sample.pop_back();
-        out_file << sample << endl;
-    }
-
-    cout << "Finish storing data with csv format. "
-         << "Number of instances: " << num_instance << ". "
-         << "Number of variables: " << num_vars << "." << endl;
-
-    out_file.close();
-}
-
-/**
- * @brief: store data file with csv format, used for transform libsvm format to csv format.
- * @requirement: need the class variables, particularly:
- *               1. need `vec_var_names`, the names of the variables in order;
- *               2. need `vars_possible_values_ids`, the mappings of possible values and indexes for the variables.
- *               They should be obtained from either a csv-format dataset or a network file.
- * difference between complete and incomplete dataset: here we use `dataset_all_vars`.
- */
-void Dataset::StoreCSVDataCompleteDataset(std::string data_file_path, bool header, bool str_val, set<int> cont_vars) {
-    if (vec_var_names.empty() || (str_val == true && vars_possible_values_ids.empty())) {
-        cout << "vec_var_names and vars_possible_values_ids are required for the transformation." << endl;
-        exit(1);
-    }
-
-    if (num_vars != vec_var_names.size()) {
-        cout << "more or less variables found than expected." << endl;
-        exit(1);
-    }
-
-    ofstream out_file(data_file_path);
-
-    if (!out_file.is_open()) {
-        fprintf(stderr, "Error in function %s!", __FUNCTION__);
-        fprintf(stderr, "Unable to open file %s!", data_file_path.c_str());
-        exit(1);
-    }
-
-    /**
-    * 1, write the first line
-    */
-    if (header) { // the first line contains variable names, it is like the table header
-        string names;
-        for (int i = 0; i < num_vars; ++i) {
-            names += vec_var_names[i] + ",";
-        }
-        names.pop_back();
-        out_file << names << endl;
-    }
-
-    /**
-     * 2, write all the samples
-     * todo: currently we only consider purely discrete cases here
-     */
-    for (int i = 0; i < num_instance; ++i) {
-        string sample;
-        // initialize the possible value for each variable to empty string.
-        vector<string> value(num_vars, "");
-
-        for (int j = 0; j < num_vars; ++j) {
-            // if some discrete variables contain string values, we need to find the original variable value (type
-            // string) given its transformed number. this can be done through `vars_possible_values_ids`.
-            int var_num = dataset_all_vars[i][j];
-            if (str_val) {
-                string key = "";
-                for (const auto &val_num: vars_possible_values_ids[j]) {
-                    if (val_num.second == var_num) {
-                        key = val_num.first;
-                        break;
-                    }
-                }
-                if (key.empty()) {
-                    cout << "can't find the variable number from the corresponding `vector_dataset_all_vars`." << endl;
-                    exit(1);
-                }
-
-                value[j] = key;
-            } else {
-                // if all the discrete variables use values with integers, then just transform integer to string.
-                value[j] = to_string(var_num);
             }
         }
 
