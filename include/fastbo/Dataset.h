@@ -34,7 +34,8 @@ public:
     ~Dataset();
 
     void LoadLIBSVMTrainingData(string data_file_path, int cls_var_id, set<int> cont_vars={});
-    void LoadLIBSVMTestingData(string data_file_path, int num_nodes, int cls_var_id, set<int> cont_vars={});
+    void LoadLIBSVMTestingData(string data_file_path, int cls_var_id, set<int> cont_vars={});
+    void StoreLIBSVMData(string data_file_path, string data_file_path2, set<int> cont_vars={});
     void SamplesToLIBSVMFile(vector<DiscreteConfig> &samples, string &file) const;
     void SamplesToLIBSVMFile(vector<Configuration> &samples, string &file) const;
 

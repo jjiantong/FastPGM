@@ -166,7 +166,7 @@ Dataset::~Dataset() {
 //    in_file.close();
 //}
 
-void Dataset::LoadLIBSVMTestingData(string data_file_path, int num_nodes, int cls_var_id, set<int> cont_vars) {
+void Dataset::LoadLIBSVMTestingData(string data_file_path, int cls_var_id, set<int> cont_vars) {
 
     ifstream in_file;
     in_file.open(data_file_path);
@@ -253,6 +253,90 @@ void Dataset::LoadLIBSVMTestingData(string data_file_path, int num_nodes, int cl
          << "Number of instances: " << num_instance << ". " << endl;
 
     in_file.close();
+}
+
+/**
+ * @brief: store data file with libsvm format, used to tranform another format to the csv format.
+ * the dataset should be a complete dataset. here we use `vector_dataset_all_vars`, so the size of each instance should
+ * equal `num_vars`.
+ * for the libsvm format, if the transformed number of a possible value is 0, then omit storing it.
+ */
+void Dataset::StoreLIBSVMData(string data_file_path, string data_file_path2, set<int> cont_vars) {
+    /**
+     * 1, write all the samples into the dataset file.
+     * todo: currently we only consider purely discrete cases here.
+     */
+    ofstream out_file(data_file_path);
+    if (!out_file.is_open()) {
+        fprintf(stderr, "Error in function %s!", __FUNCTION__);
+        fprintf(stderr, "Unable to open file %s!", data_file_path.c_str());
+        exit(1);
+    }
+
+    for (int i = 0; i < num_instance; ++i) {
+        vector<VarVal> vec_instance = vector_dataset_all_vars[i];
+        if (vec_instance.size() != num_vars) {
+            cout << "A complete dataset is required for storing with the libsvm format. " << endl;
+            exit(1);
+        }
+
+        string sample;
+
+        // label.
+        int label_pos = -1;
+        int label_num = -1;
+        // find the position of the label and its transformed number.
+        for (int j = 0; j < num_vars; ++j) {
+            if (vec_instance[j].first == class_var_index) {
+                label_pos = j;
+                label_num = vec_instance[j].second.GetInt();
+                break;
+            }
+        }
+        // remove the label element from `vec_instance`.
+        vec_instance.erase(vec_instance.begin() + label_pos);
+        sample = to_string(label_num) + " ";
+
+        // features.
+        for (int j = 0; j < num_vars - 1; ++j) {
+            int var_id = vec_instance[j].first;
+            int var_num = vec_instance[j].second.GetInt();
+
+            if (var_num != 0) {
+                sample += to_string(var_id) + ":" + to_string(var_num) + " ";
+            }
+        }
+
+        out_file << sample << endl;
+    }
+
+    cout << "Finish storing data with libsvm format. "
+         << "Number of instances: " << num_instance << ". "
+         << "Number of variables: " << num_vars << "." << endl;
+    out_file.close();
+
+    /**
+     * 2, store the relationships regarding variables and possible values of variables.
+     */
+    ofstream out_file2(data_file_path2);
+    if (!out_file2.is_open()) {
+        fprintf(stderr, "Error in function %s!", __FUNCTION__);
+        fprintf(stderr, "Unable to open file %s!", data_file_path2.c_str());
+        exit(1);
+    }
+
+    for (int i = 0; i < num_vars; ++i) {
+        // 1, variable and its number.
+        out_file2 << vec_var_names[i] << "=" << i << endl;
+        // 2, possible values of the variable and its number.
+        map<string, int> val_num = vars_possible_values_ids[i];
+        for (const auto &v: val_num) {
+            out_file2 << "  " << v.first << "=" << v.second << endl;
+        }
+    }
+
+    cout << "Finish storing the mappings. " << endl;
+    out_file2.close();
 }
 
 /**
@@ -481,7 +565,7 @@ void Dataset::LoadCSVTestingData(string data_file_path, bool header, bool str_va
 }
 
 /**
- * @brief: store data file with csv format, used for transform another format to the csv format.
+ * @brief: store data file with csv format, used to transform another format to the csv format.
  * @requirement: need the class variables, particularly:
  *               1. need `vec_var_names`, the names of the variables in order;
  *               2. need `vars_possible_values_ids`, the mappings of possible values and indexes for the variables.
@@ -501,7 +585,6 @@ void Dataset::StoreCSVData(string data_file_path, bool header, bool str_val, set
     }
 
     ofstream out_file(data_file_path);
-
     if (!out_file.is_open()) {
         fprintf(stderr, "Error in function %s!", __FUNCTION__);
         fprintf(stderr, "Unable to open file %s!", data_file_path.c_str());
