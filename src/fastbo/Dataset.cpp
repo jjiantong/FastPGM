@@ -33,138 +33,117 @@ Dataset::~Dataset() {
     }
 }
 
-///**
-// * @brief: load data file with libsvm format
-// * 1, read the data file and store with the representation of std::vector.
-// * 2, convert the vector representation into array (does not erase the vector representation).
-// * @param: data_file_path: path to the LIBSVM data file (like a1a)
-// * @param: cont_vars: indexes for continuous variables; need to manually specify which variable is continuous
-// */
-//void Dataset::LoadLIBSVMTrainingData(string data_file_path, int cls_var_id, set<int> cont_vars) {
-//
-//    ifstream in_file;
-//    in_file.open(data_file_path);
-//    if (!in_file.is_open()) {
-//        fprintf(stderr, "Error in function %s!", __FUNCTION__);
-//        fprintf(stderr, "Unable to open file %s!", data_file_path.c_str());
-//        exit(1);
-//    }
-////    cout << "Data file opened. Begin to load data. " << endl;
-//
-//    // the first element is the class variable in the LibSVN format
-//    class_var_index = cls_var_id;
-//    string sample;
-//
-//    int max_index_occurred = -1;
-//    vector<Value> dataset_y_vector;
-//    vector<vector<VarVal>> dataset_X_vector; // VarVal: pair<int, Value>
-//
-//    // 1, read the data file and store with the representation of std::vector.
-//    getline(in_file, sample);
-//    while (!in_file.eof()) {
-//        // There is a whitespace at the end of each line of
-//        // libSVM dataset format, which will cause a bug if we do not trim it.
-//        sample = TrimRight(sample);
-//
-//        vector<string> parsed_sample = Split(sample, " ");
-//        int it = 0;   // id of the label is 0
-//
-//        Value v; // to insert the value of label of one sample into "dataset_y_vector"
-//        // check whether the label is continuous
-//        if (cont_vars.find(0) == cont_vars.end()) {
-//            //the label is not continuous (i.e., classification task)
-//            int value = stoi(parsed_sample[it]); // the value of label
-//            v.SetInt(value);
-//            // insert the value of label of one sample into "map_disc_vars_possible_values"
-//            map_disc_vars_possible_values[class_var_index].insert(value); // map<int,set<int>>
-//        } else {
-//            //the label is continuous (i.e., regression task)
-//            float value = stof(parsed_sample[it]); // the value of label
-//            v.SetFloat(value);
-//        }
-//        dataset_y_vector.push_back(v); // insert the value of label into "dataset_y_vector"
-//
-//        vector<VarVal> single_sample_vector; // one instance
-//        for (++it; it < parsed_sample.size(); ++it) {
-//            // Each element is in the form of "feature_index:feature_value".
-//            string feature_val = parsed_sample[it];
-//
-//            // split the feature index and the feature value using ":"
-//            vector<string> parsed_feature_val = Split(feature_val, ":");
-//
-//            int index = stoi(parsed_feature_val[0]);
-//            max_index_occurred = index > max_index_occurred ? index : max_index_occurred;
-//
-//            //same as the processing of label
-//            Value v;
-//            if (cont_vars.find(index) == cont_vars.end()) {
-//                int value = stoi(parsed_feature_val[1]);
-//                v.SetInt(value);
-//                map_disc_vars_possible_values[index].insert(value);
-//            } else {
-//                float value = stof(parsed_feature_val[1]);
-//                v.SetFloat(value);
-//            }
-//            VarVal var_value(index, v);
-//
-//            single_sample_vector.push_back(var_value);
-//        }
-//        dataset_X_vector.push_back(single_sample_vector);
-//
-//        getline(in_file, sample);
-//    }
-//
-//    // vector_dataset_all_vars: vector<vector<VarVal>>; label + feature
-//    vector_dataset_all_vars = dataset_X_vector;
-//
-//    //insert label to the beginning of each instance
-//    for (int i = 0; i < vector_dataset_all_vars.size(); ++i) {
-//        vector_dataset_all_vars[i].insert(
-//                vector_dataset_all_vars[i].begin(),
-//                VarVal(class_var_index, dataset_y_vector[i])
-//        );
-//    }
-//
-//    num_instance = vector_dataset_all_vars.size();
-//    num_vars = max_index_occurred + 1;//the number of variables of the data set
-//
-//    num_of_possible_values_of_disc_vars.reserve(num_vars);
-//
-//    for (int i = 0; i < num_vars; ++i) {
-//        vec_var_names.push_back(to_string(i)); //the name of a variable is the "id" of the variable.
-//    }
-//
-//    //discrete variable domain construction, whether a variable is continuous
-//    for (int i = 0; i < num_vars; ++i) {
-//        if (i != class_var_index) { // for each feature
-//            if (cont_vars.find(i) == cont_vars.end()) { // for each discrete feature
-//                // Because features of LIBSVM format do not record the value of 0, we need to add it in.
-//                map_disc_vars_possible_values[i].insert(0);
-//                map_disc_vars_possible_values[i].insert(1); // todo!!
-////                map_disc_vars_possible_values[i].insert(2); // todo!!
-////                map_disc_vars_possible_values[i].insert(3); // todo!!
-////                map_disc_vars_possible_values[i].insert(4); // todo!!
-////                map_disc_vars_possible_values[i].insert(5); // todo!!
-////                map_disc_vars_possible_values[i].insert(6); // todo!!
-////                map_disc_vars_possible_values[i].insert(7); // todo!!
-//            }
-//        }
-//        num_of_possible_values_of_disc_vars.push_back(map_disc_vars_possible_values[i].size());
-//    }
-//
-//    // 2, convert vector "vector_dataset_all_vars" into array "dataset_all_vars" (does not erase "vector_dataset_all_vars").
-//    // TODO: check the two representations. remove?
-//    if (cont_vars.empty()) {//the data set only contains discrete variables.
-//        Vector2IntArray();
-//        RowMajor2ColumnMajor();
-//    }
-//
-//    cout << "Finish loading data. "
-//         << "Number of instances: " << num_instance << ". "
-//         << "Number of features: " << max_index_occurred << ". " << endl;
-//
-//    in_file.close();
-//}
+/**
+ * @brief: load training data file with libsvm format
+ */
+void Dataset::LoadLIBSVMTrainingData(string data_file_path, int cls_var_id, set<int> cont_vars) {
+
+    ifstream in_file;
+    in_file.open(data_file_path);
+    if (!in_file.is_open()) {
+        fprintf(stderr, "Error in function %s!", __FUNCTION__);
+        fprintf(stderr, "Unable to open file %s!", data_file_path.c_str());
+        exit(1);
+    }
+//    cout << "Data file opened. Begin to load data. " << endl;
+
+    class_var_index = cls_var_id;
+
+    string sample;
+    int max_index_occurred = -1;
+
+    /**
+     * 1, read the data file and store with the representation of std::vector.
+     */
+    while (getline(in_file, sample)) {
+        // There is a whitespace at the end of each line of
+        // libSVM dataset format, which will cause a bug if we do not trim it.
+        sample = TrimRight(sample);
+
+        vector<string> parsed_sample = Split(sample, " ");
+
+        int it = 0;   // id of the label is 0
+
+        vector<VarVal> single_sample_vector; // one instance
+        Value v;
+        // check whether the label is continuous
+        if (cont_vars.find(0) == cont_vars.end()) {
+            //the label is not continuous (i.e., classification task)
+            int value = stoi(parsed_sample[it]); // the value of label
+            v.SetInt(value);
+        } else {
+            //the label is continuous (i.e., regression task)
+            float value = stof(parsed_sample[it]); // the value of label
+            v.SetFloat(value);
+        }
+        VarVal var_value(class_var_index, v);
+        single_sample_vector.push_back(var_value);
+
+        for (++it; it < parsed_sample.size(); ++it) {
+            // Each element is in the form of "feature_index:feature_value".
+            string feature_val = parsed_sample[it];
+
+            // split the feature index and the feature value using ":"
+            vector<string> parsed_feature_val = Split(feature_val, ":");
+
+            int index = stoi(parsed_feature_val[0]);
+            max_index_occurred = index > max_index_occurred ? index : max_index_occurred;
+
+            //same as the processing of label
+            Value v;
+            if (cont_vars.find(index) == cont_vars.end()) {
+                int value = stoi(parsed_feature_val[1]);
+                v.SetInt(value);
+            } else {
+                float value = stof(parsed_feature_val[1]);
+                v.SetFloat(value);
+            }
+            VarVal var_value(index, v);
+            single_sample_vector.push_back(var_value);
+        }
+        // vector_dataset_all_vars: vector<vector<VarVal>>; label + feature
+        vector_dataset_all_vars.push_back(single_sample_vector);
+    }
+
+    num_instance = vector_dataset_all_vars.size();
+    num_vars = max_index_occurred + 1;//the number of variables of the data set
+
+    for (int i = 0; i < num_vars; ++i) {
+        vec_var_names.push_back(to_string(i)); //the name of a variable is the "id" of the variable.
+    }
+
+    /**
+     * 2, convert vector `vector_dataset_all_vars` into array `dataset_all_vars` and `dataset_columns` (does not erase
+     * `vector_dataset_all_vars`).
+     */
+    if (cont_vars.empty()) {//the data set only contains discrete variables.
+        Vector2IntArray();
+        RowMajor2ColumnMajor();
+    }
+
+    /**
+     * 3, generate `num_of_possible_values_of_disc_vars` and `vars_possible_values_ids`.
+     * for the libsvm format, we actually don't need them. however, they are used in structure learning.
+     * `num_of_possible_values_of_disc_vars`: find from `dataset_columns` the maximum value for each variable.
+     */
+    num_of_possible_values_of_disc_vars.resize(num_vars);
+    vars_possible_values_ids.resize(num_vars);
+    for (int i = 0; i < num_vars; ++i) { // for each variable
+        int max_value_occurred = -1;
+        for (int j = 0; j < num_instance; ++j) { // for each instance
+            // find the value of this variable in each instance
+            int value = dataset_columns[i][j];
+            max_value_occurred = value > max_value_occurred ? value : max_value_occurred;
+        }
+        num_of_possible_values_of_disc_vars[i] = max_value_occurred + 1;
+    }
+
+    cout << "Finish loading training data. "
+         << "Number of instances: " << num_instance << ". "
+         << "Number of variables: " << num_vars << ". " << endl;
+
+    in_file.close();
+}
 
 void Dataset::LoadLIBSVMTestingData(string data_file_path, int cls_var_id, set<int> cont_vars) {
 
@@ -403,7 +382,7 @@ void Dataset::LoadCSVTrainingData(string data_file_path, bool header, bool str_v
     vector<int> counter(num_vars, -1);
     vars_possible_values_ids.resize(num_vars);
 
-    while (!in_file.eof()) { // for all instances
+    do { // for all instances
         // If there is a whitespace at the end of each line,
         // it will cause a bug if we do not trim it.
         sample = TrimRight(sample);
@@ -438,8 +417,7 @@ void Dataset::LoadCSVTrainingData(string data_file_path, bool header, bool str_v
         }
         vector_dataset_all_vars.push_back(single_sample_vector);
 
-        getline(in_file, sample);
-    }
+    } while (getline(in_file, sample));
 
     num_instance = vector_dataset_all_vars.size();
 
@@ -507,7 +485,7 @@ void Dataset::LoadCSVTestingData(string data_file_path, bool header, bool str_va
      * pairs to `single_sample_vector` to construct the vector for one instance; push all the vectors to
      * `vector_dataset_all_vars` to record the whole dataset
      */
-    while (!in_file.eof()) { // for all instances
+    do { // for all instances
         // If there is a whitespace at the end of each line,
         // it will cause a bug if we do not trim it.
         sample = TrimRight(sample);
@@ -553,8 +531,7 @@ void Dataset::LoadCSVTestingData(string data_file_path, bool header, bool str_va
         }
         vector_dataset_all_vars.push_back(single_sample_vector);
 
-        getline(in_file, sample);
-    }
+    } while (getline(in_file, sample));
 
     num_instance = vector_dataset_all_vars.size();
 

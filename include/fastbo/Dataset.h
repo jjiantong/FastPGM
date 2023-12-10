@@ -29,21 +29,39 @@ public:
     int **dataset_columns; // column-major storage; it is the transposed matrix of "dataset_all_vars"
     vector<vector<VarVal>> vector_dataset_all_vars;//a vector storing the whole data set, label + features
 
-    Dataset();
-    Dataset(Dataset *dts);
+    Dataset(); // constructor for training datasets
+    Dataset(Dataset *dts); // constructor for testing datasets based on training datasets
     ~Dataset();
 
+    /**
+     * libsvm & csv, traning and testing, all generate:
+     *      `num_instance`, `class_var_index`, `vector_dataset_all_vars`
+     * training:    training data must be complete data with no missing value.
+     *              `num_of_possible_values_of_disc_vars`, `vars_possible_values_ids` are required.
+     *              (so although they are meaningless for libsvm, we still need to generate them.)
+     *              `num_vars`, `vars_possible_values_ids`, 2 arrays are also required.
+     * testing:     copies from training: `num_vars`, `vars_possible_values_ids`.
+     * IMPORTANT NOTE: if using libsvm format training data, the testing data can't be the csv format. because we don't
+     * store the mappings of value and num in `vars_possible_values_ids` when loading libsvm format training data.
+     */
     void LoadLIBSVMTrainingData(string data_file_path, int cls_var_id, set<int> cont_vars={});
     void LoadLIBSVMTestingData(string data_file_path, int cls_var_id, set<int> cont_vars={});
-    void StoreLIBSVMData(string data_file_path, string data_file_path2, set<int> cont_vars={});
     void SamplesToLIBSVMFile(vector<DiscreteConfig> &samples, string &file) const;
     void SamplesToLIBSVMFile(vector<Configuration> &samples, string &file) const;
 
     void LoadCSVTrainingData(string data_file_path, bool header=true, bool str_val=true, int cls_var_id=-1, set<int> cont_vars={});
     void LoadCSVTestingData(string data_file_path, bool header=true, bool str_val=true, int cls_var_id=-1, set<int> cont_vars={});
-    void StoreCSVData(string data_file_path, bool header=true, bool str_val=true, set<int> cont_vars={});
     void SamplesToCSVFile(vector<DiscreteConfig> &samples, string &file, vector<string> header={}) const;
     void SamplesToCSVFile(vector<Configuration> &samples, string &file, vector<string> header={}) const;
+
+    /**
+     * store data file with the libsvm/csv format.
+     * libsvm:  the data must be a complete dataset. use `vector_dataset_all_vars` to store.
+     * csv:     the data can be complete or incomplete. use `vector_dataset_all_vars` to store.
+     */
+    void StoreLIBSVMData(string data_file_path, string data_file_path2, set<int> cont_vars={});
+    void StoreCSVData(string data_file_path, bool header=true, bool str_val=true, set<int> cont_vars={});
+
 
     void Vector2IntArray();
     void RowMajor2ColumnMajor();
