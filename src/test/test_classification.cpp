@@ -13,11 +13,8 @@
 #include "fastbo/structure_learning/PCStable.h"
 #include "fastbo/inference/Inference.h"
 #include "fastbo/inference/JunctionTree.h"
+#include "fastbo/test_common.h"
 
-#define GROUP_SIZE 1
-#define VERBOSE 1
-
-string dataset_path = "../../../dataset/";
 
 class TestClassificationAlarm : public ::testing::Test {
 protected:

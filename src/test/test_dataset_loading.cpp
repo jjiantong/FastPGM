@@ -6,10 +6,11 @@
 //#include <vector>
 //#include "gtest/gtest.h"
 //
-//#include "Dataset.h"
+//#include "fastbo/Dataset.h"
+//#include "fastbo/test_common.h"
 //
 //
-//class TestCSVLoading : public ::testing::Test {
+//class TestCSVTrainingLoading : public ::testing::Test {
 //protected:
 //
 //    void SetUp() override {
@@ -18,35 +19,19 @@
 //    Dataset *trainer;
 //};
 //
-//TEST_F(TestCSVLoading, alarm) {
-//    string train_set_file = "../../dataset/alarm/alarm_s5000.txt";
-//    trainer->LoadCSVData(train_set_file, true, true, 0);
+//TEST_F(TestCSVTrainingLoading, alarm) {
+//    string train_set_file = dataset_path + "alarm/alarm_s5000.txt";
+//    trainer->LoadCSVTrainingData(train_set_file, true, true, 0);
 //
 //    cout << "num_instance = " << trainer->num_instance << endl;
 //    cout << "num_vars = " << trainer->num_vars << endl;
 //    cout << "class_var_index = " << trainer->class_var_index << endl;
-//
-//    cout << "is_vars_discrete: ";
-//    for (int i = 0; i < trainer->is_vars_discrete.size(); i++) {
-//        cout << trainer->is_vars_discrete[i] << " ";
-//    }
-//    cout << endl;
 //
 //    cout << "vec_var_names: ";
 //    for (int i = 0; i < trainer->vec_var_names.size(); i++) {
 //        cout << trainer->vec_var_names[i] << " ";
 //    }
 //    cout << endl;
-//
-////    cout << "map_disc_vars_possible_values: " << endl;
-////    for (const auto &p: trainer->map_disc_vars_possible_values) {
-////        cout << p.first << ": ";
-////        set<int> p2 = p.second;
-////        for(const auto &s: p2) {
-////            cout << s << ", ";
-////        }
-////        cout << endl;
-////    }
 //
 //    cout << "vars_possible_values_ids: " << endl;
 //    for (int i = 0; i < trainer->vars_possible_values_ids.size(); i++) {
@@ -63,20 +48,14 @@
 //    }
 //    cout << endl;
 //
+//    cout << "dataset_all_vars:" << endl;
 //    for (int i = 0; i < trainer->num_instance; i++) {
 //        for (int j = 0; j < trainer->num_vars; j++) {
-//            EXPECT_EQ(trainer->dataset_all_vars[i][j], trainer->dataset_columns[j][i]);
+//            cout << trainer->dataset_all_vars[i][j] << " ";
 //        }
+//        cout << endl;
 //    }
 //
-////    cout << "dataset_all_vars:" << endl;
-////    for (int i = 0; i < trainer->num_instance; i++) {
-////        for (int j = 0; j < trainer->num_vars; j++) {
-////            cout << trainer->dataset_all_vars[i][j] << " ";
-////        }
-////        cout << endl;
-////    }
-////
 ////    cout << "dataset_columns: " << endl;
 ////    for (int i = 0; i < trainer->num_vars; i++) {
 ////        for (int j = 0; j < trainer->num_instance; j++) {
@@ -92,6 +71,12 @@
 ////            cout << vv.first << ", " << vv.second.GetInt() << " ";
 ////        }
 ////        cout << endl;
+////    }
+////
+////    for (int i = 0; i < trainer->num_instance; i++) {
+////        for (int j = 0; j < trainer->num_vars; j++) {
+////            EXPECT_EQ(trainer->dataset_all_vars[i][j], trainer->dataset_columns[j][i]);
+////        }
 ////    }
 //
 //    SAFE_DELETE(trainer);

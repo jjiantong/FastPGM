@@ -6,15 +6,13 @@
 //#include <vector>
 //#include "gtest/gtest.h"
 //
-//#include "Dataset.h"
-//#include "Network.h"
-//#include "StructureLearning.h"
-//#include "ParameterLearning.h"
-//#include "PCStable.h"
-//#include "Timer.h"
-//
-//#define GROUP_SIZE 1
-//#define VERBOSE 1
+//#include "fastbo/Dataset.h"
+//#include "fastbo/Network.h"
+//#include "fastbo/structure_learning/StructureLearning.h"
+//#include "fastbo/parameter_learning/ParameterLearning.h"
+//#include "fastbo/structure_learning/PCStable.h"
+//#include "fastbo/Timer.h"
+//#include "fastbo/test_common.h"
 //
 //
 //class TestLearning : public ::testing::Test {
@@ -39,8 +37,8 @@
 //    int num_threads = 1;
 //    int verbose  = VERBOSE;
 //
-//    string train_set_file = "../../dataset/alarm/alarm_s5000.txt";
-//    trainer->LoadCSVData(train_set_file, true, true, 0);
+//    string train_set_file = dataset_path + "alarm/alarm_s5000.txt";
+//    trainer->LoadCSVTrainingData(train_set_file, true, true, 0);
 //
 //    bnsl->StructLearnCompData(trainer, group_size, num_threads, true, verbose);
 //
@@ -124,20 +122,6 @@
 //        for (const auto &m: disc_node->map_cond_prob_table_statistics) {
 //            cout << m.first << ": ";
 //            map<DiscreteConfig, int> m2 = m.second;
-//            for (const auto &mm: m2) {
-//                DiscreteConfig config = mm.first;
-//                for (const auto &s: config) {
-//                    cout << s.first << " = " << s.second << " ";
-//                }
-//                cout << ": " << mm.second << ", ";
-//            }
-//            cout << endl;
-//        }
-//
-//        cout << "map_cond_prob: " << endl;
-//        for (const auto &m: disc_node->map_cond_prob) {
-//            cout << m.first << ": ";
-//            map<DiscreteConfig, double> m2 = m.second;
 //            for (const auto &mm: m2) {
 //                DiscreteConfig config = mm.first;
 //                for (const auto &s: config) {

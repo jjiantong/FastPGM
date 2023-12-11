@@ -6,7 +6,8 @@
 //#include <vector>
 //#include "gtest/gtest.h"
 //
-//#include "CustomNetwork.h"
+//#include "fastbo/CustomNetwork.h"
+//#include "fastbo/test_common.h"
 //
 //
 //class TestXMLBIFLoading: public ::testing::Test {
@@ -19,8 +20,8 @@
 //};
 //
 //TEST_F(TestXMLBIFLoading, alarm) {
-//    string net_file = "../../dataset/alarm/alarm.xml";
-//    network->GetNetFromXMLBIFFile(net_file);
+//    string net_file = dataset_path + "alarm/alarm.xml";
+//    network->GetNetFromXMLBIFFile(net_file, ALPHA);
 //
 //    cout << "network_name = " << network->network_name << endl;
 //    cout << "num_nodes = " << network->num_nodes << endl;
@@ -84,20 +85,6 @@
 //        for (const auto &m: disc_node->map_cond_prob_table_statistics) {
 //            cout << m.first << ": ";
 //            map<DiscreteConfig, int> m2 = m.second;
-//            for (const auto &mm: m2) {
-//                DiscreteConfig config = mm.first;
-//                for (const auto &s: config) {
-//                    cout << s.first << " = " << s.second << " ";
-//                }
-//                cout << ": " << mm.second << ", ";
-//            }
-//            cout << endl;
-//        }
-//
-//        cout << "map_cond_prob: " << endl;
-//        for (const auto &m: disc_node->map_cond_prob) {
-//            cout << m.first << ": ";
-//            map<DiscreteConfig, double> m2 = m.second;
 //            for (const auto &mm: m2) {
 //                DiscreteConfig config = mm.first;
 //                for (const auto &s: config) {

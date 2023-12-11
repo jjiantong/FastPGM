@@ -52,7 +52,7 @@ JunctionTreeStructure::JunctionTreeStructure(Network *net, bool classification_m
      */
     int max_size = 0;
     float mean_size = GetAveAndMaxCliqueSize(max_size);
-//    cout << "Finish GetAveAndMaxCliqueSize, ave clique size = " << mean_size << ", max size = " << max_size << endl;
+    cout << "Finish GetAveAndMaxCliqueSize, ave clique size = " << mean_size << ", max size = " << max_size << endl;
 }
 
 JunctionTreeStructure::~JunctionTreeStructure() {
