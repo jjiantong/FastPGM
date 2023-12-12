@@ -11,9 +11,12 @@
 #include <fstream>
 #include <cstdio>
 #include "common.h"
+#include "Network.h"
+#include "Node.h"
 
 using namespace std;
 
+class Network;
 class Dataset {
 public:
     int num_instance;
@@ -29,8 +32,9 @@ public:
     int **dataset_columns; // column-major storage; it is the transposed matrix of "dataset_all_vars"
     vector<vector<VarVal>> vector_dataset_all_vars;//a vector storing the whole data set, label + features
 
-    Dataset(); // constructor for training datasets
-    Dataset(Dataset *dts); // constructor for testing datasets based on training datasets
+    Dataset(); // constructor for training datasets.
+    Dataset(Dataset *dts); // constructor for testing datasets based on training datasets.
+    Dataset(Network *net); // constructor for testing datasets based on known networks.
     ~Dataset();
 
     /**

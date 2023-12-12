@@ -17,6 +17,22 @@ Dataset::Dataset(Dataset* dts): vars_possible_values_ids(dts->vars_possible_valu
     dataset_columns = nullptr;
 }
 
+/**
+ * construct a dataset object from a network object, used to construct the tester from a known network.
+ */
+Dataset::Dataset(Network* net): num_vars(net->num_nodes) {
+    dataset_all_vars = nullptr;
+    dataset_columns = nullptr;
+
+    vars_possible_values_ids.resize(num_vars);
+    for (int i = 0; i < num_vars; ++i) {
+        Node *node = net->FindNodePtrByIndex(i);
+        // todo: currently only support discrete nodes
+        DiscreteNode *disc_node = (DiscreteNode*)node;
+        vars_possible_values_ids[i] = disc_node->possible_values_ids;
+    }
+}
+
 Dataset::~Dataset() {
     if (dataset_all_vars) {
         for (int i = 0; i < num_instance; ++i) {

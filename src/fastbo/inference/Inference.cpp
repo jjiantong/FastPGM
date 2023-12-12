@@ -51,6 +51,14 @@ Inference::Inference(Network *net): network(net) {}
 double Inference::EvaluateAccuracy(string path, int num_threads) {
     if (!classification_mode) {
         LoadGroundTruthProbabilityTable(path);
+
+//        cout << "pt:" << endl;
+//        for (int i = 0; i < ground_truth_probability_tables.size(); ++i) {
+//            for (int j = 0; j < ground_truth_probability_tables[i].size(); ++j) {
+//                cout << ground_truth_probability_tables[i][j] << ", ";
+//            }
+//            cout << endl;
+//        }
     }
 
     cout << "==================================================" << '\n'

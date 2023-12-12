@@ -246,7 +246,7 @@ void JunctionTree::LoadDiscreteEvidence(const DiscreteConfig &E, int num_threads
         int index = e.first;
         int value = e.second;
         if (index >= network->num_nodes) {
-            cout << "!!!!" << endl;
+//            cout << "testing set contain a feature that doesn't exist in the training set. ignore it." << endl;
             // todo: this is because the testing set has more features than the training set
             //  for this case, we just ignore such evidence in the current implementation
             continue;

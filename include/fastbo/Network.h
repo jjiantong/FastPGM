@@ -23,6 +23,7 @@
 using namespace std;
 
 class PotentialTableBase;
+class Dataset;
 class Network {//this class is used by both the customized networks and networks learning from data.
 public:
     string network_name;//a name for each bayesian network (usually an xml file contains a name for the network).
