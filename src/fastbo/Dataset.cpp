@@ -237,6 +237,54 @@ void Dataset::LoadLIBSVMTestingData(string data_file_path, int cls_var_id, set<i
             VarVal var_value(index, v);
             single_sample_vector[index] = var_value;
         }
+
+//        /************** version of not filling 0 (wrong) ***************/
+//        vector<VarVal> single_sample_vector; // one instance
+//        Value v;
+//
+//        int it = 0;   // id of the label is 0
+//
+//        // check whether the label is continuous
+//        if (cont_vars.find(0) == cont_vars.end()) {
+//            //the label is not continuous (i.e., classification task)
+//            int value = stoi(parsed_sample[it]); // the value of label
+//            v.SetInt(value);
+//        } else {
+//            //the label is continuous (i.e., regression task)
+//            float value = stof(parsed_sample[it]); // the value of label
+//            v.SetFloat(value);
+//        }
+//        VarVal var_value(class_var_index, v);
+//        single_sample_vector.push_back(var_value);
+//
+//        for (++it; it < parsed_sample.size(); ++it) {
+//            // Each element is in the form of `feature_index:feature_value`.
+//            string feature_val = parsed_sample[it];
+//
+//            // split the feature index and the feature value using ":"
+//            vector<string> parsed_feature_val = Split(feature_val, ":");
+//
+//            int index = stoi(parsed_feature_val[0]);
+//            if (index >= num_vars) {
+//                // if it is an unknown feature, just omit it and go to the next feature index-value pair.
+//                // todo: haven't check
+//                continue;
+//            }
+//
+//            // same as the processing of label.
+//            // todo: haven't consider the case of unknown values (it may be addressed in the inference?)
+//            if (cont_vars.find(index) == cont_vars.end()) {
+//                int value = stoi(parsed_feature_val[1]);
+//                v.SetInt(value);
+//            } else {
+//                float value = stof(parsed_feature_val[1]);
+//                v.SetFloat(value);
+//            }
+//            VarVal var_value(index, v);
+//            single_sample_vector.push_back(var_value);
+//        }
+//        /************** version of not filling 0 (wrong) ***************/
+
         vector_dataset_all_vars.push_back(single_sample_vector);
 
         getline(in_file, sample);
