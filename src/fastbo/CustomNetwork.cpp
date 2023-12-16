@@ -17,25 +17,35 @@ vector<int> CustomNetwork::SimplifyDefaultElimOrd(DiscreteConfig evidence) {
 /**
  * @brief: construct a network using XML file (cf. dog-problem.xml under "interchange-format-file" folder for an example)
  */
-void CustomNetwork::GetNetFromXMLBIFFile(string file_path, int alpha) {//XMLBIF is the xml file format; BIF: Interchange Format for Bayesian Network.
-  
-  // Check if the file exists.
-  FILE *test_f_ptr = fopen(file_path.c_str(),"r");
-  if (test_f_ptr==nullptr) {
-    fprintf(stderr, "Error in function %s!", __FUNCTION__);
-    fprintf(stderr, "Unable to open file %s!", file_path.c_str());
-    exit(1);
-  }
+void CustomNetwork::LoadXMLBIFFile(string file_path, int alpha) {//XMLBIF is the xml file format; BIF: Interchange Format for Bayesian Network.
+
+    // Check if the file exists.
+    FILE *test_f_ptr = fopen(file_path.c_str(),"r");
+    if (test_f_ptr==nullptr) {
+        fprintf(stderr, "Error in function %s!", __FUNCTION__);
+        fprintf(stderr, "Unable to open file %s!", file_path.c_str());
+        exit(1);
+    }
     fclose(test_f_ptr);
 
-  XMLBIFParser xbp(file_path);
-  vector<Node*> connected_nodes = xbp.GetConnectedNodes(alpha);
+    XMLBIFParser xbp(file_path);
+    vector<Node*> connected_nodes = xbp.GetConnectedNodes(alpha);
 
-  network_name = xbp.xml_network_name_ptr->GetText();
-  num_nodes = connected_nodes.size();
-  for (auto &node_ptr : connected_nodes) {
-    map_idx_node_ptr[node_ptr->GetNodeIndex()] = node_ptr;
-  }
+    network_name = xbp.xml_network_name_ptr->GetText();
+    num_nodes = connected_nodes.size();
+    for (const auto &node_ptr : connected_nodes) { // for each node
+        map_idx_node_ptr[node_ptr->GetNodeIndex()] = node_ptr;
+    }
+
+    for (const auto &node_ptr : connected_nodes) { // for each node
+        // find its children, add the edges
+        for (const auto &child_idx: node_ptr->set_children_indexes) {
+            Node *child_ptr = FindNodePtrByIndex(child_idx);
+            Edge edge(node_ptr, child_ptr, TAIL, ARROW);
+            vec_edges.push_back(edge);
+            ++num_edges;
+        }
+    }
 }
 
 /**
@@ -53,7 +63,7 @@ void CustomNetwork::LoadBIFFile(string path) {
         exit(1);
     }
 
-    cout << "Data file opened. Begin to load network structure. " << endl;
+//    cout << "Data file opened. Begin to load network structure. " << endl;
 
     string line;
     /**
@@ -76,6 +86,7 @@ void CustomNetwork::LoadBIFFile(string path) {
      * }
      */
     int node_idx = 0;
+    int num_values = 0;
     getline(in_file, line);
     // if there is a whitespace at the beginning  of the line
     // it will cause a bug if we do not trim it
@@ -83,16 +94,20 @@ void CustomNetwork::LoadBIFFile(string path) {
     vector<string> parsed_line = Split(line, " ");
 
     while (parsed_line.at(0).compare("probability") != 0) { // it is about variable
+        DiscreteNode *node_ptr = new DiscreteNode(node_idx);
         if (parsed_line.at(0).compare("variable") == 0) { // case 1: variable BirthAsphyxia {
-            DiscreteNode *node_ptr = new DiscreteNode(node_idx);
-            // give this node a name, mainly for print
             node_ptr->node_name = parsed_line.at(1);
             map_idx_node_ptr.insert(pair<int, Node*>(node_idx, node_ptr)); // todo
             node_idx++;
-        } else if (parsed_line.at(0).compare("type") == 0) {
+        } else if (parsed_line.at(0).compare("type") == 0) { // case 2: type discrete [ 2 ] { yes, no };
             if (parsed_line.at(1).compare("discrete") != 0) { // it is not a discrete variable
                 fprintf(stderr, "Error in function [%s]\nContain continuous variable in BN!", __FUNCTION__);
                 exit(1);
+            }
+            num_values = stoi(parsed_line.at(3));
+            for (int i = 6; i < 6 + num_values; ++i) {
+                string value = TrimRightComma(parsed_line.at(i));
+                node_ptr->possible_values_ids[value] = i - 6;
             }
         } // do nothing for the other case
 

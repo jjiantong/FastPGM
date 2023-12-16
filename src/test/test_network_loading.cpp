@@ -21,7 +21,7 @@
 //
 //TEST_F(TestXMLBIFLoading, alarm) {
 //    string net_file = dataset_path + "alarm/alarm.xml";
-//    network->GetNetFromXMLBIFFile(net_file, ALPHA);
+//    network->LoadXMLBIFFile(net_file, ALPHA);
 //
 //    cout << "network_name = " << network->network_name << endl;
 //    cout << "num_nodes = " << network->num_nodes << endl;

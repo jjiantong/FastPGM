@@ -17,7 +17,7 @@
 //    void SetUp() override {
 //        CustomNetwork *network = new CustomNetwork(true);
 //        string net_file = dataset_path + "alarm/alarm.xml";
-//        network->GetNetFromXMLBIFFile(net_file, 1);
+//        network->LoadXMLBIFFile(net_file, 1);
 //
 //        // if the wrong old libsvm format is used, we need to do the changes in `LoadLIBSVMTestingData`.
 //        tester = new Dataset(network);

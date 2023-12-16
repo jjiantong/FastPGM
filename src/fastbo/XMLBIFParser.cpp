@@ -117,7 +117,7 @@ void XMLBIFParser::AssignProbsToNodes(vector<Node*> vec_node_ptrs, int alpha) {
             xg = xg->NextSiblingElement("GIVEN");
         }
 
-        // store the parent-child relationship, but didn't store the edge.
+        // store the parent-child relationship, but didn't store the edge. all the edges are stored in `CustomNetwork`.
         for (auto &gvp : vec_given_vars_ptrs) {
             // (network)SetParentChild(node1, node2); // set parent and child relationship
             for_np->AddParent(gvp);

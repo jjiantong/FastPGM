@@ -19,7 +19,7 @@
 //    void SetUp() override {
 //        CustomNetwork *network = new CustomNetwork(true);
 //        string net_file = dataset_path + "alarm/alarm.xml";
-//        network->GetNetFromXMLBIFFile(net_file, 1);
+//        network->LoadXMLBIFFile(net_file, 1);
 //
 //        Dataset *tester = new Dataset(network);
 //        // this is the old version, where we (mistakenly) use libsvm to represent incomplete datasets. if use this
@@ -95,7 +95,7 @@
 ////        string net_file = "../../dataset/hailfinder/hailfinder.xml";
 ////        string test_set_file = "../../dataset/hailfinder/testing_hailfinder_100_evi20";
 ////
-////        network->GetNetFromXMLBIFFile(net_file);
+////        network->LoadXMLBIFFile(net_file);
 ////        tester->LoadLIBSVMDataKnownNetwork(test_set_file, network->num_nodes);
 ////
 ////        inference = new JunctionTree(false, network, tester, false);
@@ -163,7 +163,7 @@
 ////        string net_file = "../../dataset/pathfinder/pathfinder.xml";
 ////        string test_set_file = "../../dataset/pathfinder/testing_pathfinder_100_evi20";
 ////
-////        network->GetNetFromXMLBIFFile(net_file);
+////        network->LoadXMLBIFFile(net_file);
 ////        tester->LoadLIBSVMDataKnownNetwork(test_set_file, network->num_nodes);
 ////
 ////        inference = new JunctionTree(false, network, tester, false);
@@ -231,7 +231,7 @@
 ////        string net_file = "../../dataset/diabetes/diabetes.xml";
 ////        string test_set_file = "../../dataset/diabetes/testing_diabetes_100_evi20";
 ////
-////        network->GetNetFromXMLBIFFile(net_file);
+////        network->LoadXMLBIFFile(net_file);
 ////        tester->LoadLIBSVMDataKnownNetwork(test_set_file, network->num_nodes);
 ////
 ////        inference = new JunctionTree(false, network, tester, false);
@@ -299,7 +299,7 @@
 ////        string net_file = "../../dataset/pigs/pigs.xml";
 ////        string test_set_file = "../../dataset/pigs/testing_pigs_100_evi20";
 ////
-////        network->GetNetFromXMLBIFFile(net_file);
+////        network->LoadXMLBIFFile(net_file);
 ////        tester->LoadLIBSVMDataKnownNetwork(test_set_file, network->num_nodes);
 ////
 ////        inference = new JunctionTree(false, network, tester, false);
@@ -367,7 +367,7 @@
 ////        string net_file = "../../dataset/munin/munin.xml";
 ////        string test_set_file = "../../dataset/munin/testing_munin_100_evi20";
 ////
-////        network->GetNetFromXMLBIFFile(net_file);
+////        network->LoadXMLBIFFile(net_file);
 ////        tester->LoadLIBSVMDataKnownNetwork(test_set_file, network->num_nodes);
 ////
 ////        inference = new JunctionTree(false, network, tester, false);
@@ -435,7 +435,7 @@
 ////        string net_file = "../../dataset/munin4/munin4.xml";
 ////        string test_set_file = "../../dataset/munin4/testing_munin4_100_evi20";
 ////
-////        network->GetNetFromXMLBIFFile(net_file);
+////        network->LoadXMLBIFFile(net_file);
 ////        tester->LoadLIBSVMDataKnownNetwork(test_set_file, network->num_nodes);
 ////
 ////        inference = new JunctionTree(false, network, tester, false);
