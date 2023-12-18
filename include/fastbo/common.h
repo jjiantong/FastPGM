@@ -107,6 +107,9 @@ string TrimRight(string);
 string TrimLeft(string);
 string Trim(string &);
 string TrimRightComma(string s);
+string TrimLeftParenthesis(string s);
+string TrimRightCommaAndParenthesis(string s);
+string TrimRightCommaAndSemicolon(string s);
 vector<string> Split(string &s, string delimiter);
 
 vector<vector<int>> NaryCount(vector<int> vec_range_each_digit);

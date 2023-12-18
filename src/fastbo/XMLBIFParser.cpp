@@ -73,9 +73,6 @@ vector<Node*> XMLBIFParser::GetUnconnectedNodes() const {
  * @brief: read the probabilities and construct parent-child relationship.
  */
 void XMLBIFParser::AssignProbsToNodes(vector<Node*> vec_node_ptrs, int alpha) {
-    vector<PotentialTableBase> pts;
-    pts.reserve(vec_node_ptrs.size());
-
     for (auto &xpp : vec_xml_probs_ptr) { // Parse each "PROBABILITY" element.
         // Parse "FOR"
         string str_for = (xpp->FirstChildElement("FOR")->GetText());
@@ -179,6 +176,12 @@ void XMLBIFParser::AssignProbsToNodes(vector<Node*> vec_node_ptrs, int alpha) {
             // so we use a "laplace_smooth" to avoid 0 probability
 //            dynamic_cast<DiscreteNode*>(for_np)->SetProbability(query, comb, vec_db_table_entry.at(i));
             dynamic_cast<DiscreteNode*>(for_np)->AddCount(query, comb, vec_db_table_entry.at(i)*10000);
+
+//            cout << for_np->GetNodeIndex() << ", query = " << query << "; ";
+//            for (const auto &p: comb) {
+//                cout << p.first << "=" << p.second << ", ";
+//            }
+//            cout << "; " << vec_db_table_entry.at(i)*10000 << endl;
         }
     }
 }

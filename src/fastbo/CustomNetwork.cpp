@@ -76,8 +76,7 @@ void CustomNetwork::LoadBIFFile(string path) {
     getline(in_file, line);
 
     /**
-     * 2. "variable", we only care about the node name, not about the dimension and possible values
-     * TODO: only support discrete variables now
+     * 2. "variable", TODO: only support discrete variables now
      * variable BirthAsphyxia {
      *  type discrete [ 2 ] { yes, no };
      * }
@@ -86,16 +85,16 @@ void CustomNetwork::LoadBIFFile(string path) {
      * }
      */
     int node_idx = 0;
-    int num_values = 0;
     getline(in_file, line);
     // if there is a whitespace at the beginning  of the line
     // it will cause a bug if we do not trim it
     line = TrimLeft(line);
     vector<string> parsed_line = Split(line, " ");
 
+    DiscreteNode *node_ptr = nullptr;
     while (parsed_line.at(0).compare("probability") != 0) { // it is about variable
-        DiscreteNode *node_ptr = new DiscreteNode(node_idx);
         if (parsed_line.at(0).compare("variable") == 0) { // case 1: variable BirthAsphyxia {
+            node_ptr = new DiscreteNode(node_idx);
             node_ptr->node_name = parsed_line.at(1);
             map_idx_node_ptr.insert(pair<int, Node*>(node_idx, node_ptr)); // todo
             node_idx++;
@@ -104,7 +103,7 @@ void CustomNetwork::LoadBIFFile(string path) {
                 fprintf(stderr, "Error in function [%s]\nContain continuous variable in BN!", __FUNCTION__);
                 exit(1);
             }
-            num_values = stoi(parsed_line.at(3));
+            int num_values = stoi(parsed_line.at(3));
             for (int i = 6; i < 6 + num_values; ++i) {
                 string value = TrimRightComma(parsed_line.at(i));
                 node_ptr->possible_values_ids[value] = i - 6;
@@ -115,6 +114,7 @@ void CustomNetwork::LoadBIFFile(string path) {
         line = TrimLeft(line);
         parsed_line = Split(line, " ");
     }
+
     num_nodes = map_idx_node_ptr.size();
 
     /**
@@ -129,22 +129,26 @@ void CustomNetwork::LoadBIFFile(string path) {
      * }
      * it seems to have slight format difference in this part, but it does not matter since we do not care about CPTs
      */
+    vector<Node*> parent_nodes;
+    Node *this_node;
     while (!in_file.eof()) {
         // these two lines have to be at the beginning of the while loop, not the end
         line = TrimLeft(line);
         parsed_line = Split(line, " ");
 
-        if (parsed_line.at(0).compare("probability") == 0) { // we do not care about other lines
+        if (parsed_line.at(0).compare("probability") == 0) {
+            // probability ( LowerBodyO2 | HypDistrib, HypoxiaInO2 ) {
             if (parsed_line.at(1).compare("(") != 0) {
                 fprintf(stderr, "Error in function [%s]\nError in format!", __FUNCTION__);
                 exit(1);
             }
-            if (parsed_line.at(3).compare(")") != 0) {
-                // 1) get the child node
-                Node* child_node = FindNodePtrByName(parsed_line.at(2));
 
+            // 1) get this node.
+            this_node = FindNodePtrByName(parsed_line.at(2));
+            parent_nodes.clear();
+
+            if (parsed_line.at(3).compare(")") != 0) { // if this node has parent(s).
                 // 2) get the parents of the node
-                vector<Node*> parent_nodes;
                 int pos = 4;
                 while (parsed_line.at(pos).compare(")") != 0) {
                     string name = TrimRightComma(parsed_line.at(pos));
@@ -152,14 +156,51 @@ void CustomNetwork::LoadBIFFile(string path) {
                     ++pos;
                 }
 
-                // 3) add an edge between one parent node -> the child node
+                // 3) add an edge between one parent node -> this node.
                 for (const auto &parent_node : parent_nodes) {
-                    SetParentChild(parent_node, child_node); // set parent and child relationship
-                    Edge edge(parent_node, child_node, TAIL, ARROW);
+                    SetParentChild(parent_node, this_node); // set parent and child relationship
+                    Edge edge(parent_node, this_node, TAIL, ARROW);
                     vec_edges.push_back(edge);
                     ++num_edges;
                 }
             } // otherwise, it is a node with no parent
+        } else if (parsed_line.at(0).compare("}") != 0) {
+            // (Equal, Mild) 0.1, 0.3, 0.6; or: table 0.2, 0.8;
+            int num_pars = parent_nodes.size(); // number of parents for this node
+            int num_values = dynamic_cast<DiscreteNode *>(this_node)->possible_values_ids.size();
+            int pos;
+            DiscreteConfig comb;
+            if (num_pars > 0) { // have parents.
+                // construct `comb`: parent configuration
+                for (int i = 0; i < num_pars; ++i) { // for each of its parents
+                    // save each value of the parent
+                    string v1 = TrimLeftParenthesis(parsed_line.at(i));
+                    string v2 = TrimRightCommaAndParenthesis(v1);
+                    // find the number of this value
+                    DiscreteNode *par_ptr = dynamic_cast<DiscreteNode *>(parent_nodes[i]);
+                    int num = par_ptr->possible_values_ids[v2];
+                    comb.insert(
+                            pair<int, int>(
+                                    par_ptr->GetNodeIndex(), num));
+                }
+                pos = num_pars;
+
+            } else { // no parent.
+                pos = 1;
+            }
+
+            // set probabilities for different values of this node given parent config `comb`.
+            for (int i = pos; i < pos + num_values; ++i) { // for each possible value of this node
+                string v = TrimRightCommaAndSemicolon(parsed_line.at(i));
+                double prob = stod(v);
+                dynamic_cast<DiscreteNode*>(this_node)->AddCount(i - pos, comb, prob*10000);
+
+//                cout << this_node->GetNodeIndex() << ", query = " << i - pos << "; ";
+//                for (const auto &p: comb) {
+//                    cout << p.first << "=" << p.second << ", ";
+//                }
+//                cout << "; " << prob*10000 << endl;
+            }
         }
 
         getline(in_file, line);
