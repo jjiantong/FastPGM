@@ -198,19 +198,27 @@ vector<vector<int>> NaryCount(vector<int> vec_range_each_digit) {//checked on 11
     single_count.reserve(num_digits);
     for (int i = 0; i < num_digits; ++i) {
         single_count.push_back(0);
-        num_counts *= vec_range_each_digit[i];
+        num_counts *= vec_range_each_digit[i]; // it's like the table size.
     }
 
     vector<vector<int>> result_counts;
     result_counts.reserve(num_counts);
 
-    // The left-most digit is the most significant digit.
-    // The domain of each digit start at 0,
-    // so the max value of this digit is one smaller than the range.
+    /************************** two versions ... **************************/
+    // example: 612345. where 1 is the least significant digit, 6 is the most significant digit. weird!!
+    // The domain of each digit start at 0, so the max value of this digit is one smaller than the range.
+    vector<int> check_digit_order;
+    check_digit_order.reserve(num_digits);
+    for (int i = 1; i < num_digits; ++i) {
+        check_digit_order.push_back(i);
+    }
+    check_digit_order.push_back(0);
 
     for (int i = 0; i < num_counts; ++i) {
         result_counts.push_back(single_count);
-        int check_digit = num_digits-1;
+
+        int pos = 0;
+        int check_digit = check_digit_order[pos]; // start at the least significant digit.
 
         // Add 1 to count.
 
@@ -221,12 +229,37 @@ vector<vector<int>> NaryCount(vector<int> vec_range_each_digit) {//checked on 11
         // The domain of each digit start at 0,
         // so the max value of this digit is one smaller than the range.
         bool need_carry = (single_count[check_digit] >= vec_range_each_digit[check_digit]);
-        while (need_carry && check_digit > 0) {
-            single_count[check_digit--] = 0;
+        while (need_carry && pos < num_digits - 1) {
+            single_count[check_digit] = 0;
+            check_digit = check_digit_order[++pos];
             ++single_count[check_digit];
             need_carry = (single_count[check_digit] >= vec_range_each_digit[check_digit]);
         }
     }
+
+//    // The left-most digit is the most significant digit.
+//    // The domain of each digit start at 0,
+//    // so the max value of this digit is one smaller than the range.
+//    for (int i = 0; i < num_counts; ++i) {
+//        result_counts.push_back(single_count);
+//        int check_digit = num_digits-1;
+//
+//        // Add 1 to count.
+//
+//        ++single_count[check_digit]; // Add 1 to the least significant digit.
+//
+//        // Then deal with the carries.
+//
+//        // The domain of each digit start at 0,
+//        // so the max value of this digit is one smaller than the range.
+//        bool need_carry = (single_count[check_digit] >= vec_range_each_digit[check_digit]);
+//        while (need_carry && check_digit > 0) {
+//            single_count[check_digit--] = 0;
+//            ++single_count[check_digit];
+//            need_carry = (single_count[check_digit] >= vec_range_each_digit[check_digit]);
+//        }
+//    }
+    /************************** two versions ... **************************/
 
     return result_counts;
 }

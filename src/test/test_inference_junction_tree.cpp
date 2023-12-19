@@ -18,10 +18,10 @@ protected:
 
     void SetUp() override {
         CustomNetwork *network = new CustomNetwork(true);
-//        string net_file = dataset_path + "alarm/alarm.xml";
-//        network->LoadXMLBIFFile(net_file, 1);
-        string net_file = dataset_path + "alarm/alarm.bif";
-        network->LoadBIFFile(net_file);
+        string net_file = dataset_path + "alarm/alarm.xml";
+        network->LoadXMLBIFFile(net_file, 1);
+//        string net_file = dataset_path + "alarm/alarm.bif";
+//        network->LoadBIFFile(net_file);
 
         Dataset *tester = new Dataset(network);
         // this is the old version, where we (mistakenly) use libsvm to represent incomplete datasets. if use this

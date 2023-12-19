@@ -89,11 +89,10 @@ void XMLBIFParser::AssignProbsToNodes(vector<Node*> vec_node_ptrs, int alpha) {
             exit(1);
         }
 
-        // Parse "GIVEN" ==================================================
-        // Store variables of all "GIVEN" in a vector.
-        // Because, if the parameters are given in the form of "TABLE",
-        // we need to do something like binary counting (change from right)
-        // for the variables' values in "GIVEN".
+        // Parse "GIVEN" and "TABLE" ==================================================
+        // Store variables of all "GIVEN" in a vector. The parameters are given in the form of "TABLE", we need to do
+        // something like binary counting (change from left) -- it is weird, because it is from LEFT!
+        // 1, find the parents (in order), and push them to `vec_given_vars_ptrs`.
         vector<Node*> vec_given_vars_ptrs;
         XMLElement *xg = xpp->FirstChildElement("GIVEN");
         while (xg != nullptr) { // find each of its parents
@@ -114,14 +113,15 @@ void XMLBIFParser::AssignProbsToNodes(vector<Node*> vec_node_ptrs, int alpha) {
             xg = xg->NextSiblingElement("GIVEN");
         }
 
-        // store the parent-child relationship, but didn't store the edge. all the edges are stored in `CustomNetwork`.
+        // 2, store the parent-child relationship, but didn't store the edge. all the edges are stored in
+        // `CustomNetwork`.
         for (auto &gvp : vec_given_vars_ptrs) {
             // (network)SetParentChild(node1, node2); // set parent and child relationship
             for_np->AddParent(gvp);
             gvp->AddChild(for_np);
         }
 
-        // Parse "TABLE" ==================================================
+        // 3, store all the probabilities (in order) in vec_db_table_entry``.
         string str_table = xpp->FirstChildElement("TABLE")->GetText();
         str_table = Trim(str_table);
         vector<string> vec_str_table_entry = Split(str_table," ");
@@ -131,8 +131,7 @@ void XMLBIFParser::AssignProbsToNodes(vector<Node*> vec_node_ptrs, int alpha) {
             vec_db_table_entry.push_back(stod(str));
         }
 
-        // The following lines are to generate
-        // all combinations of values of variables in "GIVEN".
+        // 4, construct domains.
         vector<int> vec_range_each_digit;
         int num_given = vec_given_vars_ptrs.size();
         vec_range_each_digit.reserve(num_given + 1);
@@ -145,6 +144,7 @@ void XMLBIFParser::AssignProbsToNodes(vector<Node*> vec_node_ptrs, int alpha) {
             vec_range_each_digit.push_back(dynamic_cast<DiscreteNode*>(vec_given_vars_ptrs[i])->GetDomainSize());
         }
 
+        // 5, generate all combinations.
         vector<vector<int>> nary_counts = NaryCount(vec_range_each_digit);
 
         // Now, nary_counts and vec_db_table_entry should correspond on position.
