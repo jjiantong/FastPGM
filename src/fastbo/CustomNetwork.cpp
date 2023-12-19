@@ -103,8 +103,8 @@ void CustomNetwork::LoadBIFFile(string path) {
                 fprintf(stderr, "Error in function [%s]\nContain continuous variable in BN!", __FUNCTION__);
                 exit(1);
             }
-            int num_values = stoi(parsed_line.at(3));
-            for (int i = 6; i < 6 + num_values; ++i) {
+            node_ptr->SetDomainSize(stoi(parsed_line.at(3)));
+            for (int i = 6; i < 6 + node_ptr->GetDomainSize(); ++i) {
                 string value = TrimRightComma(parsed_line.at(i));
                 node_ptr->possible_values_ids[value] = i - 6;
             }
