@@ -51,16 +51,10 @@ public:
 
     void OrientVStructure(const map<int, map<int, double>> &adjacencies);
     void OrientImplied(const map<int, map<int, double>> &adjacencies);
-    bool Direct(int a, int c);
-    vector<int> GetCommonAdjacents(const map<int, map<int, double>> &adjacencies, int x_idx, int y_idx);
     bool Rule1(const map<int, map<int, double>> &adjacencies, int b_idx, int c_idx);
     bool Rule2(const map<int, map<int, double>> &adjacencies, int a_idx, int c_idx);
     bool Rule3(const map<int, map<int, double>> &adjacencies, int d_idx, int a_idx);
     bool R3Helper(const map<int, map<int, double>> &adjacencies, int a_idx, int d_idx, int b_idx, int c_idx);
-
-    void DirectLeftEdges(const map<int, map<int, double>> &adjacencies);
-    vector<int> FindRootsInDAGForest();
-    void AddRootNode(vector<int> &sub_roots);
 };
 
 #endif //BAYESIANNETWORK_PCSTABLE_H

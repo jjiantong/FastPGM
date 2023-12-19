@@ -22,6 +22,13 @@ public:
     virtual void StructLearnCompData(Dataset *dts, int group_size, int num_threads, bool print_struct, int verbose) = 0;
     void AssignNodeInformation(Dataset *dts);
     vector<int> AssignNodeOrder(string topo_ord_constraint);
+
+    bool Direct(int a, int c);
+    vector<int> GetCommonAdjacents(const map<int, map<int, double>> &adjacencies, int x_idx, int y_idx);
+
+    void DirectLeftEdges(const map<int, map<int, double>> &adjacencies);
+    vector<int> FindRootsInDAGForest();
+    void AddRootNode(vector<int> &sub_roots);
 };
 
 #endif //BAYESIANNETWORK_STRUCTURELEARNING_H
