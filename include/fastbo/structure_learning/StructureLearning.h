@@ -29,6 +29,8 @@ public:
     void DirectLeftEdges(const map<int, map<int, double>> &adjacencies);
     vector<int> FindRootsInDAGForest();
     void AddRootNode(vector<int> &sub_roots);
+
+    void PrintBNStructure();
 };
 
 #endif //BAYESIANNETWORK_STRUCTURELEARNING_H

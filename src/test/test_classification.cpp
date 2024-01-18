@@ -55,6 +55,7 @@ TEST_F(TestClassificationAlarm, thread_1) {
     auto pc_bnsl = (PCStable*)bnsl;
     vector<int> roots = pc_bnsl->FindRootsInDAGForest();
     pc_bnsl->AddRootNode(roots);
+    pc_bnsl->PrintBNStructure();
 
     bnpl->LearnParamsKnowStructCompData(trainer, 1, verbose); // todo: alpha = 1
     SAFE_DELETE(trainer);
