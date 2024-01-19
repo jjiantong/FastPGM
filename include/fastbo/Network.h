@@ -61,8 +61,7 @@ public:
     int GetDirectedEdge(Node* node1, Node* node2);
     int GetEdge(Node* node1, Node* node2);
     int GetDirectedEdgeFromEdgeOrder(const vector<Edge> &edge_order, Node* node1, Node* node2);
-    void PrintEachEdgeWithIndex();
-    void PrintEachEdgeWithName();
+    void PrintEdges();
     void CheckEdges();
 
     bool AddDirectedEdge(int p_index, int c_index);

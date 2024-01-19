@@ -16,7 +16,8 @@ PCStable::~PCStable() {
     SAFE_DELETE(network);
 }
 
-void PCStable::StructLearnCompData(Dataset *dts, int group_size, int num_threads, bool print_struct, int verbose) {
+void PCStable::StructLearnCompData(Dataset *dts, int group_size, int num_threads,
+                                   bool dag, bool add_root, bool save_struct, int verbose) {
     if (verbose > 0) {
         cout << "==================================================" << '\n'
              << "Begin structure learning with PC-stable" << endl;
@@ -26,8 +27,22 @@ void PCStable::StructLearnCompData(Dataset *dts, int group_size, int num_threads
     // record time
     timer->Start("pc-stable");
     AssignNodeInformation(dts);
-    StructLearnByPCStable(dts, num_threads, group_size, timer, print_struct, verbose);
+    StructLearnByPCStable(dts, num_threads, group_size, dag, timer, verbose);
     timer->Stop("pc-stable");
+
+    if (add_root) {
+        cout << endl << "finding roots for sub-graphs... " << endl;
+        vector<int> roots = FindRootsInDAGForest();
+        AddRootNode(roots);
+        cout << "roots: ";
+        for (int i = 0; i < roots.size(); ++i) {
+            cout << roots[i] << ", ";
+        }
+        cout << endl;
+    }
+    if (save_struct) {
+        PrintBNStructure();
+    }
 
     if (verbose > 0) {
         cout << "==================================================" << endl;
@@ -58,8 +73,8 @@ void PCStable::StructLearnCompData(Dataset *dts, int group_size, int num_threads
     SAFE_DELETE(timer);
 }
 
-void PCStable::StructLearnByPCStable(Dataset *dts, int num_threads, int group_size,
-                                     Timer *timer, bool print_struct, int verbose) {
+void PCStable::StructLearnByPCStable(Dataset *dts, int num_threads, int group_size, bool dag,
+                                     Timer *timer, int verbose) {
 
     if (verbose > 0) {
         cout << "==================================================" << '\n'
@@ -170,7 +185,7 @@ void PCStable::StructLearnByPCStable(Dataset *dts, int num_threads, int group_si
 
     if (verbose > 1) {
         cout << "* remaining edges:" << endl;
-        network->PrintEachEdgeWithName();
+        network->PrintEdges();
     }
 
     double tmp = omp_get_wtime();
@@ -189,7 +204,7 @@ void PCStable::StructLearnByPCStable(Dataset *dts, int num_threads, int group_si
 
         if (verbose > 1) {
             cout << "* remaining edges:" << endl;
-            network->PrintEachEdgeWithName();
+            network->PrintEdges();
         }
 
         double tmp = omp_get_wtime();
@@ -224,19 +239,8 @@ void PCStable::StructLearnByPCStable(Dataset *dts, int num_threads, int group_si
     OrientImplied(adjacencies);
 //    timer->Stop("pc-stable step 3");
 
-    if (print_struct) {
-        cout << endl;
-        network->PrintEachEdgeWithIndex();
-//        network->PrintEachEdgeWithName();
-    }
-
-    DirectLeftEdges(adjacencies);
-
-    if (print_struct) {
-        cout << endl;
-        network->PrintEachEdgeWithIndex();
-//        network->PrintEachEdgeWithName();
-        network->CheckEdges();
+    if (dag) {
+        DirectLeftEdges(adjacencies);
     }
 }
 

@@ -40,22 +40,7 @@
 //    string train_set_file = dataset_path + "alarm/alarm_s5000.txt";
 //    trainer->LoadCSVTrainingData(train_set_file, true, true, 0);
 //
-//    bnsl->StructLearnCompData(trainer, group_size, num_threads, true, verbose);
-//
-//    cout << endl << "finding roots for sub-graphs... ";
-//    Timer *timer = new Timer();
-//    timer->Start("roots & add");
-//    auto pc_bnsl = (PCStable*)bnsl;
-//    vector<int> roots = pc_bnsl->FindRootsInDAGForest();
-//    pc_bnsl->AddRootNode(roots);
-//    timer->Stop("roots & add");
-//    timer->Print("roots & add");
-//
-//    cout << "roots: ";
-//    for (int i = 0; i < roots.size(); ++i) {
-//    cout << roots[i] << ", ";
-//    }
-//    cout << endl;
+//    bnsl->StructLearnCompData(trainer, group_size, num_threads, true, true, false, verbose);
 //
 //    bnpl->LearnParamsKnowStructCompData(trainer, 1, verbose); // todo: alpha = 1
 //    SAFE_DELETE(trainer);

@@ -45,7 +45,7 @@
 //    int group_size = GROUP_SIZE;
 //    int num_threads = 1;
 //    int verbose  = VERBOSE;
-//    bnsl->StructLearnCompData(trainer, group_size, num_threads, true, verbose);
+//    bnsl->StructLearnCompData(trainer, group_size, num_threads, false, false, false, verbose);
 //    SAFE_DELETE(trainer);
 //
 //    BNSLComparison comp(ref_net, network);
@@ -59,7 +59,7 @@
 ////    int group_size = GROUP_SIZE;
 ////    int num_threads = 2;
 ////    int verbose  = VERBOSE;
-////    bnsl->StructLearnCompData(trainer, group_size, num_threads, false, verbose);
+////    bnsl->StructLearnCompData(trainer, group_size, num_threads, false, false, false, verbose);
 ////    SAFE_DELETE(trainer);
 ////
 ////    BNSLComparison comp(ref_net, network);
@@ -73,7 +73,7 @@
 ////    int group_size = GROUP_SIZE;
 ////    int num_threads = 4;
 ////    int verbose  = VERBOSE;
-////    bnsl->StructLearnCompData(trainer, group_size, num_threads, false, verbose);
+////    bnsl->StructLearnCompData(trainer, group_size, num_threads, false, false, false, verbose);
 ////    SAFE_DELETE(trainer);
 ////
 ////    BNSLComparison comp(ref_net, network);
@@ -87,7 +87,7 @@
 ////    int group_size = GROUP_SIZE;
 ////    int num_threads = 8;
 ////    int verbose  = VERBOSE;
-////    bnsl->StructLearnCompData(trainer, group_size, num_threads, false, verbose);
+////    bnsl->StructLearnCompData(trainer, group_size, num_threads, false, false, false, verbose);
 ////    SAFE_DELETE(trainer);
 ////
 ////    BNSLComparison comp(ref_net, network);
@@ -101,7 +101,7 @@
 ////    int group_size = GROUP_SIZE;
 ////    int num_threads = 16;
 ////    int verbose  = VERBOSE;
-////    bnsl->StructLearnCompData(trainer, group_size, num_threads, false, verbose);
+////    bnsl->StructLearnCompData(trainer, group_size, num_threads, false, false, false, verbose);
 ////    SAFE_DELETE(trainer);
 ////
 ////    BNSLComparison comp(ref_net, network);
@@ -140,7 +140,7 @@
 ////    int group_size = GROUP_SIZE;
 ////    int num_threads = 1;
 ////    int verbose  = VERBOSE;
-////    bnsl->StructLearnCompData(trainer, group_size, num_threads, true, verbose);
+////    bnsl->StructLearnCompData(trainer, group_size, num_threads, false, false, false, verbose);
 ////    SAFE_DELETE(trainer);
 ////
 ////    BNSLComparison comp(ref_net, network);
@@ -154,7 +154,7 @@
 ////    int group_size = GROUP_SIZE;
 ////    int num_threads = 2;
 ////    int verbose  = VERBOSE;
-////    bnsl->StructLearnCompData(trainer, group_size, num_threads, false, verbose);
+////    bnsl->StructLearnCompData(trainer, group_size, num_threads, false, false, false, verbose);
 ////    SAFE_DELETE(trainer);
 ////
 ////    BNSLComparison comp(ref_net, network);
@@ -168,7 +168,7 @@
 ////    int group_size = GROUP_SIZE;
 ////    int num_threads = 4;
 ////    int verbose  = VERBOSE;
-////    bnsl->StructLearnCompData(trainer, group_size, num_threads, false, verbose);
+////    bnsl->StructLearnCompData(trainer, group_size, num_threads, false, false, false, verbose);
 ////    SAFE_DELETE(trainer);
 ////
 ////    BNSLComparison comp(ref_net, network);
@@ -182,7 +182,7 @@
 ////    int group_size = GROUP_SIZE;
 ////    int num_threads = 8;
 ////    int verbose  = VERBOSE;
-////    bnsl->StructLearnCompData(trainer, group_size, num_threads, false, verbose);
+////    bnsl->StructLearnCompData(trainer, group_size, num_threads, false, false, false, verbose);
 ////    SAFE_DELETE(trainer);
 ////
 ////    BNSLComparison comp(ref_net, network);
@@ -196,7 +196,7 @@
 ////    int group_size = GROUP_SIZE;
 ////    int num_threads = 16;
 ////    int verbose  = VERBOSE;
-////    bnsl->StructLearnCompData(trainer, group_size, num_threads, false, verbose);
+////    bnsl->StructLearnCompData(trainer, group_size, num_threads, false, false, false, verbose);
 ////    SAFE_DELETE(trainer);
 ////
 ////    BNSLComparison comp(ref_net, network);
@@ -234,7 +234,7 @@
 ////    int group_size = GROUP_SIZE;
 ////    int num_threads = 1;
 ////    int verbose  = VERBOSE;
-////    bnsl->StructLearnCompData(trainer, group_size, num_threads, true, verbose);
+////    bnsl->StructLearnCompData(trainer, group_size, num_threads, false, false, false, verbose);
 ////    SAFE_DELETE(trainer);
 ////
 ////    BNSLComparison comp(ref_net, network);
@@ -248,7 +248,7 @@
 ////    int group_size = GROUP_SIZE;
 ////    int num_threads = 2;
 ////    int verbose  = VERBOSE;
-////    bnsl->StructLearnCompData(trainer, group_size, num_threads, false, verbose);
+////    bnsl->StructLearnCompData(trainer, group_size, num_threads, false, false, false, verbose);
 ////    SAFE_DELETE(trainer);
 ////
 ////    BNSLComparison comp(ref_net, network);
@@ -262,7 +262,7 @@
 ////    int group_size = GROUP_SIZE;
 ////    int num_threads = 4;
 ////    int verbose  = VERBOSE;
-////    bnsl->StructLearnCompData(trainer, group_size, num_threads, false, verbose);
+////    bnsl->StructLearnCompData(trainer, group_size, num_threads, false, false, false, verbose);
 ////    SAFE_DELETE(trainer);
 ////
 ////    BNSLComparison comp(ref_net, network);
@@ -276,7 +276,7 @@
 ////    int group_size = GROUP_SIZE;
 ////    int num_threads = 8;
 ////    int verbose  = VERBOSE;
-////    bnsl->StructLearnCompData(trainer, group_size, num_threads, false, verbose);
+////    bnsl->StructLearnCompData(trainer, group_size, num_threads, false, false, false, verbose);
 ////    SAFE_DELETE(trainer);
 ////
 ////    BNSLComparison comp(ref_net, network);
@@ -290,7 +290,7 @@
 ////    int group_size = GROUP_SIZE;
 ////    int num_threads = 16;
 ////    int verbose  = VERBOSE;
-////    bnsl->StructLearnCompData(trainer, group_size, num_threads, false, verbose);
+////    bnsl->StructLearnCompData(trainer, group_size, num_threads, false, false, false, verbose);
 ////    SAFE_DELETE(trainer);
 ////
 ////    BNSLComparison comp(ref_net, network);
@@ -327,7 +327,7 @@
 ////    int group_size = GROUP_SIZE;
 ////    int num_threads = 1;
 ////    int verbose  = VERBOSE;
-////    bnsl->StructLearnCompData(trainer, group_size, num_threads, false, verbose);
+////    bnsl->StructLearnCompData(trainer, group_size, num_threads, false, false, false, verbose);
 ////    SAFE_DELETE(trainer);
 ////
 ////    BNSLComparison comp(ref_net, network);
@@ -341,7 +341,7 @@
 ////    int group_size = GROUP_SIZE;
 ////    int num_threads = 2;
 ////    int verbose  = VERBOSE;
-////    bnsl->StructLearnCompData(trainer, group_size, num_threads, false, verbose);
+////    bnsl->StructLearnCompData(trainer, group_size, num_threads, false, false, false, verbose);
 ////    SAFE_DELETE(trainer);
 ////
 ////    BNSLComparison comp(ref_net, network);
@@ -355,7 +355,7 @@
 ////    int group_size = GROUP_SIZE;
 ////    int num_threads = 4;
 ////    int verbose  = VERBOSE;
-////    bnsl->StructLearnCompData(trainer, group_size, num_threads, false, verbose);
+////    bnsl->StructLearnCompData(trainer, group_size, num_threads, false, false, false, verbose);
 ////    SAFE_DELETE(trainer);
 ////
 ////    BNSLComparison comp(ref_net, network);
@@ -369,7 +369,7 @@
 ////    int group_size = GROUP_SIZE;
 ////    int num_threads = 8;
 ////    int verbose  = VERBOSE;
-////    bnsl->StructLearnCompData(trainer, group_size, num_threads, false, verbose);
+////    bnsl->StructLearnCompData(trainer, group_size, num_threads, false, false, false, verbose);
 ////    SAFE_DELETE(trainer);
 ////
 ////    BNSLComparison comp(ref_net, network);
@@ -383,7 +383,7 @@
 ////    int group_size = GROUP_SIZE;
 ////    int num_threads = 16;
 ////    int verbose  = VERBOSE;
-////    bnsl->StructLearnCompData(trainer, group_size, num_threads, false, verbose);
+////    bnsl->StructLearnCompData(trainer, group_size, num_threads, false, false, false, verbose);
 ////    SAFE_DELETE(trainer);
 ////
 ////    BNSLComparison comp(ref_net, network);

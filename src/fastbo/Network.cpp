@@ -188,39 +188,28 @@ int Network::GetEdge(Node *node1, Node *node2) {
     return -1;
 }
 
-void Network::PrintEachEdgeWithIndex() {
+void Network::PrintEdges() {
     for (int i = 0; i < num_edges; ++i) {
-        cout << i << ". ";
+        cout << i << ": ";
         Edge edge = vec_edges.at(i);
+        Node *node1 = edge.GetNode1();
+        Node *node2 = edge.GetNode2();
         if (!edge.IsDirected()) {
-            cout << edge.GetNode1()->GetNodeIndex() << " -- " << edge.GetNode2()->GetNodeIndex() << endl;
+            cout << node1->node_name << " (" << node1->GetNodeIndex() << ") -- " <<
+                    node2->node_name << " (" << node2->GetNodeIndex() << ")" << endl;
         } else if (edge.GetEndPoint1() == TAIL){
-            cout << edge.GetNode1()->GetNodeIndex() << " -> " << edge.GetNode2()->GetNodeIndex() << endl;
+            cout << node1->node_name << " (" << node1->GetNodeIndex() << ") -> " <<
+                 node2->node_name << " (" << node2->GetNodeIndex() << ")" << endl;
         } else {
-            cout << edge.GetNode2()->GetNodeIndex() << " -> " << edge.GetNode1()->GetNodeIndex() << endl;
+            cout << node2->node_name << " (" << node2->GetNodeIndex() << ") -> " <<
+                 node1->node_name << " (" << node1->GetNodeIndex() << ")" << endl;
         }
     }
     cout << "num nodes = " << num_nodes << endl;
     cout << "num edges = " << num_edges << endl;
 }
 
-void Network::PrintEachEdgeWithName() {
-    for (int i = 0; i < num_edges; ++i) {
-        cout << i << ". ";
-        Edge edge = vec_edges.at(i);
-        if (!edge.IsDirected()) {
-            cout << edge.GetNode1()->node_name << " -- " << edge.GetNode2()->node_name << endl;
-        } else if (edge.GetEndPoint1() == TAIL){
-            cout << edge.GetNode1()->node_name << " -> " << edge.GetNode2()->node_name << endl;
-        } else {
-            cout << edge.GetNode2()->node_name << " -> " << edge.GetNode1()->node_name << endl;
-        }
-    }
-    cout << "num nodes = " << num_nodes << endl;
-    cout << "num edges = " << num_edges << endl;
-}
-
-void Network::CheckEdges() { // todo: move to test
+void Network::CheckEdges() { // used for test
     int parents = 0;
     int children = 0;
     for (const auto &i_n_ptr : map_idx_node_ptr) {
