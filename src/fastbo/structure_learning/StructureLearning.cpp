@@ -235,8 +235,10 @@ void StructureLearning::AddRootNode(vector<int> &sub_roots) {
     network->num_nodes++;
 }
 
-void StructureLearning::PrintBNStructure() {
-    cout << "number of nodes = " << network->num_nodes << ", number of edges = " << network->num_edges << endl;
+void StructureLearning::SaveBNStructure() {
+    string head = "number of nodes = " + to_string(network->num_nodes)
+            + ", number of edges = " + to_string(network->num_edges);
+    cout << head << endl;
 
     if (network->vec_edges[0].IsDirected()) {
         // DAG
@@ -251,28 +253,31 @@ void StructureLearning::PrintBNStructure() {
             for (const int &child_idx: this_ptr->set_children_indexes) {
                 Node *child_ptr = network->FindNodePtrByIndex(child_idx);
                 string child_name = child_ptr->node_name;
-                cout << edge_count++ << ": " <<
-                     this_name << " (" << this_idx << ") -> " <<
-                     child_name << " (" << child_idx << ") " << endl;
+                string s_edge = to_string(edge_count) + ": "
+                        + this_name + "/v" + to_string(this_idx) + " -> "
+                        + child_name + "/v" + to_string(child_idx);
+                cout << s_edge << endl;
+                edge_count++;
             }
         }
     } else {
         // CPDAG
         for (int i = 0; i < network->num_edges; ++i) {
-            cout << i << ": ";
+            string s_edge = to_string(i) + ": ";
             Edge edge = network->vec_edges.at(i);
             Node *node1 = edge.GetNode1();
             Node *node2 = edge.GetNode2();
             if (!edge.IsDirected()) {
-                cout << node1->node_name << " (" << node1->GetNodeIndex() << ") -- " <<
-                     node2->node_name << " (" << node2->GetNodeIndex() << ")" << endl;
+                s_edge += node1->node_name + "/v" + to_string(node1->GetNodeIndex()) + " -- "
+                        + node2->node_name + "/v" + to_string(node2->GetNodeIndex());
             } else if (edge.GetEndPoint1() == TAIL){
-                cout << node1->node_name << " (" << node1->GetNodeIndex() << ") -> " <<
-                     node2->node_name << " (" << node2->GetNodeIndex() << ")" << endl;
+                s_edge += node1->node_name + "/v" + to_string(node1->GetNodeIndex()) + " -> "
+                        + node2->node_name + "/v" + to_string(node2->GetNodeIndex());
             } else {
-                cout << node2->node_name << " (" << node2->GetNodeIndex() << ") -> " <<
-                     node1->node_name << " (" << node1->GetNodeIndex() << ")" << endl;
+                s_edge += node2->node_name + "/v" + to_string(node2->GetNodeIndex()) + " -> "
+                        + node1->node_name + "/v" + to_string(node1->GetNodeIndex());
             }
+            cout << s_edge << endl;
         }
     }
 

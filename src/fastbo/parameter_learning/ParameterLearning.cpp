@@ -7,7 +7,7 @@
 /**
  * @brief: get each node's conditional probability table
  */
-void ParameterLearning::LearnParamsKnowStructCompData(const Dataset *dts, int alpha, int verbose){
+void ParameterLearning::LearnParamsKnowStructCompData(const Dataset *dts, int alpha, bool save_param, int verbose){
     if (verbose > 0) {
         cout << "==================================================" << '\n'
              << "Begin learning parameters, Laplace smoothing param alpha = " << alpha << endl;
@@ -100,4 +100,44 @@ void ParameterLearning::LearnParamsKnowStructCompData(const Dataset *dts, int al
 
     timer->Stop("parameter_learning");
     timer->Print("parameter_learning");
+
+    if (save_param) {
+        SaveBNParameter();
+    }
+}
+
+void ParameterLearning::SaveBNParameter() {
+    for (int i = 0; i < network->num_nodes; ++i) { // for each variable in the network
+        DiscreteNode *this_node = dynamic_cast<DiscreteNode*>(network->FindNodePtrByIndex(i));
+        string head = "P (" + this_node->node_name + "/v" + to_string(i) + "=";
+
+        PotentialTableBase pt = network->pts[i];
+        if (pt.num_variables == 1) {
+            // this node has no parent
+            for (int j = 0; j < pt.table_size; ++j) {
+                string prob = head + this_node->GetValueNameByIndex(j) + "/" + to_string(j)
+                        + ") = " + to_string(pt.potentials[j]);
+                cout << prob << endl;
+            }
+        } else {
+            // this node has parent(s).
+            int *config = new int[pt.num_variables];
+            for (int j = 0; j < pt.table_size; ++j) { // for each entry in this node's pt
+                pt.GetConfigValueByTableIndex(j, config);
+                // the first element in `config` is the node itself
+                string prob = head + this_node->GetValueNameByIndex(config[0])
+                        + "/" + to_string(config[0]) + " | ";
+                // then handling the left nodes one by one. these nodes are parents of this node
+                for (int k = 1; k < pt.num_variables; ++k) {
+                    DiscreteNode *par = dynamic_cast<DiscreteNode*>
+                            (network->FindNodePtrByIndex(pt.vec_related_variables[k]));
+                    prob += par->node_name + "/v" + to_string(pt.vec_related_variables[k]) + "="
+                            + par->GetValueNameByIndex(config[k]) + "/" + to_string(config[k]) + ", ";
+                }
+                prob.pop_back(); prob.pop_back();
+                prob += ") = " + to_string(pt.potentials[j]);
+                cout << prob << endl;
+            }
+        }
+    }
 }

@@ -52,14 +52,10 @@ TEST_F(TestClassificationAlarm, thread_1) {
     int verbose  = VERBOSE;
 
     bnsl->StructLearnCompData(trainer, group_size, num_threads, true, true, true, verbose);
-//    auto pc_bnsl = (PCStable*)bnsl;
-//    vector<int> roots = pc_bnsl->FindRootsInDAGForest();
-//    pc_bnsl->AddRootNode(roots);
-//    pc_bnsl->PrintBNStructure();
     cout << endl;
     bnsl->network->CheckEdges();
 
-    bnpl->LearnParamsKnowStructCompData(trainer, 1, verbose); // todo: alpha = 1
+    bnpl->LearnParamsKnowStructCompData(trainer, 1, true, verbose); // todo: alpha = 1
     SAFE_DELETE(trainer);
 
     Inference *inference = new JunctionTree(true, network, tester);

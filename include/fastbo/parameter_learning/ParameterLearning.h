@@ -18,9 +18,9 @@ public:
 
     ParameterLearning(Network *net) {network = net;};
 
-    void LearnParamsKnowStructCompData(const Dataset *dts, int alpha, int verbose);
+    void LearnParamsKnowStructCompData(const Dataset *dts, int alpha, bool save_param, int verbose);
 
-    void PrintBNParameter();
+    void SaveBNParameter();
 };
 
 

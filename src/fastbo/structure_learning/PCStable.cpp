@@ -41,7 +41,7 @@ void PCStable::StructLearnCompData(Dataset *dts, int group_size, int num_threads
         cout << endl;
     }
     if (save_struct) {
-        PrintBNStructure();
+        SaveBNStructure();
     }
 
     if (verbose > 0) {

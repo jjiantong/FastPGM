@@ -55,6 +55,14 @@ double DiscreteNode::GetLaplaceSmooth() {
   return this->laplace_smooth;
 }
 
+string DiscreteNode::GetValueNameByIndex(const int &index) {
+    for (auto it = possible_values_ids.begin(); it != possible_values_ids.end(); ++it) {
+        if (it->second == index) {
+            return it->first;
+        }
+    }
+}
+
 /**
  * @brief: initialize the conditional probability table
  */

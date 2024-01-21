@@ -31,7 +31,7 @@ public:
     vector<int> FindRootsInDAGForest();
     void AddRootNode(vector<int> &sub_roots);
 
-    void PrintBNStructure();
+    void SaveBNStructure();
 };
 
 #endif //BAYESIANNETWORK_STRUCTURELEARNING_H
