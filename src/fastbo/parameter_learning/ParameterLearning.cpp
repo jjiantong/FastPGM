@@ -7,7 +7,8 @@
 /**
  * @brief: get each node's conditional probability table
  */
-void ParameterLearning::LearnParamsKnowStructCompData(const Dataset *dts, int alpha, bool save_param, int verbose){
+void ParameterLearning::LearnParamsKnowStructCompData(const Dataset *dts, int alpha, bool save_param,
+                                                      string param_file, int verbose){
     if (verbose > 0) {
         cout << "==================================================" << '\n'
              << "Begin learning parameters, Laplace smoothing param alpha = " << alpha << endl;
@@ -102,11 +103,18 @@ void ParameterLearning::LearnParamsKnowStructCompData(const Dataset *dts, int al
     timer->Print("parameter_learning");
 
     if (save_param) {
-        SaveBNParameter();
+        SaveBNParameter(param_file);
     }
 }
 
-void ParameterLearning::SaveBNParameter() {
+void ParameterLearning::SaveBNParameter(string param_file) {
+    ofstream out_file(param_file);
+    if (!out_file.is_open()) {
+        fprintf(stderr, "Error in function %s!", __FUNCTION__);
+        fprintf(stderr, "Unable to open file %s!", param_file.c_str());
+        exit(1);
+    }
+
     for (int i = 0; i < network->num_nodes; ++i) { // for each variable in the network
         DiscreteNode *this_node = dynamic_cast<DiscreteNode*>(network->FindNodePtrByIndex(i));
         string head = "P (" + this_node->node_name + "/v" + to_string(i) + "=";
@@ -117,7 +125,7 @@ void ParameterLearning::SaveBNParameter() {
             for (int j = 0; j < pt.table_size; ++j) {
                 string prob = head + this_node->GetValueNameByIndex(j) + "/" + to_string(j)
                         + ") = " + to_string(pt.potentials[j]);
-                cout << prob << endl;
+                out_file << prob << endl;
             }
         } else {
             // this node has parent(s).
@@ -136,8 +144,11 @@ void ParameterLearning::SaveBNParameter() {
                 }
                 prob.pop_back(); prob.pop_back();
                 prob += ") = " + to_string(pt.potentials[j]);
-                cout << prob << endl;
+                out_file << prob << endl;
             }
         }
     }
+
+    cout << "Learned parameters have been saved. " << endl;
+    out_file.close();
 }

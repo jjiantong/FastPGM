@@ -34,7 +34,7 @@
 //        int num_threads = 1;
 //        int verbose  = VERBOSE;
 //
-//        bnsl->StructLearnCompData(trainer, group_size, num_threads, false, false, false, verbose);
+//        bnsl->StructLearnCompData(trainer, group_size, num_threads, false, false, false, "", verbose);
 //        SAFE_DELETE(trainer);
 //    }
 //

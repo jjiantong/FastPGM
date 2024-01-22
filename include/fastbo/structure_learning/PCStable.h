@@ -10,6 +10,7 @@
 #include "fastbo/structure_learning/IndependenceTest.h"
 #include "fastbo/ChoiceGenerator.h"
 #include "fastbo/Timer.h"
+#include "fastbo/test_common.h"
 #include <algorithm>
 #include <stack>
 
@@ -38,7 +39,7 @@ public:
     ~PCStable();
 
     virtual void StructLearnCompData(Dataset *dts, int group_size, int num_threads,
-                                     bool dag, bool save_struct, bool add_root, int verbose);
+                                     bool dag, bool save_struct, bool add_root, string struct_file, int verbose);
     void StructLearnByPCStable(Dataset *dts, int num_threads, int group_size, bool dag,
                                Timer *timer, int verbose);
     bool SearchAtDepth(Dataset *dts, int c_depth, int num_threads, map<int, map<int, double>> &adjacencies,

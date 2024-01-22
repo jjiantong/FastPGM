@@ -40,9 +40,9 @@
 //    string train_set_file = dataset_path + "alarm/alarm_s5000.txt";
 //    trainer->LoadCSVTrainingData(train_set_file, true, true, 0);
 //
-//    bnsl->StructLearnCompData(trainer, group_size, num_threads, true, true, false, verbose);
+//    bnsl->StructLearnCompData(trainer, group_size, num_threads, true, true, false, "", verbose);
 //
-//    bnpl->LearnParamsKnowStructCompData(trainer, 1, verbose); // todo: alpha = 1
+//    bnpl->LearnParamsKnowStructCompData(trainer, 1, false, "", verbose); // todo: alpha = 1
 //    SAFE_DELETE(trainer);
 //
 //    cout << "network_name = " << network->network_name << endl;

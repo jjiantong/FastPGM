@@ -20,7 +20,7 @@ public:
      * @param group_size and @param num_threads are used only for PCStable
      */
     virtual void StructLearnCompData(Dataset *dts, int group_size, int num_threads,
-                                     bool dag, bool add_root, bool save_struct, int verbose) = 0;
+                                     bool dag, bool add_root, bool save_struct, string struct_file, int verbose) = 0;
     void AssignNodeInformation(Dataset *dts);
     vector<int> AssignNodeOrder(string topo_ord_constraint);
 
@@ -31,7 +31,7 @@ public:
     vector<int> FindRootsInDAGForest();
     void AddRootNode(vector<int> &sub_roots);
 
-    void SaveBNStructure();
+    void SaveBNStructure(string file);
 };
 
 #endif //BAYESIANNETWORK_STRUCTURELEARNING_H

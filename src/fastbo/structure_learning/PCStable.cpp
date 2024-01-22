@@ -17,7 +17,7 @@ PCStable::~PCStable() {
 }
 
 void PCStable::StructLearnCompData(Dataset *dts, int group_size, int num_threads,
-                                   bool dag, bool add_root, bool save_struct, int verbose) {
+                                   bool dag, bool add_root, bool save_struct, string struct_file, int verbose) {
     if (verbose > 0) {
         cout << "==================================================" << '\n'
              << "Begin structure learning with PC-stable" << endl;
@@ -41,7 +41,7 @@ void PCStable::StructLearnCompData(Dataset *dts, int group_size, int num_threads
         cout << endl;
     }
     if (save_struct) {
-        SaveBNStructure();
+        SaveBNStructure(struct_file);
     }
 
     if (verbose > 0) {

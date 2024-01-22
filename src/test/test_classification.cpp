@@ -51,11 +51,14 @@ TEST_F(TestClassificationAlarm, thread_1) {
     int num_threads = 1;
     int verbose  = VERBOSE;
 
-    bnsl->StructLearnCompData(trainer, group_size, num_threads, true, true, true, verbose);
+    string struct_file = dataset_path + "alarm/alarm_1k_p20_struct.txt";
+    bnsl->StructLearnCompData(trainer, group_size, num_threads,
+                              true, true, true, struct_file, verbose);
     cout << endl;
     bnsl->network->CheckEdges();
 
-    bnpl->LearnParamsKnowStructCompData(trainer, 1, true, verbose); // todo: alpha = 1
+    string param_file = dataset_path + "alarm/alarm_1k_p20_param.txt";
+    bnpl->LearnParamsKnowStructCompData(trainer, 1, true, param_file, verbose); // todo: alpha = 1
     SAFE_DELETE(trainer);
 
     Inference *inference = new JunctionTree(true, network, tester);

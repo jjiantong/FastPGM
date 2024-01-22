@@ -235,10 +235,17 @@ void StructureLearning::AddRootNode(vector<int> &sub_roots) {
     network->num_nodes++;
 }
 
-void StructureLearning::SaveBNStructure() {
+void StructureLearning::SaveBNStructure(string struct_file) {
+    ofstream out_file(struct_file);
+    if (!out_file.is_open()) {
+        fprintf(stderr, "Error in function %s!", __FUNCTION__);
+        fprintf(stderr, "Unable to open file %s!", struct_file.c_str());
+        exit(1);
+    }
+
     string head = "number of nodes = " + to_string(network->num_nodes)
             + ", number of edges = " + to_string(network->num_edges);
-    cout << head << endl;
+    out_file << head << endl;
 
     if (network->vec_edges[0].IsDirected()) {
         // DAG
@@ -256,7 +263,7 @@ void StructureLearning::SaveBNStructure() {
                 string s_edge = to_string(edge_count) + ": "
                         + this_name + "/v" + to_string(this_idx) + " -> "
                         + child_name + "/v" + to_string(child_idx);
-                cout << s_edge << endl;
+                out_file << s_edge << endl;
                 edge_count++;
             }
         }
@@ -277,9 +284,10 @@ void StructureLearning::SaveBNStructure() {
                 s_edge += node2->node_name + "/v" + to_string(node2->GetNodeIndex()) + " -> "
                         + node1->node_name + "/v" + to_string(node1->GetNodeIndex());
             }
-            cout << s_edge << endl;
+            out_file << s_edge << endl;
         }
     }
 
-
+    cout << "Learned structure has been saved. " << endl;
+    out_file.close();
 }
