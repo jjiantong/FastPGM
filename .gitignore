@@ -5,4 +5,4 @@ cmake-build-*
 eigen
 # dataset
 dataset
-!alarm
+!dataset/alarm

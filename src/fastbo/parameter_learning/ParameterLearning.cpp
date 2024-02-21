@@ -149,6 +149,6 @@ void ParameterLearning::SaveBNParameter(string param_file) {
         }
     }
 
-    cout << "Learned parameters have been saved. " << endl;
+    cout << "Learned parameters have been saved in. " << param_file << endl;
     out_file.close();
 }
