@@ -1,6 +1,6 @@
 # FastBN
 
-Fast and parallel solutions for Bayesian Network models (IPDPS'22, PPoPP'23)
+Fast and parallel solutions for Bayesian Network models (IPDPS'22, PPoPP'23, TPDS'24)
 
 ## Overview
 
