@@ -288,6 +288,6 @@ void StructureLearning::SaveBNStructure(string struct_file) {
         }
     }
 
-    cout << "Learned structure has been saved in. " << struct_file << endl;
+    cout << "Learned structure has been saved in " << struct_file << endl;
     out_file.close();
 }

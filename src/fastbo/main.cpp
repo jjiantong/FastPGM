@@ -17,35 +17,40 @@ using namespace std;
 int main(int argc, char** argv) {
     cout << "Hello world." << endl;
 
-//    Parameter param; // initialize parameters with default settings
-//    param.ParseParameters(argc, argv);
-//
-//    if (param.algorithm == ALGPCSTABLE) {
+    Parameter param; // initialize parameters with default settings
+    param.ParseParameters(argc, argv);
+
+    param.PrintHelpInfo();
+
+//    if (param.job == 0) { // job = structure learning
+//        if (param.algorithm != 0) {
+//                cout << "\tError! We currently only support -a 0 for PC-Stable structure learning" << endl;
+//                exit(0);
+//        }
 //
 //        cout << "===============================" << endl;
-//        cout << "Algorithm: PC-stable for structure learning, #threads = " << param.num_threads << endl;
-//        cout << "group size = " << param.group_size << endl;
+//        cout << "Job: PC-stable for structure learning, #threads = " << param.num_threads << endl;
+//        cout << "\tgroup size = " << param.group_size << endl;
 //        cout << "\treference BN: " << param.ref_net_file << endl;
 //        cout << "\tsample set: " << param.train_set_file << endl;
 //        cout << "===============================" << endl;
 //
 //        Dataset *trainer = new Dataset();
+//        trainer->LoadCSVTrainingData(param.train_set_file, true, true, 0);
+//
 //        Network *network = new Network(true);
-//
-//        trainer->LoadCSVData(param.train_set_file, true, true, 0);
 //        StructureLearning *bnsl = new PCStable(network, 0.05);
-//
-//        bnsl->StructLearnCompData(trainer, param.group_size, param.num_threads, false, false);
+//        bnsl->StructLearnCompData(trainer, param.group_size, param.num_threads, false, false, true, "temp", 1);
 //        SAFE_DELETE(trainer);
 //
 //        CustomNetwork *ref_net = new CustomNetwork();
 //        ref_net->LoadBIFFile(param.ref_net_file);
-//
 //        BNSLComparison comp(ref_net, network);
 //        int shd = comp.GetSHD();
 //        cout << "SHD = " << shd << endl;
-//        SAFE_DELETE(network);
 //        SAFE_DELETE(ref_net);
+//
+//        SAFE_DELETE(network);
 //    }
 //
 //    else if (param.algorithm == ALGBF) {
