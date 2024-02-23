@@ -6,13 +6,13 @@
 //#include <vector>
 //#include "gtest/gtest.h"
 //
-//#include "fastbo/Dataset.h"
-//#include "fastbo/Network.h"
-//#include "fastbo/structure_learning/StructureLearning.h"
-//#include "fastbo/parameter_learning/ParameterLearning.h"
-//#include "fastbo/structure_learning/PCStable.h"
-//#include "fastbo/Timer.h"
-//#include "fastbo/test_common.h"
+//#include "fastbn/Dataset.h"
+//#include "fastbn/Network.h"
+//#include "fastbn/structure_learning/StructureLearning.h"
+//#include "fastbn/parameter_learning/ParameterLearning.h"
+//#include "fastbn/structure_learning/PCStable.h"
+//#include "fastbn/Timer.h"
+//#include "fastbn/test_common.h"
 //
 //
 //class TestLearning : public ::testing::Test {

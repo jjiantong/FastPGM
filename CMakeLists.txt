@@ -25,10 +25,10 @@ include_directories(${PROJECT_SOURCE_DIR}/lib/stats/include)
 include_directories(${PROJECT_SOURCE_DIR}/lib/gcem/include)
 
 add_subdirectory(lib)
-add_subdirectory(src/fastbo)
+add_subdirectory(src/fastbn)
 add_subdirectory(src/test)
 
-file(GLOB_RECURSE SRC src/fastbo/*.cpp)
+file(GLOB_RECURSE SRC src/fastbn/*.cpp)
 file(GLOB HEAD include/*.h)
 
 add_executable(BayesianNetwork ${SRC} ${HEAD})

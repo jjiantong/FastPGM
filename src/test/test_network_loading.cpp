@@ -6,8 +6,8 @@
 //#include <vector>
 //#include "gtest/gtest.h"
 //
-//#include "fastbo/CustomNetwork.h"
-//#include "fastbo/test_common.h"
+//#include "fastbn/CustomNetwork.h"
+//#include "fastbn/test_common.h"
 //
 //
 //class TestXMLBIFLoading: public ::testing::Test {

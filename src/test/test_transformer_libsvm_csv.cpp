@@ -6,9 +6,9 @@
 //#include <vector>
 //#include "gtest/gtest.h"
 //
-//#include "fastbo/Dataset.h"
-//#include "fastbo/CustomNetwork.h"
-//#include "fastbo/test_common.h"
+//#include "fastbn/Dataset.h"
+//#include "fastbn/CustomNetwork.h"
+//#include "fastbn/test_common.h"
 //
 //
 //class TestLibsvmToCSV : public ::testing::Test {
