@@ -64,44 +64,45 @@ By default settings, FastBN will run structure learning job using the sequential
 on 5000 samples generating from the ALARM BN. 
 Please use the following command line options when running the executable file:
 
-- ```-j & -a```: specify the job & algorithm
+- ```-j & -m```: specify the job & method
     ```
-    -j 0 -a 0: structure learning using PC-Stable; 
-    -j 1 -a 0: learning using PC-Stable;
-    -j 2 -a 0: exact inference using junction tree (JT);
-    -j 2 -a 1: exact inference using variable elimination (VE);
-    -j 3 -a 0: approximate inference using loopy belief propagation (LBP);
-    -j 3 -a 1: approximate inference using probabilistic logic sampling (PLS);
-    -j 3 -a 2: approximate inference using likelihood weighting (LW);
-    -j 3 -a 3: approximate inference using self-importance sampling (SIS);
-    -j 3 -a 4: approximate inference using self-importance sampling variant (SISv1);
-    -j 3 -a 5: approximate inference using AIS-BN;
-    -j 3 -a 6: approximate inference using EPIS-BN;
-    -j 4 -a 0: classification using PC-Stable + JT;
-    -j 4 -a 1: classification using PC-Stable + VE;
-    -j 4 -a 0: classification using PC-Stable + LBP;
-    -j 4 -a 1: classification using PC-Stable + PLS;
-    -j 4 -a 2: classification using PC-Stable + LW;
-    -j 4 -a 3: classification using PC-Stable + SIS;
-    -j 4 -a 4: classification using PC-Stable + SISv1;
-    -j 4 -a 5: classification using PC-Stable + AIS-BN;
-    -j 4 -a 6: classification using PC-Stable + EPIS-BN;
-    -j 5 -a 0: BN sample generator;
-    -j 5 -a 1: dataset format convertor (from CSV to LibSVM);
-    -j 5 -a 2: dataset format convertor (from LibSVM to CSV).
+    -j 0 -m 0: structure learning using PC-Stable; 
+    -j 1 -m 0: learning using PC-Stable;
+    -j 2 -m 0: exact inference using junction tree (JT);
+    -j 2 -m 1: exact inference using variable elimination (VE);
+    -j 3 -m 0: approximate inference using loopy belief propagation (LBP);
+    -j 3 -m 1: approximate inference using probabilistic logic sampling (PLS);
+    -j 3 -m 2: approximate inference using likelihood weighting (LW);
+    -j 3 -m 3: approximate inference using self-importance sampling (SIS);
+    -j 3 -m 4: approximate inference using self-importance sampling variant (SISv1);
+    -j 3 -m 5: approximate inference using AIS-BN;
+    -j 3 -m 6: approximate inference using EPIS-BN;
+    -j 4 -m 0: classification using PC-Stable + JT;
+    -j 4 -m 1: classification using PC-Stable + VE;
+    -j 4 -m 0: classification using PC-Stable + LBP;
+    -j 4 -m 1: classification using PC-Stable + PLS;
+    -j 4 -m 2: classification using PC-Stable + LW;
+    -j 4 -m 3: classification using PC-Stable + SIS;
+    -j 4 -m 4: classification using PC-Stable + SISv1;
+    -j 4 -m 5: classification using PC-Stable + AIS-BN;
+    -j 4 -m 6: classification using PC-Stable + EPIS-BN;
+    -j 5 -m 0: BN sample generator;
+    -j 5 -m 1: dataset format convertor (from CSV to LibSVM);
+    -j 5 -m 2: dataset format convertor (from LibSVM to CSV).
     ```
 - ```-t```: specify number of threads, default 1
 - ```-v```: verbose, 0 for silence, 1 for key information and 2 for more information, default 1
-- ```-g```: group size, default 1 [used in PC-stable]
-- ```-ss```: save the learned BN structure (a graph), default 1
-- ```-sp```: save the learned BN parameter (probabilities), default 1
+- ```-g```: group size, default 1 [used in PC-Stable]
+- ```-a```: significance level alpha, default 0.05 [used in PC-Stable]
+- ```-ss```: save the learned BN structure (a graph), default 1 [used in structure learning]
+- ```-sp```: save the learned BN parameter (probabilities), default 1 [used in parameter learning]
 - ```-q```: provide desired number of samples, default 10,000 [used in sampling-based approximate inference]
 - ```-m```: provide maximum updating times of importance function, default 10 [used in learning & importance sampling-based approximate inference]
 - ```-l```: provide updating interval, default 2,500 [used in learning & importance sampling-based approximate inference]
 - ```-d```: provide propagation length, default 2 [used in LBP and EPIS-BN]
 - ```-f0```: provide relative path of BN file, default ```alarm/alarm.xml``` [used in inference]
 - ```-f1```: provide relative path of reference BN file, default ```alarm/alarm.bif``` [used in structure learning]
-- ```-f2```: provide relative path of training set file (in CSV format), default ```alarm/alarm_s5000.txt``` [used in structure learning]
+- ```-f2```: provide relative path of training set file (in CSV format), default ```alarm/alarm_s5000``` [used in structure learning]
 - ```-f3```: provide relative path of testing set file (in LIBSVM format), default ```alarm/testing_alarm_1k_p20``` [used in inference]
 - ```-f4```: provide relative path of reference potential table file, default ```alarm/alarm_1k_pt``` [used in inference]
 

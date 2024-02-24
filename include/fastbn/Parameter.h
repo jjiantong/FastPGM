@@ -12,8 +12,9 @@
 class Parameter{
 public:
     int job;
-    int algorithm;
+    int method;
     int num_threads; //for OpenMP
+    int verbose;
 
 //    int num_samples; // for approximate inference
 //    int max_updating; // for approximate inference
@@ -23,6 +24,10 @@ public:
 //    bool enable_heuristic_theta_cutoff;
 
     int group_size; // for PC-Stable
+    double alpha; // for PC-Stable
+
+    bool save_struct; // for structure learning
+    bool save_param; // for parameter learning
 
     string net_file;
     string test_set_file;

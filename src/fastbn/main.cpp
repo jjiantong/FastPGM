@@ -26,7 +26,7 @@ int main(int argc, char** argv) {
     string dpath = project_root + "dataset/";
 
     if (param.job == 0) { // job = structure learning
-        if (param.algorithm != 0) {
+        if (param.method != 0) {
                 cout << "\tError! We currently only support -a 0 for PC-Stable structure learning" << endl;
                 exit(0);
         }
@@ -42,9 +42,9 @@ int main(int argc, char** argv) {
         trainer->LoadCSVTrainingData(dpath + param.train_set_file, true, true, 0);
 
         Network *network = new Network(true);
-        StructureLearning *bnsl = new PCStable(network, 0.05);
+        StructureLearning *bnsl = new PCStable(network, param.alpha);
         bnsl->StructLearnCompData(trainer, param.group_size, param.num_threads,false, false,
-                                  true, dpath + param.train_set_file + "_struct", 1);
+                                  true, dpath + param.train_set_file + "_struct", param.verbose);
         SAFE_DELETE(trainer);
 
         if (!param.ref_net_file.empty()) {
