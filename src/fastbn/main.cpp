@@ -44,7 +44,7 @@ int main(int argc, char** argv) {
         Network *network = new Network(true);
         StructureLearning *bnsl = new PCStable(network, param.alpha);
         bnsl->StructLearnCompData(trainer, param.group_size, param.num_threads,false, false,
-                                  true, dpath + param.train_set_file + "_struct", param.verbose);
+                                  param.save_struct, dpath + param.train_set_file + "_struct", param.verbose);
         SAFE_DELETE(trainer);
 
         if (!param.ref_net_file.empty()) {
