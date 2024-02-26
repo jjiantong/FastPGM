@@ -111,7 +111,7 @@ void Parameter::PrintJobAndAlgInfo() {
     cout << "\t\t-m 0: PC-Stable" << endl;
 
     cout << "\t-j 1: Learning (structure and parameter)" << endl;
-    cout << "\t\t-m 0: PC-Stable" << endl;
+    cout << "\t\t-m 0: PC-Stable + maximum likelihood estimation (MLE)" << endl;
 
     cout << "\t-j 2: Exact inference" << endl;
     cout << "\t\t-m 0: Brute force (on full evidence)" << endl;
@@ -128,15 +128,15 @@ void Parameter::PrintJobAndAlgInfo() {
     cout << "\t\t-m 6: AIS-BN" << endl;
 
     cout << "\t-j 4: Classification" << endl;
-    cout << "\t\t-m 0: PC-Stable + Brute force (on full evidence)" << endl;
-    cout << "\t\t-m 1: PC-Stable + Junction tree (JT)" << endl;
-    cout << "\t\t-m 2: PC-Stable + Variable elimination (VE)" << endl;
-    cout << "\t\t-m 3: PC-Stable + Probabilistic logic sampling (PLS)" << endl;
-    cout << "\t\t-m 4: PC-Stable + Likelihood weighting (LW)" << endl;
-    cout << "\t\t-m 5: PC-Stable + EPIS-BN" << endl;
-    cout << "\t\t-m 6: PC-Stable + Loopy belief propagation (LBP)" << endl;
-    cout << "\t\t-m 7: PC-Stable + Self-importance sampling (SIS)" << endl;
-    cout << "\t\t-m 8: PC-Stable + Self-importance sampling variant (SISv1)" << endl;
+    cout << "\t\t-m 0: PC-Stable + MLE + Brute force" << endl;
+    cout << "\t\t-m 1: PC-Stable + MLE + JT" << endl;
+    cout << "\t\t-m 2: PC-Stable + MLE + VE" << endl;
+    cout << "\t\t-m 3: PC-Stable + MLE + PLS" << endl;
+    cout << "\t\t-m 4: PC-Stable + MLE + LW" << endl;
+    cout << "\t\t-m 5: PC-Stable + MLE + EPIS-BN" << endl;
+    cout << "\t\t-m 6: PC-Stable + MLE + LBP" << endl;
+    cout << "\t\t-m 7: PC-Stable + MLE + SIS" << endl;
+    cout << "\t\t-m 8: PC-Stable + MLE + SISv1" << endl;
     cout << "\t\t-m 9: PC-Stable + AIS-BN" << endl;
 
     cout << "\t-j 5: Generator or convertor" << endl;

@@ -25,7 +25,6 @@ class PCStable : public StructureLearning {
 public:
     int depth = 1000; // The maximum number of nodes conditioned on in the search. The default it 1000.
     int num_ci_test;
-    int num_dependence;
     double alpha;
     /**
      * Stores a map from pairs of nodes (key) to separating sets (value) --

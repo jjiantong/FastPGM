@@ -49,7 +49,7 @@ public:
 
     void Print (string name) {
 //        cout << name << ": " << time[name] / CLOCKS_PER_SEC << " s";
-        cout << name << ": " << time[name] << " s ";
+        cout << name << ": " << time[name] << " s " << endl;
     }
 
     double GetTime (string name) {

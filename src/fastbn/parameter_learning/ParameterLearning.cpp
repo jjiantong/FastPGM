@@ -10,8 +10,9 @@
 void ParameterLearning::LearnParamsKnowStructCompData(const Dataset *dts, int alpha, bool save_param,
                                                       string param_file, int verbose){
     if (verbose > 0) {
-        cout << "==================================================" << '\n'
-             << "Begin learning parameters, Laplace smoothing param alpha = " << alpha << endl;
+        cout << "--------------------------------------------------" << '\n'
+             << "Parameter learning with maximum likelihood estimation... " << endl
+             << "Laplace smoothing param alpha = " << alpha << endl;
     }
 
     Timer *timer = new Timer();

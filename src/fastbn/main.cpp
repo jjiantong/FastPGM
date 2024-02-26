@@ -11,6 +11,7 @@
 #include "fastbn/structure_learning/PCStable.h"
 #include "fastbn/structure_learning/BNSLComparison.h"
 #include "fastbn/Parameter.h"
+#include "fastbn/parameter_learning/ParameterLearning.h"
 
 using namespace std;
 
@@ -25,20 +26,26 @@ int main(int argc, char** argv) {
     string project_root = path.substr(0, path.find(project) + project.length() + 1);
     string dpath = project_root + "dataset/";
 
-    if (param.job == 0) { // job = structure learning
+    /**
+     * Job = structure learning
+     * Method = PC-Stable
+     * by default, we get a CPDAG and the graph may contain multiple independent sub-graphs. in order to get a DAG, or
+     * to get one connected graph, change the corresponding arguments in `StructLearnCompData`
+     */
+    if (param.job == 0) {
         if (param.method != 0) {
                 cout << "\tError! We currently only support -a 0 for PC-Stable structure learning" << endl;
                 exit(0);
         }
 
-        cout << "===============================" << endl;
+        cout << "==================================================" << endl;
         cout << "Job: PC-stable for structure learning, #threads = " << param.num_threads << endl;
         cout << "\tgroup size = " << param.group_size << endl;
         cout << "\treference BN: " << param.ref_net_file << endl;
         cout << "\tsample set: " << param.train_set_file << endl;
-        cout << "===============================" << endl;
+        cout << "==================================================" << endl;
 
-        Dataset *trainer = new Dataset();
+        Dataset *trainer = new Dataset(); // todo: decide whether the dataset is in libsvm format or in csv format
         trainer->LoadCSVTrainingData(dpath + param.train_set_file, true, true, 0);
 
         Network *network = new Network(true);
@@ -54,8 +61,59 @@ int main(int argc, char** argv) {
             int shd = comp.GetSHD();
             cout << "SHD = " << shd << endl;
             SAFE_DELETE(ref_net);
+        } else {
+            cout << "There is no reference BN (ground-truth) provided, so BN comparison (showing accuracy) is skipped."
+                    " You can provide the reference BN via -f1." << endl;
         }
 
+        SAFE_DELETE(network);
+    }
+
+    /**
+     * Job = learning (structure learning + parameter learning)
+     * Method = PC-Stable + maximum likelihood estimation
+     * by default, we get a CPDAG and the graph may contain multiple independent sub-graphs. in order to get a DAG, or
+     * to get one connected graph, change the corresponding arguments in `StructLearnCompData`
+     */
+    else if (param.job == 1) {
+        if (param.method != 0) {
+            cout << "\tError! We currently only support -a 0 for PC-Stable structure learning + maximum likelihood "
+                    "estimation parameter learning" << endl;
+            exit(0);
+        }
+
+        cout << "==================================================" << endl;
+        cout << "Job: PC-stable + maximum likelihood estimation for learning, #threads = " << param.num_threads << endl;
+        cout << "\tgroup size = " << param.group_size << endl;
+        cout << "\treference BN: " << param.ref_net_file << endl;
+        cout << "\tsample set: " << param.train_set_file << endl;
+        cout << "==================================================" << endl;
+
+        Dataset *trainer = new Dataset(); // todo: decide whether the dataset is in libsvm format or in csv format
+        trainer->LoadCSVTrainingData(dpath + param.train_set_file, true, true, 0);
+
+        Network *network = new Network(true);
+        StructureLearning *bnsl = new PCStable(network, param.alpha);
+        bnsl->StructLearnCompData(trainer, param.group_size, param.num_threads,false, false,
+                                  param.save_struct, dpath + param.train_set_file + "_struct", param.verbose);
+
+        if (!param.ref_net_file.empty()) {
+            CustomNetwork *ref_net = new CustomNetwork();
+            ref_net->LoadBIFFile(dpath + param.ref_net_file);
+            BNSLComparison comp(ref_net, network);
+            int shd = comp.GetSHD();
+            cout << "SHD = " << shd << endl;
+            SAFE_DELETE(ref_net);
+        } else {
+            cout << "There is no reference BN (ground-truth) provided, so BN comparison (showing accuracy) is skipped."
+                    " You can provide the reference BN via -f1." << endl;
+        }
+
+        ParameterLearning *bnpl = new ParameterLearning(network);
+        bnpl->LearnParamsKnowStructCompData(trainer, 1, param.save_param,
+                                            dpath + param.train_set_file + "_param", param.verbose);
+
+        SAFE_DELETE(trainer);
         SAFE_DELETE(network);
     }
 //
