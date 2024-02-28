@@ -29,8 +29,9 @@ Parameter::Parameter() {
 //    ref_net_file = "alarm/alarm.bif"; // for structure learning
     ref_net_file = ""; // for structure learning
     train_set_file = "alarm/alarm_s5000"; // for structure learning
-    test_set_file = "alarm/testing_alarm_1k_p20"; // for inference
+    test_set_file = "alarm/testing_alarm_1k_p20_csv"; // for inference
     pt_file = "alarm/alarm_1k_pt"; // for inference
+//    pt_file = ""; // for inference
 }
 
 void Parameter::ParseParameters(int argc, char *argv[]) {

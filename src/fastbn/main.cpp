@@ -116,41 +116,55 @@ int main(int argc, char** argv) {
         SAFE_DELETE(trainer);
         SAFE_DELETE(network);
     }
-//
-//    else if (param.algorithm == ALGBF) {
-//
-//        cout << "===============================" << endl;
-//        cout << "Algorithm: brute force (BF) exact inference (full evidence), #threads = " << param.num_threads << endl;
-//        cout << "\tBN: " << param.net_file << endl;
-//        cout << "\ttesting set: " << param.test_set_file << endl;
-//        cout << "\treference potential table: " << param.pt_file << endl;
-//        cout << "===============================" << endl;
-//
-//        cout << "BF is under development" << endl;
-//    }
-//
-//    else if (param.algorithm == ALGJT) {
-//
-//        cout << "===============================" << endl;
-//        cout << "Algorithm: junction tree (JT) for exact inference, #threads = " << param.num_threads << endl;
-//        cout << "\tBN: " << param.net_file << endl;
-//        cout << "\ttesting set: " << param.test_set_file << endl;
-//        cout << "\treference potential table: " << param.pt_file << endl;
-//        cout << "===============================" << endl;
-//
-//        Dataset *tester = new Dataset();
-//        CustomNetwork *network = new CustomNetwork(true);
-//        network->GetNetFromXMLBIFFile(param.net_file);
-//        tester->LoadLIBSVMDataKnownNetwork(param.test_set_file, network->num_nodes);
-//
-//        Inference *inference = new JunctionTree(network, tester, false);
-//        double accuracy = inference->EvaluateAccuracy(param.pt_file, param.num_threads);
-//        cout << "accuracy = " << accuracy << endl;
-//
-//        SAFE_DELETE(inference);
-//        SAFE_DELETE(network);
-//        SAFE_DELETE(tester);
-//    }
+
+    /**
+     * Job = exact inference
+     */
+    else if (param.job == 2) {
+        /**
+         * Method = brute force
+         * brute force should only work on full evidence
+         */
+        if (param.method == 0) {
+            cout << "==================================================" << endl;
+            cout << "Job: brute force for exact inference, #threads = " << param.num_threads << endl;
+            cout << "\tBN: " << param.net_file << endl;
+            cout << "\ttesting set: " << param.test_set_file << endl;
+            cout << "\treference potential table: " << param.pt_file << endl;
+            cout << "==================================================" << endl;
+
+            cout << "Brute force for exact inference is under development" << endl;
+            exit(1);
+        }
+
+        else if (param.method == 1) {
+            cout << "==================================================" << endl;
+            cout << "Job: junction tree for exact inference, #threads = " << param.num_threads << endl;
+            cout << "\tBN: " << param.net_file << endl;
+            cout << "\ttesting set: " << param.test_set_file << endl;
+            cout << "\treference potential table: " << param.pt_file << endl;
+            cout << "==================================================" << endl;
+
+            CustomNetwork *network = new CustomNetwork(true);
+            // todo: network file format
+            network->LoadXMLBIFFile(dpath + param.net_file, 1);
+
+            Dataset *tester = new Dataset(network);
+            // todo: dataset file format
+            tester->LoadCSVTestingData(dpath + param.test_set_file, true, true, 0);
+
+            Inference *inference = new JunctionTree(false, network, tester);
+            SAFE_DELETE(tester);
+
+            string file = "";
+            if (!param.pt_file.empty()) {
+                file = dpath + param.pt_file;
+            }
+            double accuracy = inference->EvaluateAccuracy(file, param.num_threads);
+            SAFE_DELETE(inference);
+            SAFE_DELETE(network);
+        }
+    }
 //
 //    else if (param.algorithm == ALGVE) {
 //

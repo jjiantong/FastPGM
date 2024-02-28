@@ -20,7 +20,7 @@ public:
     vector<Separator*> vector_separator_ptr_container;//all the separators in the Junction tree
 
     JunctionTreeStructure() = default;
-    JunctionTreeStructure(Network *net, bool classification_mode);
+    JunctionTreeStructure(Network *net, int classification);
     ~JunctionTreeStructure();
 
 protected:
@@ -30,7 +30,7 @@ protected:
     static void Moralize(int **direc_adjac_matrix, int &num_nodes);
     void Triangulate(Network *net, int **adjac_matrix, vector<bool> &has_processed);
     void FormJunctionTree();
-    void AssignPotentials(bool classification_mode);
+    void AssignPotentials(int classification);
     float GetAveAndMaxCliqueSize(int &max_size);
 };
 

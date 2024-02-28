@@ -12,7 +12,7 @@
  * this is an optimized constructor; the original implementation is removed. because we optimize triangulation, some
  * parameters, thus some functions, are unnecessary
  */
-JunctionTreeStructure::JunctionTreeStructure(Network *net, bool classification_mode) : network(net) {
+JunctionTreeStructure::JunctionTreeStructure(Network *net, int classification) : network(net) {
 
     vector_clique_ptr_container.reserve(network->num_nodes);
     vector_separator_ptr_container.reserve(network->num_nodes - 1);
@@ -44,7 +44,7 @@ JunctionTreeStructure::JunctionTreeStructure(Network *net, bool classification_m
 //    cout << "Finish FormJunctionTree, number of cliques = " << vector_clique_ptr_container.size()
 //         << ", number of separators = " << vector_separator_ptr_container.size() << endl;
 
-    AssignPotentials(classification_mode);
+    AssignPotentials(classification);
 //    cout << "Finish AssignPotentials" << endl;
 
     /**
@@ -311,10 +311,10 @@ void JunctionTreeStructure::FormJunctionTree() {
  * @brief: each clique has a potential;
  * the potentials of continuous and discrete cliques are computed differently
  */
-void JunctionTreeStructure::AssignPotentials(bool classification_mode) { //checked
+void JunctionTreeStructure::AssignPotentials(int classification) { //checked
     vector<PotentialTableBase> potential_tables;
 
-    if (classification_mode) {
+    if (classification == 1) {
         potential_tables = network->pts;
     } else {
         for (auto &id_node_ptr : network->map_idx_node_ptr) { // for each node of the network

@@ -1,13 +1,13 @@
 #include "fastbn/inference/JunctionTree.h"
 
-JunctionTree::JunctionTree(bool classification, Network *net, Dataset *dts) :
-                            Inference(classification, net, dts) {
+JunctionTree::JunctionTree(int classification, Network *net, Dataset *dts) :
+                            Inference(mode, net, dts) {
 
     Timer *timer = new Timer();
     // record time
     timer->Start("construct jt");
 
-    tree = new JunctionTreeStructure(net, classification_mode);
+    tree = new JunctionTreeStructure(net, classification);
 
 //    // Arbitrarily select a clique as the root.
 //    jt_root = tree->vector_clique_ptr_container[0];
@@ -34,8 +34,8 @@ JunctionTree::JunctionTree(bool classification, Network *net, Dataset *dts) :
 //    cout << "Finish BackUpJunctionTree" << endl;
 
     timer->Stop("construct jt");
-    cout << "==================================================";
-    cout << endl; timer->Print("construct jt"); cout << endl;
+    cout << "--------------------------------------------------" << '\n';
+    timer->Print("construct jt");
     SAFE_DELETE(timer);
 
 //    cnt_clq_col = 0;
@@ -1415,9 +1415,9 @@ int JunctionTree::PredictUseJTInfer(const DiscreteConfig &E, int instance_index,
 
     timer->Start("predict");
     int label_predict = -1;
-    if (classification_mode) {
+    if (mode == 1) {
         label_predict = InferenceUsingJT();
-    } else {
+    } else if (mode == 0) {
         vector<double> probs_one_sample = GetProbabilitiesAllNodes(E);
         mse += CalculateMSE(probs_one_sample, instance_index);
         hd += CalculateHellingerDistance(probs_one_sample, instance_index);
@@ -1447,7 +1447,7 @@ vector<int> JunctionTree::Predict(int num_threads) {
     vector<int> results(num_instances, 0);
     double mse = 0.0;
     double hd = 0.0;
-    if (!classification_mode) {
+    if (mode == 0) {
         results.resize(num_instances);
     }
 
@@ -1461,25 +1461,25 @@ vector<int> JunctionTree::Predict(int num_threads) {
         }
 
         int label_predict = PredictUseJTInfer(evidences.at(i), i, mse, hd, num_threads, timer);
-        if (classification_mode) {
+        if (mode == 1) {
             results.at(i) = label_predict;
         }
     }
     timer->Stop("jt");
 
-    if (!classification_mode) {
+    if (mode == 0) {
         cout << "average MSE = " << mse/num_instances << endl;
         cout << "average HD = " << hd/num_instances << endl;
     }
 
-    cout << "==================================================" << endl;
+    cout << "--------------------------------------------------" << '\n';
     timer->Print("jt");
-    cout << "removing reset: " << timer->time["jt"] - timer->time["reset"] << " s ";
-    cout << "removing norm: " << timer->time["jt"] - timer->time["reset"] - timer->time["norm"] << " s ";
+    cout << "removing reset: " << timer->time["jt"] - timer->time["reset"] << " s " << endl;
+    cout << "removing norm: " << timer->time["jt"] - timer->time["reset"] - timer->time["norm"] << " s " << endl;
 
-    timer->Print("load evidence"); cout << "(" << timer->time["load evidence"] / timer->time["jt"] * 100 << "%) ";
-    timer->Print("msg passing"); cout << "(" << timer->time["msg passing"] / timer->time["jt"] * 100 << "%) ";
-    timer->Print("reset"); cout << "(" << timer->time["reset"] / timer->time["jt"] * 100 << "%) ";
+    timer->Print("load evidence"); cout << "(" << timer->time["load evidence"] / timer->time["jt"] * 100 << "%) " << endl;
+    timer->Print("msg passing"); cout << "(" << timer->time["msg passing"] / timer->time["jt"] * 100 << "%) " << endl;
+    timer->Print("reset"); cout << "(" << timer->time["reset"] / timer->time["jt"] * 100 << "%) " << endl;
     timer->Print("predict"); cout << "(" << timer->time["predict"] / timer->time["jt"] * 100 << "%)" << endl;
 
 //    timer->Print("upstream"); timer->Print("downstream"); cout << endl << endl;
@@ -1487,40 +1487,35 @@ vector<int> JunctionTree::Predict(int num_threads) {
 //    timer->Print("sp-evi-pre");
     timer->Print("p-evi-main");
 //    timer->Print("sp-evi-post");
-    cout << endl;
 
 //    timer->Print("s-sep-col-pre");
     timer->Print("p-sep-col-main");
     timer->Print("sep-col");
 //    cout << " count = " << cnt_sep_col;
 //    timer->Print("s-sep-col-post");
-    cout << endl;
 
 //    timer->Print("s-sep-dis-pre");
     timer->Print("p-sep-dis-main");
     timer->Print("sep-dis");
 //    cout << " count = " << cnt_sep_dis;
 //    timer->Print("s-sep-dis-post");
-    cout << endl;
 
 //    timer->Print("s-clq-col-pre");
     timer->Print("p-clq-col-main");
     timer->Print("clq-col");
 //    cout << " count = " << cnt_clq_col;
 //    timer->Print("s-clq-col-post");
-    cout << endl;
 
 //    timer->Print("s-clq-dis-pre");
     timer->Print("p-clq-dis-main");
     timer->Print("clq-dis");
 //    cout << "count = " << cnt_clq_dis;
 //    timer->Print("s-clq-dis-post");
-    cout << endl;
 
     timer->Print("p-div");
-    timer->Print("p-mul"); cout << endl;
+    timer->Print("p-mul");
 
-    timer->Print("norm"); cout << endl << endl;
+    timer->Print("norm");
 
     SAFE_DELETE(timer);
     return results;

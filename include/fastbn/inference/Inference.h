@@ -23,13 +23,14 @@
 class Inference {
 public:
     /**
-     * two modes: classification mode vs. inference mode. they are different in (i) whether to load the truth cpt and
+     * three modes: classification mode vs. inference mode. they are different in (i) whether to load the truth cpt and
      * compare the mse/hd and (ii) whether to load the ground truth and compute the accuracy. specifically:
      *                          msd/hd      accuracy
-     * classification mode      no          yes
-     * inference mode           yes         no
+     * classification mode 1    no          yes
+     * inference mode 0         yes         no
+     * inference with no cpt 2  no          no
      */
-    bool classification_mode; // true for classification mode, false for inference mode
+    int mode; // 1 for classification mode, 0 for inference mode, 2 for inference with no reference cpt
     Network *network; // the learned network which can be used for inference
     int num_instances; // number of instances in the testing set
     /**
@@ -44,7 +45,7 @@ public:
     vector<int> ground_truths; // the ground truths of each class variable
     vector<vector<double>> ground_truth_probability_tables; // the probabilities for each state of each node, computed by exact inference algorithms
 
-    Inference(bool classification, Network *net, Dataset *dts);
+    Inference(int classification, Network *net, Dataset *dts);
     Inference(Network *net); // it is used only in LBP for EPIS-BN
 
     virtual ~Inference() {};

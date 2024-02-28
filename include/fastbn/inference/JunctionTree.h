@@ -27,7 +27,7 @@ public:
     int max_level;
 
     JunctionTree() = default;
-    JunctionTree(bool classification, Network *net, Dataset *dts);
+    JunctionTree(int classification, Network *net, Dataset *dts);
     ~JunctionTree();
 
     virtual vector<int> Predict(int num_threads);

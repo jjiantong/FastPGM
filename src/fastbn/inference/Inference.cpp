@@ -12,8 +12,8 @@
  * note: i avoid filling zero operations (if necessary) here, because it should be completed when loading data (e.g.
  * libsvm format)
  */
-Inference::Inference(bool classification, Network *net, Dataset *dts):
-            classification_mode(classification), network(net), num_instances(dts->num_instance),
+Inference::Inference(int classification, Network *net, Dataset *dts):
+            mode(classification), network(net), num_instances(dts->num_instance),
             query_index(dts->class_var_index) {
     // TODO: double check this function if the dataset for inference problem is changed. e.g., we don't need \
     //  `query_index` or `ground_truth` for inference mode.
@@ -40,7 +40,7 @@ Inference::Inference(bool classification, Network *net, Dataset *dts):
 
         // construct the ground truth
         int g = vec_instance.at(query_index).second.GetInt();
-        if (classification_mode) {
+        if (mode == 1) {
             ground_truths.push_back(g);
         }
     }
@@ -49,15 +49,20 @@ Inference::Inference(bool classification, Network *net, Dataset *dts):
 Inference::Inference(Network *net): network(net) {}
 
 double Inference::EvaluateAccuracy(string path, int num_threads) {
-    if (!classification_mode) {
+    // for inference mode without reference pt file provided, change it to mode 2
+    if (mode == 0 && path.empty()) {
+        mode = 2;
+    }
+
+    if (mode == 0) {
         LoadGroundTruthProbabilityTable(path);
     }
 
-    cout << "==================================================" << '\n'
-         << "Begin testing the trained network." << endl;
+    cout << "--------------------------------------------------" << '\n'
+         << "Inference..." << endl;
     vector<int> predictions = Predict(num_threads); // pure virtual function
 
-    if (classification_mode) {
+    if (mode == 1) {
         double accuracy = Accuracy(predictions);
         return accuracy;
     } else {
