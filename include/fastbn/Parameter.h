@@ -16,12 +16,12 @@ public:
     int num_threads; //for OpenMP
     int verbose;
 
-//    int num_samples; // for approximate inference
-//    int max_updating; // for approximate inference
-//    int updating_interval; // for approximate inference
-//    int propagation_length; // for epis-bn and lbp
-//    bool enable_heuristic_uniform_distribution;
-//    bool enable_heuristic_theta_cutoff;
+    int num_samples; // for approximate inference
+    int max_updating; // for approximate inference
+    int updating_interval; // for approximate inference
+    int propagation_length; // for epis-bn and lbp
+    bool enable_heuristic_uniform_distribution;
+    bool enable_heuristic_theta_cutoff;
 
     int group_size; // for PC-Stable
     double alpha; // for PC-Stable

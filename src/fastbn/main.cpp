@@ -79,7 +79,7 @@ int main(int argc, char** argv) {
         if (param.method != 0) {
             cout << "\tError! We currently only support -a 0 for PC-Stable structure learning + maximum likelihood "
                     "estimation parameter learning" << endl;
-            exit(0);
+            exit(1);
         }
 
         cout << "==================================================" << endl;
@@ -137,6 +137,9 @@ int main(int argc, char** argv) {
             exit(1);
         }
 
+        /**
+         * Method = junction tree
+         */
         else if (param.method == 1) {
             cout << "==================================================" << endl;
             cout << "Job: junction tree for exact inference, #threads = " << param.num_threads << endl;
@@ -153,7 +156,7 @@ int main(int argc, char** argv) {
             // todo: dataset file format
             tester->LoadCSVTestingData(dpath + param.test_set_file, true, true, 0);
 
-            Inference *inference = new JunctionTree(false, network, tester);
+            Inference *inference = new JunctionTree(0, network, tester);
             SAFE_DELETE(tester);
 
             string file = "";
@@ -164,121 +167,109 @@ int main(int argc, char** argv) {
             SAFE_DELETE(inference);
             SAFE_DELETE(network);
         }
+
+        /**
+         * Method = variable elimination
+         */
+        else if (param.method == 0) {
+            cout << "==================================================" << endl;
+            cout << "Job: variable elimination for exact inference, #threads = " << param.num_threads << endl;
+            cout << "\tBN: " << param.net_file << endl;
+            cout << "\ttesting set: " << param.test_set_file << endl;
+            cout << "\treference potential table: " << param.pt_file << endl;
+            cout << "==================================================" << endl;
+
+            cout << "Variable elimination for exact inference is under development" << endl;
+            exit(1);
+        }
+
+        else {
+            cout << "\tError! For exact inference, we currently support -m 0 brute force, -m 1 junction tree and -m 2 "
+                    "variable elimination." << endl;
+            exit(1);
+        }
     }
-//
-//    else if (param.algorithm == ALGVE) {
-//
-//        cout << "===============================" << endl;
-//        cout << "Algorithm: variable elimination (VE) for exact inference, #threads = " << param.num_threads << endl;
-//        cout << "\tBN: " << param.net_file << endl;
-//        cout << "\ttesting set: " << param.test_set_file << endl;
-//        cout << "\treference potential table: " << param.pt_file << endl;
-//        cout << "===============================" << endl;
-//
-//        cout << "VE exact inference is under development" << endl;
-//    }
-//
-//    else if (param.algorithm == ALGPLS) {
-//
-//        cout << "===============================" << endl;
-//        cout << "Algorithm: probabilistic logic sampling (PLS) for approximate inference, #threads = " << param.num_threads << endl;
-//        cout << "#samples = " << param.num_samples << endl;
-//        cout << "\tBN: " << param.net_file << endl;
-//        cout << "\ttesting set: " << param.test_set_file << endl;
-//        cout << "\treference potential table: " << param.pt_file << endl;
-//        cout << "===============================" << endl;
-//
-//        cout << "PLS is under development" << endl;
-//    }
-//
-//    else if (param.algorithm == ALGLW) {
-//
-//        cout << "===============================" << endl;
-//        cout << "Algorithm: likelihood weighting (LW) for approximate inference, #threads = " << param.num_threads << endl;
-//        cout << "#samples = " << param.num_samples << endl;
-//        cout << "\tBN: " << param.net_file << endl;
-//        cout << "\ttesting set: " << param.test_set_file << endl;
-//        cout << "\treference potential table: " << param.pt_file << endl;
-//        cout << "===============================" << endl;
-//
-//        cout << "LW is under development" << endl;
-//    }
-//
-//    else if (param.algorithm == ALGEPISBN) {
-//
-//        cout << "===============================" << endl;
-//        cout << "Algorithm: EPIS-BN for approximate inference, #threads = " << param.num_threads << endl;
-//        cout << "#samples = " << param.num_samples << ", propagation length = " << param.propagation_length << endl;
-//        cout << "\tBN: " << param.net_file << endl;
-//        cout << "\ttesting set: " << param.test_set_file << endl;
-//        cout << "\treference potential table: " << param.pt_file << endl;
-//        cout << "===============================" << endl;
-//
-//        cout << "EPIS-BN is under development" << endl;
-//    }
-//
-//    else if (param.algorithm == ALGLBP) {
-//
-//        cout << "===============================" << endl;
-//        cout << "Algorithm: loopy belief propagation (LBP) for approximate inference, #threads = " << param.num_threads << endl;
-//        cout << ", propagation length = " << param.propagation_length << endl;
-//        cout << "\tBN: " << param.net_file << endl;
-//        cout << "\ttesting set: " << param.test_set_file << endl;
-//        cout << "\treference potential table: " << param.pt_file << endl;
-//        cout << "===============================" << endl;
-//
-//        cout << "LBP is under development" << endl;
-//    }
-//
-//    else if (param.algorithm == ALGSIS) {
-//
-//        cout << "===============================" << endl;
-//        cout << "Algorithm: self importance sampling (SIS) for approximate inference, #threads = " << param.num_threads << endl;
-//        cout << "#samples = " << param.num_samples << "updating interval = " << param.updating_interval << "maximum updating times = " << param.max_updating << endl;
-//        cout << "\tBN: " << param.net_file << endl;
-//        cout << "\ttesting set: " << param.test_set_file << endl;
-//        cout << "\treference potential table: " << param.pt_file << endl;
-//        cout << "===============================" << endl;
-//
-//        cout << "SIS is under development" << endl;
-//    }
-//
-//    else if (param.algorithm == ALGSISV1) {
-//
-//        cout << "===============================" << endl;
-//        cout << "Algorithm: self importance sampling variant (SISv1) for approximate inference, #threads = " << param.num_threads << endl;
-//        cout << "#samples = " << param.num_samples << "updating interval = " << param.updating_interval << "maximum updating times = " << param.max_updating << endl;
-//        cout << "\tBN: " << param.net_file << endl;
-//        cout << "\ttesting set: " << param.test_set_file << endl;
-//        cout << "\treference potential table: " << param.pt_file << endl;
-//        cout << "===============================" << endl;
-//
-//        cout << "SISv1 is under development" << endl;
-//    }
-//
-//    else if (param.algorithm == ALGAISBN) {
-//
-//        cout << "===============================" << endl;
-//        cout << "Algorithm: AIS-BN for approximate inference, #threads = " << param.num_threads << endl;
-//        cout << "#samples = " << param.num_samples << "updating interval = " << param.updating_interval << "maximum updating times = " << param.max_updating << endl;
-//        cout << "\tBN: " << param.net_file << endl;
-//        cout << "\ttesting set: " << param.test_set_file << endl;
-//        cout << "\treference potential table: " << param.pt_file << endl;
-//        cout << "===============================" << endl;
-//
-//        cout << "AIS-BN is under development" << endl;
-//    }
-//
-//    else if (param.algorithm == FUNCSAMPSET) {
-//
-//        cout << "===============================" << endl;
-//        cout << "Function: generate a sample set from a BN, #threads = " << param.num_threads << endl;
-//        cout << "#samples = " << param.num_samples << endl;
-//        cout << "\tBN: " << param.net_file << endl;
-//        cout << "===============================" << endl;
-//
-//        cout << "This function is under development" << endl;
-//    }
+
+    /**
+     * Job = approximate inference
+     */
+    else if (param.job == 3) {
+        /**
+         * Method = probabilistic logic sampling
+         */
+        if (param.method == 0) {
+            cout << "==================================================" << endl;
+            cout << "Job: probabilistic logic sampling for approximate inference, #threads = " << param.num_threads << endl;
+            cout << "\t#samples: " << param.num_samples << endl;
+            cout << "\tBN: " << param.net_file << endl;
+            cout << "\ttesting set: " << param.test_set_file << endl;
+            cout << "\treference potential table: " << param.pt_file << endl;
+            cout << "==================================================" << endl;
+
+            cout << "Probabilistic logic sampling for approximate inference is under development" << endl;
+            exit(1);
+        }
+    }
+
+    /**
+     * Job = classification
+     */
+    else if (param.job == 4) {
+        /**
+         * Method = PC-Stable + maximum likelihood estimation + junction tree
+         */
+        if (param.method == 1) {
+            cout << "==================================================" << endl;
+            cout << "Job: PC-stable + maximum likelihood estimation + junction tree for classification, #threads = "
+                 << param.num_threads << endl;
+            cout << "\tgroup size = " << param.group_size << endl;
+            cout << "\treference BN: " << param.ref_net_file << endl;
+            cout << "\ttraining set: " << param.train_set_file << endl;
+            cout << "\ttesting set: " << param.test_set_file << endl;
+            cout << "==================================================" << endl;
+            // todo: classification can also compare probability table, we can add param.pt_file
+
+            Dataset *trainer = new Dataset(); // todo: decide whether the dataset is in libsvm format or in csv format
+            trainer->LoadCSVTrainingData(dpath + param.train_set_file, true, true, 0);
+
+            Dataset *tester = new Dataset(trainer);
+            tester->LoadCSVTestingData(dpath + param.test_set_file, true, true, 0);
+
+            Network *network = new Network(true);
+            StructureLearning *bnsl = new PCStable(network, param.alpha);
+            bnsl->StructLearnCompData(trainer, param.group_size, param.num_threads,true, true,
+                                      param.save_struct, dpath + param.train_set_file + "_struct", param.verbose);
+
+            if (!param.ref_net_file.empty()) {
+                CustomNetwork *ref_net = new CustomNetwork();
+                ref_net->LoadBIFFile(dpath + param.ref_net_file);
+                BNSLComparison comp(ref_net, network);
+                int shd = comp.GetSHD();
+                cout << "SHD = " << shd << endl;
+                SAFE_DELETE(ref_net);
+            } else {
+                cout << "There is no reference BN (ground-truth) provided, so BN comparison (showing accuracy) is skipped."
+                        " You can provide the reference BN via -f1." << endl;
+            }
+
+            ParameterLearning *bnpl = new ParameterLearning(network);
+            bnpl->LearnParamsKnowStructCompData(trainer, 1, param.save_param,
+                                                dpath + param.train_set_file + "_param", param.verbose);
+            SAFE_DELETE(trainer);
+
+            Inference *inference = new JunctionTree(1, network, tester);
+            SAFE_DELETE(tester);
+
+            double accuracy = inference->EvaluateAccuracy("", param.num_threads);
+            cout << "accuracy = " << accuracy << endl;
+            SAFE_DELETE(inference);
+            SAFE_DELETE(bnsl);
+            SAFE_DELETE(bnpl);
+
+            SAFE_DELETE(network);
+        }
+    }
+
 
 
     return 0;

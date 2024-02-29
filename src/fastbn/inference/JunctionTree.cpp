@@ -1,7 +1,7 @@
 #include "fastbn/inference/JunctionTree.h"
 
 JunctionTree::JunctionTree(int classification, Network *net, Dataset *dts) :
-                            Inference(mode, net, dts) {
+                            Inference(classification, net, dts) {
 
     Timer *timer = new Timer();
     // record time
@@ -1447,9 +1447,6 @@ vector<int> JunctionTree::Predict(int num_threads) {
     vector<int> results(num_instances, 0);
     double mse = 0.0;
     double hd = 0.0;
-    if (mode == 0) {
-        results.resize(num_instances);
-    }
 
     for (int i = 0; i < num_instances; ++i) {
         ++progress;

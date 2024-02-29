@@ -12,12 +12,12 @@ Parameter::Parameter() {
     num_threads = 1; // default: sequential running
     verbose = 1; // default: key information
 
-//    num_samples = 10000; // default: generating 10000 samples
-//    max_updating = 10; // default: stop after 10 times updates
-//    updating_interval = 2500; // default setting follows AIS-BN
-//    propagation_length = 2;
-//    enable_heuristic_uniform_distribution = false;
-//    enable_heuristic_theta_cutoff = false;
+    num_samples = 10000; // default: generating 10000 samples
+    max_updating = 10; // default: stop after 10 times updates
+    updating_interval = 2500; // default setting follows AIS-BN
+    propagation_length = 2;
+    enable_heuristic_uniform_distribution = false;
+    enable_heuristic_theta_cutoff = false;
 
     group_size = 1;
     alpha = 0.05;
