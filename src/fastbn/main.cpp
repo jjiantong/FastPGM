@@ -266,11 +266,9 @@ int main(int argc, char** argv) {
             SAFE_DELETE(bnsl);
             SAFE_DELETE(bnpl);
 
-            SAFE_DELETE(network);
+//            SAFE_DELETE(network);
         }
     }
-
-
 
     return 0;
 }
