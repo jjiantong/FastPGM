@@ -12,7 +12,6 @@
 #include "fastbn/structure_learning/BNSLComparison.h"
 #include "fastbn/Parameter.h"
 #include "fastbn/parameter_learning/ParameterLearning.h"
-#include "fastbn/interface/fastbn_interface.h"
 
 using namespace std;
 
@@ -39,37 +38,34 @@ int main(int argc, char** argv) {
                 exit(0);
         }
 
-        BNSLPCStable(param.num_threads, param.group_size, param.verbose, param.ref_net_file.c_str(),
-                     param.train_set_file.c_str(), param.alpha, param.save_struct);
+        cout << "==================================================" << endl;
+        cout << "Job: PC-stable for structure learning, #threads = " << param.num_threads << endl;
+        cout << "\tgroup size = " << param.group_size << endl;
+        cout << "\treference BN: " << param.ref_net_file << endl;
+        cout << "\tsample set: " << param.train_set_file << endl;
+        cout << "==================================================" << endl;
 
-//        cout << "==================================================" << endl;
-//        cout << "Job: PC-stable for structure learning, #threads = " << param.num_threads << endl;
-//        cout << "\tgroup size = " << param.group_size << endl;
-//        cout << "\treference BN: " << param.ref_net_file << endl;
-//        cout << "\tsample set: " << param.train_set_file << endl;
-//        cout << "==================================================" << endl;
-//
-//        Dataset *trainer = new Dataset(); // todo: decide whether the dataset is in libsvm format or in csv format
-//        trainer->LoadCSVTrainingData(dpath + param.train_set_file, true, true, 0);
-//
-//        Network *network = new Network(true);
-//        StructureLearning *bnsl = new PCStable(network, param.alpha);
-//        bnsl->StructLearnCompData(trainer, param.group_size, param.num_threads,false, false,
-//                                  param.save_struct, dpath + param.train_set_file + "_struct", param.verbose);
-//        SAFE_DELETE(trainer);
-//
-//        if (!param.ref_net_file.empty()) {
-//            CustomNetwork *ref_net = new CustomNetwork();
-//            ref_net->LoadBIFFile(dpath + param.ref_net_file);
-//            BNSLComparison comp(ref_net, network);
-//            int shd = comp.GetSHD();
-//            cout << "SHD = " << shd << endl;
-//            SAFE_DELETE(ref_net);
-//        } else {
-//            cout << "There is no reference BN (ground-truth) provided, so BN comparison (showing accuracy) is skipped." << endl;
-//        }
-//
-//        SAFE_DELETE(network);
+        Dataset *trainer = new Dataset(); // todo: decide whether the dataset is in libsvm format or in csv format
+        trainer->LoadCSVTrainingData(dpath + param.train_set_file, true, true, 0);
+
+        Network *network = new Network(true);
+        StructureLearning *bnsl = new PCStable(network, param.alpha);
+        bnsl->StructLearnCompData(trainer, param.group_size, param.num_threads,false, false,
+                                  param.save_struct, dpath + param.train_set_file + "_struct", param.verbose);
+        SAFE_DELETE(trainer);
+
+        if (!param.ref_net_file.empty()) {
+            CustomNetwork *ref_net = new CustomNetwork();
+            ref_net->LoadBIFFile(dpath + param.ref_net_file);
+            BNSLComparison comp(ref_net, network);
+            int shd = comp.GetSHD();
+            cout << "SHD = " << shd << endl;
+            SAFE_DELETE(ref_net);
+        } else {
+            cout << "There is no reference BN (ground-truth) provided, so BN comparison (showing accuracy) is skipped." << endl;
+        }
+
+        SAFE_DELETE(network);
     }
 
     /**

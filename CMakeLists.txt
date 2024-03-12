@@ -19,6 +19,7 @@ endif ()
 #set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -pg")
 #set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -pg")
 
+include_directories(${PROJECT_SOURCE_DIR}/lib/tinyxml2)
 include_directories(${PROJECT_SOURCE_DIR}/include)
 include_directories(${PROJECT_SOURCE_DIR}/lib/ARFF/src)
 include_directories(${PROJECT_SOURCE_DIR}/lib/stats/include)
@@ -30,6 +31,8 @@ add_subdirectory(src/test)
 
 file(GLOB_RECURSE SRC src/fastbn/*.cpp)
 file(GLOB HEAD include/*.h)
+
+#add_library(fastbn SHARED ${SRC})
 
 add_executable(BayesianNetwork ${SRC} ${HEAD})
 target_link_libraries(BayesianNetwork tinyxml2 ARFF stats gcem)
