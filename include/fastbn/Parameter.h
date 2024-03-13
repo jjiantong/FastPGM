@@ -41,3 +41,5 @@ public:
     void PrintJobInfo();
     void PrintJobAndAlgInfo();
 };
+
+int add(int i, int j);

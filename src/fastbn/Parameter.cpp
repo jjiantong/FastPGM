@@ -152,3 +152,7 @@ void Parameter::PrintJobInfo() {
     cout << "\t-j 4: Classification" << endl;
     cout << "\t-j 5: Generator or convertor" << endl;
 }
+
+int add(int i, int j) {
+    return i + j;
+}
