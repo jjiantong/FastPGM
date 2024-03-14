@@ -1,7 +1,7 @@
-cmake_minimum_required(VERSION 3.10)
-project(BayesianNetwork)
-
-set(CMAKE_CXX_STANDARD 14)
+#cmake_minimum_required(VERSION 3.27)
+#project(BayesianNetwork)
+#
+#set(CMAKE_CXX_STANDARD 14)
 
 #include_directories(${PROJECT_SOURCE_DIR}/lib/googletest/googlemock/include)
 #include_directories(${PROJECT_SOURCE_DIR}/lib/googletest/googletest/include)
