@@ -1,13 +1,10 @@
-#cmake_minimum_required(VERSION 3.27)
-#
-## Scikit-build-core sets these values for you, or you can just hard-code the
-## name and version.
-#project(
-#        ${SKBUILD_PROJECT_NAME}
-#        VERSION ${SKBUILD_PROJECT_VERSION}
-#        LANGUAGES CXX)
-#
-#set(CMAKE_CXX_STANDARD 14)
+cmake_minimum_required(VERSION 3.27)
+
+# Scikit-build-core sets these values for you, or you can just hard-code the
+# name and version.
+project(fastbn_python)
+
+set(CMAKE_CXX_STANDARD 14)
 
 # Manually set FASTBN_DIR as the absolute path of FastBN
 set(FASTBN_DIR "/home/jjt/work/BN/FastBN")
@@ -23,6 +20,7 @@ include_directories(${FASTBN_DIR}/include)
 # this)
 python_add_library(_core MODULE src/python_interface.cpp
         ${FASTBN_DIR}/src/fastbn/Parameter.cpp
+        ${FASTBN_DIR}/src/fastbn/Dataset.cpp
         WITH_SOABI)
 target_link_libraries(_core PRIVATE pybind11::headers)
 
