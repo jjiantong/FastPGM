@@ -13,3 +13,6 @@
 [submodule "lib/gcem"]
 	path = lib/gcem
 	url = https://github.com/jjiantong/gcem
+[submodule "python/pybind11"]
+	path = python/pybind11
+	url = https://github.com/pybind/pybind11

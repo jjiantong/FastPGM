@@ -1,4 +1,4 @@
-import scikit_build_example as fastbn
+import cmake_example as fastbn
 import os
 
 # get the path of fastbn
