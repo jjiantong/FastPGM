@@ -14,7 +14,6 @@
 #include <ctime>
 #include "fastbn/Dataset.h"
 #include "CellTable.h"
-#include "fastbn/CombinationGenerator.h"
 #include "fastbn/Timer.h"
 
 #include "gcem.hpp"

@@ -5,21 +5,6 @@
 #include "fastbn/common.h"
 
 /**
- * @brief: convert a configuration (e.g., a config can be derived from an instance) into a map for fast query
- * set<pair<int, int>> --> map<int, int>
- */
-map<int, int> DiscreteConfigToMap(DiscreteConfig &disc_cfg) {
-    map<int, int> result;
-    for (const auto var_val : disc_cfg) {
-        result[var_val.first] = var_val.second;
-    }
-    if (disc_cfg.size() != result.size()) {
-        fprintf(stderr, "Function [%s]: The given DiscreteConfig may contain duplicate keys!", __FUNCTION__);
-    }
-    return result;
-}
-
-/**
  * @brief: for structure learning; check if a directed graph has a cycle.
  * use the same idea of `TopoSortOfDAGZeroInDegreeFirst` to get the topological ordering: iteratively handling the nodes
  * with zero in-degree and reducing the in-degree of its children by 1. if there are no left node after this process,
@@ -84,38 +69,6 @@ vector<int> TopoSortOfDAGZeroInDegreeFirst(int **graph, int *in_degrees, int num
         que.pop();
     }
     return result;
-}
-
-/**
- * @brief: check if two configurations have a conflict of any shared variable.
- * @return:  true if they have different values on the same variable
- */
-bool Conflict(const DiscreteConfig *cfg1, const DiscreteConfig *cfg2) {
-    // cfg1 / cfg2: set< pair<int, int> >
-    // f / s: pair<int, int>
-    for (const auto &f : *cfg1) {
-        for (const auto &s : *cfg2) {
-            // if the two configs have the same variable but different values of the variable
-            if (f.first == s.first && f.second != s .second) {
-                return true;
-            }
-        }
-    }
-    return false;
-}
-
-bool Conflict(const DiscreteConfig *cfg, vector<int> &vec) {
-    // cfg: set< pair<int, int> >
-    // f: pair<int, int>
-    for (const auto &f : *cfg) {
-        for (int i = 0; i < vec.size(); ++i) {
-            // if the two configs have the same variable but different values of the variable
-            if (f.first == i && f.second != vec[i]) {
-                return true;
-            }
-        }
-    }
-    return false;
 }
 
 /**

@@ -9,11 +9,6 @@ CustomNetwork::CustomNetwork(bool pure_disc) {
   this->pure_discrete = pure_disc;//whether the network only contains discrete variable (Gaussian networks contain numeric variables)
 }
 
-//TODO: implement/improve this function
-vector<int> CustomNetwork::SimplifyDefaultElimOrd(DiscreteConfig evidence) {
-  return vec_default_elim_ord;
-}
-
 /**
  * @brief: construct a network using XML file (cf. dog-problem.xml under "interchange-format-file" folder for an example)
  */

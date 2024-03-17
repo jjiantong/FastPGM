@@ -83,31 +83,3 @@ void ChoiceGenerator::Fill(int index) {
         choice[i] = choice[i - 1] + 1;
     }
 }
-
-/**
- * @return number of choice by computing combination C(m, n)
- */
-int ChoiceGenerator::GetNumChoice() {
-    if(b > a - b) {
-        return ComputeCombination(a, a - b);
-    } else {
-        return ComputeCombination(a, b);
-    }
-}
-
-/**
- * Compute combination C(m, n)
- * @example C(6, 2) = (6 * 5) / (2 * 1)
- */
-int ChoiceGenerator::ComputeCombination(int m, int n) {
-    if (n == 0) {
-        return 1;
-    }
-    int numerator   = m;
-    int denominator = 1;
-    for (int i = 1; i < n; ++i) {
-        numerator *= --m;
-        denominator *= i + 1;
-    }
-    return numerator / denominator;
-}

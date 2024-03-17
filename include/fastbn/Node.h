@@ -51,17 +51,12 @@ class Node {
   int GetNodeIndex() const;
   void SetNodeIndex(int index);
   bool HasParents() const;
-  int GetNumParents() const;
-  int GetNumDiscParents() const;
-  int GetNumChildren() const;
   virtual void AddChild(Node *node_ptr);
   virtual void AddParent(Node *node_ptr);
   bool IsChildOfThisNode(Node *node_ptr);
   bool IsParentOfThisNode(Node *node_ptr);
   void RemoveChild(Node *node_ptr);
   virtual void RemoveParent(Node *node_ptr);
-  void ClearParents();
-  void ClearChildren();
 };
 
 

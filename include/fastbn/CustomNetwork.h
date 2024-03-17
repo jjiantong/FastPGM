@@ -24,12 +24,6 @@ public:
     CustomNetwork();
     explicit CustomNetwork(bool pure_disc);
 
-    /**
-     * hasn't implemented due to the complexity (e.g., undirected loop)
-     * the simplification of the network is for variable elimination
-     */
-    vector<int> SimplifyDefaultElimOrd(DiscreteConfig evidence) override;
-
     void LoadXMLBIFFile(string file_path, int alpha);//construct the network using content from the xml file.
 
     void LoadBIFFile(string path);

@@ -51,10 +51,6 @@ void DiscreteNode::SetLaplaceSmooth(double alpha) {
   this->laplace_smooth = alpha;
 }
 
-double DiscreteNode::GetLaplaceSmooth() {
-  return this->laplace_smooth;
-}
-
 string DiscreteNode::GetValueNameByIndex(const int &index) {
     for (auto it = possible_values_ids.begin(); it != possible_values_ids.end(); ++it) {
         if (it->second == index) {
@@ -107,8 +103,4 @@ double DiscreteNode:: GetProbability(int query_val, DiscreteConfig &parents_conf
     int total = map_total_count_under_parents_config[parents_config]; // P(B)
     double prob = (frequency_count + laplace_smooth) / (total + laplace_smooth * GetDomainSize()); // P(A|B) = P(AB) / P(B)
     return prob;
-}
-
-int DiscreteNode::GetNumPotentialVals() {
-    return num_potential_vals;
 }

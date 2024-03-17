@@ -25,19 +25,6 @@ bool Node::HasParents() const {
   return !set_parent_indexes.empty();
 }
 
-
-int Node::GetNumParents() const {
-  return set_parent_indexes.size();
-}
-
-int Node::GetNumDiscParents() const {
-  return vec_disc_parent_indexes.size();
-}
-
-int Node::GetNumChildren() const {
-  return set_children_indexes.size();
-}
-
 void Node::SetNodeIndex(int i) {
   if (i<0) {
     fprintf(stderr, "Error in function %s! \nInvalid index!", __FUNCTION__);
@@ -217,38 +204,4 @@ void Node::RemoveParent(Node *p) {
 
     set_discrete_parents_combinations = new_par_combs;
   }
-}
-
-///**
-// * @brief: remove parent; possibly only used in structure learning
-// */
-//void ContinuousNode::RemoveParent(Node *p) {
-//    Node::RemoveParent(p);
-//
-//    if (!p->is_discrete) {
-//        //remove the parent from the vector based on parent id
-//        auto it = contin_par_indexes.begin();
-//        while (*it!=p->GetNodeIndex()) { ++it; }
-//        contin_par_indexes.erase(it);
-//    }
-//}
-
-
-/**
- * @brief: possibly only used in structure learning
- * clear:   "set_parent_indexes",
- *          "vec_disc_parent_indexes",
- *          "set_discrete_parents_combinations"
- */
-void Node::ClearParents() {
-  //TODO: double check whether need to set "num_parents_config"
-  //TODO: this function clear discrete parents but not continuous parents
-  set_discrete_parents_combinations.clear();
-
-  vec_disc_parent_indexes.clear();
-  set_parent_indexes.clear();
-}
-
-void Node::ClearChildren() {
-  set_children_indexes.clear();
 }

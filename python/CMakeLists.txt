@@ -14,7 +14,6 @@ include_directories(${FASTBN_DIR}/lib/gcem/include)
 
 add_subdirectory(pybind11)
 file(GLOB_RECURSE FASTBN_SRC ${FASTBN_DIR}/src/fastbn/*.cpp)
-file(GLOB API_SRC src/*.cpp)
 pybind11_add_module(cmake_example src/api_main.cpp ${FASTBN_SRC})
 
 # EXAMPLE_VERSION_INFO is defined by setup.py and passed into the C++ code as a

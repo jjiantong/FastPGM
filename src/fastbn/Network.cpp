@@ -61,34 +61,6 @@ Network::~Network() {
     }
 }
 
-//TODO: double-check correctness
-/*!
- * @brief: print the parents of all the nodes.
- * each line corresponds to a node and its parents.
- */
-void Network::PrintEachNodeParents() {
-  for (const auto &id_node_ptr : map_idx_node_ptr) { // for each <int, Node*> pair
-    auto node_ptr = id_node_ptr.second; // get the Node*
-    cout << node_ptr->node_name << ":\t";
-    for (const auto &par_node_ptr : GetParentPtrsOfNode(node_ptr->GetNodeIndex())) {
-      cout << par_node_ptr->node_name << '\t';
-    }
-    cout << endl;
-  }
-}
-
-//TODO: double-check correctness
-void Network::PrintEachNodeChildren() {//print the child nodes of all the nodes
-  for (const auto &id_node_ptr : map_idx_node_ptr) {
-    auto node_ptr = id_node_ptr.second;
-    cout << node_ptr->node_name << ":\t";
-    for (const auto &chi_node_ptr : GetChildrenPtrsOfNode(node_ptr->GetNodeIndex())) {
-      cout << chi_node_ptr->node_name << '\t';
-    }
-    cout << endl;
-  }
-}
-
 /**
  * @brief: find node ptr by id
  */
@@ -113,37 +85,6 @@ Node* Network::FindNodePtrByName(const string &name) const {
     }
   }
   return node_ptr;
-}
-
-/**
- * @brief: add a node to the map
- */
-void Network::AddNode(Node *node_ptr) {
-  map_idx_node_ptr[node_ptr->GetNodeIndex()] = node_ptr;
-  ++num_nodes;
-}
-
-/**
- * @brief: remove a node based on id; not used yet.
- */
-void Network::RemoveNode(int node_index) {
-  map_idx_node_ptr.erase(node_index);
-  --num_nodes;
-}
-
-/**
- * @brief: check whether the node belongs to the network
- */
-bool Network::NodeIsInNetwork(Node *node_ptr) {
-    return NodeIsInNetwork(node_ptr->GetNodeIndex());
-}
-
-bool Network::NodeIsInNetwork(int node_idx) {
-    if (map_idx_node_ptr.find(node_idx) == map_idx_node_ptr.end()) {
-        return false;
-    } else {
-        return true;
-    }
 }
 
 int Network::GetUndirectedEdge(Node *node1, Node *node2) {
@@ -272,15 +213,6 @@ bool Network::DeleteDirectedEdge(int p_index, int c_index) {
 }
 
 /**
- * @brief: swap a parent and child relationship
- * @return true if not form a circle; false if form a circle (also delete the added arc)
- */
-bool Network::ReverseDirectedEdge(int p_index, int c_index) {
-  DeleteDirectedEdge(p_index, c_index);
-  return AddDirectedEdge(c_index, p_index);
-}
-
-/**
  * @brief: add an undirected edge/arc to the network
  * have an order
  */
@@ -387,23 +319,6 @@ bool Network::IsUndirected(const map<int, map<int, double>> &adjacencies, int no
 }
 
 /**
- * @brief: set up the parent and child relationship
- * @param p_index: parent index
- * @param c_index: child index
- */
-void Network::SetParentChild(int p_index, int c_index) {
-  if (map_idx_node_ptr.find(p_index) == map_idx_node_ptr.end() ||
-      map_idx_node_ptr.find(c_index) == map_idx_node_ptr.end()) {
-    fprintf(stderr, "Error in function [%s].\nThe nodes [%d] and [%d] do not belong to this network!",
-            __FUNCTION__, p_index, c_index);
-    exit(1);
-  }//end checking whether the nodes belong to the network
-  // convert the index format into node ptr format
-  Node *p = FindNodePtrByIndex(p_index), *c = FindNodePtrByIndex(c_index);
-  SetParentChild(p,c);
-}
-
-/**
  * @brief: set parent and child relationship.
  * @param p: parent node ptr
  * @param c: child node ptr
@@ -412,18 +327,6 @@ void Network::SetParentChild(int p_index, int c_index) {
 void Network::SetParentChild(Node *p, Node *c) {
     p->AddChild(c);
     c->AddParent(p);
-}
-
-/**
- * @brief: remove parent child relationship
- * @param p_index: parent index
- * @param c_index: child index
- * remove c to p as a child, and remove p to c as a parent
- */
-void Network::RemoveParentChild(int p_index, int c_index) {
-  // convert the index format into node ptr format
-  Node *p = FindNodePtrByIndex(p_index), *c = FindNodePtrByIndex(c_index);
-  RemoveParentChild(p,c);
 }
 
 /**
@@ -443,19 +346,6 @@ void Network::RemoveParentChild(Node *p, Node *c) {
   c->RemoveParent(p);
 }
 
-/**
- * @brief: find parents given a node id; used to generate discrete configurations
- * @return a set of pointers to the parents of a node
- */
-set<Node*> Network::GetParentPtrsOfNode(int node_index) {
-  set<Node*> set_par_ptrs;
-  Node *node = FindNodePtrByIndex(node_index);
-  for (const auto &idx : node->set_parent_indexes) { // "set_parent_indexes" contains both discrete and continuous parents
-    set_par_ptrs.insert(map_idx_node_ptr.at(idx));
-  }
-  return set_par_ptrs;
-}
-
 set<int> Network::GetParentIdxesOfNode(int node_index) {
     set<int> set_par_idxes;
     Node *node = FindNodePtrByIndex(node_index);
@@ -463,18 +353,6 @@ set<int> Network::GetParentIdxesOfNode(int node_index) {
         set_par_idxes.insert(idx);
     }
     return set_par_idxes;
-}
-
-/**
- * @brief: find the children given a node id
- */
-set<Node*> Network::GetChildrenPtrsOfNode(int node_index) {
-  set<Node*> set_chi_ptrs;
-  Node *node = FindNodePtrByIndex(node_index);
-  for (const auto &idx : node->set_children_indexes) {
-    set_chi_ptrs.insert(map_idx_node_ptr.at(idx));
-  }
-  return set_chi_ptrs;
 }
 
 set<int> Network::GetChildrenIdxesOfNode(int node_index) {
@@ -495,15 +373,6 @@ vector<int> Network::GetTopoOrd() {
     this->GenTopoOrd();
   }
   return topo_ord;
-}
-
-/**
- * @brief: obtain reverse topological order
- */
-vector<int> Network::GetReverseTopoOrd() {
-  auto ord = this->GetTopoOrd();
-  reverse(ord.begin(), ord.end());
-  return ord;
 }
 
 /*!
@@ -669,40 +538,6 @@ bool Network::ContainCircle() {
     SAFE_DELETE_ARRAY(graph);
     SAFE_DELETE_ARRAY(in_degrees);
     return result;
-}
-
-/**
- * @brief: this is a virtual function;
- * The performance of variable elimination relies heavily on the elimination ordering
- */
-vector<int> Network::SimplifyDefaultElimOrd(DiscreteConfig evidence) {//TODO: use C++ pure virtual function
-  fprintf(stderr, "Function [%s] not implemented yet!", __FUNCTION__);
-  exit(1);
-}
-
-/**
- * @brief: get the Markov Blanket of a node
- */
-set<int> Network::GetMarkovBlanketIndexesOfNode(Node *node_ptr) {
-  // node: set does not contain repeated elements
-  set<int> markov_blanket_node_index;
-
-  // Add parents.
-  for (const auto &par_ptr : GetParentPtrsOfNode(node_ptr->GetNodeIndex())) {
-    markov_blanket_node_index.insert(par_ptr->GetNodeIndex());
-  }
-
-  // Add children and parents of children.
-  for (const auto &chil_ptr : GetChildrenPtrsOfNode(node_ptr->GetNodeIndex())) { // TODO: use "GetChildrenIdxesOfNode"
-    markov_blanket_node_index.insert(chil_ptr->GetNodeIndex());
-    for (const auto &par_chil_ptr : GetParentPtrsOfNode(chil_ptr->GetNodeIndex())) {
-      markov_blanket_node_index.insert(par_chil_ptr->GetNodeIndex());
-    }
-  }
-
-  markov_blanket_node_index.erase(node_ptr->GetNodeIndex());
-
-  return markov_blanket_node_index;
 }
 
 /**

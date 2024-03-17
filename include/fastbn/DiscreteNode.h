@@ -28,7 +28,6 @@ public:
     map<DiscreteConfig, int> map_total_count_under_parents_config; // P(B)
 
     void SetLaplaceSmooth(double alpha);//for smoothness when computing probability
-    double GetLaplaceSmooth();
 
     string GetValueNameByIndex(const int &index);
 
@@ -47,8 +46,6 @@ public:
     int GetDomainSize() const;
     void SetDomainSize(int size);
     void AddParent(Node *node_ptr) override;
-
-    int GetNumPotentialVals();
 
 protected:
     int num_potential_vals;

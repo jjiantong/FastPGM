@@ -45,17 +45,8 @@ public:
     Network(vector<Node*> nodes, string name);
     virtual ~Network();
 
-    void PrintEachNodeParents();
-    void PrintEachNodeChildren();
-
     Node* FindNodePtrByIndex(const int &index) const;
     Node* FindNodePtrByName(const string &name) const;
-
-    void AddNode(Node *node_ptr);
-    void RemoveNode(int node_index);
-
-    bool NodeIsInNetwork(Node *node_ptr);
-    bool NodeIsInNetwork(int node_idx);
 
     int GetUndirectedEdge(Node* node1, Node* node2);
     int GetDirectedEdge(Node* node1, Node* node2);
@@ -66,7 +57,6 @@ public:
 
     bool AddDirectedEdge(int p_index, int c_index);
     bool DeleteDirectedEdge(int p_index, int c_index);
-    bool ReverseDirectedEdge(int p_index, int c_index);
     void AddUndirectedEdge(int p_index, int c_index);
     bool DeleteUndirectedEdge(int p_index, int c_index);
     void GenerateUndirectedCompleteGraph();
@@ -79,31 +69,17 @@ public:
     // whether node1 is adjacent to node2 && node1 is not a parent of node2 && node2 is not a parent of node1
     bool IsUndirected(const map<int, map<int, double>> &adjacencies, int node_idx1, int node_idx2);
 
-    double CalcuExtraScoreWithModifiedEdge(int p_index, int c_index, Dataset *dts,
-                                           const string &modification, const string &score_metric);
-
-    void SetParentChild(int p_index, int c_index);
     void SetParentChild(Node *par, Node *chi); // checked
 
-    void RemoveParentChild(int p_index, int c_index);
     void RemoveParentChild(Node *par, Node *chi);
 
-    set<Node*> GetParentPtrsOfNode(int node_index);
     set<int> GetParentIdxesOfNode(int node_index);
-    set<Node*> GetChildrenPtrsOfNode(int node_index);
     set<int> GetChildrenIdxesOfNode(int node_index);
 
-//    void GenDiscParCombsForAllNodes();
-
     vector<int> GetTopoOrd();
-    vector<int> GetReverseTopoOrd();
-
-    set<int> GetMarkovBlanketIndexesOfNode(Node *node_ptr);
 
     int** ConvertDAGToAdjacencyMatrix();
     bool ContainCircle();
-
-    virtual vector<int> SimplifyDefaultElimOrd(DiscreteConfig evidence);
 
     /**
      * is used for Structural Hamming Distance (SHD)

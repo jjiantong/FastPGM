@@ -30,9 +30,6 @@ public:
     vector<vector<int>> NextN(int n);
     vector<int> Next();
     void Fill(int index);
-
-    int GetNumChoice();
-    int ComputeCombination(int m, int n);
 };
 
 #endif //BAYESIANNETWORK_CHOICEGENERATOR_H
