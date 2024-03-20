@@ -42,8 +42,6 @@ class ContinuousNode : public Node {//the parent nodes of ContinuousNode can be 
   ContinuousNode();
   explicit ContinuousNode(int index);
   ContinuousNode(int index, string name);
-  ContinuousNode(const ContinuousNode &n) = default;
-  ContinuousNode(ContinuousNode &n) = default;
   void AddChild(Node *node_ptr) override;
   void RemoveParent(Node *node_ptr) override;
 //  void ClearParams() override;

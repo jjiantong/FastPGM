@@ -40,8 +40,6 @@ public:
 
     DiscreteNode();
     explicit DiscreteNode(int index);
-    DiscreteNode(const DiscreteNode &n) = default;
-    DiscreteNode(DiscreteNode &n) = default;
 
     int GetDomainSize() const;
     void SetDomainSize(int size);

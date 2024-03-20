@@ -51,7 +51,6 @@ public:
     void TableReorganization(const PotentialTableBase &refer_table);
     void TableReorganizationPre(const vector<int> &common_variables, PotentialTableBase &new_table, int *locations);
     int TableReorganizationMain(int k, int *config1, int *config2, PotentialTableBase &old_table, int *locations);
-    int TableReorganizationMain(int k, int *config1, int *config2, const vector<int> &cl, int *locations);
     void TableReorganizationPost(const PotentialTableBase &pt, int *table_index);
 
     /**

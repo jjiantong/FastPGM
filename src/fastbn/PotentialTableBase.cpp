@@ -251,22 +251,6 @@ int PotentialTableBase::TableReorganizationMain(int k, int *config1, int *config
     return GetTableIndexByConfigValue(config2);
 }
 
-// note that this method is used in junction tree class.
-// it is not used in the TableReorganization method of this class.
-// because the two use different getconfigvaluebytableindex method.
-int PotentialTableBase::TableReorganizationMain(int k, int *config1, int *config2, const vector<int> &cl, int *locations) {
-    // note the difference from marginalization/extension main:
-    // nv (of old table) = this->num_variables
-    // 1. get the config value of old table
-    GetConfigValueByTableIndex(k, config1 + k * this->num_variables, this->num_variables, cl);
-    // 2. get the config value of new table from the config value of old table
-    for (int l = 0; l < this->num_variables; ++l) {
-        config2[k * this->num_variables + l] = config1[k * this->num_variables + locations[l]];
-    }
-    // 3. obtain the potential index of new table
-    return GetTableIndexByConfigValue(config2 + k * this->num_variables);
-}
-
 void PotentialTableBase::TableReorganizationPost(const PotentialTableBase &pt, int *table_index) {
     for (int k = 0; k < this->table_size; ++k) {
         // 4. potential[table_index]

@@ -51,14 +51,6 @@ public:
 //        cout << name << ": " << time[name] / CLOCKS_PER_SEC << " s";
         cout << name << ": " << time[name] << " s " << endl;
     }
-
-    double GetTime (string name) {
-        return time[name];
-    }
-
-    void SetTime (string name, double time) {
-        this->time[name] = time;
-    }
 };
 
 
