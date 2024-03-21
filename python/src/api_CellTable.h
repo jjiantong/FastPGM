@@ -19,7 +19,7 @@ void bind_CellTable(py::module &m) {
             .def("CountLevelN", &Counts3D::CountLevelN);
 
     py::class_<Counts2D>(m, "Counts2D")
-            .def(py::init<int, int, int, int)
+            .def(py::init<int, int, int, int>())
             .def("FillTable", &Counts2D::FillTable);
 
     py::class_<Counts3DGroup>(m, "Counts3DGroup")

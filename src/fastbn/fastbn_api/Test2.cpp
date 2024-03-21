@@ -1,7 +1,7 @@
 //
 // Created by jjt on 17/03/24.
 //
-#include "fastbn/Test2.h"
+#include "fastbn/fastbn_api/Test2.h"
 
 Test2::Test2() {
     a = 1;

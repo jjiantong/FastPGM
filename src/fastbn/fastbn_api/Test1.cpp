@@ -1,7 +1,7 @@
 //
 // Created by jjt on 17/03/24.
 //
-#include "fastbn/Test1.h"
+#include "fastbn/fastbn_api/Test1.h"
 
 Test1::Test1(int a, int b) {
     this->a = a;

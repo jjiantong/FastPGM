@@ -2,7 +2,7 @@
 // Created by jjt on 16/03/24.
 //
 #include <pybind11/pybind11.h>
-#include "fastbn/Test1.h"
+#include "fastbn/fastbn_api/Test1.h"
 
 namespace py = pybind11;
 
