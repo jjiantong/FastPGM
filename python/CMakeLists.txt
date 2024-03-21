@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.27)
 project(cmake_example)
 
 set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp")
 
 # Manually set FASTBN_DIR as the absolute path of FastBN
 set(FASTBN_DIR "/home/jjt/work/BN/FastBN")
@@ -14,7 +15,7 @@ include_directories(${FASTBN_DIR}/lib/gcem/include)
 
 add_subdirectory(pybind11)
 file(GLOB_RECURSE FASTBN_SRC ${FASTBN_DIR}/src/fastbn/*.cpp)
-pybind11_add_module(cmake_example src/api_main.cpp ${FASTBN_SRC})
+pybind11_add_module(cmake_example api_main.cpp ${FASTBN_SRC})
 
 # EXAMPLE_VERSION_INFO is defined by setup.py and passed into the C++ code as a
 # define (VERSION_INFO) here.
