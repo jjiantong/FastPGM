@@ -1,0 +1,21 @@
+{
+  "job": 0,
+  "method": 0,
+  "num_threads": 1,
+  "verbose": 1,
+  "num_samples": 10000,
+  "max_updating": 10,
+  "updating_interval": 2500,
+  "propagation_length": 2,
+  "enable_heuristic_uniform_distribution": false,
+  "enable_heuristic_theta_cutoff": false,
+  "group_size": 1,
+  "alpha": 0.05,
+  "save_struct": true,
+  "save_param": true,
+  "net_file": "alarm/alarm.xml",
+  "ref_net_file": "",
+  "train_set_file": "alarm/alarm_s5000",
+  "test_set_file": "alarm/testing_alarm_1k_p20_csv",
+  "pt_file": "alarm/alarm_1k_pt"
+}
