@@ -33,7 +33,14 @@ def main():
     test_set_file = config['test_set_file']
     pt_file = config['pt_file']
 
+
     if job == 0:
+        """
+        Job = structure learning
+        Method = PC-Stable
+        by default, we get a CPDAG and the graph may contain multiple independent sub-graphs. in order to get a DAG, or
+        to get one connected graph, change the corresponding arguments in `StructLearnCompData`
+        """
         if method != 0:
             print("\tError! We currently only support -a 0 for PC-Stable structure learning")
             sys.exit(1)
@@ -49,16 +56,135 @@ def main():
             ref_net_file = dpath + ref_net_file
 
         fastbn.BNSL_PCStable(verbose, num_threads, group_size, alpha,
-                             ref_net_file, dpath + train_set_file, save_param)
+                             ref_net_file, dpath + train_set_file, save_struct)
 
     elif job == 1:
-        print("Hello job 1")
+        # print("Hello")
+        """
+        Job = learning (structure learning + parameter learning)
+        Method = PC-Stable + maximum likelihood estimation
+        by default, we get a CPDAG and the graph may contain multiple independent sub-graphs. in order to get a DAG, or
+        to get one connected graph, change the corresponding arguments in `StructLearnCompData`
+        """
+        if method != 0:
+            print("\tError! We currently only support -a 0 for PC-Stable structure learning + maximum likelihood"
+                  "estimation parameter learning")
+            sys.exit(1)
+
+        print("==================================================")
+        print("Job: PC-stable + maximum likelihood estimation for learning, #threads = " + str(num_threads))
+        print("\tgroup size = " + str(group_size))
+        print("\treference BN: " + ref_net_file)
+        print("\tsample set: " + train_set_file)
+        print("==================================================")
+
+        if ref_net_file:
+            ref_net_file = dpath + ref_net_file
+
+        fastbn.BNL_PCStable(verbose, num_threads, group_size, alpha,
+                            ref_net_file, dpath + train_set_file, save_struct, save_param)
+
     elif job == 2:
-        print("Hello job 2")
+        # print("Hello")
+        """
+        Job = exact inference
+        """
+        if method == 0:
+            """
+            Method = brute force
+            brute force should only work on full evidence
+            """
+            print("==================================================")
+            print("Job: brute force for exact inference, #threads = " + str(num_threads))
+            print("\tBN: " + net_file)
+            print("\ttesting set: " + test_set_file)
+            print("\treference potential table: " + pt_file)
+            print("==================================================")
+
+            print("Brute force for exact inference is under development")
+            sys.exit(1)
+
+        elif method == 1:
+            """
+            Method = junction tree
+            """
+            print("==================================================")
+            print("Job: junction tree for exact inference, #threads = " + str(num_threads))
+            print("\tBN: " + net_file)
+            print("\ttesting set: " + test_set_file)
+            print("\treference potential table: " + pt_file)
+            print("==================================================")
+
+            if pt_file:
+                pt_file = dpath + pt_file
+
+            fastbn.BNEI_JT(verbose, num_threads,
+                           dpath + net_file, dpath + test_set_file, pt_file)
+
+        elif method == 2:
+            """
+            Method = variable elimination
+            """
+            print("==================================================")
+            print("Job: variable elimination for exact inference, #threads = " + str(num_threads))
+            print("\tBN: " + net_file)
+            print("\ttesting set: " + test_set_file)
+            print("\treference potential table: " + pt_file)
+            print("==================================================")
+
+            print("Variable elimination for exact inference is under development")
+            sys.exit(1)
+
+        else:
+            print("\tError! For exact inference, we currently support -m 0 brute force, -m 1 junction tree "
+                  "and -m 2 variable elimination.")
+            sys.exit(1)
+
     elif job == 3:
-        print("Hello job 3")
+        # print("Hello")
+        """
+        Job =  approximate inference
+        """
+        if method == 0:
+            """
+            Method =  probabilistic logic sampling
+            """
+            print("==================================================")
+            print("probabilistic logic sampling for approximate inference, #threads = " + str(num_threads))
+            print("\t#samples: " + str(num_samples))
+            print("\tBN: " + net_file)
+            print("\ttesting set: " + test_set_file)
+            print("\treference potential table: " + pt_file)
+            print("==================================================")
+
+            print("Probabilistic logic sampling for approximate inference is under development")
+            sys.exit(1)
+
     elif job == 4:
-        print("Hello job 4")
+        # print("Hello")
+        """
+        Job = classification
+        """
+        if method == 1:
+            """
+            Method = PC-Stable + maximum likelihood estimation + junction tree
+            """
+            print("==================================================")
+            print("PC-stable + maximum likelihood estimation + junction tree for classification, #threads = "
+                  + str(num_threads))
+            print("\tgroup size = " + str(group_size))
+            print("\treference BN: " + ref_net_file)
+            print("\ttraining set: " + train_set_file)
+            print("\ttesting set: " + test_set_file)
+            print("==================================================")
+
+            if ref_net_file:
+                ref_net_file = dpath + ref_net_file
+
+            fastbn.C_PCStable_JT(verbose, num_threads, group_size, alpha,
+                                 ref_net_file, dpath + train_set_file, dpath + test_set_file,
+                                 save_struct, save_param)
+
     else:
         print("Hello")
 

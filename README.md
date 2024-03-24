@@ -68,8 +68,9 @@ Please use the following command line options when running the executable file:
     ```
     -j 0 -m 0: structure learning using PC-Stable; 
     -j 1 -m 0: learning using PC-Stable;
-    -j 2 -m 0: exact inference using junction tree (JT);
-    -j 2 -m 1: exact inference using variable elimination (VE);
+    -j 2 -m 0: exact inference using brute force;
+    -j 2 -m 1: exact inference using junction tree (JT);
+    -j 2 -m 2: exact inference using variable elimination (VE);
     -j 3 -m 0: approximate inference using loopy belief propagation (LBP);
     -j 3 -m 1: approximate inference using probabilistic logic sampling (PLS);
     -j 3 -m 2: approximate inference using likelihood weighting (LW);

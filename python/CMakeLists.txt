@@ -15,7 +15,10 @@ include_directories(${FASTBN_DIR}/lib/gcem/include)
 
 add_subdirectory(pybind11)
 file(GLOB_RECURSE FASTBN_SRC ${FASTBN_DIR}/src/fastbn/*.cpp)
-pybind11_add_module(cmake_example api_main.cpp ${FASTBN_SRC})
+pybind11_add_module(cmake_example api_main.cpp
+        ${FASTBN_SRC} ${FASTBN_DIR}/lib/tinyxml2/tinyxml2.cpp)
+
+#target_link_libraries(cmake_example PRIVATE tinyxml2)
 
 # EXAMPLE_VERSION_INFO is defined by setup.py and passed into the C++ code as a
 # define (VERSION_INFO) here.

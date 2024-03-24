@@ -9,4 +9,7 @@ namespace py = pybind11;
 PYBIND11_MODULE(cmake_example, m) {
 
     m.def("BNSL_PCStable", &BNSL_PCStable);
+    m.def("BNL_PCStable", &BNL_PCStable);
+    m.def("BNEI_JT", &BNEI_JT);
+    m.def("C_PCStable_JT", &C_PCStable_JT);
 }

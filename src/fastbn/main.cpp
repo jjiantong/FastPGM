@@ -54,28 +54,6 @@ int main(int argc, char** argv) {
         BNSL_PCStable(param.verbose, param.num_threads, param.group_size,
                       param.alpha, ref_file, dpath + param.train_set_file,
                       param.save_struct);
-
-//        Dataset *trainer = new Dataset(); // todo: decide whether the dataset is in libsvm format or in csv format
-//        trainer->LoadCSVTrainingData(dpath + param.train_set_file, true, true, 0);
-//
-//        Network *network = new Network(true);
-//        StructureLearning *bnsl = new PCStable(network, param.alpha);
-//        bnsl->StructLearnCompData(trainer, param.group_size, param.num_threads,false, false,
-//                                  param.save_struct, dpath + param.train_set_file + "_struct", param.verbose);
-//        SAFE_DELETE(trainer);
-//
-//        if (!param.ref_net_file.empty()) {
-//            CustomNetwork *ref_net = new CustomNetwork();
-//            ref_net->LoadBIFFile(dpath + param.ref_net_file);
-//            BNSLComparison comp(ref_net, network);
-//            int shd = comp.GetSHD();
-//            cout << "SHD = " << shd << endl;
-//            SAFE_DELETE(ref_net);
-//        } else {
-//            cout << "There is no reference BN (ground-truth) provided, comparison (showing accuracy) is skipped." << endl;
-//        }
-//
-//        SAFE_DELETE(network);
     }
 
     /**
@@ -98,32 +76,14 @@ int main(int argc, char** argv) {
         cout << "\tsample set: " << param.train_set_file << endl;
         cout << "==================================================" << endl;
 
-        Dataset *trainer = new Dataset(); // todo: decide whether the dataset is in libsvm format or in csv format
-        trainer->LoadCSVTrainingData(dpath + param.train_set_file, true, true, 0);
-
-        Network *network = new Network(true);
-        StructureLearning *bnsl = new PCStable(network, param.alpha);
-        bnsl->StructLearnCompData(trainer, param.group_size, param.num_threads,false, false,
-                                  param.save_struct, dpath + param.train_set_file + "_struct", param.verbose);
-
+        string ref_file = "";
         if (!param.ref_net_file.empty()) {
-            CustomNetwork *ref_net = new CustomNetwork();
-            ref_net->LoadBIFFile(dpath + param.ref_net_file);
-            BNSLComparison comp(ref_net, network);
-            int shd = comp.GetSHD();
-            cout << "SHD = " << shd << endl;
-            SAFE_DELETE(ref_net);
-        } else {
-            cout << "There is no reference BN (ground-truth) provided, so BN comparison (showing accuracy) is skipped."
-                    " You can provide the reference BN via -f1." << endl;
+            ref_file = dpath + param.ref_net_file;
         }
 
-        ParameterLearning *bnpl = new ParameterLearning(network);
-        bnpl->LearnParamsKnowStructCompData(trainer, 1, param.save_param,
-                                            dpath + param.train_set_file + "_param", param.verbose);
-
-        SAFE_DELETE(trainer);
-        SAFE_DELETE(network);
+        BNL_PCStable(param.verbose, param.num_threads, param.group_size,
+                      param.alpha, ref_file, dpath + param.train_set_file,
+                      param.save_struct, param.save_param);
     }
 
     /**
@@ -157,30 +117,19 @@ int main(int argc, char** argv) {
             cout << "\treference potential table: " << param.pt_file << endl;
             cout << "==================================================" << endl;
 
-            CustomNetwork *network = new CustomNetwork(true);
-            // todo: network file format
-            network->LoadXMLBIFFile(dpath + param.net_file, 1);
-
-            Dataset *tester = new Dataset(network);
-            // todo: dataset file format
-            tester->LoadCSVTestingData(dpath + param.test_set_file, true, true, 0);
-
-            Inference *inference = new JunctionTree(0, network, tester);
-            SAFE_DELETE(tester);
-
-            string file = "";
+            string pt = "";
             if (!param.pt_file.empty()) {
-                file = dpath + param.pt_file;
+                pt = dpath + param.pt_file;
             }
-            double accuracy = inference->EvaluateAccuracy(file, param.num_threads);
-            SAFE_DELETE(inference);
-            SAFE_DELETE(network);
+
+            BNEI_JT(param.verbose, param.num_threads,
+                    dpath + param.net_file, dpath + param.test_set_file, pt);
         }
 
         /**
          * Method = variable elimination
          */
-        else if (param.method == 0) {
+        else if (param.method == 2) {
             cout << "==================================================" << endl;
             cout << "Job: variable elimination for exact inference, #threads = " << param.num_threads << endl;
             cout << "\tBN: " << param.net_file << endl;
@@ -238,44 +187,14 @@ int main(int argc, char** argv) {
             cout << "==================================================" << endl;
             // todo: classification can also compare probability table, we can add param.pt_file
 
-            Dataset *trainer = new Dataset(); // todo: decide whether the dataset is in libsvm format or in csv format
-            trainer->LoadCSVTrainingData(dpath + param.train_set_file, true, true, 0);
-
-            Dataset *tester = new Dataset(trainer);
-            tester->LoadCSVTestingData(dpath + param.test_set_file, true, true, 0);
-
-            Network *network = new Network(true);
-            StructureLearning *bnsl = new PCStable(network, param.alpha);
-            bnsl->StructLearnCompData(trainer, param.group_size, param.num_threads,true, true,
-                                      param.save_struct, dpath + param.train_set_file + "_struct", param.verbose);
-
+            string ref_file = "";
             if (!param.ref_net_file.empty()) {
-                CustomNetwork *ref_net = new CustomNetwork();
-                ref_net->LoadBIFFile(dpath + param.ref_net_file);
-                BNSLComparison comp(ref_net, network);
-                int shd = comp.GetSHD();
-                cout << "SHD = " << shd << endl;
-                SAFE_DELETE(ref_net);
-            } else {
-                cout << "There is no reference BN (ground-truth) provided, so BN comparison (showing accuracy) is skipped."
-                        " You can provide the reference BN via -f1." << endl;
+                ref_file = dpath + param.ref_net_file;
             }
 
-            ParameterLearning *bnpl = new ParameterLearning(network);
-            bnpl->LearnParamsKnowStructCompData(trainer, 1, param.save_param,
-                                                dpath + param.train_set_file + "_param", param.verbose);
-            SAFE_DELETE(trainer);
-
-            Inference *inference = new JunctionTree(1, network, tester);
-            SAFE_DELETE(tester);
-
-            double accuracy = inference->EvaluateAccuracy("", param.num_threads);
-            cout << "accuracy = " << accuracy << endl;
-            SAFE_DELETE(inference);
-            SAFE_DELETE(bnsl);
-            SAFE_DELETE(bnpl);
-
-//            SAFE_DELETE(network);
+            C_PCStable_JT(param.verbose, param.num_threads, param.group_size, param.alpha,
+                          ref_file, dpath + param.train_set_file, dpath + param.test_set_file,
+                          param.save_struct, param.save_param);
         }
     }
 
