@@ -31,4 +31,5 @@ Parameters
 ==========
 
 The default FastBN parameters are in ``FastBN/python/config.json``. You can easily change it to specify the job, method
-and corresponding parameters before running FastBN. See FastBN Parameters for more information.
+and corresponding parameters before running FastBN. See FastBN
+`parameters <https://fastbn.readthedocs.io/en/latest/param_toc.html>`__ for more information.

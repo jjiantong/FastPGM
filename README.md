@@ -1,6 +1,9 @@
 # FastBN: Fast Parallel Bayesian Network Learning and Inference
 
-**Documentation** | **Parameters** | **Knowledge base** | **Python interface**
+[**Documentation**](https://fastbn.readthedocs.io/en/latest/index.html#) 
+| [**Parameters**](https://fastbn.readthedocs.io/en/latest/param_toc.html) 
+| **Knowledge base** 
+| [**Python interface**](https://fastbn.readthedocs.io/en/latest/python_toc.html)
 
 **FastBN** is an open-source C++ library that aims to help practitioners easily and efficiently 
 apply Bayesian Network (BN) models to solve real-world problems. FastBN exploits multi-core CPUs 
@@ -13,7 +16,6 @@ probabilistic logic sampling, likelihood weighting, self-importance sampling, AI
 and inference.
 - Support Python interfaces.
 - Support BN sample generation, dataset and network format convertor, etc.
-
 
 
 ## Installation
@@ -50,7 +52,8 @@ Run FastBN through executable.
 ```
 By default settings, FastBN will run the structure learning job using the PC-Stable method with one
 thread (the sequential version) on 5000 samples generating from the ALARM BN. Command line options
-can be used to specify the job, method and corresponding parameters, see **Parameters**.
+can be used to specify the job, method and corresponding parameters, see 
+[**Parameters**]((https://fastbn.readthedocs.io/en/latest/param_toc.html)).
 
 
 ## Citation

@@ -23,7 +23,8 @@ Run FastBN through executable.
 By default settings, FastBN will run the structure learning job via the PC-Stable method with one thread (the sequential
 version) on 5000 samples generating from the ALARM BN. After successful running, you will see key information during
 the structure learning procedure and the learned structure will be saved in ``FastBN/dataset/alarm``. Command line
-options can be used to specify the job, method and corresponding parameters, please see parameters.
+options can be used to specify the job, method and corresponding parameters, please see
+`parameters <https://fastbn.readthedocs.io/en/latest/param_toc.html>`__.
 
 Supported Jobs and Methods
 ==========================
