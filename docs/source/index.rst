@@ -31,10 +31,18 @@ FastBN are as follows:
    param_toc
    python_toc
 
+.. toctree::
+   :name: Knowledge Base
+   :caption: Knowledge Base
+   :maxdepth: 1
 
-Indices and tables
-==================
+   basic_toc
+   faq_toc
 
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
+
+.. Indices and tables
+.. ==================
+..
+.. * :ref:`genindex`
+.. * :ref:`modindex`
+.. * :ref:`search`
