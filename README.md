@@ -2,7 +2,7 @@
 
 [**Documentation**](https://fastbn.readthedocs.io/en/latest/index.html#) 
 | [**Parameters**](https://fastbn.readthedocs.io/en/latest/param_toc.html) 
-| **Knowledge base** 
+| [**Knowledge base**](https://fastbn.readthedocs.io/en/latest/basic_toc.html)
 | [**Python interface**](https://fastbn.readthedocs.io/en/latest/python_toc.html)
 
 **FastBN** is an open-source C++ library that aims to help practitioners easily and efficiently 
