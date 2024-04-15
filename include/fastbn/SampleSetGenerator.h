@@ -5,6 +5,8 @@
 #ifndef BAYESIANNETWORK_SAMPLESETGENERATOR_H
 #define BAYESIANNETWORK_SAMPLESETGENERATOR_H
 
+#include <iostream>
+#include <fstream>
 #include "Network.h"
 #include "PotentialTableBase.h"
 
@@ -18,14 +20,17 @@ public:
     Network *network;
     vector<vector<int>> samples;
     int num_samples;
+    int class_var;
 
     /**
      * conditional probability tables of all the nodes in BN
      */
     vector<PotentialTableBase> cpts;
 
-    SampleSetGenerator(Network *net, int num_samples);
+    SampleSetGenerator(Network *net, int num_samples, int class_var);
     void GenerateSamplesBasedOnCPTs();
+    void OutputLIBSVM(string out_file_path);
+    void OutputCSV(string out_file_path, int remove);
 };
 
 #endif //BAYESIANNETWORK_SAMPLESETGENERATOR_H

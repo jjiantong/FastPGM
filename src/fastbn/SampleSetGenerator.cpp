@@ -3,7 +3,8 @@
 //
 #include "fastbn/SampleSetGenerator.h"
 
-SampleSetGenerator::SampleSetGenerator(Network *net, int num_samples): network(net), num_samples(num_samples) {
+SampleSetGenerator::SampleSetGenerator(Network *net, int num_samples, int class_var):
+                                       network(net), num_samples(num_samples), class_var(class_var) {
     int num_nodes = network->num_nodes;
     cpts.resize(num_nodes);
 
@@ -14,8 +15,7 @@ SampleSetGenerator::SampleSetGenerator(Network *net, int num_samples): network(n
 }
 
 /**
- * @brief: generate samples and output using LIBSVM format
- * variable 0 is query variable by default
+ * @brief: generate samples
  */
 void SampleSetGenerator::GenerateSamplesBasedOnCPTs() {
     /**
@@ -42,15 +42,42 @@ void SampleSetGenerator::GenerateSamplesBasedOnCPTs() {
             samples[i][index] = this_distribution(rand_gen); // get the final value
         }
     }
+}
 
-    /**
-     * output the results
-     */
-    for (int i = 0; i < num_samples; ++i) {
-        cout << samples[i][0] << " ";
-        for (int j = 1; j < network->num_nodes - 1; ++j) {
-            cout << j << ":" << samples[i][j] << " ";
-        }
-        cout << network->num_nodes - 1 << ":" << samples[i][network->num_nodes - 1] << endl;
+/**
+ * @brief: output in LIBSVM format
+ * Sample set in LIBSVM format must be a complete dataset.
+ * If requiring a output file in CSV format, also
+ */
+void SampleSetGenerator::OutputLIBSVM(string out_file_path) {
+    ofstream out_file(out_file_path);
+    if (!out_file.is_open()) {
+        fprintf(stderr, "Error in function %s!", __FUNCTION__);
+        fprintf(stderr, "Unable to open file %s!", out_file_path.c_str());
+        exit(1);
     }
+
+    for (int i = 0; i < num_samples; ++i) {
+        string sample;
+
+        // label
+        sample = to_string(samples[i][class_var]) + " ";
+
+        // features
+        for (int j = 0; j < network->num_nodes; ++j) {
+            if (j != class_var) {
+                int var = samples[i][j];
+                if (var != 0) {
+                    sample += to_string(j) + ":" + to_string(var) + " ";
+                }
+            }
+        }
+        out_file << sample << endl;
+    }
+
+    cout << "Finish generating sample set with csv format. "
+         << "Number of samples: " << num_samples << ". "
+         << "Class variable id: " << class_var << "." << endl;
+
+    out_file.close();
 }

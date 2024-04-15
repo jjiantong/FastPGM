@@ -17,7 +17,6 @@
 using namespace std;
 
 int main(int argc, char** argv) {
-    cout << "Hello world." << endl;
 
     Parameter param; // initialize parameters with default settings
     param.ParseParameters(argc, argv);
