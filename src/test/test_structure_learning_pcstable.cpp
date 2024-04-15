@@ -22,7 +22,7 @@
 //        trainer = new Dataset();
 //
 //        string train_set_file = dataset_path + "alarm/alarm_s5000";
-//        trainer->LoadCSVTrainingData(train_set_file, true, true, 0);
+//        trainer->LoadCSVTrainingData(train_set_file, true, 0);
 //
 //        network = new Network(true);
 //        bnsl = new PCStable(network, ALPHA);
@@ -120,7 +120,7 @@
 ////        trainer = new Dataset();
 ////
 ////        string train_set_file = dataset_path + "insurance/insurance_s5000.txt";
-////        trainer->LoadCSVTrainingData(train_set_file, true, true, 0);
+////        trainer->LoadCSVTrainingData(train_set_file, true, 0);
 ////
 ////        network = new Network(true);
 ////        bnsl = new PCStable(network, ALPHA);
@@ -214,7 +214,7 @@
 ////    void SetUp() override {
 ////        trainer = new Dataset();
 ////        string train_set_file = dataset_path + "hepar2/hepar2_s5000.txt";
-////        trainer->LoadCSVTrainingData(train_set_file, true, true, 0);
+////        trainer->LoadCSVTrainingData(train_set_file, true, 0);
 ////
 ////        network = new Network(true);
 ////        bnsl = new PCStable(network, ALPHA);
@@ -307,7 +307,7 @@
 ////    void SetUp() override {
 ////        trainer = new Dataset();
 ////        string train_set_file = dataset_path + "hepar2/hepar2_s5000.txt";
-////        trainer->LoadCSVTrainingData(train_set_file, true, true, 0);
+////        trainer->LoadCSVTrainingData(train_set_file, true, 0);
 ////
 ////        network = new Network(true);
 ////        bnsl = new PCStable(network, ALPHA);

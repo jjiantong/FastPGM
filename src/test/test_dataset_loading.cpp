@@ -21,7 +21,7 @@
 //
 //TEST_F(TestCSVTrainingLoading, alarm) {
 //    string train_set_file = dataset_path + "alarm/alarm_s5000.txt";
-//    trainer->LoadCSVTrainingData(train_set_file, true, true, 0);
+//    trainer->LoadCSVTrainingData(train_set_file, true, 0);
 //
 //    cout << "num_instance = " << trainer->num_instance << endl;
 //    cout << "num_vars = " << trainer->num_vars << endl;

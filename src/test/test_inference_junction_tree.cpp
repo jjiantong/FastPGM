@@ -30,7 +30,7 @@
 ////        tester->LoadLIBSVMTestingData(test_set_file, 0);
 //
 //        string test_set_file = dataset_path + "alarm/testing_alarm_1k_p20_csv";
-//        tester->LoadCSVTestingData(test_set_file, true, true, 0);
+//        tester->LoadCSVTestingData(test_set_file, true, 0);
 //
 //        inference = new JunctionTree(0, network, tester);
 ////        SAFE_DELETE(network);

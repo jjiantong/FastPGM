@@ -8,7 +8,7 @@ void BNSL_PCStable(int verbose, int n_threads, int group_size,
                    bool save_struct) {
 
     Dataset *trainer = new Dataset(); // todo: decide whether the dataset is in libsvm format or in csv format
-    trainer->LoadCSVTrainingData(train_set, true, true, 0);
+    trainer->LoadCSVTrainingData(train_set, true, 0);
 
     Network *network = new Network(true);
     StructureLearning *bnsl = new PCStable(network, alpha);
@@ -36,7 +36,7 @@ void BNL_PCStable(int verbose, int n_threads, int group_size,
                   bool save_struct, bool save_param) {
 
     Dataset *trainer = new Dataset(); // todo: decide whether the dataset is in libsvm format or in csv format
-    trainer->LoadCSVTrainingData(train_set, true, true, 0);
+    trainer->LoadCSVTrainingData(train_set, true, 0);
 
     Network *network = new Network(true);
     StructureLearning *bnsl = new PCStable(network, alpha);
@@ -71,7 +71,7 @@ void BNEI_JT(int verbose, int n_threads,
 
     Dataset *tester = new Dataset(network);
     // todo: dataset file format
-    tester->LoadCSVTestingData(test_set, true, true, 0);
+    tester->LoadCSVTestingData(test_set, true, 0);
 
     Inference *inference = new JunctionTree(0, network, tester);
     SAFE_DELETE(tester);
@@ -86,10 +86,10 @@ void C_PCStable_JT(int verbose, int n_threads, int group_size, double alpha,
                    bool save_struct, bool save_param) {
 
     Dataset *trainer = new Dataset(); // todo: decide whether the dataset is in libsvm format or in csv format
-    trainer->LoadCSVTrainingData(train_set, true, true, 0);
+    trainer->LoadCSVTrainingData(train_set, true, 0);
 
     Dataset *tester = new Dataset(trainer);
-    tester->LoadCSVTestingData(test_set, true, true, 0);
+    tester->LoadCSVTestingData(test_set, true, 0);
 
     Network *network = new Network(true);
     StructureLearning *bnsl = new PCStable(network, alpha);

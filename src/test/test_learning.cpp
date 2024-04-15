@@ -38,7 +38,7 @@
 //    int verbose  = VERBOSE;
 //
 //    string train_set_file = dataset_path + "alarm/alarm_s5000";
-//    trainer->LoadCSVTrainingData(train_set_file, true, true, 0);
+//    trainer->LoadCSVTrainingData(train_set_file, true, 0);
 //
 //    bnsl->StructLearnCompData(trainer, group_size, num_threads, true, true, false, "", verbose);
 //

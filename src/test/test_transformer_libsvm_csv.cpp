@@ -37,7 +37,7 @@
 //
 //TEST_F(TestLibsvmToCSV, alarm) {
 //    string csv_file = dataset_path + "alarm/testing_alarm_1k_p20_csv.txt";
-//    tester->StoreCSVData(csv_file, true, true);
+//    tester->StoreCSVData(csv_file, true);
 //    SAFE_DELETE(tester);
 //}
 //
@@ -48,11 +48,11 @@
 ////    void SetUp() override {
 ////        trainer = new Dataset();
 ////        string train_set_file = dataset_path + "alarm/alarm_s5000.txt";
-////        trainer->LoadCSVTrainingData(train_set_file, true, true, 0);
+////        trainer->LoadCSVTrainingData(train_set_file, true, 0);
 ////
 ////        tester = new Dataset(trainer);
 ////        string test_set_file = dataset_path + "alarm/alarm_s5000.txt";
-////        tester->LoadCSVTestingData(test_set_file, true, true, 0);
+////        tester->LoadCSVTestingData(test_set_file, true, 0);
 ////    }
 ////
 ////    Dataset *trainer;

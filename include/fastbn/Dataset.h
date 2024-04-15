@@ -53,8 +53,9 @@ public:
 //    void SamplesToLIBSVMFile(vector<DiscreteConfig> &samples, string &file) const;
 //    void SamplesToLIBSVMFile(vector<Configuration> &samples, string &file) const;
 
-    void LoadCSVTrainingData(string data_file_path, bool header=true, bool str_val=true, int cls_var_id=-1, set<int> cont_vars={});
-    void LoadCSVTestingData(string data_file_path, bool header=true, bool str_val=true, int cls_var_id=-1, set<int> cont_vars={});
+    void LoadCSVTrainingData(string data_file_path, bool str_val=true, int cls_var_id=-1, set<int> cont_vars={});
+    void LoadCSVTestingData(string data_file_path, bool str_val=true, int cls_var_id=-1, set<int> cont_vars={});
+    // todo: if using, remove header
 //    void SamplesToCSVFile(vector<DiscreteConfig> &samples, string &file, vector<string> header={}) const;
 //    void SamplesToCSVFile(vector<Configuration> &samples, string &file, vector<string> header={}) const;
 
@@ -64,7 +65,7 @@ public:
      * csv:     the data can be complete or incomplete. use `vector_dataset_all_vars` to store.
      */
     void StoreLIBSVMData(string data_file_path, string data_file_path2, set<int> cont_vars={});
-    void StoreCSVData(string data_file_path, bool header=true, bool str_val=true, set<int> cont_vars={});
+    void StoreCSVData(string data_file_path, bool str_val=true, set<int> cont_vars={});
 
 
     void Vector2IntArray();

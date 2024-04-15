@@ -386,8 +386,7 @@ void Dataset::StoreLIBSVMData(string data_file_path, string data_file_path2, set
  * @brief: load data file with csv format (complete dataset), used for loading training datasets.
  * TODO: currently only support complete training data (i.e. no missing value)
  */
-void Dataset::LoadCSVTrainingData(string data_file_path, bool header, bool str_val, int cls_var_id,
-                                  set<int> cont_vars) {
+void Dataset::LoadCSVTrainingData(string data_file_path, bool str_val, int cls_var_id, set<int> cont_vars) {
 
     ifstream in_file;
     in_file.open(data_file_path);
@@ -410,23 +409,22 @@ void Dataset::LoadCSVTrainingData(string data_file_path, bool header, bool str_v
     num_vars = count(sample.begin(), sample.end(), ',') + 1;
     num_of_possible_values_of_disc_vars.reserve(num_vars);
 
-    if (header) { // the first line contains variable names, it is like the table header
-        // If there is a whitespace at the end of each line,
-        // it will cause a bug if we do not trim it.
-        sample = TrimRight(sample);
-        vector<string> parsed_variable = Split(sample, ",");
+    // the first line contains variable names, it is like the table header
+    // If there is a whitespace at the end of each line,
+    // it will cause a bug if we do not trim it.
+    sample = TrimRight(sample);
+    vector<string> parsed_variable = Split(sample, ",");
 
-        vec_var_names = parsed_variable;
-        set<string> temp;
-        temp.insert(parsed_variable.begin(), parsed_variable.end());
-        // check whether there are duplicate variable names
-        if (temp.size() != parsed_variable.size()) {
-            fprintf(stderr, "Error in function [%s]\nDuplicate variable names in header!", __FUNCTION__);
-            exit(1);
-        }
-
-        getline(in_file, sample);
+    vec_var_names = parsed_variable;
+    set<string> temp;
+    temp.insert(parsed_variable.begin(), parsed_variable.end());
+    // check whether there are duplicate variable names
+    if (temp.size() != parsed_variable.size()) {
+        fprintf(stderr, "Error in function [%s]\nDuplicate variable names in header!", __FUNCTION__);
+        exit(1);
     }
+
+    getline(in_file, sample);
 
     /**
      * 2, read the data file and store with the representation of std::vector.
@@ -510,7 +508,7 @@ void Dataset::LoadCSVTrainingData(string data_file_path, bool header, bool str_v
  * values and indexes for the variables. they should be obtained from either the training dataset or a network file.
  * we also assume that the variable ordering in the csv file is correct.
  */
-void Dataset::LoadCSVTestingData(string data_file_path, bool header, bool str_val, int cls_var_id,
+void Dataset::LoadCSVTestingData(string data_file_path, bool str_val, int cls_var_id,
                                  set<int> cont_vars) {
     if (str_val == true && vars_possible_values_ids.empty()) {
         cout << "vars_possible_values_ids is required when loading testing sets." << endl;
@@ -532,13 +530,12 @@ void Dataset::LoadCSVTestingData(string data_file_path, bool header, bool str_va
 
     /**
      * 1, read and parse the first line
-     * if the first line is the header, do nothing, just getting the next line. because we have parse the header when
+     * the first line is the header, do nothing, just getting the next line. because we have parse the header when
      * loading training data.
      */
     getline(in_file, sample);
-    if (header) { // the first line contains variable names, it is like the table header
-        getline(in_file, sample);
-    }
+
+    getline(in_file, sample);
 
     /**
      * 2, read the data file and store with the representation of std::vector.
@@ -614,7 +611,7 @@ void Dataset::LoadCSVTestingData(string data_file_path, bool header, bool str_va
  * here we use `vector_dataset_all_vars`. so whether the generated csv dataset is complete or incomplete depends on
  * whether `vector_dataset_all_vars` contains all variables or part of the variables.
  */
-void Dataset::StoreCSVData(string data_file_path, bool header, bool str_val, set<int> cont_vars) {
+void Dataset::StoreCSVData(string data_file_path, bool str_val, set<int> cont_vars) {
     if (vec_var_names.empty() || (str_val == true && vars_possible_values_ids.empty())) {
         cout << "vec_var_names and vars_possible_values_ids are required for the transformation." << endl;
         exit(1);
@@ -635,14 +632,13 @@ void Dataset::StoreCSVData(string data_file_path, bool header, bool str_val, set
      /**
      * 1, write the first line
      */
-    if (header) { // the first line contains variable names, it is like the table header
-        string names;
-        for (int i = 0; i < num_vars; ++i) {
-            names += vec_var_names[i] + ",";
-        }
-        names.pop_back();
-        out_file << names << endl;
+    // the first line contains variable names, it is like the table header
+    string names;
+    for (int i = 0; i < num_vars; ++i) {
+        names += vec_var_names[i] + ",";
     }
+    names.pop_back();
+    out_file << names << endl;
 
     /**
      * 2, write all the samples
