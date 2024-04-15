@@ -47,7 +47,7 @@ void SampleSetGenerator::GenerateSamplesBasedOnCPTs() {
 /**
  * @brief: output in LIBSVM format
  * Sample set in LIBSVM format must be a complete dataset.
- * If requiring a output file in CSV format, also
+ * This is also a preliminary step in generating a sample set in CSV format.
  */
 void SampleSetGenerator::OutputLIBSVM(string out_file_path) {
     ofstream out_file(out_file_path);
@@ -75,7 +75,7 @@ void SampleSetGenerator::OutputLIBSVM(string out_file_path) {
         out_file << sample << endl;
     }
 
-    cout << "Finish generating sample set with csv format. "
+    cout << "Finish generating sample set with libsvm format. "
          << "Number of samples: " << num_samples << ". "
          << "Class variable id: " << class_var << "." << endl;
 

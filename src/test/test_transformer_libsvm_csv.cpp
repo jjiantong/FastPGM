@@ -17,28 +17,28 @@
 //    void SetUp() override {
 //        CustomNetwork *network = new CustomNetwork(true);
 //        string net_file = dataset_path + "alarm/alarm.xml";
-//        network->LoadXMLBIFFile(net_file, 1);
+//        network->LoadXMLBIFFile(net_file, ALPHA) ;
 //
 //        // if the wrong old libsvm format is used, we need to do the changes in `LoadLIBSVMTestingData`.
-//        tester = new Dataset(network);
+//        dts = new Dataset(network);
 //        string test_set_file = dataset_path + "alarm/testing_alarm_1k_p20";
-//        tester->LoadLIBSVMTestingData(test_set_file, 0);
+//        dts->LoadLIBSVMTestingData(test_set_file, 0);
 //
 //        // for `vec_var_names`.
-//        tester->vec_var_names.resize(tester->num_vars);
-//        for (int i = 0; i < tester->num_vars; ++i) {
+//        dts->vec_var_names.resize(dts->num_vars);
+//        for (int i = 0; i < dts->num_vars; ++i) {
 //            Node *node = network->FindNodePtrByIndex(i);
-//            tester->vec_var_names[i] = node->node_name;
+//            dts->vec_var_names[i] = node->node_name;
 //        }
 //    }
 //
-//    Dataset *tester;
+//    Dataset *dts;
 //};
 //
 //TEST_F(TestLibsvmToCSV, alarm) {
 //    string csv_file = dataset_path + "alarm/testing_alarm_1k_p20_csv.txt";
-//    tester->StoreCSVData(csv_file, true);
-//    SAFE_DELETE(tester);
+//    dts->StoreCSVData(csv_file, true);
+//    SAFE_DELETE(dts);
 //}
 //
 //
