@@ -53,11 +53,13 @@ Global Parameters
 +           +-----------+---------------------------------------------------------------+
 |           | ``-m 6``  | classification using PC-Stable & MLE & EPIS-BN                |
 +-----------+-----------+---------------------------------------------------------------+
-| ``-j 5``  | ``-m 0``  | BN sample generator                                           |
+| ``-j 5``  | ``-m 0``  | BN sample generator (LibSVM format)                           |
 +           +-----------+---------------------------------------------------------------+
-|           | ``-m 1``  | dataset format convertor from CSV to LibSVM                   |
+|           | ``-m 1``  | BN sample generator (CSV format)                              |
 +           +-----------+---------------------------------------------------------------+
-|           | ``-m 2``  | dataset format convertor from LibSVM to CSV                   |
+|           | ``-m 2``  | dataset format convertor from CSV to LibSVM                   |
++           +-----------+---------------------------------------------------------------+
+|           | ``-m 3``  | dataset format convertor from LibSVM to CSV                   |
 +-----------+-----------+---------------------------------------------------------------+
 
 Note:
@@ -84,7 +86,7 @@ For the tasks that include structure learning, the following parameters can be s
 Parameters Related to Parameter Learning
 ========================================
 
-For the tasks that include structure learning, you can use ``-sp`` to specify whether to save the learned BN parameters
+For the tasks that include parameter learning, you can use ``-sp`` to specify whether to save the learned BN parameters
 or not (default 1).
 
 
@@ -99,13 +101,22 @@ For the tasks that include structure learning, the following parameters can be s
 * ``-d``: propagation length, used in LBP and EPIS-BN (default 2)
 
 
+Parameters Related to Other Functionalities
+===========================================
+
+For other functionalities realted to BN, the following parameters can be specified through command line options.
+
+* ``-q``: number of samples to generate, used in sample generator (default 10,000)
+* ``-c``: class variable id (default 0)
+
+
 Parameters for Files
 ====================
 
 The files of datasets and networks can be provided via command line options. Please put all the files in
 ``FastBN/dataset`` and provide the relative path.
 
-* ``-f0``: the BN that inference operates on (default ``alarm/alarm.xml``)
+* ``-f0``: the BN that inference operates on or that the samples generated from (default ``alarm/alarm.xml``)
 * ``-f1``: the reference BN that serves as the ground truth of structure learning (default ``alarm/alarm.bif``)
 * ``-f2``: training set, used in structure learning, learning, or classification (default ``alarm/alarm_s5000``)
 * ``-f3``: testing set, used in inference or classification (default ``alarm/testing_alarm_1k_p20``)

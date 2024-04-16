@@ -12,6 +12,7 @@
 #include "fastbn/structure_learning/BNSLComparison.h"
 #include "fastbn/Parameter.h"
 #include "fastbn/parameter_learning/ParameterLearning.h"
+#include "fastbn/SampleSetGenerator.h"
 #include "fastbn/fastbn_api/fastbn_api.h"
 
 using namespace std;
@@ -29,12 +30,14 @@ int main(int argc, char** argv) {
     /**
      * Job = structure learning
      * Method = PC-Stable
-     * by default, we get a CPDAG and the graph may contain multiple independent sub-graphs. in order to get a DAG, or
-     * to get one connected graph, change the corresponding arguments in `StructLearnCompData`
+     * by default, we get a CPDAG and the graph may contain multiple independent sub-graphs. in
+     * order to get a DAG, or to get one connected graph, change the corresponding arguments in
+     * `StructLearnCompData`
      */
     if (param.job == 0) {
         if (param.method != 0) {
-                cout << "\tError! We currently only support -a 0 for PC-Stable structure learning" << endl;
+                cout << "\tError! We currently only support -a 0 for PC-Stable structure learning"
+                     << endl;
                 exit(0);
         }
 
@@ -58,18 +61,20 @@ int main(int argc, char** argv) {
     /**
      * Job = learning (structure learning + parameter learning)
      * Method = PC-Stable + maximum likelihood estimation
-     * by default, we get a CPDAG and the graph may contain multiple independent sub-graphs. in order to get a DAG, or
-     * to get one connected graph, change the corresponding arguments in `StructLearnCompData`
+     * by default, we get a CPDAG and the graph may contain multiple independent sub-graphs. in
+     * order to get a DAG, or to get one connected graph, change the corresponding arguments in
+     * `StructLearnCompData`
      */
     else if (param.job == 1) {
         if (param.method != 0) {
-            cout << "\tError! We currently only support -a 0 for PC-Stable structure learning + maximum likelihood "
-                    "estimation parameter learning" << endl;
+            cout << "\tError! We currently only support -a 0 for PC-Stable structure learning + "
+                    "maximum likelihood estimation parameter learning" << endl;
             exit(1);
         }
 
         cout << "==================================================" << endl;
-        cout << "Job: PC-stable + maximum likelihood estimation for learning, #threads = " << param.num_threads << endl;
+        cout << "Job: PC-stable + maximum likelihood estimation for learning, #threads = "
+             << param.num_threads << endl;
         cout << "\tgroup size = " << param.group_size << endl;
         cout << "\treference BN: " << param.ref_net_file << endl;
         cout << "\tsample set: " << param.train_set_file << endl;
@@ -80,9 +85,9 @@ int main(int argc, char** argv) {
             ref_file = dpath + param.ref_net_file;
         }
 
-        BNL_PCStable(param.verbose, param.num_threads, param.group_size,
-                      param.alpha, ref_file, dpath + param.train_set_file,
-                      param.save_struct, param.save_param);
+        BNL_PCStable(param.verbose, param.num_threads, param.group_size, param.alpha,
+                     ref_file, dpath + param.train_set_file, param.save_struct,
+                     param.save_param);
     }
 
     /**
@@ -110,7 +115,8 @@ int main(int argc, char** argv) {
          */
         else if (param.method == 1) {
             cout << "==================================================" << endl;
-            cout << "Job: junction tree for exact inference, #threads = " << param.num_threads << endl;
+            cout << "Job: junction tree for exact inference, #threads = " << param.num_threads
+                 << endl;
             cout << "\tBN: " << param.net_file << endl;
             cout << "\ttesting set: " << param.test_set_file << endl;
             cout << "\treference potential table: " << param.pt_file << endl;
@@ -130,7 +136,8 @@ int main(int argc, char** argv) {
          */
         else if (param.method == 2) {
             cout << "==================================================" << endl;
-            cout << "Job: variable elimination for exact inference, #threads = " << param.num_threads << endl;
+            cout << "Job: variable elimination for exact inference, #threads = " << param.num_threads
+                 << endl;
             cout << "\tBN: " << param.net_file << endl;
             cout << "\ttesting set: " << param.test_set_file << endl;
             cout << "\treference potential table: " << param.pt_file << endl;
@@ -141,8 +148,8 @@ int main(int argc, char** argv) {
         }
 
         else {
-            cout << "\tError! For exact inference, we currently support -m 0 brute force, -m 1 junction tree and -m 2 "
-                    "variable elimination." << endl;
+            cout << "\tError! For exact inference, we currently support -m 0 brute force, -m 1 "
+                    "junction tree and -m 2 variable elimination." << endl;
             exit(1);
         }
     }
@@ -156,14 +163,16 @@ int main(int argc, char** argv) {
          */
         if (param.method == 0) {
             cout << "==================================================" << endl;
-            cout << "Job: probabilistic logic sampling for approximate inference, #threads = " << param.num_threads << endl;
+            cout << "Job: probabilistic logic sampling for approximate inference, #threads = "
+                 << param.num_threads << endl;
             cout << "\t#samples: " << param.num_samples << endl;
             cout << "\tBN: " << param.net_file << endl;
             cout << "\ttesting set: " << param.test_set_file << endl;
             cout << "\treference potential table: " << param.pt_file << endl;
             cout << "==================================================" << endl;
 
-            cout << "Probabilistic logic sampling for approximate inference is under development" << endl;
+            cout << "Probabilistic logic sampling for approximate inference is under development"
+                 << endl;
             exit(1);
         }
     }
@@ -177,8 +186,8 @@ int main(int argc, char** argv) {
          */
         if (param.method == 1) {
             cout << "==================================================" << endl;
-            cout << "Job: PC-stable + maximum likelihood estimation + junction tree for classification, #threads = "
-                 << param.num_threads << endl;
+            cout << "Job: PC-stable + maximum likelihood estimation + junction tree for "
+                    "classification, #threads = " << param.num_threads << endl;
             cout << "\tgroup size = " << param.group_size << endl;
             cout << "\treference BN: " << param.ref_net_file << endl;
             cout << "\ttraining set: " << param.train_set_file << endl;
@@ -192,8 +201,33 @@ int main(int argc, char** argv) {
             }
 
             C_PCStable_JT(param.verbose, param.num_threads, param.group_size, param.alpha,
-                          ref_file, dpath + param.train_set_file, dpath + param.test_set_file,
-                          param.save_struct, param.save_param);
+                          ref_file, dpath + param.train_set_file,
+                          dpath + param.test_set_file, param.save_struct, param.save_param);
+        }
+    }
+
+    /**
+     * Job = other functionalities related to BN
+     */
+    else if (param.job == 5) {
+        /**
+         * Generating sample set from BN, 0 for saving in LibSVM format and 1 for saving in CSV format.
+         * Both require generating a LibSVM format.
+         */
+        if (param.method == 0 || param.method == 1) {
+            cout << "==================================================" << endl;
+            cout << "Sample generator" << endl;
+            cout << "\tBN: " << param.net_file << endl;
+            cout << "\tnumber of samples: " << param.num_samples << endl;
+            cout << "\tclass variable id: " << param.class_variable << endl;
+            cout << "==================================================" << endl;
+
+            bool libsvm = true;
+            if (param.method == 1) {
+                libsvm = false;
+            }
+            Sample_Generator(param.verbose, param.num_threads, dpath + param.net_file,
+                             libsvm, param.num_samples, param.class_variable);
         }
     }
 

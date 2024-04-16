@@ -26,6 +26,8 @@ public:
     int group_size; // for PC-Stable
     double alpha; // for PC-Stable
 
+    int class_variable; // for sample generator
+
     bool save_struct; // for structure learning
     bool save_param; // for parameter learning
 
@@ -41,5 +43,3 @@ public:
     void PrintJobInfo();
     void PrintJobAndAlgInfo();
 };
-
-int add(int i, int j);

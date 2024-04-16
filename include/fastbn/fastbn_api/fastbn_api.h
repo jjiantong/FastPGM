@@ -15,9 +15,11 @@
 #include "fastbn/parameter_learning/ParameterLearning.h"
 #include "fastbn/inference/Inference.h"
 #include "fastbn/inference/JunctionTree.h"
+#include "fastbn/SampleSetGenerator.h"
 
 using namespace std;
 
+string GetLastPath(const string& path);
 void BNSL_PCStable(int verbose, int n_threads, int group_size,
                    double alpha, string ref_net, string train_set,
                    bool save_struct);
@@ -29,6 +31,9 @@ void BNEI_JT(int verbose, int n_threads,
 void C_PCStable_JT(int verbose, int n_threads, int group_size, double alpha,
                    string ref_net, string train_set, string test_set,
                    bool save_struct, bool save_param);
+void Sample_Generator(int verbose, int n_threads, string net, bool libsvm, int num_samples,
+                      int class_variable);
+
 
 
 #endif //BAYESIANNETWORK_FASTBN_API_H

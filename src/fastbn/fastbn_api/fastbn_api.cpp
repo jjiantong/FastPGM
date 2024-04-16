@@ -3,6 +3,18 @@
 //
 #include "fastbn/fastbn_api/fastbn_api.h"
 
+string GetLastPath(const string& path) {
+    size_t last_slash_pos = path.find_last_of('/');
+
+    // if path doesn't have slash, return empty string
+    if (last_slash_pos == string::npos) {
+        return "";
+    }
+
+    // remove the content after slash
+    return path.substr(0, last_slash_pos);
+}
+
 void BNSL_PCStable(int verbose, int n_threads, int group_size,
                    double alpha, string ref_net, string train_set,
                    bool save_struct) {
@@ -120,4 +132,39 @@ void C_PCStable_JT(int verbose, int n_threads, int group_size, double alpha,
     SAFE_DELETE(inference);
     SAFE_DELETE(bnsl);
     SAFE_DELETE(bnpl);
+}
+
+void Sample_Generator(int verbose, int n_threads, string net, bool libsvm, int num_samples,
+                      int class_variable) {
+
+    CustomNetwork *network = new CustomNetwork(true);
+    // todo: network file format
+    network->LoadXMLBIFFile(net, 1);
+
+    SampleSetGenerator *sample_set = new SampleSetGenerator(network, num_samples,
+                                                            class_variable);
+    sample_set->GenerateSamplesBasedOnCPTs();
+    string libsvm_path = GetLastPath(net) + "/sample_" + to_string(num_samples) + "_libsvm";
+    sample_set->OutputLIBSVM(libsvm_path);
+    SAFE_DELETE(sample_set);
+
+    if (libsvm) {
+        SAFE_DELETE(network);
+    } else {
+        // for the case of generating sample set in CSV format, we use the convertor to convert
+        // LibSVM to CSV.
+        Dataset *dts = new Dataset(network);
+        dts->LoadLIBSVMTestingData(libsvm_path, class_variable);
+
+        dts->vec_var_names.resize(dts->num_vars);
+        for (int i = 0; i < dts->num_vars; ++i) {
+            Node *node = network->FindNodePtrByIndex(i);
+            dts->vec_var_names[i] = node->node_name;
+        }
+        SAFE_DELETE(network);
+
+        string csv_path = GetLastPath(net) + "/sample_" + to_string(num_samples) + "_csv";
+        dts->StoreCSVData(csv_path, true);
+        SAFE_DELETE(dts);
+    }
 }

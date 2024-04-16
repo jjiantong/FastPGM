@@ -22,6 +22,8 @@ Parameter::Parameter() {
     group_size = 1;
     alpha = 0.05;
 
+    class_variable = 0;
+
     save_struct = true;
     save_param = true;
 
@@ -43,12 +45,13 @@ void Parameter::ParseParameters(int argc, char *argv[]) {
             case 'j': i++; job = atoi(argv[i]); break;
             case 'm': i++; method = atoi(argv[i]); break;
             case 't': i++; num_threads = atoi(argv[i]); break;
-//            case 'q': i++; num_samples = atoi(argv[i]); break;
+            case 'q': i++; num_samples = atoi(argv[i]); break;
 //            case 'u': i++; max_updating = atoi(argv[i]); break;
 //            case 'l': i++; updating_interval = atoi(argv[i]); break;
 //            case 'd': i++; propagation_length = atoi(argv[i]); break;
             case 'g': i++; group_size = atoi(argv[i]); break;
             case 'a': i++; alpha = stod(argv[i]); break;
+            case 'c': i++; class_variable = atoi(argv[i]); break;
             case 's':
                 switch (argv[i][2]) {
                     case 's': i++;
@@ -92,15 +95,16 @@ void Parameter::PrintHelpInfo() {
     cout << "-v\tSpecify verbose, 0 for silence, 1 for key information and 2 for more information, default 1" << endl;
     cout << "-j & -m\tSpecify the job & method" << endl;
     PrintJobAndAlgInfo();
-    cout << "-q\tSpecify desired number of samples, default 10,000 [sampling-based approximate inference]" << endl;
+    cout << "-q\tSpecify desired number of samples, default 10,000 [sampling-based approximate inference, sample generator]" << endl;
     cout << "-u\tSpecify maximum updating times of importance function, default 10 [learning & importance sampling-based approximate inference]" << endl;
     cout << "-l\tSpecify updating interval, default 2,500 [learning & importance sampling-based approximate inference]" << endl;
     cout << "-d\tSpecify propagation length, default 2 [LBP and EPIS-BN]" << endl;
     cout << "-g\tSpecify group size, default 1 [PC-stable]" << endl;
     cout << "-a\tSpecify significance level alpha, default 0.05 [PC-stable]" << endl;
-    cout << "-ss\tWhether to output the learned structure, 0 for no, 1 for yes, default 1 [for structure learning]" << endl;
-    cout << "-sp\tWhether to output the learned parameter, 0 for no, 1 for yes, default 1 [for parameter learning]" << endl;
-    cout << "-f0\tProvide relative path of BN file, default alarm/alarm.xml [inference]" << endl;
+    cout << "-c\tSpecify class variable id, default 0 [sample generator]" << endl;
+    cout << "-ss\tWhether to output the learned structure, 0 for no, 1 for yes, default 1 [structure learning]" << endl;
+    cout << "-sp\tWhether to output the learned parameter, 0 for no, 1 for yes, default 1 [parameter learning]" << endl;
+    cout << "-f0\tProvide relative path of BN file, default alarm/alarm.xml [inference, sample generator]" << endl;
     cout << "-f1\tProvide relative path of reference BN file, default alarm/alarm.bif [structure learning]" << endl;
     cout << "-f2\tProvide relative path of training set file, default alarm/alarm_s5000.txt [structure learning]" << endl;
     cout << "-f3\tProvide relative path of testing set file, default alarm/testing_alarm_1k_p20 [inference]" << endl;
@@ -140,8 +144,9 @@ void Parameter::PrintJobAndAlgInfo() {
     cout << "\t\t-m 8: PC-Stable + MLE + SISv1" << endl;
     cout << "\t\t-m 9: PC-Stable + AIS-BN" << endl;
 
-    cout << "\t-j 5: Generator or convertor" << endl;
-    cout << "\t\t-m 0: Generate set of samples according to input BN" << endl;
+    cout << "\t-j 5: Other functionalities related to BN" << endl;
+    cout << "\t\t-m 0: Sample generator, LibSVM format" << endl;
+    cout << "\t\t-m 1: Sample generator, CSV format" << endl;
 }
 
 void Parameter::PrintJobInfo() {
@@ -150,9 +155,5 @@ void Parameter::PrintJobInfo() {
     cout << "\t-j 2: Exact inference" << endl;
     cout << "\t-j 3: Approximate inference" << endl;
     cout << "\t-j 4: Classification" << endl;
-    cout << "\t-j 5: Generator or convertor" << endl;
-}
-
-int add(int i, int j) {
-    return i + j;
+    cout << "\t-j 5: Other functionalities related to BN" << endl;
 }
