@@ -1,14 +1,14 @@
-# FastBN: Fast Parallel Bayesian Network Learning and Inference
+# FastPGM: Fast Probabilistic Graphical Model Learning and Inference
 
 [**Documentation**](https://fastbn.readthedocs.io/en/latest/index.html#) 
 | [**Parameters**](https://fastbn.readthedocs.io/en/latest/param_toc.html) 
 | [**Knowledge base**](https://fastbn.readthedocs.io/en/latest/basic_toc.html)
 | [**Python interface**](https://fastbn.readthedocs.io/en/latest/python_toc.html)
 
-**FastBN** is an open-source C++ library that aims to help practitioners easily and efficiently 
-apply Bayesian Network (BN) models to solve real-world problems. FastBN exploits multi-core CPUs 
+**Fast-PGM** is an open-source C++ library that aims to help practitioners easily and efficiently 
+apply probabilistic graphical models (PGMs) to solve real-world problems. FastBN exploits multi-core CPUs 
 to achieve high efficiency. Key features of FastBN are as follows:
-- Wide coverage of different tasks and algorithms related to BNs, including structure learning 
+- Wide coverage of different tasks and algorithms related to PGMs, including structure learning 
 (PC-stable), parameter learning (maximum likelihood estimation), exact inference (junction tree, 
 variable elimination, brute force), and approximate inference (loopy belief propagation, 
 probabilistic logic sampling, likelihood weighting, self-importance sampling, AIS-BN, EPIS-BN).
@@ -45,12 +45,12 @@ mkdir build && cd build && cmake -DCMAKE_BUILD_TYPE=Release -DUSE_MPI=OFF .. && 
 
 ## Quick Start
 
-Run FastBN through executable.
+Run Fast-PGM through executable.
 ```
-# under the directory of FastBN/build
+# under the directory of FastPGM/build
 ./BayesianNetwork
 ```
-By default settings, FastBN will run the structure learning job using the PC-Stable method with one
+By default settings, Fast-PGM will run the structure learning job using the PC-Stable method with one
 thread (the sequential version) on 5000 samples generating from the ALARM BN. Command line options
 can be used to specify the job, method and corresponding parameters, see 
 [**Parameters**]((https://fastbn.readthedocs.io/en/latest/param_toc.html)).
@@ -58,7 +58,7 @@ can be used to specify the job, method and corresponding parameters, see
 
 ## Citation
 
-If you find FastBN useful, please consider citing our papers.
+If you find FastPGM useful, please consider citing our papers.
 
 Fast-BNS in IPDPS 2022 ([pdf](https://github.com/jjiantong/FastBN/tree/master/docs/papers/bnsl_ipdps.pdf)):
 ```
