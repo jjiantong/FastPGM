@@ -17,7 +17,7 @@
 #include <sys/time.h>
 #include <locale.h>
 #include <algorithm>
-#include <bits/stdc++.h>
+//#include <bits/stdc++.h>
 #include "omp.h"
 
 using namespace std;
