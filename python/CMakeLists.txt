@@ -4,8 +4,8 @@ project(cmake_example)
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp")
 
-# Manually set FASTBN_DIR as the absolute path of FastBN
-set(FASTBN_DIR "/home/jjt/work/BN/FastBN")
+# Manually set FASTPGM_DIR as the absolute path of FastPGM
+set(FASTPGM_DIR "/home/jjt/work/BN/FastBN")
 
 include_directories(${FASTBN_DIR}/include)
 include_directories(${FASTBN_DIR}/lib/tinyxml2)

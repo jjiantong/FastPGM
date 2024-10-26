@@ -17,7 +17,7 @@ import sphinx_rtd_theme
 
 # -- Project information -----------------------------------------------------
 
-project = 'FastBN'
+project = 'FastPGM'
 copyright = '2024, Jiantong Jiang'
 author = 'Jiantong Jiang'
 

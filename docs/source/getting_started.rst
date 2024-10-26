@@ -1,35 +1,35 @@
 Installation
 ============
 
-Clone the FastBN repository and build. Note the ``--recursive`` option which is needed for all the submodules.
+Clone the FastPGM repository and build. Note the ``--recursive`` option which is needed for all the submodules.
 
 .. code-block:: bash
 
-   git clone --recursive https://github.com/jjiantong/FastBN.git
-   cd FastBN
-   # under the directory of FastBN
-   mkdir build && cd build && cmake -DCMAKE_BUILD_TYPE=Release -DUSE_MPI=OFF .. && make
+   git clone --recursive https://github.com/jjiantong/FastPGM.git
+   cd FastPGM
+   # under the directory of FastPGM
+   mkdir build && cd build && cmake -DCMAKE_BUILD_TYPE=Release .. && make
 
 First Example
 =============
 
-Run FastBN through executable.
+Run FastPGM through executable.
 
 .. code-block:: bash
 
-   # under the directory of FastBN/build
+   # under the directory of FastPGM/build
    ./BayesianNetwork
 
-By default settings, FastBN will run the structure learning job via the PC-Stable method with one thread (the sequential
-version) on 5000 samples generating from the ALARM BN. After successful running, you will see key information during
-the structure learning procedure and the learned structure will be saved in ``FastBN/dataset/alarm``. Command line
-options can be used to specify the job, method and corresponding parameters, please see
-`parameters <https://fastbn.readthedocs.io/en/latest/param_toc.html>`__.
+By default settings, FastPGM will run the Bayesian network (BN) structure learning job via the PC-Stable method with
+one thread (the sequential version) on 5000 samples generating from the ALARM BN. After successful running, you will
+see key information during the structure learning procedure and the learned structure will be saved in
+``FastPGM/dataset/alarm``. Command line options can be used to specify the job, method and corresponding parameters,
+please see `parameters <https://fastpgm.readthedocs.io/en/latest/param_toc.html>`__.
 
 Supported Jobs and Methods
 ==========================
 
-The following jobs and methods are available in FastBN.
+The following jobs and methods are available in FastPGM.
 
 * **Structure learning**: to learn the structure (a graph) of a BN
 
@@ -57,13 +57,13 @@ The following jobs and methods are available in FastBN.
 * Classification: to categorize based on features (variables in BNs), accomplished through the building blocks of structure learning, parameter learning and inference.
 * Other functionalities related to BNs: such as sample generation, dataset and network format convertor, etc.
 
-Please see `knowledge base <file:///home/jjt/work/BN/FastBN/docs/build/html/basic_toc.html>`__ for the related basis
+Please see `knowledge base <file:///home/jjt/work/BN/FastPGM/docs/build/html/basic_toc.html>`__ for the related basis
 and terminologies.
 
-Citing FastBN
-=============
+Citing FastPGM
+==============
 
-If you find FastBN useful, please consider citing our papers.
+If you find FastPGM useful, please consider citing our papers.
 
 Fast-BNS in IPDPS 2022 `Fast Parallel Bayesian Network Structure Learning <https://ieeexplore.ieee.org/abstract/document/9820657>`__:
 
