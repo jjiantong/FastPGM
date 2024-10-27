@@ -57,7 +57,7 @@ The following jobs and methods are available in FastPGM.
 * Classification: to categorize based on features (variables in BNs), accomplished through the building blocks of structure learning, parameter learning and inference.
 * Other functionalities related to BNs: such as sample generation, dataset and network format convertor, etc.
 
-Please see `knowledge base <file:///home/jjt/work/BN/FastPGM/docs/build/html/basic_toc.html>`__ for the related basis
+Please see `knowledge base <https://fastpgm.readthedocs.io/en/latest/basic_toc.html>`__ for the related basis
 and terminologies.
 
 Citing FastPGM

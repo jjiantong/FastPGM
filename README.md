@@ -1,9 +1,9 @@
 # FastPGM: Fast Probabilistic Graphical Model Learning and Inference
 
-[**Documentation**](https://fastbn.readthedocs.io/en/latest/index.html#) 
-| [**Parameters**](https://fastbn.readthedocs.io/en/latest/param_toc.html) 
-| [**Knowledge base**](https://fastbn.readthedocs.io/en/latest/basic_toc.html)
-| [**Python interface**](https://fastbn.readthedocs.io/en/latest/python_toc.html)
+[**Documentation**](https://fastpgm.readthedocs.io/en/latest/index.html) 
+| [**Parameters**](https://fastpgm.readthedocs.io/en/latest/param_toc.html) 
+| [**Knowledge base**](https://fastpgm.readthedocs.io/en/latest/basic_toc.html)
+| [**Python interface**](https://fastpgm.readthedocs.io/en/latest/python_toc.html)
 
 **Fast-PGM** is an open-source C++ library that aims to help practitioners easily and efficiently 
 apply probabilistic graphical models (PGMs) to solve real-world problems. FastBN exploits multi-core CPUs 
@@ -23,10 +23,10 @@ and inference.
 Clone this repository and build. Note the ```--recursive``` option which is needed for all the 
 submodules.
 ```
-git clone --recursive https://github.com/jjiantong/FastBN.git
-cd FastBN
-# under the directory of FastBN
-mkdir build && cd build && cmake -DCMAKE_BUILD_TYPE=Release -DUSE_MPI=OFF .. && make
+git clone --recursive https://github.com/jjiantong/FastPGM.git
+cd FastPGM
+# under the directory of FastPGM
+mkdir build && cd build && cmake -DCMAKE_BUILD_TYPE=Release .. && make
 ```
 
 [//]: # (On Mac OS, the default compiler &#40;clang&#41; needs to be changed to g++. &#40;You can use ```ls /usr/local/bin | grep g++``` to check the compiler. Mine is ```g++-9```.&#41;)
@@ -45,7 +45,7 @@ mkdir build && cd build && cmake -DCMAKE_BUILD_TYPE=Release -DUSE_MPI=OFF .. && 
 
 ## Quick Start
 
-Run Fast-PGM through executable.
+Run FastPGM through executable.
 ```
 # under the directory of FastPGM/build
 ./BayesianNetwork
@@ -53,7 +53,7 @@ Run Fast-PGM through executable.
 By default settings, Fast-PGM will run the structure learning job using the PC-Stable method with one
 thread (the sequential version) on 5000 samples generating from the ALARM BN. Command line options
 can be used to specify the job, method and corresponding parameters, see 
-[**Parameters**]((https://fastbn.readthedocs.io/en/latest/param_toc.html)).
+[**Parameters**]((https://fastpgm.readthedocs.io/en/latest/param_toc.html)).
 
 
 ## Citation
