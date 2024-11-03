@@ -1,5 +1,7 @@
 # FastPGM: Fast Probabilistic Graphical Model Learning and Inference
 
+![](docs/source/fig/doc_cover.jpg)
+
 [**Documentation**](https://fastpgm.readthedocs.io/en/latest/index.html) 
 | [**Parameters**](https://fastpgm.readthedocs.io/en/latest/param_toc.html) 
 | [**Knowledge base**](https://fastpgm.readthedocs.io/en/latest/basic_toc.html)

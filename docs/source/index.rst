@@ -6,6 +6,8 @@
 FastPGM: Fast Probabilistic Graphical Model Learning and Inference
 ==================================================================
 
+.. image:: fig/doc_cover.jpg
+
 **FastPGM** is an open-source C++ library that aims to help practitioners easily and efficiently apply probabilistic
 graphical models (PGMs), especially Bayesian network (BN) models to solve real-world problems. FastBN exploits
 multi-core CPUs to achieve high efficiency. Key features of FastPGM are as follows:
