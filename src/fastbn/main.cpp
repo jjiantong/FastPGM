@@ -23,16 +23,15 @@ int main(int argc, char** argv) {
     param.ParseParameters(argc, argv);
 
     string path = __FILE__;
-    string project = "FastBN";
+    string project = "FastPGM";
     string project_root = path.substr(0, path.find(project) + project.length() + 1);
     string dpath = project_root + "dataset/";
 
     /**
      * Job = structure learning
      * Method = PC-Stable
-     * by default, we get a CPDAG and the graph may contain multiple independent sub-graphs. in
-     * order to get a DAG, or to get one connected graph, change the corresponding arguments in
-     * `StructLearnCompData`
+     * By default, we get a CPDAG which may contain multiple independent sub-graphs. To get a
+     * DAG, please change the corresponding args in `StructLearnCompData`.
      */
     if (param.job == 0) {
         if (param.method != 0) {
@@ -61,9 +60,8 @@ int main(int argc, char** argv) {
     /**
      * Job = learning (structure learning + parameter learning)
      * Method = PC-Stable + maximum likelihood estimation
-     * by default, we get a CPDAG and the graph may contain multiple independent sub-graphs. in
-     * order to get a DAG, or to get one connected graph, change the corresponding arguments in
-     * `StructLearnCompData`
+     * By default, we get a CPDAG which may contain multiple independent sub-graphs. To get a
+     * DAG, please change the corresponding args in `StructLearnCompData`.
      */
     else if (param.job == 1) {
         if (param.method != 0) {
