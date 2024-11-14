@@ -6,6 +6,8 @@ structure learning, parameter learning and inference. Here we provide some basic
 
 .. toctree::
    :name: Basics of FastPGM
-   :maxdepth: 1
+   :maxdepth: 5
 
-   basic
+   pgm
+   structure_learning
+   inference

@@ -16,7 +16,7 @@ risk management and transportation.
 
 
 Bayesian Network
-^^^^^^^^^^^^^^^^
+----------------
 
 Bayesian networks (BNs) are a pivotal type of PGMs. In a BN, :math:`\mathbb{G}` is a directed acyclic graph (DAG),
 where each node in :math:`\mathcal{V}` is associated with one variable and each edge in :math:`\mathcal{A}` represents
@@ -61,7 +61,7 @@ where :math:`n` is the number of random variables, and :math:`P(V_i | \mathbf{Pa
 
 
 Markov Random Field
-^^^^^^^^^^^^^^^^^^^
+-------------------
 
 Markov random fields (MRFs) are another subclass of PGMs. The major difference is that the structure :math:`\mathbb{G}`
 of an MRF is an undirected graph. The absence of directed edges in the MRF implies that there is no inherent
@@ -110,49 +110,4 @@ unified perspective on BNs and MRFs, which is useful for the tasks on PGMs.
    The conditioning set :math:`\mathbf{C}(V_i)` encompasses both the parents of :math:`V_i` in the context of BNs and
    the Markov blanket of :math:`V_i` in the context of MRFs, which is important for a unified perspective on PGMs.
 
-
-Structure Learning
-==================
-
-Structure learning in PGMs is a fundamental task that involves determining the optimal graphical structure
-:math:`\mathbb{G}` that is well matched the observed data. This structure :math:`\mathbb{G}`, whether directed as in
-BNs or undirected as in MRFs, captures the dependencies among the variables and is crucial for both understanding the
-underlying probabilistic relationships. Meanwhile, structure learning also facilitates subsequent tasks such as
-inference, prediction, and decision-making. The learned structure serves as a foundation for building more complex
-models, particularly in domains such as genetics, epidemiology, and natural language processing, where understanding
-the dependencies between variables is critical.
-
-The challenge in structure learning lies in the combinatorial nature of the problem. Given a set of :math:`n` variables,
-the number of possible graph structures grows super-exponentially with :math:`n`, making exhaustive search infeasible
-for all but the smallest sets of variables.
-
-
-Inference
-=========
-
-Given a PGM, we often have some observed variables :math:`\mathcal{E} \subseteq \mathcal{V}` and the observed values
-:math:`\textbf{e}` of :math:`\mathcal{E}` are called *evidence*. Inference in PGMs is the process of computing the
-posterior distribution of a subset of variables :math:`\mathcal{Y} \subseteq \mathcal{V}` given observed evidence
-:math:`\mathcal{E} = \textbf{e}`.
-
-Take :numref:`Figure %s <fig_bn>` as an example, suppose we know that the patient is a smoker (:math:`\sigma=1`) and
-has not been to Asia (:math:`\alpha=0`), and we want to query the probability of the patient suffering from dyspnea
-(:math:`\delta`). Thus, we compute distribution over :math:`\delta` given the evidence of :math:`\{\sigma=1, \alpha=0\}`,
-i.e., :math:`P(\delta | \sigma=1, \alpha=0)`. This task is central to the utility of PGMs, as it enables the model to
-make predictions, update beliefs, and perform decision-making under uncertainty.
-
-To infer the posterior distribution of :math:`Y_j \in \mathcal{Y}` given :math:`\mathcal{E} = \textbf{e}`, a common
-practice is to first compute :math:`P(Y_j, \mathcal{E} = \textbf{e})` and :math:`P(\mathcal{E} = \textbf{e})`, then
-combine them according to the Bayes' Theorem:
-
-.. math::
-
-    P(Y_j| \mathcal{E} = \textbf{e}) = \frac{P(Y_j, \mathcal{E} = \textbf{e})}{P(\mathcal{E} = \textbf{e})}.
-
-Inference can be exact or approximate. In some simple scenarios, inference is straightforward and exact. However,
-in more complex PGMs with large numbers of variables and dense connections, exact inference becomes computationally
-intractable due to the exponential growth of the state space. For instance, in a network with :math:`n` binary variables,
-the number of possible joint assignments is :math:`2^n`, making exact computation infeasible for large :math:`n`. In
-complex PGMs, approximate inference methods can be necessary. The choice between exact and approximate inference methods
-depends on the specific requirements and constraints of the application.
 
