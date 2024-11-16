@@ -22,8 +22,8 @@ and inference.
 
 ## Installation
 
-Clone this repository and build. Note the ```--recursive``` option which is needed for all the 
-submodules.
+Clone this repository and build. The recommended option for most users are as follows. Our full installation guide is 
+available in our documentation.
 ```
 git clone --recursive https://github.com/jjiantong/FastPGM.git
 cd FastPGM

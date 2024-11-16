@@ -23,8 +23,9 @@ multi-core CPUs to achieve high efficiency. Key features of FastPGM are as follo
    :caption: Getting Started
    :maxdepth: 3
 
-   installation_and_first_example
-   supported_jobs_and_methods
+   installation
+   first_example
+   support
    citing
    dependency
 

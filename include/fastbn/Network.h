@@ -18,6 +18,7 @@
 #include <locale.h>
 #include <algorithm>
 //#include <bits/stdc++.h>
+#include <climits>
 #include "omp.h"
 
 using namespace std;

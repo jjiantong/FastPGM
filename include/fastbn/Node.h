@@ -12,6 +12,7 @@
 #include <random>
 #include <chrono>
 //#include<bits/stdc++.h>
+#include <algorithm>
 #include "common.h"
 
 using namespace std;
