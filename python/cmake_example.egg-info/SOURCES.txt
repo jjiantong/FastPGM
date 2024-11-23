@@ -1,0 +1,7 @@
+setup.py
+cmake_example.egg-info/PKG-INFO
+cmake_example.egg-info/SOURCES.txt
+cmake_example.egg-info/dependency_links.txt
+cmake_example.egg-info/not-zip-safe
+cmake_example.egg-info/requires.txt
+cmake_example.egg-info/top_level.txt

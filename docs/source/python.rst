@@ -1,3 +1,12 @@
+Prerequisites
+============
+
+Before building the project, ensure the following prerequisites are met:
+
+* Follow the `prerequisites <https://fastpgm.readthedocs.io/en/latest/installation.html#prerequisites>`__ of the FastPGM installation guide to set up required tools like CMake and compilers.
+* ``Python`` (version 3.8 or later recommended).
+
+
 Installation
 ============
 
@@ -10,6 +19,7 @@ submodules including ``pybind11``.
    cd FastPGM/python
    # under the directory of FastPGM/python
    pip install .
+
 
 Running FastPGM
 ===============
