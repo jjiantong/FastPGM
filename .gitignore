@@ -3,6 +3,7 @@
 bin/
 build/
 cmake-build-*
+*.egg-info/
 eigen
 
 # dataset
