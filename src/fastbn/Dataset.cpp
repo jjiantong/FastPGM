@@ -840,6 +840,8 @@ void Dataset::Vector2IntArray() {//storing the data set using int only
 
 /**
  * @brief: convert from row-major storage ("dataset_all_vars") to column-major storage ("dataset_columns").
+ * Reference: "Fast parallel Bayesian network structure learning." (IPDPS 2022).
+ * Implements the optimization "Using  a cache-friendly data storage" described in Section 4.3.
  * this function is used if the data set only contains discrete variables. note that we always use `dataset_columns`
  * rather than `dataset_all_vars`.
  */

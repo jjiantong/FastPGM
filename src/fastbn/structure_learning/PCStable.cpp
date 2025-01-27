@@ -15,6 +15,13 @@ PCStable::~PCStable() {
     SAFE_DELETE(network);
 }
 
+/**
+ * Reference:
+ *      Jiang, Jiantong, Zeyi Wen, and Ajmal Mian.
+ *      "Fast parallel Bayesian network structure learning."
+ *      (IPDPS 2022).
+ * implements the algorithm Fast-BNS for structure learning as described in the paper.
+ */
 void PCStable::StructLearnCompData(Dataset *dts, int group_size, int num_threads,
                                    bool dag, bool add_root, bool save_struct, string struct_file, int verbose) {
     if (verbose > 0) {
@@ -95,7 +102,6 @@ void PCStable::StructLearnByPCStable(Dataset *dts, int num_threads, int group_si
     timer->Stop("pc-stable step 0");
 
     if (verbose > 0) {
-        timer->Print("pc-stable step 0");
         cout << "--------------------------------------------------" << '\n'
              << "Removing edges level by level..." << endl << "Level 0... " << endl;
     }
@@ -103,6 +109,7 @@ void PCStable::StructLearnByPCStable(Dataset *dts, int num_threads, int group_si
     timer->Start("pc-stable step 1");
 
     /**
+     * you can simply ignore this part as this part is not used in the current implementation.
      * key is node index, value is a map, contains the set of neighbor node indexes of the node and their weights. the
      * weight refers to the strength of association between the node and its neighbor, which is in fact the p-value
      * obtained from the level 0 of PC alg. step 1, smaller weight means stronger association. however, the strength is
@@ -119,6 +126,10 @@ void PCStable::StructLearnByPCStable(Dataset *dts, int num_threads, int group_si
         adjacencies.insert(make_pair(i, adjacency));
     }
 
+    /**
+     * handles level (depth) 0. since the conditioning set is an empty set, only one CI test is required for each edge,
+     * which is a marginal independence test. thus, we don't need the CI-level parallelism in level (depth) 0.
+     */
 #pragma omp parallel for num_threads(num_threads)
     for (int i = 0; i < network->num_edges; ++i) {
         int node_idx1 = network->vec_edges[i].GetNode1()->GetNodeIndex();
