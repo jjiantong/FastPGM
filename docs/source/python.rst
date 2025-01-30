@@ -35,7 +35,7 @@ Run the script.
 .. code-block:: bash
 
    # under the directory of FastPGM/python
-   python3 pyfastpgm.py
+   python pyfastpgm.py
 
 Parameters
 ==========

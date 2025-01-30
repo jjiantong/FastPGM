@@ -63,9 +63,9 @@ add the following lines to your ``~/.zshrc`` file:
 
 .. code-block:: bash
 
-   export CC=/usr/local/opt/llvm/bin/clang
-   export CXX=/usr/local/opt/llvm/bin/clang++
-   export PATH="/usr/local/opt/llvm/bin:$PATH"
+   export CC=/opt/homebrew/opt/llvm/bin/clang
+   export CXX=/opt/homebrew/opt/llvm/bin/clang++
+   export PATH="/opt/homebrew/opt/llvm/bin:$PATH"
 
 After the above steps, you may proceed to build FastPGM as described above in **For Linux Users**.
 
