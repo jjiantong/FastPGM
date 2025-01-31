@@ -6,13 +6,13 @@
 #include <vector>
 #include "gtest/gtest.h"
 
-#include "fastbn/Dataset.h"
-#include "fastbn/Network.h"
-#include "fastbn/CustomNetwork.h"
-#include "fastbn/structure_learning/StructureLearning.h"
-#include "fastbn/structure_learning/PCStable.h"
-#include "fastbn/structure_learning/BNSLComparison.h"
-#include "fastbn/test_common.h"
+#include "fastpgm/Dataset.h"
+#include "fastpgm/Network.h"
+#include "fastpgm/CustomNetwork.h"
+#include "fastpgm/structure_learning/StructureLearning.h"
+#include "fastpgm/structure_learning/PCStable.h"
+#include "fastpgm/structure_learning/BNSLComparison.h"
+#include "fastpgm/test_common.h"
 
 
 class TestStructureLearningPCStableAlarm : public ::testing::Test {

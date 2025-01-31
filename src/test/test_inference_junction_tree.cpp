@@ -6,11 +6,11 @@
 //#include <vector>
 //#include "gtest/gtest.h"
 //
-//#include "fastbn/Dataset.h"
-//#include "fastbn/CustomNetwork.h"
-//#include "fastbn/inference/Inference.h"
-//#include "fastbn/inference/JunctionTree.h"
-//#include "fastbn/test_common.h"
+//#include "fastpgm/Dataset.h"
+//#include "fastpgm/CustomNetwork.h"
+//#include "fastpgm/inference/Inference.h"
+//#include "fastpgm/inference/JunctionTree.h"
+//#include "fastpgm/test_common.h"
 //
 //
 //class TestExactInferenceJTAlarm: public ::testing::Test {

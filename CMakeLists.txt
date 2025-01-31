@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.17)
-project(BayesianNetwork)
+project(fastpgm)
 
 add_definitions("-Wall -g")
 
@@ -30,14 +30,12 @@ include_directories(${PROJECT_SOURCE_DIR}/lib/stats/include)
 include_directories(${PROJECT_SOURCE_DIR}/lib/gcem/include)
 
 add_subdirectory(lib)
-add_subdirectory(src/fastbn)
+add_subdirectory(src/fastpgm)
 add_subdirectory(src/test)
 
-file(GLOB_RECURSE SRC src/fastbn/*.cpp)
+file(GLOB_RECURSE SRC src/fastpgm/*.cpp)
 file(GLOB HEAD include/*.h)
 
-#add_library(fastbn SHARED ${SRC})
-
-add_executable(BayesianNetwork ${SRC} ${HEAD})
-target_link_libraries(BayesianNetwork tinyxml2 ARFF stats gcem)
-target_link_libraries(BayesianNetwork ${MPI_C_LIBRARIES})
+add_executable(fastpgm ${SRC} ${HEAD})
+target_link_libraries(fastpgm tinyxml2 ARFF stats gcem)
+target_link_libraries(fastpgm ${MPI_C_LIBRARIES})

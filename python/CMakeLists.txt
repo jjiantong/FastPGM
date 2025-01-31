@@ -16,7 +16,7 @@ include_directories(${FASTPGM_DIR}/lib/stats/include)
 include_directories(${FASTPGM_DIR}/lib/gcem/include)
 
 add_subdirectory(pybind11)
-file(GLOB_RECURSE FASTPGM_SRC ${FASTPGM_DIR}/src/fastbn/*.cpp)
+file(GLOB_RECURSE FASTPGM_SRC ${FASTPGM_DIR}/src/fastpgm/*.cpp)
 pybind11_add_module(cmake_example api_main.cpp
         ${FASTPGM_SRC} ${FASTPGM_DIR}/lib/tinyxml2/tinyxml2.cpp)
 

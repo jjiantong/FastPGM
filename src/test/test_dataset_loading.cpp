@@ -6,8 +6,8 @@
 //#include <vector>
 //#include "gtest/gtest.h"
 //
-//#include "fastbn/Dataset.h"
-//#include "fastbn/test_common.h"
+//#include "fastpgm/Dataset.h"
+//#include "fastpgm/test_common.h"
 //
 //
 //class TestCSVTrainingLoading : public ::testing::Test {

@@ -6,10 +6,10 @@
 //#include <vector>
 //#include "gtest/gtest.h"
 //
-//#include "fastbn/CustomNetwork.h"
-//#include "fastbn/test_common.h"
-//#include "fastbn/SampleSetGenerator.h"
-//#include "fastbn/Dataset.h"
+//#include "fastpgm/CustomNetwork.h"
+//#include "fastpgm/test_common.h"
+//#include "fastpgm/SampleSetGenerator.h"
+//#include "fastpgm/Dataset.h"
 //
 //
 //class TestSampleSet: public ::testing::Test {

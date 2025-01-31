@@ -6,14 +6,14 @@
 #include <vector>
 #include "gtest/gtest.h"
 
-#include "fastbn/Dataset.h"
-#include "fastbn/Network.h"
-#include "fastbn/structure_learning/StructureLearning.h"
-#include "fastbn/parameter_learning/ParameterLearning.h"
-#include "fastbn/structure_learning/PCStable.h"
-#include "fastbn/inference/Inference.h"
-#include "fastbn/inference/JunctionTree.h"
-#include "fastbn/test_common.h"
+#include "fastpgm/Dataset.h"
+#include "fastpgm/Network.h"
+#include "fastpgm/structure_learning/StructureLearning.h"
+#include "fastpgm/parameter_learning/ParameterLearning.h"
+#include "fastpgm/structure_learning/PCStable.h"
+#include "fastpgm/inference/Inference.h"
+#include "fastpgm/inference/JunctionTree.h"
+#include "fastpgm/test_common.h"
 
 
 class TestClassificationAlarm : public ::testing::Test {

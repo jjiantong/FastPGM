@@ -1,10 +1,10 @@
-import cmake_example as fastbn
+import cmake_example as fastpgm
 import os
 import sys
 import json
 
 def main():
-    # get the path of fastbn
+    # get the path of fastpgm
     current_dir = os.getcwd()
     parent_dir = os.path.dirname(current_dir)
     dpath = parent_dir + '/dataset/'
@@ -55,7 +55,7 @@ def main():
         if ref_net_file:
             ref_net_file = dpath + ref_net_file
 
-        fastbn.BNSL_PCStable(verbose, num_threads, group_size, alpha,
+        fastpgm.BNSL_PCStable(verbose, num_threads, group_size, alpha,
                              ref_net_file, dpath + train_set_file, save_struct)
 
     elif job == 1:
@@ -81,7 +81,7 @@ def main():
         if ref_net_file:
             ref_net_file = dpath + ref_net_file
 
-        fastbn.BNL_PCStable(verbose, num_threads, group_size, alpha,
+        fastpgm.BNL_PCStable(verbose, num_threads, group_size, alpha,
                             ref_net_file, dpath + train_set_file, save_struct, save_param)
 
     elif job == 2:
@@ -118,7 +118,7 @@ def main():
             if pt_file:
                 pt_file = dpath + pt_file
 
-            fastbn.BNEI_JT(verbose, num_threads,
+            fastpgm.BNEI_JT(verbose, num_threads,
                            dpath + net_file, dpath + test_set_file, pt_file)
 
         elif method == 2:
@@ -181,7 +181,7 @@ def main():
             if ref_net_file:
                 ref_net_file = dpath + ref_net_file
 
-            fastbn.C_PCStable_JT(verbose, num_threads, group_size, alpha,
+            fastpgm.C_PCStable_JT(verbose, num_threads, group_size, alpha,
                                  ref_net_file, dpath + train_set_file, dpath + test_set_file,
                                  save_struct, save_param)
 
