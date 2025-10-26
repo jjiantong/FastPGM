@@ -1,13 +1,6 @@
 <div align="center">
 <h1>FastPGM: Fast Probabilistic Graphical Model Learning and Inference</h1>
-
-<!-- </div>
-<div align="center">
-<b><a href="https://jjiantong.github.io/">Jiantong Jiang</a></b><sup>1</sup>,
 </div>
-<div align="center">
-<sup>1</sup>The University of Melbourne
-</div> -->
 
 ![](docs/source/fig/doc_cover.jpg)
 
@@ -147,4 +140,5 @@ Fast-PGM (the library):
  * [StasLib](https://github.com/jjiantong/stats)
  * [GCE-Math](https://github.com/kthohr/gcem)
  * [pybind11](https://github.com/pybind/pybind11)
+
 
